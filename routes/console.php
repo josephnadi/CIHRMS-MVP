@@ -35,3 +35,6 @@ Schedule::command('attendance:mark-absent')->dailyAt('23:55')->withoutOverlappin
 
 // Assets: regenerate depreciation snapshots monthly on the 1st at 02:00
 Schedule::command('assets:regenerate-depreciation')->monthlyOn(1, '02:00')->withoutOverlapping();
+
+// Governance: daily certification-expiry reminders at 08:00
+Schedule::command('governance:certification-reminders')->dailyAt('08:00')->withoutOverlapping();
