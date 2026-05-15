@@ -82,25 +82,25 @@
     }
 
     ::selection {
-        background-color: rgba(0, 81, 213, 0.15);
-        color: #0051d5;
+        background-color: rgba(29, 78, 216, 0.15);
+        color: #0a1f5c;
     }
     .dark ::selection {
-        background-color: rgba(49, 107, 243, 0.25);
-        color: #93b4fd;
+        background-color: rgba(59, 130, 246, 0.28);
+        color: #bcd5ff;
     }
 
     /* Custom scrollbar */
     ::-webkit-scrollbar        { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track  { background: transparent; }
     ::-webkit-scrollbar-thumb  { background: #c6c6cd; border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: #0051d5; }
+    ::-webkit-scrollbar-thumb:hover { background: #1d4ed8; }
     .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
     /* Sidebar scrollbar – light mode */
     .sidebar-scroll::-webkit-scrollbar       { width: 3px; }
     .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
-    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,81,213,0.3); }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(29,78,216,0.3); }
     /* Sidebar scrollbar – dark mode */
     .dark .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
     .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
@@ -109,9 +109,9 @@
 /* ─── Component Utilities ─────────────────────────────── */
 @layer components {
 
-    /* Gradient text */
+    /* Gradient text — brand navy → brand blue → curiosity cyan */
     .text-gradient {
-        background: linear-gradient(135deg, #0051d5 0%, #316bf3 50%, #7c5cff 100%);
+        background: linear-gradient(135deg, #0a1f5c 0%, #1d4ed8 50%, #5b9fd9 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;

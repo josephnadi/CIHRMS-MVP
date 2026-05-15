@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
         // Phase 1 — Ghana statutory reference data + grades/positions + trustees.
         $this->call(GhanaStatutoryReferenceSeeder::class);
         $this->call(PensionTrusteeSeeder::class);
+        $this->call(DemoLoanProductSeeder::class);
 
         // Phase 2 — Ghana 2026 statutory holidays.
         $this->call(GhanaPublicHolidaySeeder::class);

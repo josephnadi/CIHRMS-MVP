@@ -14,6 +14,9 @@ use App\Models\PayrollLine;
 use App\Models\PayrollRun;
 use App\Models\User;
 use App\Services\Attendance\AttendanceService;
+use App\Services\Loans\LoanService;
+use App\Models\LoanRepayment;
+use App\Enums\LoanRepaymentStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -37,6 +40,7 @@ class PayrollService
         private readonly AllowanceAggregator $allowances,
         private readonly DeductionAggregator $deductions,
         private readonly AttendanceService $attendance,
+        private readonly LoanService $loans,
     ) {}
 
     public function createDraft(int $year, int $month, ?int $departmentId, User $creator, ?string $reason = null): PayrollRun
@@ -174,7 +178,13 @@ class PayrollService
 
         $netAfterStatutory = round($gross - $ssnit['employee'] - $paye, 2);
         $deductionBundle   = $this->deductions->aggregate($employee, $gross, $netAfterStatutory, $periodDate);
-        $net               = round($netAfterStatutory - $deductionBundle['total'], 2);
+
+        // Loan repayments — claim scheduled installments for this employee for the
+        // run's period, but DO NOT mark them paid yet (that happens on run approval).
+        $loanBundle = $this->collectLoanRepayments($employee, $run);
+
+        $totalVoluntary = round($deductionBundle['total'] + $loanBundle['total'], 2);
+        $net            = round($netAfterStatutory - $totalVoluntary, 2);
 
         return PayrollLine::create([
             'payroll_run_id'        => $run->id,
@@ -195,7 +205,7 @@ class PayrollService
             'tier2_employer'        => $tier2['employer'],
             'tier3_employee'        => 0.0, // Will be wired when Tier-3 voluntary deduction lands
             'paye'                  => round($paye, 2),
-            'voluntary_deductions'  => $deductionBundle['total'],
+            'voluntary_deductions'  => $totalVoluntary,
             'net'                   => $net,
 
             'breakdown'             => [
@@ -205,10 +215,47 @@ class PayrollService
                 'tier2'         => $tier2,
                 'paye_bands'    => $payeBundle['bands'],
                 'deductions'    => $deductionBundle,
+                'loans'         => $loanBundle,
                 'effective_on'  => $periodDate->toDateString(),
             ],
             'status'                => 'calculated',
         ]);
+    }
+
+    /**
+     * Find scheduled loan repayments for the employee that fall in the run's
+     * pay period, and return them as a deduction bundle. Repayment rows are
+     * NOT mutated here — they're posted on PayrollRun::approve().
+     *
+     * @return array{
+     *     total:float,
+     *     lines:array<int, array{loan_reference:string, installment_no:int, amount:float, repayment_id:int}>
+     * }
+     */
+    private function collectLoanRepayments(Employee $employee, PayrollRun $run): array
+    {
+        $period = sprintf('%04d-%02d-01', $run->period_year, $run->period_month);
+
+        $repayments = LoanRepayment::query()
+            ->with('loan:id,reference,status')
+            ->where('status', LoanRepaymentStatus::Scheduled->value)
+            ->whereDate('due_period', $period)
+            ->whereHas('loan', fn ($q) => $q
+                ->where('employee_id', $employee->id)
+                ->activeForRepayment())
+            ->get();
+
+        $lines = $repayments->map(fn (LoanRepayment $r) => [
+            'loan_reference' => $r->loan?->reference ?? '—',
+            'installment_no' => (int) $r->installment_no,
+            'amount'         => (float) $r->scheduled_amount,
+            'repayment_id'   => (int) $r->id,
+        ])->all();
+
+        return [
+            'total' => round((float) $repayments->sum('scheduled_amount'), 2),
+            'lines' => $lines,
+        ];
     }
 
     private function resolveBasicSalary(Employee $employee, CarbonImmutable $periodDate): float
@@ -238,6 +285,19 @@ class PayrollService
                 'approved_by' => $approver->id,
                 'approved_at' => now(),
             ]);
+
+            // Finalize loan repayments captured during calculateLine().
+            // Each line's breakdown.loans.lines[].repayment_id is now posted,
+            // which marks the LoanRepayment paid and decrements the loan balance.
+            $run->lines()->calculated()->get()->each(function ($line) use ($run) {
+                $loanLines = data_get($line->breakdown, 'loans.lines', []);
+                foreach ($loanLines as $loanLine) {
+                    $repayment = LoanRepayment::find($loanLine['repayment_id'] ?? null);
+                    if ($repayment && $repayment->status === LoanRepaymentStatus::Scheduled) {
+                        $this->loans->postRepayment($repayment, $run->id, $line->id);
+                    }
+                }
+            });
 
             event(new PayrollRunApproved($run));
 

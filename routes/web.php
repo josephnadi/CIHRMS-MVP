@@ -20,6 +20,7 @@ use App\Http\Controllers\PayrollRunController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\LoanAccountController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
@@ -379,6 +380,22 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::patch('/{correction}/review', [AttendanceController::class, 'reviewCorrection'])
                 ->middleware('permission:attendance.approve')->name('review');
         });
+    });
+
+    // ── Phase 2: Loans & Advances ──
+    Route::prefix('loans')->name('loans.')->group(function () {
+        Route::get('/',                   [LoanAccountController::class, 'index'])
+            ->middleware('permission:loans.view')->name('index');
+        Route::post('/',                  [LoanAccountController::class, 'store'])
+            ->middleware('permission:loans.apply')->name('store');
+        Route::get('{loan}',              [LoanAccountController::class, 'show'])
+            ->middleware('permission:loans.view')->name('show');
+        Route::post('{loan}/decide',      [LoanAccountController::class, 'decide'])
+            ->middleware(['permission:loans.approve', '2fa:fresh'])->name('decide');
+        Route::post('{loan}/disburse',    [LoanAccountController::class, 'disburse'])
+            ->middleware(['permission:loans.disburse', '2fa:fresh'])->name('disburse');
+        Route::post('preview',            [LoanAccountController::class, 'preview'])
+            ->middleware('permission:loans.apply')->name('preview');
     });
 
     // ── Phase 1: Two-factor auth ──

@@ -31,9 +31,19 @@ const navSections = computed(() => {
                 items: [
                     { label: 'Dashboard',    route: 'dashboard',            module: 'overview',    icon: 'grid_view',      visible: true },
                     { label: 'Employees',    route: 'modules.employees',    module: 'employees',   icon: 'badge',          visible: true },
-                    { label: 'Attendance',   route: 'modules.attendance',   module: 'attendance',  icon: 'person_check',   visible: true },
+                    {
+                        label: 'Attendance', icon: 'person_check', expandable: true,
+                        visible: can('attendance.view') || can('attendance.correct') || can('attendance.clock_self'),
+                        children: [
+                            { label: 'Overview',      route: 'attendance.index',             module: 'attendance',             icon: 'dashboard',  visible: can('attendance.view') },
+                            { label: 'My Attendance', route: 'attendance.me',                module: 'attendance-me',          icon: 'person',     visible: true },
+                            { label: 'Shifts',        route: 'attendance.shifts.index',      module: 'attendance-shifts',      icon: 'schedule',   visible: can('attendance.shift_manage') },
+                            { label: 'Corrections',   route: 'attendance.corrections.index', module: 'attendance-corrections', icon: 'fact_check', visible: can('attendance.approve') || can('attendance.correct') },
+                        ],
+                    },
                     { label: 'Leave',        route: 'modules.leave',        module: 'leave',       icon: 'calendar_month', visible: true },
                     { label: 'Payroll',      route: 'modules.payroll',      module: 'payroll',     icon: 'payments',       visible: true },
+                    { label: 'Loans',        route: 'loans.index',          module: 'loans',       icon: 'request_quote',  visible: can('loans.view') || can('loans.apply') },
                     {
                         label: 'Performance', icon: 'monitoring', expandable: true, visible: can('performance.view'),
                         children: [
@@ -182,7 +192,7 @@ const resolveHref = (item) => {
 // ── Expandable sidebar groups ─────────────────────────────────────────────────
 // Default-expanded groups (initial state only — auto-expand on active child
 // will keep things open when the user navigates into a child route).
-const expandedGroups = ref(new Set(['Departments', 'Performance', 'Learning']));
+const expandedGroups = ref(new Set(['Departments', 'Performance', 'Learning', 'Attendance']));
 
 const isGroupExpanded = (label) => expandedGroups.value.has(label);
 
@@ -234,7 +244,7 @@ const roleLabel = computed(() => {
 
 // ── Theme-aware sidebar computed styles ──
 const sidebarStyle = computed(() => isDark.value
-    ? { background: '#0c0e14', borderColor: 'rgba(255,255,255,0.06)' }
+    ? { background: '#0a1f5c', borderColor: 'rgba(255,255,255,0.06)' }
     : { background: '#ffffff', borderColor: 'rgba(198,198,205,0.5)' }
 );
 
@@ -260,8 +270,8 @@ const navItemClass = (item) => {
 const navItemStyle = (item) => {
     if (isItemActive(item)) {
         return isDark.value
-            ? 'background:rgba(0,81,213,0.22);border:1px solid rgba(49,107,243,0.25);box-shadow:0 0 16px rgba(0,81,213,0.12);'
-            : 'background:rgba(0,81,213,0.08);border:1px solid rgba(0,81,213,0.15);';
+            ? 'background:rgba(29,78,216,0.22);border:1px solid rgba(59,130,246,0.25);box-shadow:0 0 16px rgba(29,78,216,0.12);'
+            : 'background:rgba(29,78,216,0.08);border:1px solid rgba(29,78,216,0.15);';
     }
     return 'border:1px solid transparent;';
 };
@@ -269,8 +279,8 @@ const navItemStyle = (item) => {
 const navIconStyle = (item) => {
     if (!isItemActive(item)) return '';
     return isDark.value
-        ? "font-variation-settings:'FILL' 1;color:#60a5fa;"
-        : "font-variation-settings:'FILL' 1;color:#0051d5;";
+        ? "font-variation-settings:'FILL' 1;color:#5b9fd9;"
+        : "font-variation-settings:'FILL' 1;color:#0a1f5c;";
 };
 
 const activeDotClass = computed(() => isDark.value ? 'bg-blue-400' : 'bg-secondary');
@@ -282,7 +292,7 @@ const userSectionBorderStyle = computed(() => isDark.value
 
 const userCardStyle = computed(() => isDark.value
     ? { background: 'rgba(255,255,255,0.04)' }
-    : { background: 'rgba(0,81,213,0.04)' }
+    : { background: 'rgba(29,78,216,0.04)' }
 );
 
 const avatarBorderStyle = computed(() => isDark.value
@@ -291,7 +301,7 @@ const avatarBorderStyle = computed(() => isDark.value
 );
 
 const onlineDotBorderStyle = computed(() => isDark.value
-    ? { borderColor: '#0c0e14' }
+    ? { borderColor: '#0a1f5c' }
     : { borderColor: '#ffffff' }
 );
 
@@ -308,8 +318,8 @@ const logoutClass = computed(() => isDark.value
 
 // ── App switcher (apps grid) — permission-gated, links to dedicated module pages ──
 const appSwitcherItems = computed(() => [
-    { label: 'Overview',    icon: 'grid_view',      href: route('dashboard'),                  module: 'overview',    color: '#0051d5', rgb: '0,81,213',   visible: true },
-    { label: 'Employees',   icon: 'badge',          href: route('employees.index'),            module: 'employees',   color: '#316bf3', rgb: '49,107,243', visible: can('employees.view') || can('employees.manage') },
+    { label: 'Overview',    icon: 'grid_view',      href: route('dashboard'),                  module: 'overview',    color: '#0a1f5c', rgb: '29,78,216',   visible: true },
+    { label: 'Employees',   icon: 'badge',          href: route('employees.index'),            module: 'employees',   color: '#1d4ed8', rgb: '59,130,246', visible: can('employees.view') || can('employees.manage') },
     { label: 'Leave',       icon: 'calendar_month', href: route('leave.index'),                module: 'leave',       color: '#d97706', rgb: '217,119,6',  visible: can('leave.request') },
     { label: 'Tickets',     icon: 'support_agent',  href: route('tickets.index'),              module: 'tickets',     color: '#dc2626', rgb: '220,38,38',  visible: can('tickets.create') },
     { label: 'Payroll',     icon: 'payments',       href: route('payments.index'),             module: 'payroll',     color: '#059669', rgb: '5,150,105',  visible: can('payroll.manage') || can('payroll.view') },
@@ -349,7 +359,7 @@ const quickActions = computed(() => [
             <!-- Logo -->
             <div class="relative flex items-center gap-3 px-5 py-5 border-b" :style="logoBorderStyle">
                 <div class="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-glow-sm"
-                     style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                     style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)">
                     <span class="material-symbols-outlined text-xl text-white" style="font-variation-settings:'FILL' 1">account_balance</span>
                 </div>
                 <div class="min-w-0">
@@ -380,10 +390,10 @@ const quickActions = computed(() => [
                                     @click="toggleGroup(item.label)"
                                     class="w-full flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-150 border"
                                     :class="isGroupActive(item) ? (isDark ? 'text-white' : 'text-secondary') : (isDark ? 'text-white/40 hover:text-white/80 hover:bg-white/[0.05]' : 'text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-container-low')"
-                                    :style="isGroupActive(item) ? (isDark ? 'background:rgba(0,81,213,0.16);border-color:rgba(49,107,243,0.22);' : 'background:rgba(0,81,213,0.07);border-color:rgba(0,81,213,0.14);') : 'border-color:transparent;'"
+                                    :style="isGroupActive(item) ? (isDark ? 'background:rgba(29,78,216,0.16);border-color:rgba(59,130,246,0.22);' : 'background:rgba(29,78,216,0.07);border-color:rgba(29,78,216,0.14);') : 'border-color:transparent;'"
                                 >
                                     <span class="material-symbols-outlined flex-shrink-0 text-[19px] transition-all duration-150"
-                                          :style="isGroupActive(item) ? (isDark ? 'font-variation-settings:\'FILL\' 1;color:#60a5fa;' : 'font-variation-settings:\'FILL\' 1;color:#0051d5;') : ''">{{ item.icon }}</span>
+                                          :style="isGroupActive(item) ? (isDark ? 'font-variation-settings:\'FILL\' 1;color:#5b9fd9;' : 'font-variation-settings:\'FILL\' 1;color:#0a1f5c;') : ''">{{ item.icon }}</span>
                                     <span class="tracking-[-0.01em] flex-1 text-left">{{ item.label }}</span>
                                     <span class="material-symbols-outlined text-[16px] flex-shrink-0 transition-transform duration-200"
                                           :style="`transform:rotate(${isGroupExpanded(item.label) ? 90 : 0}deg);opacity:0.5`">chevron_right</span>
@@ -398,7 +408,7 @@ const quickActions = computed(() => [
                                 >
                                     <div v-if="isGroupExpanded(item.label)"
                                          class="mt-1 ml-3 space-y-0.5 border-l pl-2.5"
-                                         :style="isDark ? 'border-color:rgba(255,255,255,0.08)' : 'border-color:rgba(0,81,213,0.14)'">
+                                         :style="isDark ? 'border-color:rgba(255,255,255,0.08)' : 'border-color:rgba(29,78,216,0.14)'">
                                         <Link
                                             v-for="child in item.children.filter(c => c.visible)"
                                             :key="child.label"
@@ -441,7 +451,7 @@ const quickActions = computed(() => [
                         <div class="h-8 w-8 rounded-full overflow-hidden border" :style="avatarBorderStyle">
                             <img v-if="user?.avatar" :src="user.avatar" class="h-full w-full object-cover" />
                             <div v-else class="h-full w-full flex items-center justify-center text-[11px] font-black text-white"
-                                 style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                 style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)">
                                 {{ user?.name?.charAt(0) }}
                             </div>
                         </div>
@@ -578,7 +588,7 @@ const quickActions = computed(() => [
                             <template #trigger>
                                 <button type="button"
                                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white shadow-glow-sm transition-all duration-200 hover:shadow-glow hover:-translate-y-px active:scale-[0.97]"
-                                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                        style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)"
                                         aria-label="Quick action menu">
                                     <span class="material-symbols-outlined text-[17px]">add</span>
                                     Quick Action
@@ -612,7 +622,7 @@ const quickActions = computed(() => [
                         <div class="ml-1 h-9 w-9 flex-shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-surface-container-lowest shadow-sm ring-1 ring-outline-variant/40 transition-all hover:ring-secondary/50">
                             <img v-if="user?.avatar" :src="user.avatar" class="h-full w-full object-cover" />
                             <div v-else class="flex h-full w-full items-center justify-center text-[11px] font-black text-white"
-                                 style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                 style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)">
                                 {{ user?.name?.charAt(0) }}
                             </div>
                         </div>

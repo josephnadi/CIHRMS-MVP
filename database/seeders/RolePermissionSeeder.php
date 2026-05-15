@@ -82,6 +82,14 @@ class RolePermissionSeeder extends Seeder
         'attendance.shift_manage'=> ['Attendance',   'Manage shift schedules and assignments'],
         'attendance.approve'     => ['Attendance',   'Approve or reject attendance correction requests'],
         'attendance.correct'     => ['Attendance',   'Request a manual correction to own attendance'],
+
+        // ── Phase 2: Loans & Advances ──
+        'loans.view'             => ['Loans',        'View all loan accounts org-wide'],
+        'loans.apply'            => ['Loans',        'Apply for a loan (self or on-behalf for HR)'],
+        'loans.approve'          => ['Loans',        'Approve / reject loan applications'],
+        'loans.disburse'         => ['Loans',        'Disburse approved loans and generate schedule'],
+        'loans.manage'           => ['Loans',        'Full administrative access to loans'],
+        'loans.product_manage'   => ['Loans',        'Manage loan product catalogue'],
     ];
 
     /**
@@ -102,6 +110,7 @@ class RolePermissionSeeder extends Seeder
             'identity.view', 'identity.verify',
             'attendance.view', 'attendance.manage', 'attendance.clock_self', 'attendance.shift_manage',
             'attendance.approve', 'attendance.correct',
+            'loans.view', 'loans.apply', 'loans.manage', 'loans.product_manage',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -128,6 +137,7 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'attendance.clock_self', 'attendance.correct',
+            'loans.apply',
         ],
         'finance_officer' => [
             'dashboard.view',
@@ -136,6 +146,7 @@ class RolePermissionSeeder extends Seeder
             'payroll.approve', 'payroll.view_all', 'statutory.export',
             'employees.view_salary',
             'attendance.correct',
+            'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
             'reports.view',
         ],
         'it_support' => [
