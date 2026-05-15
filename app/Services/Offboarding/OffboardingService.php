@@ -120,7 +120,9 @@ class OffboardingService
             'evidence_paths' => $evidencePaths ?: null,
         ]);
 
-        $this->maybeAdvanceCaseStatus($item->case);
+        // Strict mode disables lazy loading; fetch the case explicitly.
+        $case = OffboardingCase::find($item->offboarding_case_id);
+        if ($case) $this->maybeAdvanceCaseStatus($case);
 
         return $item->fresh();
     }
@@ -138,7 +140,8 @@ class OffboardingService
             'notes'      => $reason,
         ]);
 
-        $this->maybeAdvanceCaseStatus($item->case);
+        $case = OffboardingCase::find($item->offboarding_case_id);
+        if ($case) $this->maybeAdvanceCaseStatus($case);
 
         return $item->fresh();
     }
@@ -152,6 +155,10 @@ class OffboardingService
         if ($case->status->isTerminal()) {
             throw new \DomainException('Cannot calculate settlement on a closed case.');
         }
+
+        // Eager-load relations explicitly — strict mode forbids lazy loads.
+        $case->loadMissing(['settlement', 'employee.currentGrade']);
+
         if ($case->settlement && $case->settlement->status === SettlementStatus::Approved) {
             throw new \DomainException('Settlement already approved — cannot recalculate. Cancel first.');
         }
@@ -249,6 +256,10 @@ class OffboardingService
     public function complete(OffboardingCase $case, User $actor): OffboardingCase
     {
         if ($case->status === OffboardingStatus::Completed) return $case;
+
+        // Eager-load relations the method needs — strict mode disallows lazy loads.
+        $case->loadMissing(['settlement', 'employee']);
+
         if (! $case->isClearanceComplete()) {
             throw new \DomainException('Cannot complete: required clearance items still pending.');
         }
@@ -362,7 +373,9 @@ class OffboardingService
 
     private function closeOutstandingLoans(FinalSettlement $settlement): void
     {
-        $employeeId = $settlement->case?->employee_id;
+        // Fetch the case explicitly — $settlement->case lazy-loads.
+        $case = OffboardingCase::find($settlement->offboarding_case_id);
+        $employeeId = $case?->employee_id;
         if (! $employeeId) return;
 
         $loans = LoanAccount::where('employee_id', $employeeId)
