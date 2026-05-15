@@ -29,3 +29,6 @@ Schedule::call(function () {
 
 // Refresh integration OAuth tokens about to expire (every 30 minutes)
 Schedule::command('integrations:refresh-tokens --minutes=10')->everyThirtyMinutes()->withoutOverlapping();
+
+// Mark absent: daily, materializes attendance summaries for employees with no events
+Schedule::command('attendance:mark-absent')->dailyAt('23:55')->withoutOverlapping();
