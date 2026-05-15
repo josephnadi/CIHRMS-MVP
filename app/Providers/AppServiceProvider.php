@@ -153,6 +153,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\BenefitPlan::class,         \App\Policies\BenefitsPolicy::class);
         Gate::policy(\App\Models\BenefitEnrolment::class,    \App\Policies\BenefitsPolicy::class);
         Gate::policy(\App\Models\BenefitClaim::class,        \App\Policies\BenefitsPolicy::class);
+        Gate::policy(\App\Models\Policy::class,              \App\Policies\GovernancePolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──
         Gate::before(function ($user, string $ability) {

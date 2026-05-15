@@ -106,6 +106,12 @@ class RolePermissionSeeder extends Seeder
         'whistleblower.manage'      => ['Whistleblower', 'Reassign, delete, full administrative access'],
         'whistleblower.view_all'    => ['Whistleblower', 'Read-only access (Auditor lane)'],
 
+        // ── Phase 2: Performance Management completion ──
+        // Calibration uses dual-control: facilitator locks, a different user applies.
+        'performance.calibrate'       => ['Performance', 'Facilitate calibration sessions and record adjustments'],
+        'performance.calibrate_apply' => ['Performance', 'Apply locked calibration adjustments (dual control)'],
+        'performance.pip_manage'      => ['Performance', 'Open / extend / close Performance Improvement Plans'],
+
         // ── Phase 3: Assets ──
         'assets.view'            => ['Assets',       'View asset registry'],
         'assets.manage'          => ['Assets',       'Register, assign, return, retire assets'],
@@ -117,6 +123,12 @@ class RolePermissionSeeder extends Seeder
         'benefits.manage'    => ['Benefits',     'Manage benefit plans + claim decisions'],
         'benefits.enrol'     => ['Benefits',     'Enrol in benefit plans (self)'],
         'benefits.claim'     => ['Benefits',     'Submit benefit claims (self)'],
+
+        // ── Phase 5: Governance ──
+        'governance.view'         => ['Governance', 'View policies and acknowledge them'],
+        'governance.manage'       => ['Governance', 'Create / edit / publish policies'],
+        'governance.acknowledge'  => ['Governance', 'Acknowledge published policies (self)'],
+        'governance.cert_manage'  => ['Governance', 'Manage certification records + reminders'],
     ];
 
     /**
@@ -140,8 +152,10 @@ class RolePermissionSeeder extends Seeder
             'loans.view', 'loans.apply', 'loans.manage', 'loans.product_manage',
             'offboarding.view', 'offboarding.initiate', 'offboarding.clear',
             'offboarding.settle', 'offboarding.manage',
+            'performance.calibrate', 'performance.pip_manage',
             'assets.view', 'assets.manage', 'assets.assign',
             'benefits.view', 'benefits.view_all', 'benefits.manage', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -154,6 +168,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.approve', 'attendance.correct',
             'assets.view', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
             'reports.view',
         ],
         'dept_head' => [
@@ -166,6 +181,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.approve', 'attendance.correct',
             'assets.view', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
             'reports.view',
         ],
         'employee' => [
@@ -175,6 +191,7 @@ class RolePermissionSeeder extends Seeder
             'loans.apply',
             'assets.view',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
         ],
         'finance_officer' => [
             'dashboard.view',
@@ -187,6 +204,7 @@ class RolePermissionSeeder extends Seeder
             'offboarding.view', 'offboarding.settle', 'offboarding.approve',
             'assets.view',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
             'reports.view',
         ],
         'it_support' => [
@@ -196,6 +214,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.correct',
             'assets.view', 'assets.manage', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
         ],
         'auditor' => [
             'dashboard.view', 'employees.view',
@@ -208,7 +227,12 @@ class RolePermissionSeeder extends Seeder
             // Auditor can ALSO investigate when designated by the org as the
             // segregated investigator role.
             'whistleblower.view_all', 'whistleblower.investigate',
+            // Performance: auditor holds the dual-control APPLY side of calibration
+            // — facilitates can adjust ratings, but a different user with apply
+            // rights commits them to the underlying reviews.
+            'performance.calibrate_apply',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
         ],
     ];
 
