@@ -15,14 +15,15 @@ class Certification extends Model
     protected $fillable = [
         'employee_id', 'course_id', 'name', 'issuer',
         'credential_id', 'issued_at', 'expires_at',
-        'document_path', 'verification_url',
+        'document_path', 'verification_url', 'reminder_sent_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'issued_at'  => 'date',
-            'expires_at' => 'date',
+            'issued_at'        => 'date',
+            'expires_at'       => 'date',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 
@@ -54,5 +55,12 @@ class Certification extends Model
     public function scopeExpired(Builder $q): Builder
     {
         return $q->whereNotNull('expires_at')->where('expires_at', '<', now());
+    }
+
+    public function scopeNeedingReminder(\Illuminate\Database\Eloquent\Builder $q, int $daysAhead = 30): \Illuminate\Database\Eloquent\Builder
+    {
+        return $q->whereNotNull('expires_at')
+            ->whereNull('reminder_sent_at')
+            ->whereBetween('expires_at', [now()->startOfDay(), now()->addDays($daysAhead)->endOfDay()]);
     }
 }
