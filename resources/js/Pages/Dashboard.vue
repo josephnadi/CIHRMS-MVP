@@ -440,7 +440,7 @@ const getStatusColor = (status) => {
                                       class="flex-1 rounded-xl bg-secondary py-3 text-sm font-black text-white text-center shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all">
                                     View Full Profile
                                 </Link>
-                                <button @click="comingSoon('Profile actions menu')"
+                                <button @click="router.visit(route('profile.edit'))"
                                         type="button"
                                         class="rounded-xl border border-outline-variant px-3 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all">
                                     <span class="material-symbols-outlined">more_vert</span>
@@ -488,7 +488,7 @@ const getStatusColor = (status) => {
                                     </div>
                                 </div>
                             </div>
-                            <button @click="comingSoon('Performance review history')"
+                            <button @click="router.visit(route('performance.reviews.index'))"
                                     type="button"
                                     class="mt-6 w-full rounded-xl border border-outline-variant py-3 text-sm font-black text-primary hover:bg-surface-container-low transition-all">
                                 View Review History
@@ -767,7 +767,7 @@ const getStatusColor = (status) => {
                             </div>
                         </div>
 
-                        <button @click="comingSoon('Strategic OKR roadmap viewer')"
+                        <button @click="router.visit(route('performance.goals.index'))"
                                 type="button"
                                 class="btn-shimmer mt-10 w-full rounded-xl py-3 text-[13px] font-black text-white border transition-all hover:bg-white/20"
                                 style="background:rgba(0,81,213,0.25);border-color:rgba(49,107,243,0.3);">
@@ -2433,7 +2433,7 @@ const getStatusColor = (status) => {
                             <div class="overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest">
                                 <div class="border-b border-outline-variant/50 bg-surface-container-lowest/80 px-7 py-5 flex items-center justify-between">
                                     <h3 class="text-xl font-black text-primary">Institutional Announcements</h3>
-                                    <button @click="comingSoon('Announcements archive')" type="button" class="text-xs font-black text-secondary hover:underline">View All</button>
+                                    <button @click="router.visit(route('notifications.index'))" type="button" class="text-xs font-black text-secondary hover:underline">View All</button>
                                 </div>
                                 <div class="p-8 space-y-6">
                                     <div v-for="announcement in [
@@ -2528,7 +2528,7 @@ const getStatusColor = (status) => {
                                         <p class="text-[10px] font-medium text-on-surface-variant mt-0.5">{{ action.sub }}</p>
                                     </div>
                                 </div>
-                                <button @click="comingSoon('Personal task tracker')" type="button" class="mt-6 w-full rounded-xl border border-outline-variant py-3 text-xs font-black text-primary hover:bg-surface-container-low transition-all">View All Tasks</button>
+                                <button @click="router.visit(route('tickets.index', { assignee: 'me' }))" type="button" class="mt-6 w-full rounded-xl border border-outline-variant py-3 text-xs font-black text-primary hover:bg-surface-container-low transition-all">View All Tasks</button>
                             </div>
 
                             <!-- Today's Schedule -->
@@ -2924,7 +2924,7 @@ const getStatusColor = (status) => {
                                         <p class="text-[10px] font-black uppercase tracking-[0.18em] text-white/60">AI Insight</p>
                                     </div>
                                     <p class="text-sm font-bold leading-relaxed">Staff retention is at <span class="text-white font-black">94%</span> — above the 90% institutional target. Consider initiating a recognition programme to sustain momentum.</p>
-                                    <button @click="comingSoon('AI workforce report')" type="button"
+                                    <button @click="router.visit(route('reports.index'))" type="button"
                                             class="mt-5 w-full rounded-xl py-2.5 text-xs font-black text-white transition-all hover:bg-white/20"
                                             style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);">
                                         View AI Report
