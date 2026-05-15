@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import Dropdown         from '@/Components/Dropdown.vue';
 import DropdownLink     from '@/Components/DropdownLink.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
@@ -134,11 +134,38 @@ const navSections = computed(() => {
 });
 
 const isItemActive = (item) => {
+    if (!item) return false;
     const currentModule = page.props.activeModule;
+
+    // 1. Route-name match (preferred when the item points to a dedicated route).
+    //    We skip this for items routed to `dashboard` because every dashboard
+    //    sub-module shares the same route and disambiguates via `?module=`.
+    //    This stops sibling children (e.g. Performance > Analytics) lighting up
+    //    when the page sets a generic activeModule shared with the group.
+    if (item.route && item.route !== 'dashboard') {
+        if (item.routeParams) {
+            try {
+                if (route().current() !== item.route) return false;
+                const params = route().params ?? {};
+                return Object.entries(item.routeParams).every(([k, v]) => String(params[k]) === String(v));
+            } catch (e) { return false; }
+        }
+        return route().current(item.route);
+    }
+
+    // 2. Module-prop match — fallback for dashboard sub-modules and any item
+    //    that doesn't declare a specific route.
     if (currentModule !== undefined && currentModule !== null) {
         return item.module === currentModule;
     }
-    return route().current(item.route);
+
+    return false;
+};
+
+// True if the expandable group `item` contains any active child.
+const isGroupActive = (item) => {
+    if (!item?.children) return false;
+    return item.children.some(c => c.visible && isItemActive(c));
 };
 
 // Resolve a sidebar nav entry to a real URL.
@@ -153,16 +180,37 @@ const resolveHref = (item) => {
 };
 
 // ── Expandable sidebar groups ─────────────────────────────────────────────────
+// Default-expanded groups (initial state only — auto-expand on active child
+// will keep things open when the user navigates into a child route).
 const expandedGroups = ref(new Set(['Departments', 'Performance', 'Learning']));
-const isDeptGroupActive = computed(() =>
-    ['dept-it', 'dept-hr', 'dept-marketing', 'dept-finance'].includes(page.props.activeModule)
-);
+
 const isGroupExpanded = (label) => expandedGroups.value.has(label);
+
 const toggleGroup = (label) => {
     const next = new Set(expandedGroups.value);
     if (next.has(label)) next.delete(label); else next.add(label);
     expandedGroups.value = next;
 };
+
+// Auto-expand any group whose child is currently active. Watches the page's
+// active-module signal so navigating from Dashboard → Performance/Goals opens
+// the Performance group automatically (and keeps it open) without disturbing
+// any manual expand/collapse the user has done on unrelated groups.
+watch(
+    () => page.props.activeModule,
+    () => {
+        const next = new Set(expandedGroups.value);
+        navSections.value.forEach(section => {
+            section.items.forEach(item => {
+                if (item.expandable && isGroupActive(item)) {
+                    next.add(item.label);
+                }
+            });
+        });
+        expandedGroups.value = next;
+    },
+    { immediate: true },
+);
 
 // Include expandable children in mobile nav flat list
 const allNavItems = computed(() =>
@@ -326,16 +374,16 @@ const quickActions = computed(() => [
                     <div class="space-y-0.5">
                         <template v-for="item in section.items.filter(n => n.visible)" :key="item.label">
 
-                            <!-- ── Expandable group (Departments) ── -->
+                            <!-- ── Expandable group (Performance, Learning, Departments) ── -->
                             <template v-if="item.expandable">
                                 <button
                                     @click="toggleGroup(item.label)"
                                     class="w-full flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-150 border"
-                                    :class="isDeptGroupActive ? (isDark ? 'text-white' : 'text-secondary') : (isDark ? 'text-white/40 hover:text-white/80 hover:bg-white/[0.05]' : 'text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-container-low')"
-                                    :style="isDeptGroupActive ? (isDark ? 'background:rgba(0,81,213,0.16);border-color:rgba(49,107,243,0.22);' : 'background:rgba(0,81,213,0.07);border-color:rgba(0,81,213,0.14);') : 'border-color:transparent;'"
+                                    :class="isGroupActive(item) ? (isDark ? 'text-white' : 'text-secondary') : (isDark ? 'text-white/40 hover:text-white/80 hover:bg-white/[0.05]' : 'text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-container-low')"
+                                    :style="isGroupActive(item) ? (isDark ? 'background:rgba(0,81,213,0.16);border-color:rgba(49,107,243,0.22);' : 'background:rgba(0,81,213,0.07);border-color:rgba(0,81,213,0.14);') : 'border-color:transparent;'"
                                 >
                                     <span class="material-symbols-outlined flex-shrink-0 text-[19px] transition-all duration-150"
-                                          :style="isDeptGroupActive ? (isDark ? 'font-variation-settings:\'FILL\' 1;color:#60a5fa;' : 'font-variation-settings:\'FILL\' 1;color:#0051d5;') : ''">{{ item.icon }}</span>
+                                          :style="isGroupActive(item) ? (isDark ? 'font-variation-settings:\'FILL\' 1;color:#60a5fa;' : 'font-variation-settings:\'FILL\' 1;color:#0051d5;') : ''">{{ item.icon }}</span>
                                     <span class="tracking-[-0.01em] flex-1 text-left">{{ item.label }}</span>
                                     <span class="material-symbols-outlined text-[16px] flex-shrink-0 transition-transform duration-200"
                                           :style="`transform:rotate(${isGroupExpanded(item.label) ? 90 : 0}deg);opacity:0.5`">chevron_right</span>
