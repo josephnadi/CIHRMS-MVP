@@ -4,7 +4,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useToast } from '@/composables/useToast';
 
-const { comingSoon, success } = useToast();
+const { success } = useToast();
 
 // Switch the active dashboard module via the URL query param so back/forward works.
 function gotoModule(mod) {
@@ -1276,7 +1276,7 @@ const getStatusColor = (status) => {
                         <span class="material-symbols-outlined text-lg">arrow_back</span>
                         Return to Overview
                     </button>
-                    <button @click="comingSoon('Module access request')" type="button" class="rounded-2xl border border-outline-variant px-8 py-4 text-sm font-black text-primary hover:bg-surface-container-low transition-all">
+                    <button @click="router.visit(route('tickets.index', { new: 1, subject: 'Module access request' }))" type="button" class="rounded-2xl border border-outline-variant px-8 py-4 text-sm font-black text-primary hover:bg-surface-container-low transition-all">
                         Request Access
                     </button>
                 </div>
