@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -52,11 +52,11 @@ const leaveForm = useForm({ employee_id: '', start_date: '', end_date: '', type:
 const ticketForm = useForm({ employee_id: '', title: '', description: '', priority: 'medium', due_at: '' });
 const jobForm = useForm({ title: '', description: '', closes_at: '' });
 
-// ── Live Analytics Layer ──────────────────────────────────────────────────────
+// â”€â”€ Live Analytics Layer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const liveTime  = ref('');
 const lastSync  = ref(Date.now());      // timestamp of last server reload (for the "Live" pill)
 const isSyncing = ref(false);           // true while an Inertia partial reload is in flight
-const nowTick   = ref(Date.now());      // ticks every second to drive the "Live · 12s" countdown
+const nowTick   = ref(Date.now());      // ticks every second to drive the "Live Â· 12s" countdown
 const syncAgoLabel = computed(() => {
     const s = Math.max(0, Math.floor((nowTick.value - lastSync.value) / 1000));
     if (s < 60)   return s + 's';
@@ -79,14 +79,14 @@ const sparkData = computed(() => {
 const perfBarFallback = [45, 62, 50, 80, 88, 68, 72, 60, 75, 90, 70, 83];
 const feedIdx = ref(0);
 const activityPool = [
-    { text: 'New hire onboarded — Ama Asante (Technology)', icon: 'person_add',    color: '#316bf3', time: '2m ago' },
-    { text: 'Leave approved — K. Boateng, 5 days annual',  icon: 'calendar_today', color: '#d97706', time: '5m ago' },
-    { text: 'Payroll cycle completed — 1,284 staff paid',   icon: 'payments',       color: '#059669', time: '8m ago' },
+    { text: 'New hire onboarded â€” Ama Asante (Technology)', icon: 'person_add',    color: '#316bf3', time: '2m ago' },
+    { text: 'Leave approved â€” K. Boateng, 5 days annual',  icon: 'calendar_today', color: '#d97706', time: '5m ago' },
+    { text: 'Payroll cycle completed â€” 1,284 staff paid',   icon: 'payments',       color: '#059669', time: '8m ago' },
     { text: 'Ticket #SD-1029 escalated to IT Lead',         icon: 'warning',        color: '#dc2626', time: '12m ago' },
     { text: 'Q2 Performance reports generated',             icon: 'analytics',      color: '#7c5cff', time: '18m ago' },
     { text: 'Compliance audit: Grade A+ certified',         icon: 'verified_user',  color: '#059669', time: '25m ago' },
-    { text: 'Job posted — HR Business Partner role',        icon: 'work',           color: '#0891b2', time: '31m ago' },
-    { text: 'Security scan completed — all clear',          icon: 'shield',         color: '#316bf3', time: '44m ago' },
+    { text: 'Job posted â€” HR Business Partner role',        icon: 'work',           color: '#0891b2', time: '31m ago' },
+    { text: 'Security scan completed â€” all clear',          icon: 'shield',         color: '#316bf3', time: '44m ago' },
 ];
 const liveActivity = computed(() =>
     Array.from({ length: 5 }, (_, i) => activityPool[(feedIdx.value + i) % activityPool.length])
@@ -102,7 +102,7 @@ const kpiCards = computed(() => {
         { label: 'Active Staff',    display: (s.employees ?? 0).toLocaleString(),                                       trend: s.openJobs ? `${s.openJobs} open roles` : 'Workforce',     icon: 'badge',          color: '#316bf3', rgb: '49,107,243', spark: e, up: true  },
         { label: 'Open Tickets',    display: s.openTickets ?? 0,                                                        trend: 'Service desk',                                            icon: 'support_agent',  color: '#dc2626', rgb: '220,38,38',  spark: t, up: false },
         { label: 'Pending Leave',   display: s.pendingLeave ?? 0,                                                       trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#d97706', rgb: '217,119,6',  spark: l, up: false },
-        { label: 'Pending Payroll', display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : '—', icon: 'payments',       color: '#059669', rgb: '5,150,105',  spark: c, up: true  },
+        { label: 'Pending Payroll', display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : 'â€”', icon: 'payments',       color: '#059669', rgb: '5,150,105',  spark: c, up: true  },
     ];
 });
 
@@ -114,7 +114,7 @@ const chartLeaveByMonth = computed(() => {
 });
 const chartTicketTrend = computed(() => Object.values(props.ticketTrend ?? {}));
 
-// Workforce performance bars: scale real monthly leave data to a 20–98% range so visual
+// Workforce performance bars: scale real monthly leave data to a 20â€“98% range so visual
 // proportions stay readable. Falls back to a stable baseline series when no data exists.
 const perfBarData = computed(() => {
     const real = chartLeaveByMonth.value;
@@ -135,7 +135,7 @@ const sparkArea = (pts, w = 96, h = 30) => {
     return `M 0,${(h - ((pts[0] - min) / rng) * h * 0.88).toFixed(1)} L ${line} L ${w},${h} L 0,${h} Z`;
 };
 
-// ── Department-specific live data ────────────────────────────────────────────
+// â”€â”€ Department-specific live data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const deptSparkData = ref({
     it: {
         servers:  [22, 24, 23, 24, 24, 23, 24, 24, 23, 24, 24, 24],
@@ -166,11 +166,11 @@ const deptSparkData = ref({
 const _intervals = [];
 let   _reloadTimer = null;
 
-// Pick a fresh delay between 15s–20s so the cadence never feels mechanical.
+// Pick a fresh delay between 15sâ€“20s so the cadence never feels mechanical.
 const nextReloadMs = () => 15000 + Math.floor(Math.random() * 5001);
 
 // Pull fresh server-side numbers in the background. `only:` keeps the payload
-// small — Inertia re-evaluates just these props server-side and patches them
+// small â€” Inertia re-evaluates just these props server-side and patches them
 // in client-side without a full page reload.
 function scheduleServerReload() {
     _reloadTimer = setTimeout(() => {
@@ -194,7 +194,7 @@ onMounted(() => {
         liveTime.value = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     }, 60000));
 
-    // 1Hz tick that drives the "Live · Ns" countdown pill in the header
+    // 1Hz tick that drives the "Live Â· Ns" countdown pill in the header
     _intervals.push(setInterval(() => { nowTick.value = Date.now(); }, 1000));
 
     // Fast in-memory random walk for sparklines (visual liveness)
@@ -227,7 +227,7 @@ onMounted(() => {
         deptSparkData.value.finance   = { revenue: shift(fi.revenue, 8.0, 9.5, 0.08), variance: shift(fi.variance, -3.5, -1.0, 0.1), pending: shift(fi.pending, 120, 200, 4), efficiency: shift(fi.efficiency, 88, 98, 0.8) };
     }, 3800));
 
-    // ── Real backend sync every 15–20s (random) ─────────────────────────
+    // â”€â”€ Real backend sync every 15â€“20s (random) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     scheduleServerReload();
 });
 
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
     _intervals.forEach(clearInterval);
     if (_reloadTimer) clearTimeout(_reloadTimer);
 });
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const filteredEmployees = computed(() => props.employees.filter((employee) =>
     (employee.name?.toLowerCase() || '').includes(search.value.toLowerCase()) ||
@@ -312,7 +312,7 @@ const getStatusColor = (status) => {
                         <span class="h-1.5 w-1.5 rounded-full"
                               :class="isSyncing ? 'bg-blue-500 animate-pulse' : 'bg-green-500 live-dot'"></span>
                         <span class="text-[10px] font-black uppercase tracking-widest">
-                            {{ isSyncing ? 'Syncing…' : `Live · ${syncAgoLabel}` }}
+                            {{ isSyncing ? 'Syncingâ€¦' : `Live Â· ${syncAgoLabel}` }}
                         </span>
                     </div>
                     <Link :href="route('reports.index')" class="flex items-center gap-2 rounded-xl border border-outline-variant/70 bg-surface-container-lowest px-4 py-2.5 text-[13px] font-bold text-on-surface shadow-sm transition-all duration-150 hover:bg-surface-container-low hover:border-outline-variant hover:-translate-y-px active:scale-[0.97]">
@@ -433,7 +433,7 @@ const getStatusColor = (status) => {
                             </div>
                             <h4 class="text-2xl font-black text-primary">{{ selectedEmployee.name || 'Akua Mensah' }}</h4>
                             <p class="text-sm font-bold text-secondary">{{ selectedEmployee.position }}</p>
-                            <p class="mt-1 text-xs font-medium text-on-surface-variant">ID: {{ selectedEmployee.employee_no }} • Joined 2021</p>
+                            <p class="mt-1 text-xs font-medium text-on-surface-variant">ID: {{ selectedEmployee.employee_no }} â€¢ Joined 2021</p>
                             
                             <div class="mt-8 flex gap-3">
                                 <Link v-if="selectedEmployee?.id" :href="route('employees.show', selectedEmployee.id)"
@@ -543,7 +543,7 @@ const getStatusColor = (status) => {
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div v-for="(stat, si) in [
                         { label: 'Open Tickets',    val: Math.round(sparkData.tickets[sparkData.tickets.length-1]), badge: '12 critical',  badgeColor: 'bg-red-50 text-red-700',    icon: 'confirmation_number', color: '#dc2626', rgb: '220,38,38',   spark: sparkData.tickets    },
-                        { label: 'Avg Resolution',  val: '4.2h',                                                    badge: '↑ improving',  badgeColor: 'bg-green-50 text-green-700', icon: 'timer',               color: '#059669', rgb: '5,150,105',   spark: sparkData.compliance },
+                        { label: 'Avg Resolution',  val: '4.2h',                                                    badge: 'â†‘ improving',  badgeColor: 'bg-green-50 text-green-700', icon: 'timer',               color: '#059669', rgb: '5,150,105',   spark: sparkData.compliance },
                         { label: 'SLA Compliance',  val: sparkData.compliance[sparkData.compliance.length-1].toFixed(1)+'%', badge: 'Target 95%', badgeColor: 'bg-green-50 text-green-700', icon: 'verified', color: '#059669', rgb: '5,150,105', spark: sparkData.compliance },
                         { label: 'Pending Review',  val: '8',                                                       badge: '3 escalated',  badgeColor: 'bg-amber-50 text-amber-700', icon: 'inbox',               color: '#d97706', rgb: '217,119,6',   spark: sparkData.leave      },
                     ]" :key="si"
@@ -684,7 +684,7 @@ const getStatusColor = (status) => {
                     </div>
                 </div>
 
-                <!-- Floating Action Button — opens new-ticket modal -->
+                <!-- Floating Action Button â€” opens new-ticket modal -->
                 <button @click="showTicketModal = true"
                         type="button"
                         title="Create new ticket"
@@ -1085,7 +1085,7 @@ const getStatusColor = (status) => {
                                     <div class="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-black text-[10px]">AM</div>
                                     <div class="flex-1 min-w-0">
                                         <p class="text-xs font-black text-primary truncate">Annual Leave</p>
-                                        <p class="text-[9px] font-medium text-on-surface-variant">3 days • Oct 12-15</p>
+                                        <p class="text-[9px] font-medium text-on-surface-variant">3 days â€¢ Oct 12-15</p>
                                     </div>
                                     <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 text-[8px] font-black uppercase">Pending</span>
                                 </div>
@@ -1115,7 +1115,7 @@ const getStatusColor = (status) => {
                             ]" :key="job.title" class="p-8 hover:bg-surface-container-low/30 transition-all flex items-center justify-between group cursor-pointer">
                                 <div>
                                     <h4 class="text-sm font-black text-primary group-hover:text-secondary transition-colors">{{ job.title }}</h4>
-                                    <p class="text-[10px] font-medium text-on-surface-variant mt-1">{{ job.dept }} • 12 days left</p>
+                                    <p class="text-[10px] font-medium text-on-surface-variant mt-1">{{ job.dept }} â€¢ 12 days left</p>
                                 </div>
                                 <div class="flex items-center gap-8">
                                     <div class="text-right">
@@ -1363,70 +1363,6 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- Learning & Development Module (Employee) -->
-            <div v-if="activeModule === 'learning'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-2xl font-black text-primary">Learning & Development</h3>
-                        <p class="text-sm font-medium text-on-surface-variant">Upskill and grow with institutional training paths.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <p class="text-xs font-black text-primary">12 / 20 Credits</p>
-                            <p class="text-[10px] font-bold text-on-surface-variant uppercase">Annual Goal</p>
-                        </div>
-                        <div class="h-12 w-12 rounded-full border-4 border-surface-container-low flex items-center justify-center relative">
-                            <svg class="absolute inset-0 -rotate-90" viewBox="0 0 32 32">
-                                <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="4" class="text-secondary" stroke-dasharray="60 100" />
-                            </svg>
-                            <span class="text-[10px] font-black text-primary">60%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    <!-- Course Cards -->
-                    <div v-for="course in [
-                        { title: 'Advanced Project Management', provider: 'CIHRM Academy', duration: '12h', progress: 85, image: 'https://images.unsplash.com/photo-1454165833767-027eeef1593e?w=400&q=80' },
-                        { title: 'Strategic Leadership Essentials', provider: 'Harvard Mentor', duration: '8h', progress: 30, image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&q=80' },
-                        { title: 'Data Privacy & Ethics 2026', provider: 'Compliance Hub', duration: '4h', progress: 0, image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&q=80' }
-                    ]" :key="course.title" class="rounded-3xl border border-outline-variant bg-surface-container-lowest overflow-hidden shadow-sm group hover:border-secondary/30 transition-all">
-                        <div class="h-40 relative overflow-hidden">
-                            <img :src="course.image" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
-                            <div class="absolute bottom-4 left-4 right-4">
-                                <span class="px-2 py-0.5 rounded-full bg-secondary text-[8px] font-black uppercase text-white tracking-widest">{{ course.provider }}</span>
-                                <h4 class="text-sm font-black text-white mt-1">{{ course.title }}</h4>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
-                                <span>{{ course.duration }} Duration</span>
-                                <span class="text-secondary">{{ course.progress }}% Complete</span>
-                            </div>
-                            <div class="h-1.5 w-full rounded-full bg-surface-container-low overflow-hidden mb-6">
-                                <div class="h-full bg-secondary rounded-full transition-all duration-1000" :style="{ width: course.progress + '%' }"></div>
-                            </div>
-                            <button @click="comingSoon(course.title)" type="button" class="w-full rounded-xl py-3 text-xs font-black transition-all" :class="course.progress > 0 ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'bg-primary text-white hover:bg-primary/90'">
-                                {{ course.progress > 0 ? 'Continue Learning' : 'Start Course' }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl border border-outline-variant bg-surface-container-lowest p-8 flex flex-wrap items-center justify-between gap-8">
-                    <div class="flex items-center gap-6">
-                        <div class="h-16 w-16 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-                            <span class="material-symbols-outlined text-4xl">emoji_events</span>
-                        </div>
-                        <div>
-                            <h4 class="text-lg font-black text-primary">External Certification Subsidy</h4>
-                            <p class="text-sm font-medium text-on-surface-variant">You are eligible for up to GHS 2,500 in professional certification subsidies this year.</p>
-                        </div>
-                    </div>
-                    <button @click="comingSoon('Certification subsidy application')" type="button" class="rounded-xl bg-primary px-8 py-3 text-sm font-black text-white hover:bg-primary/90 transition-all">Apply for Subsidy</button>
-                </div>
-            </div>
 
             <!-- System Audit Logs Module -->
             <div v-if="activeModule === 'audit-logs'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1481,9 +1417,9 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- ════════════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  IT & TECHNOLOGY DEPARTMENT
-                 ════════════════════════════════════════════════════════════════ -->
+                 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <div v-if="activeModule === 'dept-it'" class="space-y-6 animate-reveal-up">
 
                 <!-- Hero Banner -->
@@ -1498,7 +1434,7 @@ const getStatusColor = (status) => {
                             <div>
                                 <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
                                 <h2 class="text-2xl font-black leading-tight">IT &amp; Technology</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Infrastructure · Support · Security · Development</p>
+                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Infrastructure Â· Support Â· Security Â· Development</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-10 flex-shrink-0">
@@ -1533,7 +1469,7 @@ const getStatusColor = (status) => {
                         </div>
                         <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
                         <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
+                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
                         <div class="-mx-1 mt-3">
                             <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
                                 <defs><linearGradient :id="`itg${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
@@ -1572,7 +1508,7 @@ const getStatusColor = (status) => {
                                         </div>
                                         <div>
                                             <p class="text-[13px] font-bold text-primary">{{ sys.name }}</p>
-                                            <p class="text-[10px] font-medium text-on-surface-variant">Latency: {{ sys.latency }} · Uptime: {{ sys.uptime }}</p>
+                                            <p class="text-[10px] font-medium text-on-surface-variant">Latency: {{ sys.latency }} Â· Uptime: {{ sys.uptime }}</p>
                                         </div>
                                     </div>
                                     <span class="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider" :class="sys.status === 'Operational' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'">{{ sys.status }}</span>
@@ -1603,7 +1539,7 @@ const getStatusColor = (status) => {
                                         <span class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-100">{{ ticket.status || 'Open' }}</span>
                                     </div>
                                 </div>
-                                <div v-if="!tickets.length" class="px-6 py-8 text-center text-sm font-bold text-on-surface-variant italic">No open tickets — all clear.</div>
+                                <div v-if="!tickets.length" class="px-6 py-8 text-center text-sm font-bold text-on-surface-variant italic">No open tickets â€” all clear.</div>
                             </div>
                         </div>
                     </div>
@@ -1614,12 +1550,12 @@ const getStatusColor = (status) => {
                         <!-- On-Call Roster -->
                         <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
                             <div class="absolute -right-4 -top-4 opacity-10"><span class="material-symbols-outlined text-9xl">phonelink_ring</span></div>
-                            <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-4" style="color:rgba(255,255,255,0.35)">On-Call Roster · Today</p>
+                            <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-4" style="color:rgba(255,255,255,0.35)">On-Call Roster Â· Today</p>
                             <div class="space-y-3">
                                 <div v-for="oncall in [
-                                    { name: 'Kwame Asiedu',   role: 'Senior DevOps',     shift: '08:00–16:00', primary: true },
-                                    { name: 'Efua Boateng',   role: 'Network Engineer',  shift: '16:00–00:00', primary: false },
-                                    { name: 'Isaac Mensah',   role: 'Security Analyst',  shift: '00:00–08:00', primary: false },
+                                    { name: 'Kwame Asiedu',   role: 'Senior DevOps',     shift: '08:00â€“16:00', primary: true },
+                                    { name: 'Efua Boateng',   role: 'Network Engineer',  shift: '16:00â€“00:00', primary: false },
+                                    { name: 'Isaac Mensah',   role: 'Security Analyst',  shift: '00:00â€“08:00', primary: false },
                                 ]" :key="oncall.name"
                                      class="flex items-center gap-3 rounded-xl p-3"
                                      :style="oncall.primary ? 'background:rgba(49,107,243,0.18);border:1px solid rgba(49,107,243,0.25)' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.05)'">
@@ -1687,9 +1623,9 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- ════════════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  HUMAN RESOURCES DEPARTMENT
-                 ════════════════════════════════════════════════════════════════ -->
+                 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <div v-if="activeModule === 'dept-hr'" class="space-y-6 animate-reveal-up">
 
                 <!-- Hero Banner -->
@@ -1704,7 +1640,7 @@ const getStatusColor = (status) => {
                             <div>
                                 <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
                                 <h2 class="text-2xl font-black leading-tight">Human Resources</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Talent · Culture · Compliance · Payroll</p>
+                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Talent Â· Culture Â· Compliance Â· Payroll</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-10 flex-shrink-0">
@@ -1738,7 +1674,7 @@ const getStatusColor = (status) => {
                         </div>
                         <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
                         <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
+                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
                         <div class="-mx-1 mt-3">
                             <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
                                 <defs><linearGradient :id="`hrg${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
@@ -1846,7 +1782,7 @@ const getStatusColor = (status) => {
 
                         <!-- Leave Summary -->
                         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">Leave Overview · This Month</h4>
+                            <h4 class="text-[13px] font-black text-primary mb-4">Leave Overview Â· This Month</h4>
                             <div class="grid grid-cols-2 gap-3">
                                 <div v-for="ls in [
                                     { label: 'On Leave',     val: Math.round(deptSparkData.hr.openPositions[11] * 3.4), color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -1881,9 +1817,9 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- ════════════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  MARKETING DEPARTMENT
-                 ════════════════════════════════════════════════════════════════ -->
+                 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <div v-if="activeModule === 'dept-marketing'" class="space-y-6 animate-reveal-up">
 
                 <!-- Hero Banner -->
@@ -1898,7 +1834,7 @@ const getStatusColor = (status) => {
                             <div>
                                 <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
                                 <h2 class="text-2xl font-black leading-tight">Marketing</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Campaigns · Brand · Digital · Content</p>
+                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Campaigns Â· Brand Â· Digital Â· Content</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-10 flex-shrink-0">
@@ -1932,7 +1868,7 @@ const getStatusColor = (status) => {
                         </div>
                         <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
                         <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
+                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
                         <div class="-mx-1 mt-3">
                             <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
                                 <defs><linearGradient :id="`mkg${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
@@ -1964,7 +1900,7 @@ const getStatusColor = (status) => {
                                     <div class="flex items-start justify-between mb-2">
                                         <div>
                                             <p class="text-[13px] font-bold text-primary">{{ campaign.name }}</p>
-                                            <p class="text-[10px] text-on-surface-variant mt-0.5">{{ campaign.channel }} · Spend: {{ campaign.spend }}</p>
+                                            <p class="text-[10px] text-on-surface-variant mt-0.5">{{ campaign.channel }} Â· Spend: {{ campaign.spend }}</p>
                                         </div>
                                         <div class="text-right flex-shrink-0 ml-4">
                                             <p class="text-sm font-black text-green-600">{{ campaign.roi }}</p>
@@ -1989,7 +1925,7 @@ const getStatusColor = (status) => {
                             <div class="grid grid-cols-3 gap-px bg-outline-variant/20 overflow-hidden">
                                 <div v-for="col in [
                                     { title: 'In Production', count: 8, color: 'bg-blue-400', items: ['Q3 Annual Report Design', 'Social Media Calendar', 'Brand Refresh Deck'] },
-                                    { title: 'In Review',     count: 5, color: 'bg-amber-400', items: ['CIHRM Brand Guidelines', 'Video Script — Recruitment'] },
+                                    { title: 'In Review',     count: 5, color: 'bg-amber-400', items: ['CIHRM Brand Guidelines', 'Video Script â€” Recruitment'] },
                                     { title: 'Published',     count: 12, color: 'bg-green-400', items: ['May Newsletter', 'LinkedIn Campaign Posts', 'Staff Magazine Issue 4'] },
                                 ]" :key="col.title" class="p-4 bg-surface-container-lowest">
                                     <div class="flex items-center gap-2 mb-3">
@@ -2081,9 +2017,9 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- ════════════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  FINANCE DEPARTMENT
-                 ════════════════════════════════════════════════════════════════ -->
+                 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <div v-if="activeModule === 'dept-finance'" class="space-y-6 animate-reveal-up">
 
                 <!-- Hero Banner -->
@@ -2098,7 +2034,7 @@ const getStatusColor = (status) => {
                             <div>
                                 <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
                                 <h2 class="text-2xl font-black leading-tight">Finance</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Payroll · Audit · Compliance · Reporting</p>
+                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Payroll Â· Audit Â· Compliance Â· Reporting</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-10 flex-shrink-0">
@@ -2132,7 +2068,7 @@ const getStatusColor = (status) => {
                         </div>
                         <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
                         <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
+                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
                         <div class="-mx-1 mt-3">
                             <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
                                 <defs><linearGradient :id="`fig${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
@@ -2151,7 +2087,7 @@ const getStatusColor = (status) => {
                         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-6 overflow-hidden">
                             <div class="flex items-center justify-between mb-5">
                                 <div>
-                                    <h3 class="text-[15px] font-black text-primary">Budget vs Actuals · 2026</h3>
+                                    <h3 class="text-[15px] font-black text-primary">Budget vs Actuals Â· 2026</h3>
                                     <p class="text-[10px] text-on-surface-variant mt-0.5">Monthly financial performance tracking</p>
                                 </div>
                                 <div class="flex items-center gap-3">
@@ -2234,7 +2170,7 @@ const getStatusColor = (status) => {
                             <div class="absolute -right-4 -top-4 opacity-10"><span class="material-symbols-outlined text-9xl">payments</span></div>
                             <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style="color:rgba(255,255,255,0.3)">Monthly Payroll</p>
                             <p class="text-3xl font-black mb-1">GHS 2.45M</p>
-                            <p class="text-[10px] mb-5" style="color:rgba(255,255,255,0.4)">Next cycle ends in 4 days · 1,284 staff</p>
+                            <p class="text-[10px] mb-5" style="color:rgba(255,255,255,0.4)">Next cycle ends in 4 days Â· 1,284 staff</p>
                             <div class="space-y-2.5">
                                 <div class="flex items-center justify-between text-[11px] font-bold">
                                     <span style="color:rgba(255,255,255,0.55)">Processing Status</span>
@@ -2261,7 +2197,7 @@ const getStatusColor = (status) => {
                             <h4 class="text-[13px] font-black text-primary mb-4">Statutory Compliance</h4>
                             <div class="space-y-3">
                                 <div v-for="item in [
-                                    { label: 'SSNIT Filing — May 2026',    status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
+                                    { label: 'SSNIT Filing â€” May 2026',    status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
                                     { label: 'Income Tax (PAYE)',           status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
                                     { label: 'Provident Fund Contribution', status: 'Pending',   color: 'text-amber-600 bg-amber-50 border-amber-100' },
                                     { label: 'Annual Returns',              status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
@@ -2322,7 +2258,7 @@ const getStatusColor = (status) => {
                                 <span class="material-symbols-outlined text-2xl">wb_sunny</span>
                             </div>
                             <div>
-                                <p class="text-xs font-black text-primary">28°C Accra</p>
+                                <p class="text-xs font-black text-primary">28Â°C Accra</p>
                                 <p class="text-[10px] font-bold text-on-surface-variant uppercase">Mostly Sunny</p>
                             </div>
                         </div>
@@ -2499,11 +2435,11 @@ const getStatusColor = (status) => {
                         <div class="pointer-events-none absolute bottom-0 left-1/3 h-48 w-48 rounded-full blur-2xl" style="background:rgba(124,92,255,0.07);"></div>
                         <div class="relative flex flex-wrap items-center justify-between gap-8">
                             <div>
-                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(255,255,255,0.35)">CIHRM Ghana · Executive Console</p>
+                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(255,255,255,0.35)">CIHRM Ghana Â· Executive Console</p>
                                 <h2 class="text-3xl font-black leading-tight">
                                     Good Morning, {{ $page.props.auth.user.name.split(' ')[0] }}.
                                 </h2>
-                                <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">All systems are operational — here's your institutional snapshot.</p>
+                                <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">All systems are operational â€” here's your institutional snapshot.</p>
                                 <div class="mt-6 flex items-center gap-3">
                                     <button @click="showAddEmployeeModal = true"
                                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
@@ -2525,7 +2461,7 @@ const getStatusColor = (status) => {
                                     </button>
                                 </div>
                             </div>
-                            <!-- Hero Inline KPIs — live -->
+                            <!-- Hero Inline KPIs â€” live -->
                             <div class="flex items-center gap-8 flex-shrink-0">
                                 <div v-for="kpi in [
                                     { label: 'Active Staff',  val: Math.round(sparkData.employees[sparkData.employees.length-1]) },
@@ -2556,7 +2492,7 @@ const getStatusColor = (status) => {
                             <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
                             <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
                             <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">
-                                {{ card.up ? '↑' : '↓' }} {{ card.trend }}
+                                {{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}
                             </p>
                             <!-- Inline sparkline -->
                             <div class="-mx-1 mt-3">
@@ -2586,7 +2522,7 @@ const getStatusColor = (status) => {
                             <div class="mb-5 flex items-center justify-between flex-shrink-0">
                                 <div>
                                     <h4 class="text-[13px] font-black text-primary">Approved Leave by Month</h4>
-                                    <p class="text-[10px] font-medium text-on-surface-variant mt-0.5">Monthly leave volume · {{ new Date().getFullYear() }}</p>
+                                    <p class="text-[10px] font-medium text-on-surface-variant mt-0.5">Monthly leave volume Â· {{ new Date().getFullYear() }}</p>
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center gap-1.5">
@@ -2596,7 +2532,7 @@ const getStatusColor = (status) => {
                                 </div>
                             </div>
 
-                            <!-- Bars — grow to fill remaining card height with sensible bounds -->
+                            <!-- Bars â€” grow to fill remaining card height with sensible bounds -->
                             <div class="flex items-end gap-1.5 flex-1 min-h-[140px] max-h-[280px]">
                                 <div v-for="(h, i) in perfBarData" :key="i"
                                      class="flex-1 rounded-t relative overflow-hidden group cursor-default"
@@ -2614,7 +2550,7 @@ const getStatusColor = (status) => {
                             </div>
                         </div>
 
-                        <!-- Live Activity Feed — cap height so it doesn't drive the row taller than the chart -->
+                        <!-- Live Activity Feed â€” cap height so it doesn't drive the row taller than the chart -->
                         <div class="lg:col-span-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden flex flex-col max-h-[420px]">
                             <div class="flex items-center justify-between px-5 py-4 border-b border-outline-variant/50 flex-shrink-0">
                                 <h4 class="text-[13px] font-black text-primary">Live Activity</h4>
@@ -2690,13 +2626,13 @@ const getStatusColor = (status) => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.department?.name || '—' }}</td>
+                                                <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.department?.name || 'â€”' }}</td>
                                                 <td class="px-6 py-4">
                                                     <span class="inline-flex rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border" :class="getStatusColor(employee.status || 'active')">
                                                         {{ employee.status_label || employee.status || 'Active' }}
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.hire_date || '—' }}</td>
+                                                <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.hire_date || 'â€”' }}</td>
                                                 <td class="px-7 py-4 text-right">
                                                     <Link :href="route('employees.show', employee.id)" class="text-on-surface-variant hover:text-secondary transition-colors" title="Open profile">
                                                         <span class="material-symbols-outlined text-xl">open_in_new</span>
@@ -2711,7 +2647,7 @@ const getStatusColor = (status) => {
                                 </div>
                                 <div class="border-t border-outline-variant bg-surface-container-lowest px-7 py-4 flex items-center justify-between">
                                     <p class="text-xs font-bold text-on-surface-variant">Showing {{ employees.length }} of {{ stats.employees || 0 }} employees</p>
-                                    <Link :href="route('employees.index')" class="text-xs font-black text-secondary hover:underline">View Full Directory →</Link>
+                                    <Link :href="route('employees.index')" class="text-xs font-black text-secondary hover:underline">View Full Directory â†’</Link>
                                 </div>
                             </div>
 
@@ -2838,7 +2774,7 @@ const getStatusColor = (status) => {
                                         </div>
                                         <div class="space-y-0.5 min-w-0">
                                             <p class="text-xs font-bold text-primary leading-snug line-clamp-2">{{ event.event }}</p>
-                                            <p class="text-[10px] font-medium text-on-surface-variant">Just now • <span class="text-secondary">System</span></p>
+                                            <p class="text-[10px] font-medium text-on-surface-variant">Just now â€¢ <span class="text-secondary">System</span></p>
                                         </div>
                                     </div>
                                     <div v-if="!recentEvents.length" class="py-6 text-center text-xs font-bold text-on-surface-variant italic">No recent activity.</div>
@@ -2861,7 +2797,7 @@ const getStatusColor = (status) => {
                                         <span class="material-symbols-outlined text-white/80 text-xl" style="font-variation-settings:'FILL' 1">psychology</span>
                                         <p class="text-[10px] font-black uppercase tracking-[0.18em] text-white/60">AI Insight</p>
                                     </div>
-                                    <p class="text-sm font-bold leading-relaxed">Staff retention is at <span class="text-white font-black">94%</span> — above the 90% institutional target. Consider initiating a recognition programme to sustain momentum.</p>
+                                    <p class="text-sm font-bold leading-relaxed">Staff retention is at <span class="text-white font-black">94%</span> â€” above the 90% institutional target. Consider initiating a recognition programme to sustain momentum.</p>
                                     <button @click="router.visit(route('reports.index'))" type="button"
                                             class="mt-5 w-full rounded-xl py-2.5 text-xs font-black text-white transition-all hover:bg-white/20"
                                             style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);">
@@ -2876,7 +2812,7 @@ const getStatusColor = (status) => {
         </div>
     </AuthenticatedLayout>
 
-    <!-- ─── Modals ───────────────────────────────────────────── -->
+    <!-- â”€â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
     <!-- Add Employee Modal -->
     <Teleport to="body">
@@ -2961,7 +2897,7 @@ const getStatusColor = (status) => {
                                         class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow disabled:opacity-60"
                                         style="background:linear-gradient(135deg,#0051d5,#316bf3);"
                                         :disabled="employeeForm.processing">
-                                    {{ employeeForm.processing ? 'Adding…' : 'Add Employee' }}
+                                    {{ employeeForm.processing ? 'Addingâ€¦' : 'Add Employee' }}
                                 </button>
                             </div>
                         </form>
@@ -3001,12 +2937,12 @@ const getStatusColor = (status) => {
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Description (optional)</label>
-                            <textarea v-model="departmentForm.description" rows="3" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief description…"></textarea>
+                            <textarea v-model="departmentForm.description" rows="3" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief descriptionâ€¦"></textarea>
                         </div>
                         <div class="flex gap-4 pt-2">
                             <button type="button" @click="showAddDeptModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
                             <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="departmentForm.processing">
-                                {{ departmentForm.processing ? 'Creating…' : 'Create Department' }}
+                                {{ departmentForm.processing ? 'Creatingâ€¦' : 'Create Department' }}
                             </button>
                         </div>
                     </form>
@@ -3060,12 +2996,12 @@ const getStatusColor = (status) => {
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Reason</label>
-                            <textarea v-model="leaveForm.reason" rows="3" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief reason for leave…"></textarea>
+                            <textarea v-model="leaveForm.reason" rows="3" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief reason for leaveâ€¦"></textarea>
                         </div>
                         <div class="flex gap-4 pt-2">
                             <button type="button" @click="showLeaveModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
                             <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="leaveForm.processing">
-                                {{ leaveForm.processing ? 'Submitting…' : 'Submit Request' }}
+                                {{ leaveForm.processing ? 'Submittingâ€¦' : 'Submit Request' }}
                             </button>
                         </div>
                     </form>
@@ -3100,7 +3036,7 @@ const getStatusColor = (status) => {
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Description</label>
-                            <textarea v-model="ticketForm.description" rows="4" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Describe the issue in detail…"></textarea>
+                            <textarea v-model="ticketForm.description" rows="4" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Describe the issue in detailâ€¦"></textarea>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="space-y-1.5">
@@ -3108,7 +3044,7 @@ const getStatusColor = (status) => {
                                 <select v-model="ticketForm.priority" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all">
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
-                                    <option value="high">High — Urgent</option>
+                                    <option value="high">High â€” Urgent</option>
                                 </select>
                             </div>
                             <div class="space-y-1.5">
@@ -3119,7 +3055,7 @@ const getStatusColor = (status) => {
                         <div class="flex gap-4 pt-2">
                             <button type="button" @click="showTicketModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
                             <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="ticketForm.processing">
-                                {{ ticketForm.processing ? 'Submitting…' : 'Open Ticket' }}
+                                {{ ticketForm.processing ? 'Submittingâ€¦' : 'Open Ticket' }}
                             </button>
                         </div>
                     </form>
@@ -3154,7 +3090,7 @@ const getStatusColor = (status) => {
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Job Description</label>
-                            <textarea v-model="jobForm.description" rows="5" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Role overview, responsibilities, requirements…"></textarea>
+                            <textarea v-model="jobForm.description" rows="5" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Role overview, responsibilities, requirementsâ€¦"></textarea>
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Application Deadline</label>
@@ -3163,7 +3099,7 @@ const getStatusColor = (status) => {
                         <div class="flex gap-4 pt-2">
                             <button type="button" @click="showJobModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
                             <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="jobForm.processing">
-                                {{ jobForm.processing ? 'Posting…' : 'Post Job' }}
+                                {{ jobForm.processing ? 'Postingâ€¦' : 'Post Job' }}
                             </button>
                         </div>
                     </form>
@@ -3174,7 +3110,7 @@ const getStatusColor = (status) => {
 </template>
 
 <style scoped>
-/* ── Internal canvas scroll (sticky-header tables, activity feeds) ─── */
+/* â”€â”€ Internal canvas scroll (sticky-header tables, activity feeds) â”€â”€â”€ */
 .canvas-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
 .canvas-scroll::-webkit-scrollbar-track { background: transparent; }
 .canvas-scroll::-webkit-scrollbar-thumb {
@@ -3188,7 +3124,7 @@ const getStatusColor = (status) => {
     background-clip: padding-box;
 }
 
-/* ── Live dot pulse ─────────────────────────────────── */
+/* â”€â”€ Live dot pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .live-dot {
     animation: liveDot 1.6s ease-in-out infinite;
 }
@@ -3197,22 +3133,22 @@ const getStatusColor = (status) => {
     50%       { opacity: 0.3; transform: scale(0.75); }
 }
 
-/* ── KPI number transition ──────────────────────────── */
+/* â”€â”€ KPI number transition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .kpi-val {
     transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── Activity feed transition ───────────────────────── */
+/* â”€â”€ Activity feed transition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .feed-anim-enter-active { transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
 .feed-anim-leave-active { transition: all 0.25s ease; position: absolute; width: 100%; }
 .feed-anim-enter-from   { opacity: 0; transform: translateY(-10px); }
 .feed-anim-leave-to     { opacity: 0; transform: translateY(8px); }
 .feed-anim-move         { transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
 
-/* ── Bar tooltip fix (overflow visible on parent) ───── */
+/* â”€â”€ Bar tooltip fix (overflow visible on parent) â”€â”€â”€â”€â”€ */
 .group { isolation: isolate; }
 
-/* ── Slide-up stagger keyframe (referenced inline) ───── */
+/* â”€â”€ Slide-up stagger keyframe (referenced inline) â”€â”€â”€â”€â”€ */
 @keyframes slideUpFade {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
