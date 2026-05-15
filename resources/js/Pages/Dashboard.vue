@@ -1,6 +1,6 @@
 ﻿<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useToast } from '@/composables/useToast';
 
@@ -35,22 +35,9 @@ const selectedEmployee = ref(
         : null
 );
 
-// Modal visibility state
-const showAddEmployeeModal = ref(false);
-const showAddDeptModal = ref(false);
-const showLeaveModal = ref(false);
-const showTicketModal = ref(false);
-const showJobModal = ref(false);
-
 const selectEmployee = (employee) => {
     selectedEmployee.value = employee;
 };
-
-const departmentForm = useForm({ name: '', code: '', description: '' });
-const employeeForm = useForm({ department_id: '', employee_no: '', position: '', hire_date: '', phone: '' });
-const leaveForm = useForm({ employee_id: '', start_date: '', end_date: '', type: 'annual', reason: '' });
-const ticketForm = useForm({ employee_id: '', title: '', description: '', priority: 'medium', due_at: '' });
-const jobForm = useForm({ title: '', description: '', closes_at: '' });
 
 // â”€â”€ Live Analytics Layer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const liveTime  = ref('');
@@ -346,7 +333,7 @@ const getStatusColor = (status) => {
                                     <span class="material-symbols-outlined text-xl">filter_list</span>
                                     Department
                                 </Link>
-                                <button @click="showAddEmployeeModal = true"
+                                <button @click="router.visit(route('employees.index', { new: 1 }))"
                                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-95"
                                         style="background:linear-gradient(135deg,#0051d5,#316bf3);">
                                     <span class="material-symbols-outlined text-[18px]">add</span>
@@ -685,7 +672,7 @@ const getStatusColor = (status) => {
                 </div>
 
                 <!-- Floating Action Button â€” opens new-ticket modal -->
-                <button @click="showTicketModal = true"
+                <button @click="router.visit(route('tickets.index', { new: 1 }))"
                         type="button"
                         title="Create new ticket"
                         class="btn-shimmer fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-glow-lg transition-all hover:scale-110 hover:shadow-[0_0_48px_rgba(0,81,213,0.5)] active:scale-95 z-50"
@@ -1102,7 +1089,7 @@ const getStatusColor = (status) => {
                     <div class="col-span-12 lg:col-span-8 rounded-3xl border border-outline-variant bg-surface-container-lowest p-1 shadow-sm overflow-hidden">
                         <div class="px-8 py-6 border-b border-outline-variant flex items-center justify-between">
                             <h3 class="text-xl font-black text-primary">Active Opportunities</h3>
-                            <button @click="showJobModal = true"
+                            <button @click="router.visit(route('jobs.index', { new: 1 }))"
                                     type="button"
                                     class="rounded-xl bg-secondary px-4 py-2 text-xs font-black text-white shadow-md shadow-secondary/10 hover:bg-secondary/90 transition-colors">
                                 + Post Job
@@ -1402,7 +1389,7 @@ const getStatusColor = (status) => {
                         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
                             <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
                                 <h3 class="text-[15px] font-black text-primary">Active Incidents &amp; Tickets</h3>
-                                <button @click="showTicketModal = true" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                <button @click="router.visit(route('tickets.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0051d5,#316bf3)">
                                     <span class="material-symbols-outlined text-[15px]">add</span> New Ticket
                                 </button>
                             </div>
@@ -1576,7 +1563,7 @@ const getStatusColor = (status) => {
                         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
                             <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
                                 <h3 class="text-[15px] font-black text-primary">Recruitment Pipeline</h3>
-                                <button @click="showJobModal = true" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                <button @click="router.visit(route('jobs.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0051d5,#316bf3)">
                                     <span class="material-symbols-outlined text-[15px]">add</span> Post Job
                                 </button>
                             </div>
@@ -2323,19 +2310,19 @@ const getStatusColor = (status) => {
                                 </h2>
                                 <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">All systems are operational â€” here's your institutional snapshot.</p>
                                 <div class="mt-6 flex items-center gap-3">
-                                    <button @click="showAddEmployeeModal = true"
+                                    <button @click="router.visit(route('employees.index', { new: 1 }))"
                                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
                                             style="background:linear-gradient(135deg,#0051d5,#316bf3);">
                                         <span class="material-symbols-outlined text-[17px]">person_add</span>
                                         Add Employee
                                     </button>
-                                    <button @click="showJobModal = true"
+                                    <button @click="router.visit(route('jobs.index', { new: 1 }))"
                                             class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold transition-all hover:-translate-y-px active:scale-[0.97]"
                                             style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);">
                                         <span class="material-symbols-outlined text-[17px]">work</span>
                                         Post Job
                                     </button>
-                                    <button @click="showLeaveModal = true"
+                                    <button @click="router.visit(route('leave.index', { new: 1 }))"
                                             class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold transition-all hover:-translate-y-px active:scale-[0.97]"
                                             style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);">
                                         <span class="material-symbols-outlined text-[17px]">calendar_month</span>
@@ -2475,7 +2462,7 @@ const getStatusColor = (status) => {
                                         Workforce Directory
                                     </h3>
                                     <div class="flex items-center gap-3">
-                                        <button @click="showAddEmployeeModal = true"
+                                        <button @click="router.visit(route('employees.index', { new: 1 }))"
                                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px active:scale-[0.97]"
                                                 style="background:linear-gradient(135deg,#0051d5,#316bf3);">
                                             <span class="material-symbols-outlined text-[16px]">add</span>
@@ -2545,7 +2532,7 @@ const getStatusColor = (status) => {
                                             <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
                                             <span class="text-[10px] font-black text-red-700 uppercase tracking-wider">{{ tickets.length }} Active</span>
                                         </div>
-                                        <button @click="showTicketModal = true" class="rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-1.5 text-xs font-bold text-primary hover:bg-surface-container-low transition-all">+ New Ticket</button>
+                                        <button @click="router.visit(route('tickets.index', { new: 1 }))" class="rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-1.5 text-xs font-bold text-primary hover:bg-surface-container-low transition-all">+ New Ticket</button>
                                     </div>
                                 </div>
                                 <div class="canvas-scroll max-h-[340px] overflow-auto">
@@ -2596,35 +2583,35 @@ const getStatusColor = (status) => {
                                     <h3 class="text-sm font-black text-primary uppercase tracking-widest">Quick Actions</h3>
                                 </div>
                                 <div class="p-5 grid grid-cols-2 gap-3">
-                                    <button @click="showAddEmployeeModal = true"
+                                    <button @click="router.visit(route('employees.index', { new: 1 }))"
                                             class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-secondary/30 hover:bg-secondary/5 hover:-translate-y-0.5 hover:shadow-md">
                                         <div class="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary transition-transform group-hover:scale-110">
                                             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">person_add</span>
                                         </div>
                                         <span class="text-[11px] font-black text-primary leading-snug">Add Employee</span>
                                     </button>
-                                    <button @click="showLeaveModal = true"
+                                    <button @click="router.visit(route('leave.index', { new: 1 }))"
                                             class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-green-300 hover:bg-green-50/40 hover:-translate-y-0.5 hover:shadow-md">
                                         <div class="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 transition-transform group-hover:scale-110">
                                             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">calendar_month</span>
                                         </div>
                                         <span class="text-[11px] font-black text-primary leading-snug">Leave Request</span>
                                     </button>
-                                    <button @click="showTicketModal = true"
+                                    <button @click="router.visit(route('tickets.index', { new: 1 }))"
                                             class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-amber-300 hover:bg-amber-50/40 hover:-translate-y-0.5 hover:shadow-md">
                                         <div class="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 transition-transform group-hover:scale-110">
                                             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">confirmation_number</span>
                                         </div>
                                         <span class="text-[11px] font-black text-primary leading-snug">New Ticket</span>
                                     </button>
-                                    <button @click="showJobModal = true"
+                                    <button @click="router.visit(route('jobs.index', { new: 1 }))"
                                             class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-purple-300 hover:bg-purple-50/40 hover:-translate-y-0.5 hover:shadow-md">
                                         <div class="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 transition-transform group-hover:scale-110">
                                             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">work</span>
                                         </div>
                                         <span class="text-[11px] font-black text-primary leading-snug">Post Job</span>
                                     </button>
-                                    <button @click="showAddDeptModal = true"
+                                    <button @click="router.visit(route('departments.index'))"
                                             class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-cyan-300 hover:bg-cyan-50/40 hover:-translate-y-0.5 hover:shadow-md">
                                         <div class="h-10 w-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 transition-transform group-hover:scale-110">
                                             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">corporate_fare</span>
@@ -2694,301 +2681,6 @@ const getStatusColor = (status) => {
         </div>
     </AuthenticatedLayout>
 
-    <!-- â”€â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-
-    <!-- Add Employee Modal -->
-    <Teleport to="body">
-        <Transition
-            enter-active-class="transition-all duration-200 ease-out"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-all duration-150 ease-in"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div v-if="showAddEmployeeModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);" @click.self="showAddEmployeeModal = false">
-                <Transition
-                    enter-active-class="transition-all duration-250 ease-spring"
-                    enter-from-class="opacity-0 scale-95 translate-y-4"
-                    enter-to-class="opacity-100 scale-100 translate-y-0"
-                >
-                    <div v-if="showAddEmployeeModal" class="w-full max-w-2xl rounded-3xl bg-surface-container-lowest shadow-lifted-lg overflow-hidden">
-                        <!-- Modal Header -->
-                        <div class="px-8 pt-8 pb-6 border-b border-outline-variant flex items-center justify-between"
-                             style="background:linear-gradient(135deg,#0c0e14,#131620);">
-                            <div class="flex items-center gap-4">
-                                <div class="h-11 w-11 rounded-2xl bg-secondary/20 flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-secondary text-2xl" style="font-variation-settings:'FILL' 1">badge</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black text-white">Add New Employee</h3>
-                                    <p class="text-[11px] font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Complete the onboarding profile below</p>
-                                </div>
-                            </div>
-                            <button @click="showAddEmployeeModal = false"
-                                    class="h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
-                                    style="color:rgba(255,255,255,0.5);">
-                                <span class="material-symbols-outlined text-xl">close</span>
-                            </button>
-                        </div>
-                        <!-- Modal Body -->
-                        <form class="p-8 space-y-6" @submit.prevent="employeeForm.post(route('employees.store'), { onSuccess: () => showAddEmployeeModal = false })">
-                            <div class="grid gap-5 sm:grid-cols-2">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Employee No.</label>
-                                    <input v-model="employeeForm.employee_no"
-                                           class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm font-mono focus:ring-secondary/20 focus:border-secondary transition-all"
-                                           placeholder="e.g. EMP-001" required />
-                                    <p v-if="employeeForm.errors.employee_no" class="text-[10px] font-bold text-red-600">{{ employeeForm.errors.employee_no }}</p>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Position / Role</label>
-                                    <input v-model="employeeForm.position"
-                                           class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all"
-                                           placeholder="e.g. Senior Engineer" required />
-                                    <p v-if="employeeForm.errors.position" class="text-[10px] font-bold text-red-600">{{ employeeForm.errors.position }}</p>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Hire Date</label>
-                                    <input v-model="employeeForm.hire_date"
-                                           type="date"
-                                           class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all"
-                                           required />
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Phone Number</label>
-                                    <input v-model="employeeForm.phone"
-                                           type="tel"
-                                           class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all"
-                                           placeholder="+233 XX XXX XXXX" />
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Department</label>
-                                <input v-model="employeeForm.department_id"
-                                       class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all"
-                                       placeholder="Department ID" />
-                                <p v-if="employeeForm.errors.department_id" class="text-[10px] font-bold text-red-600">{{ employeeForm.errors.department_id }}</p>
-                            </div>
-                            <div class="flex gap-4 pt-2">
-                                <button type="button" @click="showAddEmployeeModal = false"
-                                        class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                        class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow disabled:opacity-60"
-                                        style="background:linear-gradient(135deg,#0051d5,#316bf3);"
-                                        :disabled="employeeForm.processing">
-                                    {{ employeeForm.processing ? 'Addingâ€¦' : 'Add Employee' }}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </Transition>
-            </div>
-        </Transition>
-    </Teleport>
-
-    <!-- Add Department Modal -->
-    <Teleport to="body">
-        <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-all duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <div v-if="showAddDeptModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);" @click.self="showAddDeptModal = false">
-                <div class="w-full max-w-md rounded-3xl bg-surface-container-lowest shadow-lifted-lg overflow-hidden">
-                    <div class="px-8 pt-7 pb-5 border-b border-outline-variant flex items-center justify-between" style="background:linear-gradient(135deg,#0c0e14,#131620);">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-cyan-400 text-xl" style="font-variation-settings:'FILL' 1">corporate_fare</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-black text-white">New Department</h3>
-                                <p class="text-[10px] font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Create an organisational unit</p>
-                            </div>
-                        </div>
-                        <button @click="showAddDeptModal = false" class="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-white/10" style="color:rgba(255,255,255,0.5);">
-                            <span class="material-symbols-outlined text-xl">close</span>
-                        </button>
-                    </div>
-                    <form class="p-8 space-y-5" @submit.prevent="departmentForm.post(route('departments.store'), { onSuccess: () => showAddDeptModal = false })">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Department Name</label>
-                            <input v-model="departmentForm.name" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="e.g. Technology" required />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Department Code</label>
-                            <input v-model="departmentForm.code" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm font-mono focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="e.g. TECH" required />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Description (optional)</label>
-                            <textarea v-model="departmentForm.description" rows="3" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief descriptionâ€¦"></textarea>
-                        </div>
-                        <div class="flex gap-4 pt-2">
-                            <button type="button" @click="showAddDeptModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
-                            <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="departmentForm.processing">
-                                {{ departmentForm.processing ? 'Creatingâ€¦' : 'Create Department' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
-
-    <!-- Leave Request Modal -->
-    <Teleport to="body">
-        <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-all duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <div v-if="showLeaveModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);" @click.self="showLeaveModal = false">
-                <div class="w-full max-w-lg rounded-3xl bg-surface-container-lowest shadow-lifted-lg overflow-hidden">
-                    <div class="px-8 pt-7 pb-5 border-b border-outline-variant flex items-center justify-between" style="background:linear-gradient(135deg,#0c0e14,#131620);">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-green-400 text-xl" style="font-variation-settings:'FILL' 1">calendar_month</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-black text-white">Leave Application</h3>
-                                <p class="text-[10px] font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Submit a leave or time-off request</p>
-                            </div>
-                        </div>
-                        <button @click="showLeaveModal = false" class="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-white/10" style="color:rgba(255,255,255,0.5);">
-                            <span class="material-symbols-outlined text-xl">close</span>
-                        </button>
-                    </div>
-                    <form class="p-8 space-y-5" @submit.prevent="leaveForm.post(route('leave.store'), { onSuccess: () => showLeaveModal = false })">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Staff ID</label>
-                            <input v-model="leaveForm.employee_id" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Enter Staff ID" required />
-                        </div>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Start Date</label>
-                                <input v-model="leaveForm.start_date" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" required />
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">End Date</label>
-                                <input v-model="leaveForm.end_date" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" required />
-                            </div>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Leave Type</label>
-                            <select v-model="leaveForm.type" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all">
-                                <option value="annual">Annual Leave</option>
-                                <option value="sick">Sick Leave</option>
-                                <option value="maternity">Maternity / Paternity</option>
-                                <option value="study">Study Leave</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Reason</label>
-                            <textarea v-model="leaveForm.reason" rows="3" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief reason for leaveâ€¦"></textarea>
-                        </div>
-                        <div class="flex gap-4 pt-2">
-                            <button type="button" @click="showLeaveModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
-                            <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="leaveForm.processing">
-                                {{ leaveForm.processing ? 'Submittingâ€¦' : 'Submit Request' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
-
-    <!-- New Ticket Modal -->
-    <Teleport to="body">
-        <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-all duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <div v-if="showTicketModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);" @click.self="showTicketModal = false">
-                <div class="w-full max-w-lg rounded-3xl bg-surface-container-lowest shadow-lifted-lg overflow-hidden">
-                    <div class="px-8 pt-7 pb-5 border-b border-outline-variant flex items-center justify-between" style="background:linear-gradient(135deg,#0c0e14,#131620);">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-amber-400 text-xl" style="font-variation-settings:'FILL' 1">confirmation_number</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-black text-white">Open Service Ticket</h3>
-                                <p class="text-[10px] font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Submit an IT or HR support request</p>
-                            </div>
-                        </div>
-                        <button @click="showTicketModal = false" class="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-white/10" style="color:rgba(255,255,255,0.5);">
-                            <span class="material-symbols-outlined text-xl">close</span>
-                        </button>
-                    </div>
-                    <form class="p-8 space-y-5" @submit.prevent="ticketForm.post(route('tickets.store'), { onSuccess: () => showTicketModal = false })">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Issue Summary</label>
-                            <input v-model="ticketForm.title" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Brief title of the issue" required />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Description</label>
-                            <textarea v-model="ticketForm.description" rows="4" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Describe the issue in detailâ€¦"></textarea>
-                        </div>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Priority</label>
-                                <select v-model="ticketForm.priority" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all">
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High â€” Urgent</option>
-                                </select>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Due Date (optional)</label>
-                                <input v-model="ticketForm.due_at" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" />
-                            </div>
-                        </div>
-                        <div class="flex gap-4 pt-2">
-                            <button type="button" @click="showTicketModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
-                            <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="ticketForm.processing">
-                                {{ ticketForm.processing ? 'Submittingâ€¦' : 'Open Ticket' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
-
-    <!-- Post Job Modal -->
-    <Teleport to="body">
-        <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-all duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <div v-if="showJobModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);" @click.self="showJobModal = false">
-                <div class="w-full max-w-lg rounded-3xl bg-surface-container-lowest shadow-lifted-lg overflow-hidden">
-                    <div class="px-8 pt-7 pb-5 border-b border-outline-variant flex items-center justify-between" style="background:linear-gradient(135deg,#0c0e14,#131620);">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-purple-400 text-xl" style="font-variation-settings:'FILL' 1">work</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-black text-white">Post Job Opening</h3>
-                                <p class="text-[10px] font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Create a new recruitment posting</p>
-                            </div>
-                        </div>
-                        <button @click="showJobModal = false" class="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-white/10" style="color:rgba(255,255,255,0.5);">
-                            <span class="material-symbols-outlined text-xl">close</span>
-                        </button>
-                    </div>
-                    <form class="p-8 space-y-5" @submit.prevent="jobForm.post(route('jobs.store'), { onSuccess: () => showJobModal = false })">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Job Title</label>
-                            <input v-model="jobForm.title" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="e.g. Senior Solutions Architect" required />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Job Description</label>
-                            <textarea v-model="jobForm.description" rows="5" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm resize-none focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Role overview, responsibilities, requirementsâ€¦"></textarea>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Application Deadline</label>
-                            <input v-model="jobForm.closes_at" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:ring-secondary/20 focus:border-secondary transition-all" required />
-                        </div>
-                        <div class="flex gap-4 pt-2">
-                            <button type="button" @click="showJobModal = false" class="flex-1 rounded-xl border border-outline-variant py-3.5 text-sm font-black text-primary hover:bg-surface-container-low transition-all">Cancel</button>
-                            <button type="submit" class="btn-shimmer flex-1 rounded-xl py-3.5 text-sm font-black text-white shadow-glow-sm transition-all hover:shadow-glow" style="background:linear-gradient(135deg,#0051d5,#316bf3);" :disabled="jobForm.processing">
-                                {{ jobForm.processing ? 'Postingâ€¦' : 'Post Job' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
 </template>
 
 <style scoped>
