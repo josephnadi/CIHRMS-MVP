@@ -32,3 +32,6 @@ Schedule::command('integrations:refresh-tokens --minutes=10')->everyThirtyMinute
 
 // Mark absent: daily, materializes attendance summaries for employees with no events
 Schedule::command('attendance:mark-absent')->dailyAt('23:55')->withoutOverlapping();
+
+// Assets: regenerate depreciation snapshots monthly on the 1st at 02:00
+Schedule::command('assets:regenerate-depreciation')->monthlyOn(1, '02:00')->withoutOverlapping();
