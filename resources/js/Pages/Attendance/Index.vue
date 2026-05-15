@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
@@ -54,6 +54,12 @@ const statusTone = (s) => ({
                 <PrimaryButton @click="showManual = true">Manual entry</PrimaryButton>
             </div>
         </template>
+
+        <div class="flex gap-2 mb-4 pt-4 px-4 sm:px-6 lg:px-8">
+            <Link :href="route('attendance.index')" class="rounded-xl px-3 py-1.5 text-xs font-bold border border-primary text-primary bg-primary/5">Daily</Link>
+            <Link v-if="$page.props.auth.permissions?.includes('attendance.approve')" :href="route('attendance.corrections.index')" class="rounded-xl px-3 py-1.5 text-xs font-bold border border-outline-variant text-on-surface-variant hover:border-primary/40 hover:text-primary">Corrections</Link>
+            <Link v-if="$page.props.auth.permissions?.includes('attendance.shift_manage')" :href="route('attendance.shifts.index')" class="rounded-xl px-3 py-1.5 text-xs font-bold border border-outline-variant text-on-surface-variant hover:border-primary/40 hover:text-primary">Shifts</Link>
+        </div>
 
         <div class="py-6 space-y-6">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">

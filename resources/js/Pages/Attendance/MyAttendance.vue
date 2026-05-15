@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SlidePanel from '@/Components/SlidePanel.vue';
 
 const props = defineProps({
     period:  Object,
@@ -18,6 +19,20 @@ const changeMonth = () => router.get(route('attendance.me'), { month: monthValue
 });
 
 const clockForm = useForm({ direction: 'in', geo_lat: null, geo_lng: null });
+
+const showCorrection = ref(false);
+const correctionForm = useForm({
+    requested_event_at: '',
+    requested_direction: 'in',
+    reason: '',
+});
+
+function submitCorrection() {
+    correctionForm.post(route('attendance.corrections.store'), {
+        preserveScroll: true,
+        onSuccess: () => { showCorrection.value = false; correctionForm.reset(); },
+    });
+}
 
 const tryGeo = () => new Promise((resolve) => {
     if (! navigator.geolocation) return resolve(null);
@@ -58,6 +73,7 @@ const statusTone = (s) => ({
                 <PrimaryButton @click="clockSelf('in')" :disabled="clockForm.processing">Clock In</PrimaryButton>
                 <PrimaryButton @click="clockSelf('out')" :disabled="clockForm.processing"
                                class="bg-slate-700 hover:bg-slate-800">Clock Out</PrimaryButton>
+                <button @click="showCorrection = true" type="button" class="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-primary hover:bg-surface-container-low">Request Correction</button>
                 <span class="text-xs text-slate-500 ml-auto">GPS location captured if you allow it.</span>
             </div>
 
@@ -101,5 +117,25 @@ const statusTone = (s) => ({
                 </table>
             </div>
         </div>
+        <SlidePanel :open="showCorrection" @close="showCorrection = false" title="Request Attendance Correction">
+            <form @submit.prevent="submitCorrection" class="space-y-3 p-4">
+                <div>
+                    <label class="text-[11px] font-bold text-on-surface-variant">When (event time)</label>
+                    <input v-model="correctionForm.requested_event_at" type="datetime-local" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" />
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-on-surface-variant">Direction</label>
+                    <select v-model="correctionForm.requested_direction" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1">
+                        <option value="in">Clock-in</option>
+                        <option value="out">Clock-out</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-on-surface-variant">Reason (min 8 chars)</label>
+                    <textarea v-model="correctionForm.reason" required minlength="8" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" />
+                </div>
+                <button type="submit" :disabled="correctionForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Submit Request</button>
+            </form>
+        </SlidePanel>
     </AuthenticatedLayout>
 </template>

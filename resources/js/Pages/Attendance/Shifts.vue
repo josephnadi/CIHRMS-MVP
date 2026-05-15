@@ -109,7 +109,7 @@ function toggleDay(d) {
         </section>
     </div>
 
-    <SlidePanel :show="showCreate" @close="showCreate = false" title="Create Shift">
+    <SlidePanel :open="showCreate" @close="showCreate = false" title="Create Shift">
         <form @submit.prevent="createShift" class="space-y-4 p-4">
             <div><label class="text-[11px] font-bold text-on-surface-variant">Code</label><input v-model="newShift.code" maxlength="20" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono uppercase" /></div>
             <div><label class="text-[11px] font-bold text-on-surface-variant">Name</label><input v-model="newShift.name" maxlength="80" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2" /></div>
@@ -137,7 +137,7 @@ function toggleDay(d) {
         </form>
     </SlidePanel>
 
-    <SlidePanel :show="showAssign" @close="showAssign = false" title="Assign Shift to Employee">
+    <SlidePanel :open="showAssign" @close="showAssign = false" title="Assign Shift to Employee">
         <form @submit.prevent="assignShift" class="space-y-4 p-4">
             <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="newAssignment.employee_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
             <div><label class="text-[11px] font-bold text-on-surface-variant">Shift</label><select v-model="newAssignment.shift_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2"><option value="" disabled>Select…</option><option v-for="s in props.shifts.data" :key="s.id" :value="s.id">{{ s.code }} — {{ s.name }}</option></select></div>
