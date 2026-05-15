@@ -362,6 +362,14 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:attendance.clock_self')->name('clock');
         Route::post('/manual',   [AttendanceController::class, 'manualEntry'])
             ->middleware('permission:attendance.manage')->name('manual');
+
+        Route::prefix('shifts')->name('shifts.')->middleware('permission:attendance.shift_manage')->group(function () {
+            Route::get('/',              [AttendanceController::class, 'shiftsIndex'])->name('index');
+            Route::post('/',             [AttendanceController::class, 'storeShift'])->name('store');
+            Route::patch('/{shift}',     [AttendanceController::class, 'updateShift'])->name('update');
+            Route::delete('/{shift}',    [AttendanceController::class, 'destroyShift'])->name('destroy');
+            Route::post('/assignments',  [AttendanceController::class, 'assignShift'])->name('assign');
+        });
     });
 
     // ── Phase 1: Two-factor auth ──

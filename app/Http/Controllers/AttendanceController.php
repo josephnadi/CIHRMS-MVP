@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AttendanceSource;
+use App\Http\Requests\Attendance\AssignShiftRequest;
 use App\Http\Requests\Attendance\ClockSelfRequest;
 use App\Http\Requests\Attendance\ManualAttendanceRequest;
+use App\Http\Requests\Attendance\StoreShiftRequest;
+use App\Http\Requests\Attendance\UpdateShiftRequest;
 use App\Http\Resources\AttendanceRecordResource;
 use App\Http\Resources\AttendanceSummaryResource;
+use App\Http\Resources\ShiftResource;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSummary;
+use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Shift;
+use App\Models\ShiftAssignment;
 use App\Services\Attendance\AttendanceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -118,5 +125,60 @@ class AttendanceController extends Controller
         );
 
         return back()->with('success', 'Manual attendance recorded.');
+    }
+
+    public function shiftsIndex(): \Inertia\Response
+    {
+        abort_unless($this->authorizeShiftManage(), 403);
+
+        return \Inertia\Inertia::render('Attendance/Shifts', [
+            'shifts' => ShiftResource::collection(
+                Shift::with('department:id,name')->latest()->paginate(20)
+            ),
+            'departments' => Department::orderBy('name')->get(['id', 'name', 'code']),
+            'employees'   => Employee::with('user:id,name')->active()->orderBy('id')->get(['id', 'user_id', 'employee_no', 'position']),
+            'assignments' => ShiftAssignment::with(['shift:id,name,code', 'employee:id,user_id,employee_no'])
+                ->where(function ($q) {
+                    $q->whereNull('effective_to')->orWhere('effective_to', '>=', today());
+                })
+                ->latest('effective_from')
+                ->limit(50)
+                ->get(),
+        ]);
+    }
+
+    public function storeShift(StoreShiftRequest $request)
+    {
+        $data = $request->validated();
+        // Default working_days if not supplied
+        if (! isset($data['working_days']) || ! $data['working_days']) {
+            $data['working_days'] = ['mon','tue','wed','thu','fri'];
+        }
+        $shift = Shift::create($data);
+        return back()->with('success', "Shift {$shift->code} created");
+    }
+
+    public function updateShift(UpdateShiftRequest $request, Shift $shift)
+    {
+        $shift->update($request->validated());
+        return back()->with('success', "Shift {$shift->code} updated");
+    }
+
+    public function destroyShift(Shift $shift)
+    {
+        abort_unless($this->authorizeShiftManage(), 403);
+        $shift->delete();
+        return back()->with('success', 'Shift archived');
+    }
+
+    public function assignShift(AssignShiftRequest $request)
+    {
+        ShiftAssignment::create($request->validated());
+        return back()->with('success', 'Shift assigned');
+    }
+
+    private function authorizeShiftManage(): bool
+    {
+        return request()->user()?->hasPermission('attendance.shift_manage') ?? false;
     }
 }

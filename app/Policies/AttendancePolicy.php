@@ -28,4 +28,9 @@ class AttendancePolicy
     {
         return $user->hasPermission('attendance.manage');
     }
+
+    public function manageShifts(User $user): bool
+    {
+        return $user->hasPermission('attendance.shift_manage');
+    }
 }

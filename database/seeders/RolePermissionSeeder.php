@@ -79,6 +79,7 @@ class RolePermissionSeeder extends Seeder
         'attendance.view'        => ['Attendance',   'View attendance records org-wide'],
         'attendance.manage'      => ['Attendance',   'Manual entries, device management, corrections'],
         'attendance.clock_self'  => ['Attendance',   'Clock self in/out (employee self-service)'],
+        'attendance.shift_manage'=> ['Attendance',   'Manage shift schedules and assignments'],
     ];
 
     /**
@@ -97,7 +98,7 @@ class RolePermissionSeeder extends Seeder
             'payroll.view', 'payroll.run', 'payroll.view_all',
             'positions.view', 'positions.manage', 'grades.manage',
             'identity.view', 'identity.verify',
-            'attendance.view', 'attendance.manage', 'attendance.clock_self',
+            'attendance.view', 'attendance.manage', 'attendance.clock_self', 'attendance.shift_manage',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
