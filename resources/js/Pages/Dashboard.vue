@@ -22,6 +22,7 @@ const props = defineProps({
     headcountByDept: { type: Array,  default: () => [] },
     leaveByMonth:    { type: Object, default: () => ({}) },
     ticketTrend:     { type: Object, default: () => ({}) },
+    sparkSeries:     { type: Object, default: () => ({}) },
     activeModule:    String,
 });
 
@@ -62,12 +63,16 @@ const syncAgoLabel = computed(() => {
     if (s < 3600) return Math.floor(s / 60) + 'm';
     return Math.floor(s / 3600) + 'h';
 });
-const sparkData = ref({
-    employees:  [68, 72, 70, 75, 82, 80, 78, 83, 85, 84, 88, 87],
-    tickets:    [32, 28, 30, 26, 24, 28, 22, 26, 20, 24, 22, 24],
-    leave:      [44, 46, 42, 50, 48, 44, 50, 46, 48, 52, 46, 48],
-    compliance: [96, 97, 97.5, 98, 97.8, 98.2, 98, 98.4, 98.2, 98.6, 98.4, 98.2],
-    payroll:    [2.1, 2.2, 2.15, 2.3, 2.35, 2.4, 2.38, 2.42, 2.45, 2.44, 2.47, 2.45],
+const sparkData = computed(() => {
+    const toValues = (s) => Array.isArray(s) ? s.map(p => Number(p.value ?? 0)) : [];
+    const compliance = [96, 97, 97.5, 98, 97.8, 98.2, 98, 98.4, 98.2, 98.6, 98.4, 98.2]; // no event type yet; kept literal
+    return {
+        employees:  toValues(props.sparkSeries.employees),
+        tickets:    toValues(props.sparkSeries.tickets),
+        leave:      toValues(props.sparkSeries.leave),
+        compliance,
+        payroll:    toValues(props.sparkSeries.payroll),
+    };
 });
 // perfBarData is derived from real backend data via chartLeaveByMonth (defined below).
 // Falls back to a stable baseline so the chart never collapses to zero on empty months.
