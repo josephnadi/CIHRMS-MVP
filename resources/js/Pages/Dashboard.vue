@@ -1268,68 +1268,6 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- Asset Management Module -->
-            <div v-if="activeModule === 'assets'" class="space-y-8 animate-reveal-up">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <div v-for="(stat, ai) in [
-                        { label: 'Total Assets', val: '4,120', sub: 'Institutional', color: '#316bf3', rgb: '49,107,243',  icon: 'inventory_2' },
-                        { label: 'Assigned',     val: '3,842', sub: 'In-use',        color: '#059669', rgb: '5,150,105',   icon: 'check_circle' },
-                        { label: 'Maintenance',  val: '12',    sub: 'Pending repair', color: '#d97706', rgb: '217,119,6',  icon: 'build' },
-                        { label: 'Available',    val: '266',   sub: 'In stock',       color: '#7c5cff', rgb: '124,92,255', icon: 'archive' }
-                    ]" :key="stat.label"
-                         class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-6 transition-all hover:shadow-md hover:-translate-y-0.5"
-                         :style="`animation:slideUpFade 0.4s ease both;animation-delay:${ai*0.07}s`">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${stat.rgb},0.1)`">
-                                <span class="material-symbols-outlined text-[18px]" :style="`color:${stat.color};font-variation-settings:'FILL' 1`">{{ stat.icon }}</span>
-                            </div>
-                            <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${stat.color}`"></span>
-                        </div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{{ stat.label }}</p>
-                        <h3 class="text-3xl font-black text-primary mt-2">{{ stat.val }}</h3>
-                        <p class="text-[9px] font-bold uppercase mt-1" :style="`color:${stat.color}`">{{ stat.sub }}</p>
-                    </div>
-                </div>
-                <div class="overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest">
-                    <div class="px-8 py-6 border-b border-outline-variant flex items-center justify-between">
-                        <h3 class="text-xl font-black text-primary">Inventory Registry</h3>
-                        <div class="flex gap-2">
-                            <input class="rounded-full border-outline-variant bg-surface-container-low px-4 py-1.5 text-xs w-48" placeholder="Search inventory..." />
-                            <button @click="comingSoon('Asset registry editor')" type="button" class="rounded-xl bg-primary px-4 py-2 text-xs font-black text-white shadow-md shadow-primary/10 hover:bg-primary/90 transition-colors">+ Add Asset</button>
-                        </div>
-                    </div>
-                    <div class="canvas-scroll max-h-[340px] overflow-auto">
-                    <table class="w-full text-left">
-                        <thead class="sticky top-0 z-10 bg-surface-container-low text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 border-b border-outline-variant/50">
-                            <tr>
-                                <th class="px-8 py-4">Asset ID</th>
-                                <th class="px-6 py-4">Category</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4">Assigned To</th>
-                                <th class="px-8 py-4 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-outline-variant/40">
-                            <tr v-for="asset in [
-                                { id: 'AST-2026-001', cat: 'Workstation (Macbook Pro)', status: 'Assigned', user: 'Akua Mensah' },
-                                { id: 'AST-2026-042', cat: 'Mobile Device (iPad Pro)', status: 'In Maintenance', user: 'Esi Darko' }
-                            ]" :key="asset.id" class="hover:bg-surface-container-low/30 transition-all">
-                                <td class="px-8 py-4 text-xs font-mono font-bold text-on-surface-variant">{{ asset.id }}</td>
-                                <td class="px-6 py-4 text-sm font-bold text-primary">{{ asset.cat }}</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border" :class="asset.status === 'Assigned' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'">{{ asset.status }}</span>
-                                </td>
-                                <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ asset.user }}</td>
-                                <td class="px-8 py-4 text-right">
-                                    <button @click="comingSoon('Asset history viewer')" type="button" class="text-on-surface-variant hover:text-secondary"><span class="material-symbols-outlined text-xl">history</span></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    </div>
-                </div>
-            </div>
-
             <!-- Intelligence Reports Module -->
             <div v-if="activeModule === 'reports'" class="space-y-8 animate-reveal-up">
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
