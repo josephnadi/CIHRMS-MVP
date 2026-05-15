@@ -93,6 +93,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AmortizationCalculator::class);
         $this->app->singleton(LoanService::class);
 
+        // Phase 2 — Off-boarding & Final Settlement
+        $this->app->singleton(\App\Services\Offboarding\FinalSettlementCalculator::class);
+        $this->app->singleton(\App\Services\Offboarding\OffboardingService::class);
+
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(OAuthFlow::class);
@@ -124,6 +128,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
         Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
         Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
+        Gate::policy(\App\Models\OffboardingCase::class, \App\Policies\OffboardingCasePolicy::class);
         Gate::policy(\App\Models\Asset::class,     \App\Policies\AssetPolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──

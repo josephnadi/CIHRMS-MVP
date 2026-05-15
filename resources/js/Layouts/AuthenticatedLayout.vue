@@ -44,6 +44,7 @@ const navSections = computed(() => {
                     { label: 'Leave',        route: 'modules.leave',        module: 'leave',       icon: 'calendar_month', visible: true },
                     { label: 'Payroll',      route: 'modules.payroll',      module: 'payroll',     icon: 'payments',       visible: true },
                     { label: 'Loans',        route: 'loans.index',          module: 'loans',       icon: 'request_quote',  visible: can('loans.view') || can('loans.apply') },
+                    { label: 'Off-boarding', route: 'offboarding.index',    module: 'offboarding', icon: 'logout',         visible: can('offboarding.view') || can('offboarding.initiate') },
                     {
                         label: 'Performance', icon: 'monitoring', expandable: true, visible: can('performance.view'),
                         children: [

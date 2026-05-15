@@ -91,6 +91,14 @@ class RolePermissionSeeder extends Seeder
         'loans.manage'           => ['Loans',        'Full administrative access to loans'],
         'loans.product_manage'   => ['Loans',        'Manage loan product catalogue'],
 
+        // ── Phase 2: Off-boarding ──
+        'offboarding.view'       => ['Off-boarding', 'View off-boarding cases'],
+        'offboarding.initiate'   => ['Off-boarding', 'Open a new off-boarding case'],
+        'offboarding.clear'      => ['Off-boarding', 'Sign off clearance items (department reps)'],
+        'offboarding.settle'     => ['Off-boarding', 'Calculate final settlements'],
+        'offboarding.approve'    => ['Off-boarding', 'Approve final settlements (dual control)'],
+        'offboarding.manage'     => ['Off-boarding', 'Complete, cancel, and administer cases'],
+
         // ── Phase 3: Assets ──
         'assets.view'            => ['Assets',       'View asset registry'],
         'assets.manage'          => ['Assets',       'Register, assign, return, retire assets'],
@@ -116,6 +124,8 @@ class RolePermissionSeeder extends Seeder
             'attendance.view', 'attendance.manage', 'attendance.clock_self', 'attendance.shift_manage',
             'attendance.approve', 'attendance.correct',
             'loans.view', 'loans.apply', 'loans.manage', 'loans.product_manage',
+            'offboarding.view', 'offboarding.initiate', 'offboarding.clear',
+            'offboarding.settle', 'offboarding.manage',
             'assets.view', 'assets.manage', 'assets.assign',
             'reports.view',
             'integrations.manage', 'users.manage',
@@ -156,6 +166,7 @@ class RolePermissionSeeder extends Seeder
             'employees.view_salary',
             'attendance.correct',
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
+            'offboarding.view', 'offboarding.settle', 'offboarding.approve',
             'assets.view',
             'reports.view',
         ],

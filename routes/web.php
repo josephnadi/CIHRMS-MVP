@@ -22,6 +22,7 @@ use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\LoanAccountController;
+use App\Http\Controllers\OffboardingController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
@@ -397,6 +398,26 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware(['permission:loans.disburse', '2fa:fresh'])->name('disburse');
         Route::post('preview',            [LoanAccountController::class, 'preview'])
             ->middleware('permission:loans.apply')->name('preview');
+    });
+
+    // ── Phase 2: Off-boarding & Final Settlement ──
+    Route::prefix('offboarding')->name('offboarding.')->group(function () {
+        Route::get('/',                                    [OffboardingController::class, 'index'])
+            ->middleware('permission:offboarding.view')->name('index');
+        Route::post('/',                                   [OffboardingController::class, 'store'])
+            ->middleware('permission:offboarding.initiate')->name('store');
+        Route::get('{case}',                               [OffboardingController::class, 'show'])
+            ->middleware('permission:offboarding.view')->name('show');
+        Route::post('{case}/clearance/{item}',             [OffboardingController::class, 'clearItem'])
+            ->middleware('permission:offboarding.clear')->name('clearance.update');
+        Route::post('{case}/settlement/calculate',         [OffboardingController::class, 'calculateSettlement'])
+            ->middleware('permission:offboarding.settle')->name('settlement.calculate');
+        Route::post('{case}/settlement/approve',           [OffboardingController::class, 'approveSettlement'])
+            ->middleware(['permission:offboarding.approve', '2fa:fresh'])->name('settlement.approve');
+        Route::post('{case}/complete',                     [OffboardingController::class, 'complete'])
+            ->middleware(['permission:offboarding.manage', '2fa:fresh'])->name('complete');
+        Route::post('{case}/cancel',                       [OffboardingController::class, 'cancel'])
+            ->middleware('permission:offboarding.manage')->name('cancel');
     });
 
     // ── Phase 3: Assets ──
