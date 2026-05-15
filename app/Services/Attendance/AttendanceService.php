@@ -6,7 +6,11 @@ namespace App\Services\Attendance;
 
 use App\Enums\AttendanceSource;
 use App\Enums\AttendanceStatus;
+use App\Enums\CorrectionStatus;
 use App\Enums\LeaveStatus;
+use App\Events\AttendanceCorrectionDecided;
+use App\Events\AttendanceCorrectionRequested;
+use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSummary;
 use App\Models\Employee;
@@ -284,6 +288,84 @@ class AttendanceService
         }
 
         return round($totalSeconds / 3600, 2);
+    }
+
+    public function requestCorrection(
+        Employee $employee,
+        User $requester,
+        \DateTimeInterface|string $requestedEventAt,
+        string $direction,
+        string $reason,
+        ?int $attendanceRecordId = null,
+    ): AttendanceCorrection {
+        if (! in_array($direction, ['in', 'out'], true)) {
+            throw new \InvalidArgumentException("direction must be 'in' or 'out'.");
+        }
+
+        $correction = AttendanceCorrection::create([
+            'attendance_record_id' => $attendanceRecordId,
+            'employee_id'          => $employee->id,
+            'requester_id'         => $requester->id,
+            'requested_event_at'   => $requestedEventAt,
+            'requested_direction'  => $direction,
+            'reason'               => $reason,
+            'status'               => CorrectionStatus::Pending,
+        ]);
+
+        AttendanceCorrectionRequested::dispatch($correction, $requester);
+
+        return $correction;
+    }
+
+    public function approveCorrection(AttendanceCorrection $correction, User $reviewer, ?string $notes = null): AttendanceCorrection
+    {
+        if ($correction->status !== CorrectionStatus::Pending) {
+            throw new \DomainException('Only pending corrections can be approved.');
+        }
+
+        DB::transaction(function () use ($correction, $reviewer, $notes) {
+            $this->record(
+                $correction->employee,
+                $correction->requested_event_at,
+                $correction->requested_direction,
+                \App\Enums\AttendanceSource::Manual,
+                null, null, null,
+                $reviewer,
+                'Approved correction #' . $correction->id . ': ' . $correction->reason,
+            );
+
+            $correction->update([
+                'status'         => CorrectionStatus::Approved,
+                'reviewer_id'    => $reviewer->id,
+                'reviewed_at'    => now(),
+                'decision_notes' => $notes,
+            ]);
+
+            $this->recomputeDailySummary(
+                $correction->employee,
+                CarbonImmutable::instance($correction->requested_event_at)->toDateString()
+            );
+        });
+
+        AttendanceCorrectionDecided::dispatch($correction->fresh(), $reviewer);
+        return $correction->fresh();
+    }
+
+    public function rejectCorrection(AttendanceCorrection $correction, User $reviewer, string $notes): AttendanceCorrection
+    {
+        if ($correction->status !== CorrectionStatus::Pending) {
+            throw new \DomainException('Only pending corrections can be rejected.');
+        }
+
+        $correction->update([
+            'status'         => CorrectionStatus::Rejected,
+            'reviewer_id'    => $reviewer->id,
+            'reviewed_at'    => now(),
+            'decision_notes' => $notes,
+        ]);
+
+        AttendanceCorrectionDecided::dispatch($correction->fresh(), $reviewer);
+        return $correction->fresh();
     }
 
     private function haversineMeters(float $lat1, float $lng1, float $lat2, float $lng2): float

@@ -2,6 +2,8 @@
 
 namespace App\Listeners;
 
+use App\Events\AttendanceCorrectionDecided;
+use App\Events\AttendanceCorrectionRequested;
 use App\Events\EmployeeCreated;
 use App\Events\LeaveRequested;
 use App\Events\LeaveStatusUpdated;
@@ -36,6 +38,14 @@ class RecordAnalyticsEvent implements ShouldQueue
             $event instanceof PayslipGenerated => [
                 'payslip.generated',
                 ['payslip_id' => $event->payment->id ?? null, 'employee_id' => $event->payment->employee_id ?? null],
+            ],
+            $event instanceof AttendanceCorrectionRequested => [
+                'attendance.correction.requested',
+                ['correction_id' => $event->correction->id, 'employee_id' => $event->correction->employee_id],
+            ],
+            $event instanceof AttendanceCorrectionDecided => [
+                'attendance.correction.decided',
+                ['correction_id' => $event->correction->id, 'status' => $event->correction->status?->value],
             ],
             default => [class_basename($event), []],
         };

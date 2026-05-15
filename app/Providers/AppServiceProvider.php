@@ -130,6 +130,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(LeaveStatusUpdated::class, SendNotifications::class);
         Event::listen(EmployeeCreated::class, SendNotifications::class);
 
+        // Phase 2 — Attendance correction lifecycle events
+        Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\AttendanceCorrectionDecided::class, \App\Listeners\RecordAnalyticsEvent::class);
+
         // Phase 1 — Payroll run approval triggers statutory return generation
         Event::listen(PayrollRunApproved::class, GenerateStatutoryReturns::class);
 
