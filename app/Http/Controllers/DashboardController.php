@@ -42,6 +42,13 @@ class DashboardController extends Controller
             'headcountByDept' => $this->dashboard->getHeadcountByDept(),
             'leaveByMonth'    => $this->dashboard->getLeaveByMonth(now()->year),
             'ticketTrend'     => $this->dashboard->getTicketTrend(),
+            'sparkSeries'     => [
+                'employees'  => $this->dashboard->timeSeries('employees', 30),
+                'tickets'    => $this->dashboard->timeSeries('open_tickets', 30),
+                'leave'      => $this->dashboard->timeSeries('pending_leave', 30),
+                'payroll'    => $this->dashboard->timeSeries('payslips_paid', 30),
+                'applicants' => $this->dashboard->timeSeries('applicants', 30),
+            ],
         ]);
     }
 }
