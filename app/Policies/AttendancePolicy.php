@@ -33,4 +33,14 @@ class AttendancePolicy
     {
         return $user->hasPermission('attendance.shift_manage');
     }
+
+    public function approveCorrection(User $user): bool
+    {
+        return $user->hasPermission('attendance.approve');
+    }
+
+    public function requestCorrection(User $user): bool
+    {
+        return $user->hasPermission('attendance.correct');
+    }
 }

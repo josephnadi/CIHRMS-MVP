@@ -80,6 +80,8 @@ class RolePermissionSeeder extends Seeder
         'attendance.manage'      => ['Attendance',   'Manual entries, device management, corrections'],
         'attendance.clock_self'  => ['Attendance',   'Clock self in/out (employee self-service)'],
         'attendance.shift_manage'=> ['Attendance',   'Manage shift schedules and assignments'],
+        'attendance.approve'     => ['Attendance',   'Approve or reject attendance correction requests'],
+        'attendance.correct'     => ['Attendance',   'Request a manual correction to own attendance'],
     ];
 
     /**
@@ -99,6 +101,7 @@ class RolePermissionSeeder extends Seeder
             'positions.view', 'positions.manage', 'grades.manage',
             'identity.view', 'identity.verify',
             'attendance.view', 'attendance.manage', 'attendance.clock_self', 'attendance.shift_manage',
+            'attendance.approve', 'attendance.correct',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -108,6 +111,7 @@ class RolePermissionSeeder extends Seeder
             'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
             'attendance.view', 'attendance.clock_self',
+            'attendance.approve', 'attendance.correct',
             'reports.view',
         ],
         'dept_head' => [
@@ -117,12 +121,13 @@ class RolePermissionSeeder extends Seeder
             'complaints.create', 'recruitment.apply',
             'positions.view',
             'attendance.view', 'attendance.clock_self',
+            'attendance.approve', 'attendance.correct',
             'reports.view',
         ],
         'employee' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
-            'attendance.clock_self',
+            'attendance.clock_self', 'attendance.correct',
         ],
         'finance_officer' => [
             'dashboard.view',
@@ -130,19 +135,21 @@ class RolePermissionSeeder extends Seeder
             'payroll.view', 'payroll.manage',
             'payroll.approve', 'payroll.view_all', 'statutory.export',
             'employees.view_salary',
+            'attendance.correct',
             'reports.view',
         ],
         'it_support' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
+            'attendance.correct',
         ],
         'auditor' => [
             'dashboard.view', 'employees.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'reports.view', 'audit.view',
             'payroll.view_all', 'positions.view', 'identity.view', 'statutory.export',
-            'attendance.view',
+            'attendance.view', 'attendance.correct',
         ],
     ];
 

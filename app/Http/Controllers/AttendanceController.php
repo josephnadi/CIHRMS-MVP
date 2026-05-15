@@ -6,11 +6,15 @@ use App\Enums\AttendanceSource;
 use App\Http\Requests\Attendance\AssignShiftRequest;
 use App\Http\Requests\Attendance\ClockSelfRequest;
 use App\Http\Requests\Attendance\ManualAttendanceRequest;
+use App\Http\Requests\Attendance\ReviewCorrectionRequest;
+use App\Http\Requests\Attendance\StoreCorrectionRequest;
 use App\Http\Requests\Attendance\StoreShiftRequest;
 use App\Http\Requests\Attendance\UpdateShiftRequest;
+use App\Http\Resources\AttendanceCorrectionResource;
 use App\Http\Resources\AttendanceRecordResource;
 use App\Http\Resources\AttendanceSummaryResource;
 use App\Http\Resources\ShiftResource;
+use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSummary;
 use App\Models\BiometricDevice;
@@ -198,6 +202,47 @@ class AttendanceController extends Controller
     {
         ShiftAssignment::create($request->validated());
         return back()->with('success', 'Shift assigned');
+    }
+
+    public function correctionsIndex(): \Inertia\Response
+    {
+        abort_unless(request()->user()?->hasPermission('attendance.approve'), 403);
+
+        return \Inertia\Inertia::render('Attendance/Corrections', [
+            'corrections' => AttendanceCorrectionResource::collection(
+                AttendanceCorrection::with(['employee:id,employee_no,position', 'requester:id,name', 'reviewer:id,name'])
+                    ->latest()
+                    ->paginate(20)
+            ),
+        ]);
+    }
+
+    public function storeCorrection(StoreCorrectionRequest $request)
+    {
+        $employee = $request->user()->employee
+            ?? throw new \LogicException('Authenticated user has no employee record.');
+
+        $this->service->requestCorrection(
+            $employee,
+            $request->user(),
+            $request->validated('requested_event_at'),
+            $request->validated('requested_direction'),
+            $request->validated('reason'),
+            $request->validated('attendance_record_id'),
+        );
+
+        return back()->with('success', 'Correction request submitted.');
+    }
+
+    public function reviewCorrection(ReviewCorrectionRequest $request, AttendanceCorrection $correction)
+    {
+        if ($request->validated('decision') === 'approve') {
+            $this->service->approveCorrection($correction, $request->user(), $request->validated('decision_notes'));
+            return back()->with('success', 'Correction approved and applied.');
+        }
+
+        $this->service->rejectCorrection($correction, $request->user(), $request->validated('decision_notes') ?? 'Rejected');
+        return back()->with('success', 'Correction rejected.');
     }
 
     private function authorizeShiftManage(): bool

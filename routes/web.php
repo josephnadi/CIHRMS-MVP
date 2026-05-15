@@ -370,6 +370,15 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::delete('/{shift}',    [AttendanceController::class, 'destroyShift'])->name('destroy');
             Route::post('/assignments',  [AttendanceController::class, 'assignShift'])->name('assign');
         });
+
+        Route::prefix('corrections')->name('corrections.')->group(function () {
+            Route::get('/',  [AttendanceController::class, 'correctionsIndex'])
+                ->middleware('permission:attendance.approve')->name('index');
+            Route::post('/', [AttendanceController::class, 'storeCorrection'])
+                ->middleware('permission:attendance.correct')->name('store');
+            Route::patch('/{correction}/review', [AttendanceController::class, 'reviewCorrection'])
+                ->middleware('permission:attendance.approve')->name('review');
+        });
     });
 
     // ── Phase 1: Two-factor auth ──
