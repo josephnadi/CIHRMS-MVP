@@ -1,0 +1,136 @@
+<script setup>
+import { ref, computed } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import StatusBadge from '@/Components/StatusBadge.vue';
+import StatCard from '@/Components/StatCard.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+
+const props = defineProps({
+    run:          Object,
+    lines:        Object,
+    returns:      Object,
+    activeModule: String,
+});
+
+const R = computed(() => props.run.data ?? props.run);
+const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const tab = ref('summary');
+
+const calculate = () => router.post(route('payroll-runs.calculate', R.value.id), {}, { preserveScroll: true });
+
+const approveForm = useForm({ confirmation: 'approve' });
+const approve = () => approveForm.post(route('payroll-runs.approve', R.value.id), { preserveScroll: true });
+
+const reverseForm = useForm({ reason: '' });
+const reverse = () => reverseForm.post(route('payroll-runs.reverse', R.value.id), { preserveScroll: true });
+
+const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), {}, { preserveScroll: true });
+</script>
+
+<template>
+    <Head :title="`Payroll Run ${R.reference}`" />
+
+    <AuthenticatedLayout :active-module="activeModule">
+        <template #header>
+            <div class="flex items-center justify-between">
+                <div>
+                    <Link :href="route('payroll-runs.index')" class="text-xs text-slate-500 hover:underline">← All runs</Link>
+                    <h1 class="text-2xl font-semibold tracking-tight">{{ R.reference }}</h1>
+                    <p class="text-sm text-slate-500">{{ R.period_label }} · {{ R.department?.name ?? 'Whole organization' }}</p>
+                </div>
+                <StatusBadge :status="R.status" :label="R.status_label" class="text-base" />
+            </div>
+        </template>
+
+        <div class="py-6 space-y-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard label="Lines processed" :value="R.lines_count" :sublabel="`${R.skipped_count} skipped`" />
+                <StatCard label="Gross" :value="cedi(R.totals.gross)" />
+                <StatCard label="Net pay" :value="cedi(R.totals.net)" />
+                <StatCard label="PAYE remitted" :value="cedi(R.totals.paye)" />
+                <StatCard label="SSNIT 5.5% (employee)" :value="cedi(R.totals.ssnit_employee)" />
+                <StatCard label="SSNIT 13% (employer)" :value="cedi(R.totals.ssnit_employer)" />
+                <StatCard label="NHIA (2.5% split)" :value="cedi(R.totals.nhia)" />
+                <StatCard label="Tier-2 (5% employer)" :value="cedi(R.totals.tier2)" />
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <PrimaryButton v-if="['draft', 'calculated'].includes(R.status)"
+                               @click="calculate">Calculate / Recalculate</PrimaryButton>
+                <PrimaryButton v-if="R.status === 'calculated' && R.can?.approve"
+                               @click="approve">Approve (2FA required)</PrimaryButton>
+                <PrimaryButton v-if="R.status === 'approved'" @click="markPaid">Mark as paid</PrimaryButton>
+                <DangerButton  v-if="R.can?.reverse" @click="reverse">Reverse</DangerButton>
+            </div>
+
+            <div v-if="R.can?.reverse">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Reversal reason (required if reversing)</label>
+                <textarea v-model="reverseForm.reason" rows="2"
+                          class="w-full rounded-lg border-slate-200"></textarea>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+                <div class="px-5 py-3 border-b border-slate-100 flex gap-6 text-sm">
+                    <button @click="tab='lines'" :class="tab==='lines' ? 'text-indigo-600 font-semibold' : 'text-slate-500'">Lines ({{ lines?.meta?.total ?? lines?.data?.length ?? 0 }})</button>
+                    <button @click="tab='returns'" :class="tab==='returns' ? 'text-indigo-600 font-semibold' : 'text-slate-500'">Statutory returns ({{ returns?.data?.length ?? returns?.length ?? 0 }})</button>
+                </div>
+
+                <div v-if="tab==='lines'" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Employee</th>
+                                <th class="px-4 py-3 text-left">Grade/Step</th>
+                                <th class="px-4 py-3 text-right">Basic</th>
+                                <th class="px-4 py-3 text-right">Allowances</th>
+                                <th class="px-4 py-3 text-right">SSNIT 5.5%</th>
+                                <th class="px-4 py-3 text-right">PAYE</th>
+                                <th class="px-4 py-3 text-right">Net</th>
+                                <th class="px-4 py-3 text-left">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr v-for="l in (lines?.data ?? lines ?? [])" :key="l.id"
+                                :class="l.status === 'skipped' ? 'bg-amber-50' : 'hover:bg-slate-50'">
+                                <td class="px-4 py-2">
+                                    <div class="font-medium">{{ l.employee?.name ?? '—' }}</div>
+                                    <div class="text-xs text-slate-500">{{ l.employee?.employee_no }}</div>
+                                </td>
+                                <td class="px-4 py-2">{{ l.grade_code }} / {{ l.step }}</td>
+                                <td class="px-4 py-2 text-right">{{ cedi(l.basic) }}</td>
+                                <td class="px-4 py-2 text-right">{{ cedi(l.allowance_total) }}</td>
+                                <td class="px-4 py-2 text-right">{{ cedi(l.ssnit_employee) }}</td>
+                                <td class="px-4 py-2 text-right">{{ cedi(l.paye) }}</td>
+                                <td class="px-4 py-2 text-right font-semibold">{{ cedi(l.net) }}</td>
+                                <td class="px-4 py-2">
+                                    <StatusBadge :status="l.status" :label="l.status" />
+                                    <div v-if="l.skip_reason" class="text-xs text-amber-700">{{ l.skip_reason }}</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div v-if="tab==='returns'" class="divide-y divide-slate-100">
+                    <div v-for="rt in (returns?.data ?? returns ?? [])" :key="rt.id"
+                         class="px-5 py-4 flex items-center justify-between">
+                        <div>
+                            <div class="font-medium">{{ rt.kind_label }}</div>
+                            <div class="text-xs text-slate-500">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
+                        </div>
+                        <a :href="route('payroll-runs.return-download', { run: R.id, returnId: rt.id })"
+                           class="text-indigo-600 hover:underline text-sm">Download</a>
+                    </div>
+                    <div v-if="(returns?.data?.length ?? returns?.length ?? 0) === 0"
+                         class="px-5 py-8 text-center text-slate-500 text-sm">
+                        Approve the run to generate statutory return files.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>

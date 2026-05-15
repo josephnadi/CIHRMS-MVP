@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Requests\Employee;
+
+use App\Enums\EmployeeStatus;
+use App\Enums\UserRole;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StoreEmployeeRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()->hasPermission('employees.manage');
+    }
+
+    public function rules(): array
+    {
+        return [
+            // ── Existing user link OR inline user creation ──
+            'user_id'       => ['nullable', 'integer', 'exists:users,id'],
+            'create_user'   => ['sometimes', 'boolean'],
+            'user_name'     => ['required_if:create_user,true', 'string', 'max:255'],
+            'user_email'    => ['required_if:create_user,true', 'email', 'max:255', 'unique:users,email'],
+            'user_role'     => ['required_if:create_user,true', Rule::enum(UserRole::class)],
+            'user_password' => ['required_if:create_user,true', 'string', 'min:8'],
+            'staff_id'      => ['nullable', 'string', 'max:50', 'unique:users,staff_id'],
+
+            // ── Employee row ──
+            'department_id' => ['nullable', 'integer', 'exists:departments,id'],
+            'manager_id'    => ['nullable', 'integer', 'exists:employees,id'],
+            'employee_no'   => ['required', 'string', 'max:50', 'unique:employees,employee_no'],
+            'position'      => ['required', 'string', 'max:255'],
+            'hire_date'     => ['required', 'date', 'before_or_equal:today'],
+            'phone'         => ['nullable', 'string', 'max:20'],
+            'status'        => ['sometimes', Rule::enum(EmployeeStatus::class)],
+
+            // ── Personal ──
+            'gender'        => ['nullable', 'string', 'in:male,female,other,prefer_not_to_say'],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'national_id'   => ['nullable', 'string', 'max:64'],
+            'address'       => ['nullable', 'string', 'max:255'],
+
+            // ── Emergency ──
+            'emergency_contact_name'         => ['nullable', 'string', 'max:255'],
+            'emergency_contact_phone'        => ['nullable', 'string', 'max:32'],
+            'emergency_contact_relationship' => ['nullable', 'string', 'max:64'],
+
+            // ── Compensation: salary requires permission ──
+            'bank_name'     => ['nullable', 'string', 'max:255'],
+            'bank_account'  => ['nullable', 'string', 'max:64'],
+            'salary'        => [
+                'nullable', 'numeric', 'min:0',
+                function ($attr, $val, $fail) {
+                    if ($val !== null && ! $this->user()->hasPermission('employees.view_salary')) {
+                        $fail('You do not have permission to set salary.');
+                    }
+                },
+            ],
+        ];
+    }
+}

@@ -1,0 +1,55 @@
+# Composer
+/vendor/
+composer.phar
+
+# Node
+/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Vite / built assets
+/public/build/
+/public/hot
+/public/storage
+
+# Environment
+.env
+.env.backup
+.env.production
+.env.*.local
+.env.testing.local
+
+# Storage runtime
+/storage/*.key
+/storage/app/public/*
+!/storage/app/public/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/testing/*
+!/storage/framework/testing/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/logs/*.log
+
+# Local SQLite
+/database/database.sqlite
+/database/database.sqlite-journal
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Auth / Phpunit
+auth.json
+.phpunit.result.cache
+.phpunit.cache/
+
+# Laravel
+Homestead.json
+Homestead.yaml

@@ -1,0 +1,517 @@
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import StatCard from '@/Components/StatCard.vue';
+
+const props = defineProps({
+    analytics:    Object,
+    activeModule: String,
+});
+
+const a = computed(() => props.analytics ?? {});
+const kpis = computed(() => a.value.kpis ?? {});
+
+// ── Live sync: random 15–20s Inertia partial reload of analytics ─────────
+const lastSync  = ref(Date.now());
+const isSyncing = ref(false);
+const nowTick   = ref(Date.now());
+const syncAgoLabel = computed(() => {
+    const s = Math.max(0, Math.floor((nowTick.value - lastSync.value) / 1000));
+    if (s < 60)   return s + 's';
+    if (s < 3600) return Math.floor(s / 60) + 'm';
+    return Math.floor(s / 3600) + 'h';
+});
+
+const _intervals = [];
+let   _reloadTimer = null;
+const nextReloadMs = () => 15000 + Math.floor(Math.random() * 5001);
+
+function scheduleServerReload() {
+    _reloadTimer = setTimeout(() => {
+        isSyncing.value = true;
+        router.reload({
+            only: ['analytics'],
+            preserveScroll: true,
+            preserveState:  true,
+            onFinish: () => {
+                isSyncing.value = false;
+                lastSync.value  = Date.now();
+                scheduleServerReload();
+            },
+        });
+    }, nextReloadMs());
+}
+
+onMounted(() => {
+    _intervals.push(setInterval(() => { nowTick.value = Date.now(); }, 1000));
+    scheduleServerReload();
+});
+
+onBeforeUnmount(() => {
+    _intervals.forEach(clearInterval);
+    if (_reloadTimer) clearTimeout(_reloadTimer);
+});
+
+// ── SVG line/area chart helpers ──────────────────────────────────────────────
+const w = 720, h = 220, pad = 30;
+
+const linePath = (data, key = 'value') => {
+    if (!data?.length) return '';
+    const values = data.map(d => d[key] ?? 0);
+    const max = Math.max(...values, 1);
+    const stepX = (w - pad * 2) / Math.max(data.length - 1, 1);
+    return data.map((d, i) => {
+        const x = pad + i * stepX;
+        const y = h - pad - ((d[key] ?? 0) / max) * (h - pad * 2);
+        return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+};
+
+const areaPath = (data, key = 'value') => {
+    if (!data?.length) return '';
+    const values = data.map(d => d[key] ?? 0);
+    const max = Math.max(...values, 1);
+    const stepX = (w - pad * 2) / Math.max(data.length - 1, 1);
+    const top = data.map((d, i) => {
+        const x = pad + i * stepX;
+        const y = h - pad - ((d[key] ?? 0) / max) * (h - pad * 2);
+        return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+    return `${top} L ${(w - pad).toFixed(1)} ${(h - pad).toFixed(1)} L ${pad.toFixed(1)} ${(h - pad).toFixed(1)} Z`;
+};
+
+const pointPositions = (data, key = 'value') => {
+    if (!data?.length) return [];
+    const values = data.map(d => d[key] ?? 0);
+    const max = Math.max(...values, 1);
+    const stepX = (w - pad * 2) / Math.max(data.length - 1, 1);
+    return data.map((d, i) => ({
+        x: pad + i * stepX,
+        y: h - pad - ((d[key] ?? 0) / max) * (h - pad * 2),
+        label: d.label,
+        value: d.value,
+    }));
+};
+
+// ── Donut chart helpers ──────────────────────────────────────────────────────
+const donutSegments = (data) => {
+    if (!data?.length) return [];
+    const total = data.reduce((s, d) => s + (d.value ?? 0), 0);
+    if (!total) return [];
+    let offset = 0;
+    const c = 2 * Math.PI * 42;
+    return data.map((d, i) => {
+        const pct = (d.value ?? 0) / total;
+        const len = pct * c;
+        const seg = {
+            ...d,
+            dashArray: `${len} ${c - len}`,
+            dashOffset: -offset,
+            color: donutColor(i),
+            pct: (pct * 100).toFixed(1),
+        };
+        offset += len;
+        return seg;
+    });
+};
+
+const donutColor = (i) => {
+    const palette = ['#0051d5', '#316bf3', '#7c5cff', '#0891b2', '#059669', '#d97706', '#dc2626'];
+    return palette[i % palette.length];
+};
+
+const totalLeave = computed(() => (a.value.leaveTypeSplit ?? []).reduce((s, d) => s + d.value, 0));
+
+// ── Horizontal bar (department efficiency) helpers ───────────────────────────
+const efficiencyColor = (score) => {
+    if (score >= 80) return '#059669';
+    if (score >= 60) return '#316bf3';
+    if (score >= 40) return '#d97706';
+    return '#dc2626';
+};
+
+// ── Vertical bar (headcount / hires / tickets) ───────────────────────────────
+const barMax = (data, key = 'value') => Math.max(...(data ?? []).map(d => d[key] ?? 0), 1);
+
+const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
+</script>
+
+<template>
+    <Head title="Performance Analytics" />
+    <AuthenticatedLayout :activeModule="activeModule">
+
+        <template #header>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Performance Analytics</h2>
+                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                        Workforce health, productivity signals and institutional metrics — auto-refreshed every 15–20 seconds.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Live sync pill — pulses while reloading, otherwise shows seconds since last refresh -->
+                    <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
+                         :class="isSyncing
+                            ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/40 text-blue-700 dark:text-blue-300'
+                            : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/40 text-green-700 dark:text-green-400'">
+                        <span class="h-1.5 w-1.5 rounded-full"
+                              :class="isSyncing ? 'bg-blue-500 animate-pulse' : 'bg-green-500 live-dot'"></span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">
+                            {{ isSyncing ? 'Syncing…' : `Live · ${syncAgoLabel}` }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <div class="space-y-6">
+
+            <!-- ── KPI strip ───────────────────────────────────────────────── -->
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+                <StatCard :value="formatNum(kpis.active)"        label="Active Staff"     icon="badge"          color="#0051d5" />
+                <StatCard :value="formatNum(kpis.on_leave)"      label="On Leave"         icon="beach_access"   color="#d97706" />
+                <StatCard :value="formatNum(kpis.new_hires_90d)" label="New Hires (90d)"  icon="person_add"     color="#059669" />
+                <StatCard :value="formatNum(kpis.terminated_90d)"label="Terminated (90d)" icon="trending_down"  color="#dc2626" />
+                <StatCard :value="`${kpis.retention_pct ?? 0}%`" label="Retention"        icon="check_circle"   color="#7c5cff" />
+                <StatCard :value="`${kpis.turnover_pct ?? 0}%`"  label="Turnover"         icon="rotate_right"   color="#0891b2" />
+            </div>
+
+            <!-- ── Row 1: Hires trend + Department efficiency ──────────────── -->
+            <div class="grid gap-6 lg:grid-cols-3">
+
+                <!-- Hires trend (line+area) -->
+                <div class="lg:col-span-2 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-[14px] font-bold text-on-surface">Hires & Headcount Velocity</h3>
+                            <p class="mt-0.5 text-[11px] text-on-surface-variant">New hires per month, trailing 12 months</p>
+                        </div>
+                        <div class="flex items-center gap-3 text-[10px] font-semibold">
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0051d5,#316bf3)"></span>Hires</span>
+                        </div>
+                    </div>
+
+                    <svg :viewBox="`0 0 ${w} ${h}`" preserveAspectRatio="xMidYMid meet" class="w-full h-[220px]">
+                        <defs>
+                            <linearGradient id="hiresFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#316bf3" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#316bf3" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- gridlines -->
+                        <g stroke="currentColor" class="text-outline-variant/40" stroke-dasharray="3 4">
+                            <line :x1="pad" :y1="pad"           :x2="w - pad" :y2="pad" />
+                            <line :x1="pad" :y1="(h+pad)/2"     :x2="w - pad" :y2="(h+pad)/2" />
+                            <line :x1="pad" :y1="h - pad"       :x2="w - pad" :y2="h - pad" />
+                        </g>
+
+                        <path :d="areaPath(a.hiresByMonth)" fill="url(#hiresFill)" />
+                        <path :d="linePath(a.hiresByMonth)" fill="none" stroke="#0051d5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                        <g v-for="(p, i) in pointPositions(a.hiresByMonth)" :key="i">
+                            <circle :cx="p.x" :cy="p.y" r="3.5" fill="#fff" stroke="#0051d5" stroke-width="2" />
+                            <text :x="p.x" :y="h - pad + 18" class="fill-current text-on-surface-variant" text-anchor="middle" font-size="10" font-weight="600">{{ p.label }}</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Tenure distribution (vertical bars) -->
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <h3 class="text-[14px] font-bold text-on-surface mb-1">Tenure Distribution</h3>
+                    <p class="text-[11px] text-on-surface-variant mb-5">Active staff by years of service</p>
+
+                    <div class="space-y-3">
+                        <div v-for="(bucket, i) in a.tenureBuckets ?? []" :key="i" class="space-y-1.5">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-semibold text-on-surface-variant">{{ bucket.label }}</span>
+                                <span class="font-bold text-on-surface">{{ bucket.value }}</span>
+                            </div>
+                            <div class="h-2 w-full rounded-full bg-surface-container-low overflow-hidden">
+                                <div
+                                    class="h-full rounded-full transition-all"
+                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#0051d5,#316bf3);transition-duration:0.8s`"
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Row 2: Department efficiency + Leave type donut ─────────── -->
+            <div class="grid gap-6 lg:grid-cols-3">
+
+                <!-- Department efficiency (horizontal bars) -->
+                <div class="lg:col-span-2 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <div class="flex items-start justify-between mb-5">
+                        <div>
+                            <h3 class="text-[14px] font-bold text-on-surface">Department Efficiency</h3>
+                            <p class="mt-0.5 text-[11px] text-on-surface-variant">Ticket resolution rate by department</p>
+                        </div>
+                        <div class="text-[11px] text-on-surface-variant">
+                            <span class="font-bold text-on-surface">{{ a.avgResolveHours ?? 0 }}h</span> avg resolution
+                        </div>
+                    </div>
+
+                    <div v-if="(a.deptEfficiency ?? []).length === 0" class="py-8 text-center text-[12px] text-on-surface-variant/60 italic">
+                        No ticket activity to compute efficiency yet.
+                    </div>
+
+                    <div v-else class="space-y-3.5">
+                        <div v-for="dept in a.deptEfficiency" :key="dept.code" class="grid grid-cols-12 items-center gap-3">
+                            <div class="col-span-3">
+                                <p class="text-[12px] font-semibold text-on-surface leading-tight">{{ dept.name }}</p>
+                                <p class="text-[10px] text-on-surface-variant/60">{{ dept.staff }} staff</p>
+                            </div>
+                            <div class="col-span-7 relative h-6 rounded-md bg-surface-container-low overflow-hidden">
+                                <div
+                                    class="absolute inset-y-0 left-0 rounded-md transition-all"
+                                    :style="`width:${dept.score}%;background:linear-gradient(90deg,${efficiencyColor(dept.score)},${efficiencyColor(dept.score)}cc);transition-duration:0.9s`"
+                                ></div>
+                            </div>
+                            <div class="col-span-2 text-right">
+                                <span class="text-[14px] font-black tabular-nums" :style="`color:${efficiencyColor(dept.score)}`">{{ dept.score }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave type breakdown (donut) -->
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <h3 class="text-[14px] font-bold text-on-surface mb-1">Leave Mix</h3>
+                    <p class="text-[11px] text-on-surface-variant mb-4">Approved this year by type</p>
+
+                    <div v-if="totalLeave === 0" class="py-12 text-center text-[12px] text-on-surface-variant/60 italic">
+                        No approved leave this year yet.
+                    </div>
+
+                    <div v-else class="flex items-center gap-4">
+                        <svg viewBox="0 0 100 100" class="h-32 w-32 -rotate-90 flex-shrink-0">
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" class="text-surface-container-low" stroke-width="14" />
+                            <circle
+                                v-for="(seg, i) in donutSegments(a.leaveTypeSplit)"
+                                :key="i"
+                                cx="50" cy="50" r="42"
+                                fill="none"
+                                :stroke="seg.color"
+                                stroke-width="14"
+                                :stroke-dasharray="seg.dashArray"
+                                :stroke-dashoffset="seg.dashOffset"
+                                stroke-linecap="butt"
+                                style="transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease;"
+                            />
+                            <text
+                                x="50" y="50"
+                                text-anchor="middle"
+                                dominant-baseline="central"
+                                transform="rotate(90 50 50)"
+                                font-size="16"
+                                font-weight="900"
+                                class="fill-current text-on-surface"
+                            >{{ totalLeave }}</text>
+                        </svg>
+
+                        <div class="flex-1 space-y-1.5 min-w-0">
+                            <div v-for="(seg, i) in donutSegments(a.leaveTypeSplit)" :key="i" class="flex items-center justify-between text-[11px]">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <span class="h-2 w-2 rounded-full flex-shrink-0" :style="`background:${seg.color}`"></span>
+                                    <span class="font-semibold text-on-surface truncate">{{ seg.label }}</span>
+                                </div>
+                                <span class="font-mono font-bold text-on-surface-variant flex-shrink-0">{{ seg.pct }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Row 3: Headcount by dept + Top performers ───────────────── -->
+            <div class="grid gap-6 lg:grid-cols-3">
+
+                <!-- Headcount by department (bars) -->
+                <div class="lg:col-span-2 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <h3 class="text-[14px] font-bold text-on-surface mb-1">Headcount by Department</h3>
+                    <p class="text-[11px] text-on-surface-variant mb-5">Active employees only</p>
+
+                    <div class="flex h-[180px] items-end gap-3 px-1">
+                        <div
+                            v-for="dept in a.headcountByDept ?? []"
+                            :key="dept.code"
+                            class="group relative flex-1 flex flex-col items-center gap-2 cursor-default"
+                        >
+                            <span class="text-[10px] font-bold text-on-surface-variant tabular-nums">{{ dept.value }}</span>
+                            <div
+                                class="w-full rounded-t-md relative overflow-hidden"
+                                :style="`height:${(dept.value / barMax(a.headcountByDept)) * 140}px;background:linear-gradient(to top,#0051d5,#7c5cff);transition:height 0.9s cubic-bezier(0.22,1,0.36,1)`"
+                            ></div>
+                            <span class="text-[10px] font-semibold text-on-surface-variant/70 truncate max-w-full text-center">{{ dept.label }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top performers -->
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 flex flex-col">
+                    <h3 class="text-[14px] font-bold text-on-surface mb-1">Top Resolvers</h3>
+                    <p class="text-[11px] text-on-surface-variant mb-4">Most tickets closed</p>
+
+                    <div v-if="(a.topPerformers ?? []).length === 0" class="py-8 text-center text-[12px] text-on-surface-variant/60 italic">
+                        No resolution data yet.
+                    </div>
+
+                    <div v-else class="canvas-scroll max-h-[300px] overflow-y-auto space-y-2.5 -mr-2 pr-2">
+                        <div
+                            v-for="(emp, i) in a.topPerformers"
+                            :key="emp.id"
+                            class="flex items-center gap-3 rounded-xl bg-surface-container-low/50 p-2.5"
+                        >
+                            <div class="relative">
+                                <div
+                                    class="flex h-9 w-9 items-center justify-center rounded-full text-[12px] font-black text-white flex-shrink-0"
+                                    :style="`background:linear-gradient(135deg,#0051d5,#316bf3)`"
+                                >
+                                    {{ emp.name?.charAt(0) ?? '?' }}
+                                </div>
+                                <span
+                                    v-if="i < 3"
+                                    class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-black text-white shadow-sm"
+                                    :style="`background:${['#f59e0b','#94a3b8','#a16207'][i]}`"
+                                >{{ i + 1 }}</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[12px] font-semibold text-on-surface truncate">{{ emp.name }}</p>
+                                <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.position ?? '—' }}</p>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-[15px] font-black text-secondary tabular-nums">{{ emp.resolved }}</p>
+                                <p class="text-[9px] uppercase tracking-wider font-bold text-on-surface-variant/60">closed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Row 4: Ticket trend + Leave volume side by side ─────────── -->
+            <div class="grid gap-6 lg:grid-cols-2">
+
+                <!-- Ticket trend -->
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-[14px] font-bold text-on-surface">Ticket Volume Trend</h3>
+                            <p class="mt-0.5 text-[11px] text-on-surface-variant">Service desk activity, monthly</p>
+                        </div>
+                        <Link :href="route('tickets.index')" class="text-[11px] font-semibold text-secondary hover:underline">
+                            View tickets →
+                        </Link>
+                    </div>
+
+                    <svg :viewBox="`0 0 ${w} 180`" preserveAspectRatio="xMidYMid meet" class="w-full h-[180px]">
+                        <defs>
+                            <linearGradient id="ticketFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#dc2626" stop-opacity="0.25"/>
+                                <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <g stroke="currentColor" class="text-outline-variant/40" stroke-dasharray="3 4">
+                            <line :x1="pad" y1="20" :x2="w - pad" y2="20" />
+                            <line :x1="pad" y1="100" :x2="w - pad" y2="100" />
+                            <line :x1="pad" y1="160" :x2="w - pad" y2="160" />
+                        </g>
+
+                        <g v-if="(a.ticketTrend ?? []).length">
+                            <path
+                                :d="(() => {
+                                    const data = a.ticketTrend;
+                                    const max = Math.max(...data.map(d => d.value), 1);
+                                    const stepX = (w - pad * 2) / Math.max(data.length - 1, 1);
+                                    const innerH = 160 - 20;
+                                    const top = data.map((d, i) => {
+                                        const x = pad + i * stepX;
+                                        const y = 160 - (d.value / max) * innerH;
+                                        return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+                                    }).join(' ');
+                                    return `${top} L ${(w - pad).toFixed(1)} 160 L ${pad.toFixed(1)} 160 Z`;
+                                })()"
+                                fill="url(#ticketFill)"
+                            />
+                            <path
+                                :d="(() => {
+                                    const data = a.ticketTrend;
+                                    const max = Math.max(...data.map(d => d.value), 1);
+                                    const stepX = (w - pad * 2) / Math.max(data.length - 1, 1);
+                                    const innerH = 160 - 20;
+                                    return data.map((d, i) => {
+                                        const x = pad + i * stepX;
+                                        const y = 160 - (d.value / max) * innerH;
+                                        return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+                                    }).join(' ');
+                                })()"
+                                fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            />
+                        </g>
+
+                        <g v-for="(p, i) in a.ticketTrend ?? []" :key="i">
+                            <text :x="pad + i * ((w - pad * 2) / Math.max((a.ticketTrend?.length ?? 1) - 1, 1))" y="175" class="fill-current text-on-surface-variant" text-anchor="middle" font-size="9.5" font-weight="600">{{ p.label }}</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Leave volume trend -->
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-[14px] font-bold text-on-surface">Approved Leave Volume</h3>
+                            <p class="mt-0.5 text-[11px] text-on-surface-variant">Monthly requests, trailing 12 months</p>
+                        </div>
+                        <Link :href="route('leave.index')" class="text-[11px] font-semibold text-secondary hover:underline">
+                            View leave →
+                        </Link>
+                    </div>
+
+                    <div class="flex h-[160px] items-end gap-1.5">
+                        <div
+                            v-for="(p, i) in a.leaveByMonth ?? []"
+                            :key="i"
+                            class="group relative flex-1 flex flex-col items-center gap-1.5"
+                        >
+                            <div
+                                class="w-full rounded-t relative overflow-hidden"
+                                :style="`height:${(p.value / barMax(a.leaveByMonth)) * 120}px;background:linear-gradient(to top,#059669,#34d399);transition:height 0.9s cubic-bezier(0.22,1,0.36,1);min-height:2px`"
+                            >
+                                <div
+                                    class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white whitespace-nowrap"
+                                    style="background:#0c0e14"
+                                >{{ p.value }}</div>
+                            </div>
+                            <span class="text-[9px] font-bold text-on-surface-variant/70">{{ p.label }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </AuthenticatedLayout>
+</template>
+
+<style scoped>
+.live-dot {
+    animation: liveDot 1.6s ease-in-out infinite;
+}
+@keyframes liveDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.3; transform: scale(0.75); }
+}
+
+.canvas-scroll::-webkit-scrollbar { width: 8px; }
+.canvas-scroll::-webkit-scrollbar-track { background: transparent; }
+.canvas-scroll::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.25);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.canvas-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.45);
+    background-clip: padding-box;
+}
+</style>
