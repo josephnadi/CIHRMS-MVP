@@ -13,6 +13,7 @@ use App\Http\Resources\AttendanceSummaryResource;
 use App\Http\Resources\ShiftResource;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSummary;
+use App\Models\BiometricDevice;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Shift;
@@ -97,18 +98,40 @@ class AttendanceController extends Controller
     public function clockSelf(ClockSelfRequest $request): RedirectResponse
     {
         $employee = $request->user()->employee;
+        $validated = $request->validated();
+        $source = AttendanceSource::WebKiosk;
 
-        $this->service->record(
-            employee:   $employee,
-            eventAt:    now(),
-            direction:  (string) $request->validated('direction'),
-            source:     AttendanceSource::WebKiosk,
-            geoLat:     $request->validated('geo_lat'),
-            geoLng:     $request->validated('geo_lng'),
-            recordedBy: $request->user(),
-        );
+        $nearestDeviceId = null;
+        $lat = $validated['geo_lat'] ?? null;
+        $lng = $validated['geo_lng'] ?? null;
+        if ($lat !== null && $lng !== null) {
+            $candidate = BiometricDevice::query()
+                ->where('is_active', true)
+                ->whereNotNull('geo_lat')
+                ->whereNotNull('geo_lng')
+                ->whereNotNull('geo_radius_m')
+                ->whereBetween('geo_lat', [$lat - 0.5, $lat + 0.5])
+                ->whereBetween('geo_lng', [$lng - 0.5, $lng + 0.5])
+                ->first();
+            $nearestDeviceId = $candidate?->id;
+        }
 
-        return back()->with('success', 'Clock-' . $request->validated('direction') . ' recorded.');
+        try {
+            $this->service->record(
+                employee:   $employee,
+                eventAt:    now(),
+                direction:  (string) $validated['direction'],
+                source:     $source,
+                deviceId:   $nearestDeviceId,
+                geoLat:     $lat,
+                geoLng:     $lng,
+                recordedBy: $request->user(),
+            );
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Clocked {$validated['direction']} successfully");
     }
 
     public function manualEntry(ManualAttendanceRequest $request): RedirectResponse
