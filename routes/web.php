@@ -21,8 +21,11 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\LoanAccountController;
 use App\Http\Controllers\OffboardingController;
+use App\Http\Controllers\WhistleblowerPublicController;
+use App\Http\Controllers\WhistleblowerAdminController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
@@ -45,6 +48,17 @@ Route::get('/', function () {
 // Public careers portal (unauthenticated)
 Route::get('/careers/{job}',        [RecruitmentController::class, 'showPublic'])->name('careers.show');
 Route::post('/careers/{job}/apply', [RecruitmentController::class, 'apply'])->name('careers.apply');
+
+// ── Public whistleblower channel (anonymous; Whistleblower Act 2006 / Act 720) ──
+// Rate-limited to discourage flooding while still allowing legitimate use.
+Route::prefix('whistleblower')->name('whistleblower.')->middleware('throttle:6,1')->group(function () {
+    Route::get('/',              [WhistleblowerPublicController::class, 'submitForm'])->name('form');
+    Route::post('/',             [WhistleblowerPublicController::class, 'submit'])->name('submit');
+    Route::get('/confirmation',  [WhistleblowerPublicController::class, 'confirmation'])->name('confirmation');
+    Route::get('/track',         [WhistleblowerPublicController::class, 'trackForm'])->name('track');
+    Route::post('/track',        [WhistleblowerPublicController::class, 'track'])->name('track.submit');
+    Route::post('/track/reply',  [WhistleblowerPublicController::class, 'reply'])->name('track.reply');
+});
 
 // Inbound webhooks (public; signature-verified per provider)
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
@@ -96,7 +110,7 @@ Route::middleware(['auth', 'verified'])->prefix('modules')->name('modules.')->gr
     Route::get('attendance',  fn () => redirect()->route('attendance.index'))                          ->name('attendance');
     Route::get('governance',  [\App\Http\Controllers\StaticPageController::class, 'governance'])         ->name('governance');
     Route::get('assets',      fn () => redirect()->route('assets.index'))->name('assets');
-    Route::get('benefits',    [\App\Http\Controllers\StaticPageController::class, 'benefits'])           ->name('benefits');
+    Route::get('benefits',    fn () => redirect()->route('benefits.index'))->name('benefits');
 
     // Performance: dedicated analytics page.
     Route::get('performance', [PerformanceController::class, 'index'])                                   ->name('performance');
@@ -400,6 +414,23 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:loans.apply')->name('preview');
     });
 
+    // ── Phase 2: Whistleblower (investigator dashboard) ──
+    // Public submission/tracking lives outside this auth group above.
+    Route::prefix('admin/whistleblower')->name('whistleblower.admin.')->group(function () {
+        Route::get('/',                  [WhistleblowerAdminController::class, 'index'])
+            ->middleware('permission:whistleblower.investigate')->name('index');
+        Route::get('{report}',           [WhistleblowerAdminController::class, 'show'])
+            ->middleware('permission:whistleblower.investigate')->name('show');
+        Route::post('{report}/triage',   [WhistleblowerAdminController::class, 'triage'])
+            ->middleware(['permission:whistleblower.investigate', '2fa:fresh'])->name('triage');
+        Route::post('{report}/actions',  [WhistleblowerAdminController::class, 'logAction'])
+            ->middleware('permission:whistleblower.investigate')->name('actions');
+        Route::post('{report}/messages', [WhistleblowerAdminController::class, 'postMessage'])
+            ->middleware('permission:whistleblower.investigate')->name('messages');
+        Route::post('{report}/assign',   [WhistleblowerAdminController::class, 'assign'])
+            ->middleware(['permission:whistleblower.manage', '2fa:fresh'])->name('assign');
+    });
+
     // ── Phase 2: Off-boarding & Final Settlement ──
     Route::prefix('offboarding')->name('offboarding.')->group(function () {
         Route::get('/',                                    [OffboardingController::class, 'index'])
@@ -443,6 +474,41 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:assets.manage')->name('retire');
         Route::patch('/{asset}/lost',                [AssetController::class, 'markLost'])
             ->middleware('permission:assets.manage')->name('lost');
+    });
+
+    // ── Phase 4: Benefits ──
+    Route::prefix('benefits')->name('benefits.')->group(function () {
+        Route::get('/',                       [BenefitsController::class, 'index'])->name('index');
+
+        Route::prefix('plans')->name('plans.')->middleware('permission:benefits.manage')->group(function () {
+            Route::get('/',                   [BenefitsController::class, 'plansIndex'])->name('index');
+            Route::post('/',                  [BenefitsController::class, 'storePlan'])->name('store');
+            Route::patch('/{plan}',           [BenefitsController::class, 'updatePlan'])->name('update');
+            Route::delete('/{plan}',          [BenefitsController::class, 'destroyPlan'])->name('destroy');
+        });
+
+        Route::post('/enrol',                 [BenefitsController::class, 'enrol'])
+            ->middleware('permission:benefits.enrol')->name('enrol');
+
+        Route::prefix('dependants')->name('dependants.')->group(function () {
+            Route::post('/',                  [BenefitsController::class, 'storeDependant'])
+                ->middleware('permission:benefits.enrol')->name('store');
+            Route::patch('/{dependant}',      [BenefitsController::class, 'updateDependant'])
+                ->middleware('permission:benefits.enrol')->name('update');
+            Route::delete('/{dependant}',     [BenefitsController::class, 'destroyDependant'])
+                ->middleware('permission:benefits.enrol')->name('destroy');
+        });
+
+        Route::prefix('claims')->name('claims.')->group(function () {
+            Route::get('/',                   [BenefitsController::class, 'claimsIndex'])
+                ->middleware('permission:benefits.manage')->name('index');
+            Route::post('/',                  [BenefitsController::class, 'submitClaim'])
+                ->middleware('permission:benefits.claim')->name('store');
+            Route::patch('/{claim}/decide',   [BenefitsController::class, 'decideClaim'])
+                ->middleware('permission:benefits.manage')->name('decide');
+        });
+
+        Route::get('/enrolments/{enrolment}/e-card', [BenefitsController::class, 'downloadECard'])->name('e-card');
     });
 
     // ── Phase 1: Two-factor auth ──

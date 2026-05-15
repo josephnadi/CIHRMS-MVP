@@ -99,10 +99,24 @@ class RolePermissionSeeder extends Seeder
         'offboarding.approve'    => ['Off-boarding', 'Approve final settlements (dual control)'],
         'offboarding.manage'     => ['Off-boarding', 'Complete, cancel, and administer cases'],
 
+        // ── Phase 2: Whistleblower (Act 720) ──
+        // Segregated investigation role — assignment deliberately kept away from HR
+        // line management so that retaliation pressure doesn't flow through HR.
+        'whistleblower.investigate' => ['Whistleblower', 'Triage and investigate cases (segregated role)'],
+        'whistleblower.manage'      => ['Whistleblower', 'Reassign, delete, full administrative access'],
+        'whistleblower.view_all'    => ['Whistleblower', 'Read-only access (Auditor lane)'],
+
         // ── Phase 3: Assets ──
         'assets.view'            => ['Assets',       'View asset registry'],
         'assets.manage'          => ['Assets',       'Register, assign, return, retire assets'],
         'assets.assign'          => ['Assets',       'Assign assets within own department'],
+
+        // ── Phase 4: Benefits ──
+        'benefits.view'      => ['Benefits',     'View own benefits, plans, claims'],
+        'benefits.view_all'  => ['Benefits',     'View all employees benefits org-wide'],
+        'benefits.manage'    => ['Benefits',     'Manage benefit plans + claim decisions'],
+        'benefits.enrol'     => ['Benefits',     'Enrol in benefit plans (self)'],
+        'benefits.claim'     => ['Benefits',     'Submit benefit claims (self)'],
     ];
 
     /**
@@ -127,6 +141,7 @@ class RolePermissionSeeder extends Seeder
             'offboarding.view', 'offboarding.initiate', 'offboarding.clear',
             'offboarding.settle', 'offboarding.manage',
             'assets.view', 'assets.manage', 'assets.assign',
+            'benefits.view', 'benefits.view_all', 'benefits.manage', 'benefits.enrol', 'benefits.claim',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -138,6 +153,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
             'assets.view', 'assets.assign',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
             'reports.view',
         ],
         'dept_head' => [
@@ -149,6 +165,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
             'assets.view', 'assets.assign',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
             'reports.view',
         ],
         'employee' => [
@@ -157,6 +174,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.clock_self', 'attendance.correct',
             'loans.apply',
             'assets.view',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
         ],
         'finance_officer' => [
             'dashboard.view',
@@ -168,6 +186,7 @@ class RolePermissionSeeder extends Seeder
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
             'offboarding.view', 'offboarding.settle', 'offboarding.approve',
             'assets.view',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
             'reports.view',
         ],
         'it_support' => [
@@ -176,6 +195,7 @@ class RolePermissionSeeder extends Seeder
             'complaints.create', 'recruitment.apply',
             'attendance.correct',
             'assets.view', 'assets.manage', 'assets.assign',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
         ],
         'auditor' => [
             'dashboard.view', 'employees.view',
@@ -184,6 +204,11 @@ class RolePermissionSeeder extends Seeder
             'payroll.view_all', 'positions.view', 'identity.view', 'statutory.export',
             'attendance.view', 'attendance.correct',
             'assets.view',
+            // Whistleblower: read-only access for independent oversight.
+            // Auditor can ALSO investigate when designated by the org as the
+            // segregated investigator role.
+            'whistleblower.view_all', 'whistleblower.investigate',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
         ],
     ];
 
