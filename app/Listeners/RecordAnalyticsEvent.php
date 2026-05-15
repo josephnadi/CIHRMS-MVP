@@ -47,6 +47,30 @@ class RecordAnalyticsEvent implements ShouldQueue
                 'attendance.correction.decided',
                 ['correction_id' => $event->correction->id, 'status' => $event->correction->status?->value],
             ],
+            $event instanceof \App\Events\AssetAssigned => [
+                'asset.assigned',
+                ['assignment_id' => $event->assignment->id, 'asset_id' => $event->assignment->asset_id, 'employee_id' => $event->assignment->employee_id],
+            ],
+            $event instanceof \App\Events\AssetReturned => [
+                'asset.returned',
+                ['assignment_id' => $event->assignment->id, 'asset_id' => $event->assignment->asset_id, 'condition' => $event->assignment->condition_on_return?->value],
+            ],
+            $event instanceof \App\Events\AssetMaintenanceLogged => [
+                'asset.maintenance.logged',
+                ['maintenance_id' => $event->maintenance->id, 'asset_id' => $event->maintenance->asset_id, 'type' => $event->maintenance->type?->value],
+            ],
+            $event instanceof \App\Events\AssetMaintenanceCompleted => [
+                'asset.maintenance.completed',
+                ['maintenance_id' => $event->maintenance->id, 'asset_id' => $event->maintenance->asset_id],
+            ],
+            $event instanceof \App\Events\AssetRetired => [
+                'asset.retired',
+                ['asset_id' => $event->asset->id, 'asset_tag' => $event->asset->asset_tag],
+            ],
+            $event instanceof \App\Events\AssetMarkedLost => [
+                'asset.lost',
+                ['asset_id' => $event->asset->id, 'asset_tag' => $event->asset->asset_tag],
+            ],
             default => [class_basename($event), []],
         };
 

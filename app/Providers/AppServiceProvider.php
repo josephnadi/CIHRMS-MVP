@@ -39,8 +39,12 @@ use App\Services\Identity\IdentityVerificationService;
 use App\Services\Attendance\AttendanceService;
 use App\Services\Attendance\OvertimeCalculator;
 use App\Services\Attendance\BiometricIngestionService;
+use App\Services\Loans\AmortizationCalculator;
+use App\Services\Loans\LoanService;
 use App\Models\AttendanceRecord;
+use App\Models\LoanAccount;
 use App\Policies\AttendancePolicy;
+use App\Policies\LoanAccountPolicy;
 use App\Services\Auth\TwoFactorService;
 use App\Services\ComplaintService;
 use App\Services\DashboardService;
@@ -85,6 +89,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(BiometricIngestionService::class);
         $this->app->singleton(\App\Services\Attendance\ShiftService::class);
 
+        // Phase 2 — Loans & Advances
+        $this->app->singleton(AmortizationCalculator::class);
+        $this->app->singleton(LoanService::class);
+
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(OAuthFlow::class);
@@ -93,6 +101,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Messaging layer (Wave 12)
         $this->app->singleton(MessagingDispatcher::class);
+
+        // Phase 3 — Assets
+        $this->app->singleton(\App\Services\AssetService::class);
     }
 
     public function boot(): void
@@ -112,6 +123,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Position::class,              PositionPolicy::class);
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
         Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
+        Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──
         Gate::before(function ($user, string $ability) {
@@ -138,5 +150,13 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(PayrollRunApproved::class, GenerateStatutoryReturns::class);
 
         // Wave 10 — UploadPayslipToCloud is auto-discovered via its typed PayslipGenerated parameter.
+
+        // Phase 3 — Assets
+        Event::listen(\App\Events\AssetAssigned::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\AssetReturned::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\AssetMaintenanceLogged::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\AssetMaintenanceCompleted::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\AssetRetired::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\AssetMarkedLost::class, RecordAnalyticsEvent::class);
     }
 }
