@@ -1,144 +1,182 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { useToast } from '@/composables/useToast';
+import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import Pagination from '@/Components/Pagination.vue';
+import SearchInput from '@/Components/SearchInput.vue';
 
-defineProps({
-    activeModule: { type: String, default: 'assets' },
+const props = defineProps({
+    assets:       Object,
+    stats:        Object,
+    employees:    Array,
+    departments:  Array,
+    filters:      Object,
 });
 
-const { comingSoon } = useToast();
+const statCards = computed(() => [
+    { label: 'Total Assets', val: props.stats?.total ?? 0,       rgb: '0,81,213',   icon: 'inventory_2' },
+    { label: 'Assigned',     val: props.stats?.assigned ?? 0,    rgb: '5,150,105',  icon: 'check_circle' },
+    { label: 'Maintenance',  val: props.stats?.maintenance ?? 0, rgb: '217,119,6',  icon: 'build' },
+    { label: 'Available',    val: props.stats?.in_stock ?? 0,    rgb: '124,92,255', icon: 'archive' },
+]);
 
-const stats = [
-    { label: 'Total Assets', val: '4,120', sub: 'institutional',  rgb: '0,81,213',   icon: 'inventory_2' },
-    { label: 'Assigned',     val: '3,842', sub: 'in-use',         rgb: '5,150,105',  icon: 'check_circle' },
-    { label: 'Maintenance',  val: '12',    sub: 'pending repair', rgb: '217,119,6',  icon: 'build' },
-    { label: 'Available',    val: '266',   sub: 'in stock',       rgb: '124,92,255', icon: 'archive' },
-];
+const localFilters = ref({
+    category: props.filters?.category ?? '',
+    status:   props.filters?.status ?? '',
+    search:   props.filters?.search ?? '',
+});
 
-const inventory = [
-    { id: 'AST-2026-001', cat: 'Workstation',  desc: 'MacBook Pro 16" M3 Max',  status: 'assigned',    user: 'Akua Mensah',     since: '2025-03-12' },
-    { id: 'AST-2026-002', cat: 'Mobile',       desc: 'iPhone 16 Pro',            status: 'assigned',    user: 'Kofi Asante',     since: '2025-08-04' },
-    { id: 'AST-2026-042', cat: 'Mobile',       desc: 'iPad Pro 12.9"',           status: 'maintenance', user: 'Esi Darko',       since: '2025-01-18' },
-    { id: 'AST-2026-088', cat: 'Workstation',  desc: 'Dell XPS 15',              status: 'available',   user: '—',                since: '—' },
-    { id: 'AST-2026-099', cat: 'Audio',        desc: 'AirPods Pro 2',            status: 'assigned',    user: 'Yaw Boateng',     since: '2025-11-02' },
-    { id: 'AST-2026-150', cat: 'Display',      desc: 'LG 32" UltraFine 4K',      status: 'assigned',    user: 'Ama Owusu',       since: '2025-06-21' },
-    { id: 'AST-2026-201', cat: 'Vehicle',      desc: 'Toyota Hilux GR-2456-25',  status: 'maintenance', user: 'Fleet Pool',      since: '—' },
-];
+function applyFilters() {
+    router.get(route('assets.index'), localFilters.value, { preserveScroll: true, preserveState: true });
+}
 
-const filterStatus = ref('');
-const search = ref('');
+const showCreate = ref(false);
+const showAssign = ref(false);
+const assignTarget = ref(null);
 
-const filtered = computed(() =>
-    inventory.filter(a => {
-        if (filterStatus.value && a.status !== filterStatus.value) return false;
-        if (search.value) {
-            const q = search.value.toLowerCase();
-            return (a.id + a.desc + a.user + a.cat).toLowerCase().includes(q);
-        }
-        return true;
-    })
-);
+const newAsset = useForm({
+    asset_tag: '', name: '',
+    category: 'laptop', serial_number: '',
+    brand: '', model: '',
+    purchase_date: '', purchase_cost: '', currency: 'GHS',
+    supplier: '', warranty_expires_at: '',
+    location: '', notes: '',
+});
 
-const STATUS_META = {
-    assigned:    { color: '#059669', bg: 'bg-green-50  dark:bg-green-900/20',  text: 'text-green-700  dark:text-green-400'  },
-    maintenance: { color: '#d97706', bg: 'bg-amber-50  dark:bg-amber-900/20',  text: 'text-amber-700  dark:text-amber-400'  },
-    available:   { color: '#0051d5', bg: 'bg-blue-50   dark:bg-blue-900/20',   text: 'text-blue-700   dark:text-blue-400'   },
+const assignForm = useForm({ employee_id: '', due_back_at: '', notes: '' });
+
+function createAsset() {
+    newAsset.post(route('assets.store'), {
+        preserveScroll: true,
+        onSuccess: () => { showCreate.value = false; newAsset.reset(); },
+    });
+}
+
+function openAssign(asset) {
+    assignTarget.value = asset;
+    assignForm.reset();
+    showAssign.value = true;
+}
+
+function submitAssign() {
+    assignForm.post(route('assets.assign', assignTarget.value.id), {
+        preserveScroll: true,
+        onSuccess: () => { showAssign.value = false; assignTarget.value = null; },
+    });
+}
+
+const statusTone = {
+    in_stock:    { label: 'Available',    cls: 'bg-violet-100 text-violet-800' },
+    assigned:    { label: 'Assigned',     cls: 'bg-emerald-100 text-emerald-800' },
+    maintenance: { label: 'Maintenance',  cls: 'bg-amber-100 text-amber-800' },
+    retired:     { label: 'Retired',      cls: 'bg-slate-100 text-slate-700' },
+    lost:        { label: 'Lost',         cls: 'bg-rose-100 text-rose-800' },
+};
+
+const categoryLabel = {
+    laptop: 'Laptop', monitor: 'Monitor', phone: 'Phone',
+    vehicle: 'Vehicle', furniture: 'Furniture', other: 'Other',
 };
 </script>
 
 <template>
-    <Head title="Asset Management — CIHRMS" />
-
-    <AuthenticatedLayout :activeModule="activeModule">
-
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+<Head title="Assets" />
+<AuthenticatedLayout :active-module="'assets'">
+    <div class="p-6 space-y-6 animate-reveal-up">
+        <header class="flex items-center justify-between">
             <div>
-                <h1 class="text-[22px] font-black tracking-tight text-on-surface">Asset Management</h1>
-                <p class="mt-0.5 text-[13px] text-on-surface-variant">Inventory of institutional equipment, fleet, and licences.</p>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary">Asset Registry</h1>
+                <p class="text-sm text-on-surface-variant">Institutional inventory — workstations, mobile, vehicles, furniture.</p>
             </div>
-            <button @click="comingSoon('Asset registry editor')" type="button"
-                    class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px active:scale-[0.97] transition-all"
-                    style="background:linear-gradient(135deg,#0051d5,#316bf3)">
-                <span class="material-symbols-outlined text-[17px]">add_circle</span>
-                Add Asset
-            </button>
-        </div>
+            <div class="flex gap-2">
+                <Link :href="route('assets.my')" class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-primary hover:bg-surface-container-low">My Assets</Link>
+                <button v-if="$page.props.auth.permissions?.includes('assets.manage')" @click="showCreate = true" type="button" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white shadow-glow-sm btn-shimmer">+ Register Asset</button>
+            </div>
+        </header>
 
-        <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="s in stats" :key="s.label"
-                class="card-lift relative overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div v-for="(c, i) in statCards" :key="c.label"
+                class="rounded-2xl border bg-surface-container-lowest p-4 card-lift animate-slide-up-fade"
+                :style="{ borderColor: `rgba(${c.rgb},0.20)`, animationDelay: `${i*0.06}s` }">
                 <div class="flex items-start justify-between">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl"
-                         :style="`background:rgba(${s.rgb},0.12);border:1px solid rgba(${s.rgb},0.2)`">
-                        <span class="material-symbols-outlined text-[18px]"
-                              :style="`color:rgb(${s.rgb});font-variation-settings:'FILL' 1`">{{ s.icon }}</span>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">{{ c.label }}</p>
+                        <p class="mt-1 text-2xl font-black text-primary">{{ c.val.toLocaleString() }}</p>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/40">{{ s.sub }}</span>
+                    <span class="material-symbols-outlined text-2xl" :style="{ color: `rgb(${c.rgb})` }">{{ c.icon }}</span>
                 </div>
-                <p class="mt-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">{{ s.label }}</p>
-                <p class="mt-0.5 text-[26px] font-black tracking-tight text-on-surface">{{ s.val }}</p>
             </div>
         </div>
 
-        <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
-            <div class="flex flex-wrap items-center gap-3 border-b border-outline-variant/40 px-4 py-3">
-                <input v-model="search"
-                       placeholder="Search assets, IDs, owners…"
-                       class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2 text-[13px] focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 flex-1 min-w-[220px] max-w-md" />
-                <select v-model="filterStatus" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-semibold text-on-surface-variant focus:outline-none focus:border-secondary/50">
-                    <option value="">All statuses</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="available">Available</option>
-                </select>
-                <button v-if="search || filterStatus" @click="search = ''; filterStatus = ''" type="button"
-                        class="text-[12px] font-bold text-on-surface-variant hover:text-secondary">Clear</button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-[13px]">
-                    <thead>
-                        <tr class="bg-surface-container-low border-b border-outline-variant/40">
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Asset ID</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Description</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Category</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Status</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden md:table-cell">Assigned To</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden lg:table-cell">Since</th>
-                            <th class="px-5 py-3 text-right"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="a in filtered" :key="a.id" class="border-b border-outline-variant/25 hover:bg-surface-container/40 transition-colors">
-                            <td class="px-5 py-3.5 font-mono text-[12px] font-bold text-on-surface-variant">{{ a.id }}</td>
-                            <td class="px-5 py-3.5 font-semibold text-on-surface">{{ a.desc }}</td>
-                            <td class="px-5 py-3.5 text-on-surface-variant/80">{{ a.cat }}</td>
-                            <td class="px-5 py-3.5">
-                                <span class="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider"
-                                      :class="`${STATUS_META[a.status].bg} ${STATUS_META[a.status].text}`">
-                                    {{ a.status }}
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 hidden md:table-cell text-on-surface-variant">{{ a.user }}</td>
-                            <td class="px-5 py-3.5 hidden lg:table-cell font-mono text-[11.5px] text-on-surface-variant/70">{{ a.since }}</td>
-                            <td class="px-5 py-3.5 text-right">
-                                <button @click="comingSoon('Asset history viewer')" type="button"
-                                        class="rounded-lg bg-surface-container px-2.5 py-1 text-[11px] font-bold text-on-surface-variant hover:bg-surface-container-high">
-                                    <span class="material-symbols-outlined text-[13px] align-middle">history</span>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <EmptyState v-if="!filtered.length"
-                            title="No assets match"
-                            description="Try clearing filters or search."
-                            icon="inventory_2" />
-            </div>
+        <div class="flex flex-wrap gap-3 items-center">
+            <SearchInput v-model="localFilters.search" placeholder="Search by tag, name, serial…" @update:modelValue="applyFilters" class="flex-1 max-w-md" />
+            <select v-model="localFilters.category" @change="applyFilters" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
+                <option value="">All Categories</option>
+                <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
+            </select>
+            <select v-model="localFilters.status" @change="applyFilters" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
+                <option value="">All Statuses</option>
+                <option v-for="(t, key) in statusTone" :key="key" :value="key">{{ t.label }}</option>
+            </select>
         </div>
-    </AuthenticatedLayout>
+
+        <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
+            <table v-if="props.assets.data?.length" class="w-full text-sm">
+                <thead class="border-b border-outline-variant"><tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest">
+                    <th class="p-4">Tag</th><th>Name</th><th>Category</th><th>Status</th><th>Assigned To</th><th>Location</th><th></th>
+                </tr></thead>
+                <tbody>
+                    <tr v-for="a in props.assets.data" :key="a.id" class="border-t border-outline-variant/40 hover:bg-surface-container-low/30 transition-colors">
+                        <td class="p-4 font-mono"><Link :href="route('assets.show', a.id)" class="text-secondary hover:underline">{{ a.asset_tag }}</Link></td>
+                        <td>{{ a.name }} <span class="text-on-surface-variant text-xs">{{ a.brand }} {{ a.model }}</span></td>
+                        <td>{{ categoryLabel[a.category] }}</td>
+                        <td><span :class="['rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider', statusTone[a.current_status]?.cls]">{{ statusTone[a.current_status]?.label }}</span></td>
+                        <td>
+                            <span v-if="a.current_assignment" class="text-xs">{{ a.current_assignment.employee_name }} <span class="text-on-surface-variant font-mono">({{ a.current_assignment.employee_no }})</span></span>
+                            <span v-else class="text-xs text-on-surface-variant">—</span>
+                        </td>
+                        <td class="text-xs">{{ a.location ?? '—' }}</td>
+                        <td>
+                            <button v-if="a.current_status === 'in_stock' && ($page.props.auth.permissions?.includes('assets.manage') || $page.props.auth.permissions?.includes('assets.assign'))"
+                                @click="openAssign(a)" type="button" class="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold hover:bg-emerald-100">Assign</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <EmptyState v-else title="No assets registered yet." />
+            <Pagination v-if="props.assets.meta?.last_page > 1" :links="props.assets.meta.links" class="p-4" />
+        </section>
+    </div>
+
+    <SlidePanel :open="showCreate" @close="showCreate = false" title="Register Asset" size="lg">
+        <form @submit.prevent="createAsset" class="space-y-3 p-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Asset Tag</label><input v-model="newAsset.asset_tag" maxlength="40" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono uppercase mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Name</label><input v-model="newAsset.name" maxlength="120" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newAsset.category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Serial Number</label><input v-model="newAsset.serial_number" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Brand</label><input v-model="newAsset.brand" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Model</label><input v-model="newAsset.model" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Purchase Date</label><input v-model="newAsset.purchase_date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Purchase Cost ({{ newAsset.currency }})</label><input v-model.number="newAsset.purchase_cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Supplier</label><input v-model="newAsset.supplier" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Warranty Expires</label><input v-model="newAsset.warranty_expires_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            </div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Location</label><input v-model="newAsset.location" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="newAsset.notes" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <button type="submit" :disabled="newAsset.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Register Asset</button>
+        </form>
+    </SlidePanel>
+
+    <SlidePanel :open="showAssign" @close="showAssign = false" :title="`Assign ${assignTarget?.asset_tag ?? ''}`">
+        <form @submit.prevent="submitAssign" class="space-y-3 p-4">
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="assignForm.employee_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Due Back (optional)</label><input v-model="assignForm.due_back_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="assignForm.notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <button type="submit" :disabled="assignForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Assign</button>
+        </form>
+    </SlidePanel>
+</AuthenticatedLayout>
 </template>
