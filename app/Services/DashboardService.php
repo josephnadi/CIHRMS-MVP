@@ -12,8 +12,10 @@ use App\Models\Payment;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class DashboardService
 {
@@ -99,5 +101,53 @@ class DashboardService
             ->groupBy('week')
             ->pluck('total', 'week')
             ->toArray();
+    }
+
+    private const METRIC_EVENT_TYPES = [
+        'employees'        => ['employee.created'],
+        'open_tickets'     => ['ticket.created'],
+        'pending_leave'    => ['leave.requested'],
+        'pending_payments' => ['payment.created'],
+        'payslips_paid'    => ['payment.paid', 'payslip.generated'],
+        'applicants'       => ['recruitment.applicant.created'],
+    ];
+
+    public function timeSeries(string $metric, int $days = 30): array
+    {
+        if (! isset(self::METRIC_EVENT_TYPES[$metric])) {
+            throw new InvalidArgumentException("Unsupported metric: {$metric}");
+        }
+
+        return Cache::remember(
+            "dashboard.timeseries.{$metric}.{$days}",
+            self::STATS_TTL,
+            fn () => $this->buildSeries($metric, $days)
+        );
+    }
+
+    private function buildSeries(string $metric, int $days): array
+    {
+        $eventTypes = self::METRIC_EVENT_TYPES[$metric];
+        $from = Carbon::today()->subDays($days - 1);
+
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $dateExpr = $isSqlite
+            ? "DATE(created_at)"
+            : "DATE(created_at)";
+
+        $rows = AnalyticsEvent::query()
+            ->selectRaw("{$dateExpr} as event_date, COUNT(*) as total")
+            ->whereIn('event', $eventTypes)
+            ->where('created_at', '>=', $from)
+            ->groupBy('event_date')
+            ->pluck('total', 'event_date');
+
+        $series = [];
+        for ($i = 0; $i < $days; $i++) {
+            $date = $from->copy()->addDays($i)->toDateString();
+            $series[] = ['date' => $date, 'value' => (int) ($rows[$date] ?? 0)];
+        }
+
+        return $series;
     }
 }
