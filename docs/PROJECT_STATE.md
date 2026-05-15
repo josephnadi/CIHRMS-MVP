@@ -18,7 +18,7 @@ The application is feature-complete end-to-end across backend, RBAC, and Vue fro
 The remaining residual gaps are:
 
 1. **Tests cannot execute locally on PHP 8.5.5** because [`vendor/laravel/pao`](../vendor/laravel/pao/) calls `stream_filter_remove()` in a way that PHP 8.5 now rejects. The tests are syntactically valid Pest 4 / Laravel 13 code and will pass on PHP 8.3 / 8.4 in CI. See §5.
-2. **(P3 complete 2026-05-15)** Assets module now ships at enterprise-deeper depth: registry with assign/return/maintenance/retire/lost workflows, GPS-free indoor inventory + vehicles + furniture support, straight-line depreciation snapshots with monthly cron, RBAC-gated (`assets.view/manage/assign`). Also integrated alongside P3: Phase-2 Loans & Advances module (loan products, amortization, 2FA-gated approve/disburse) and Off-boarding & clearance module (multi-department clearance + 2FA-gated dual-control settlements). Two remaining skeleton modules (Benefits, Governance) delivered in P4–P5.
+2. **(P4 complete 2026-05-15)** Benefits module now ships at enterprise-deeper depth: plans + enrolments + dependants (cap-enforced) + claims workflow (submitted→reviewing→approved/rejected→paid with illegal-transition guards) + e-card PDF via DomPDF + provident-fund accrual view. RBAC: `benefits.view/view_all/manage/enrol/claim`. Also integrated alongside P4: **Whistleblower & Auditor-General reporting module** (anonymous intake, investigation workflow, statutory report generation, public tracking portal). One remaining skeleton module (Governance) delivered in P5.
 3. Three sparkline metrics (`pending_payments`, `payslips_paid`, `applicants`) emit zeros until `PaymentCreated` / `PaymentMarkedPaid` / `ApplicantCreated` events are wired in their services — out of scope for P1.
 
 ---
@@ -27,7 +27,7 @@ The remaining residual gaps are:
 
 | Layer | Count | Status | Notes |
 |---|---|---|---|
-| Migrations | 54+ | ✅ | Through `2026_05_28_000003` — assets, asset_assignments, asset_maintenance, asset_depreciation_snapshots, loan_products, loan_accounts, loan_repayments, offboarding_cases, clearance_items, final_settlements |
+| Migrations | 60+ | ✅ | Through `2026_05_29_000002` — adds benefits (plans/enrolments/dependants/claims), whistleblower_reports + supporting tables |
 | Enums | 15 | ✅ | Adds GoalCadence/GoalStatus/ReviewCycleStatus/ReviewStatus/ReviewType on top of base 10 |
 | Models | 24 | ✅ | SoftDeletes, casts, scopes, relationships |
 | FormRequests | 9 dirs | ✅ | Grouped by module under `app/Http/Requests/<Module>/` |
