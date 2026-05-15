@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\IntegrationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\GovernanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LearningController;
@@ -27,6 +28,9 @@ use App\Http\Controllers\OffboardingController;
 use App\Http\Controllers\WhistleblowerPublicController;
 use App\Http\Controllers\WhistleblowerAdminController;
 use App\Http\Controllers\AuditorGeneralReportController;
+use App\Http\Controllers\PerformanceContractController;
+use App\Http\Controllers\CalibrationController;
+use App\Http\Controllers\PipController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
@@ -109,7 +113,7 @@ Route::middleware(['auth', 'verified'])->prefix('modules')->name('modules.')->gr
 
     // Modules with dedicated styled-skeleton pages (no real backend yet).
     Route::get('attendance',  fn () => redirect()->route('attendance.index'))                          ->name('attendance');
-    Route::get('governance',  [\App\Http\Controllers\StaticPageController::class, 'governance'])         ->name('governance');
+    Route::get('governance',  fn () => redirect()->route('governance.index'))->name('governance');
     Route::get('assets',      fn () => redirect()->route('assets.index'))->name('assets');
     Route::get('benefits',    fn () => redirect()->route('benefits.index'))->name('benefits');
 
@@ -415,6 +419,53 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:loans.apply')->name('preview');
     });
 
+    // ── Phase 2: Performance Management — Contracts / Calibration / PIPs ──
+    Route::prefix('performance')->name('performance.')->group(function () {
+        Route::prefix('contracts')->name('contracts.')->group(function () {
+            Route::get('/',                    [PerformanceContractController::class, 'index'])
+                ->middleware('permission:performance.view')->name('index');
+            Route::post('/',                   [PerformanceContractController::class, 'store'])
+                ->middleware('permission:performance.manage')->name('store');
+            Route::get('{contract}',           [PerformanceContractController::class, 'show'])
+                ->middleware('permission:performance.view')->name('show');
+            Route::post('{contract}/send',     [PerformanceContractController::class, 'send'])
+                ->middleware('permission:performance.manage')->name('send');
+            Route::post('{contract}/sign',     [PerformanceContractController::class, 'sign'])->name('sign');
+            Route::post('{contract}/evaluate', [PerformanceContractController::class, 'evaluate'])
+                ->middleware(['permission:performance.manage', '2fa:fresh'])->name('evaluate');
+        });
+
+        Route::prefix('calibration')->name('calibration.')->group(function () {
+            Route::get('/',                  [CalibrationController::class, 'index'])
+                ->middleware('permission:performance.calibrate')->name('index');
+            Route::post('/',                 [CalibrationController::class, 'store'])
+                ->middleware('permission:performance.calibrate')->name('store');
+            Route::get('{session}',          [CalibrationController::class, 'show'])
+                ->middleware('permission:performance.calibrate')->name('show');
+            Route::post('{session}/adjust',  [CalibrationController::class, 'adjust'])
+                ->middleware('permission:performance.calibrate')->name('adjust');
+            Route::post('{session}/lock',    [CalibrationController::class, 'lock'])
+                ->middleware('permission:performance.calibrate')->name('lock');
+            Route::post('{session}/apply',   [CalibrationController::class, 'apply'])
+                ->middleware(['permission:performance.calibrate_apply', '2fa:fresh'])->name('apply');
+        });
+
+        Route::prefix('pips')->name('pips.')->group(function () {
+            Route::get('/',                  [PipController::class, 'index'])
+                ->middleware('permission:performance.pip_manage')->name('index');
+            Route::post('/',                 [PipController::class, 'store'])
+                ->middleware('permission:performance.pip_manage')->name('store');
+            Route::get('{pip}',              [PipController::class, 'show'])
+                ->middleware('permission:performance.view')->name('show');
+            Route::post('{pip}/checkins',    [PipController::class, 'checkin'])
+                ->middleware('permission:performance.pip_manage')->name('checkin');
+            Route::post('{pip}/extend',      [PipController::class, 'extend'])
+                ->middleware('permission:performance.pip_manage')->name('extend');
+            Route::post('{pip}/close',       [PipController::class, 'close'])
+                ->middleware(['permission:performance.pip_manage', '2fa:fresh'])->name('close');
+        });
+    });
+
     // ── Phase 2: Auditor-General Report Pack ──
     Route::prefix('reports/auditor-general')->name('ag-reports.')->group(function () {
         Route::get('/',                       [AuditorGeneralReportController::class, 'index'])
@@ -520,6 +571,38 @@ Route::middleware(['auth', 'audit'])->group(function () {
         });
 
         Route::get('/enrolments/{enrolment}/e-card', [BenefitsController::class, 'downloadECard'])->name('e-card');
+    });
+
+    // ── Phase 5: Governance ──
+    Route::prefix('governance')->name('governance.')->group(function () {
+        Route::get('/',                            [GovernanceController::class, 'index'])
+            ->middleware('permission:governance.view')->name('index');
+        Route::get('/manage',                      [GovernanceController::class, 'manage'])
+            ->middleware('permission:governance.manage')->name('manage');
+        Route::get('/policies/{policy}',           [GovernanceController::class, 'showPolicy'])
+            ->middleware('permission:governance.view')->name('policies.show');
+        Route::post('/policies',                   [GovernanceController::class, 'storePolicy'])
+            ->middleware('permission:governance.manage')->name('policies.store');
+        Route::patch('/policies/{policy}',         [GovernanceController::class, 'updatePolicy'])
+            ->middleware('permission:governance.manage')->name('policies.update');
+        Route::post('/policies/{policy}/versions', [GovernanceController::class, 'addVersion'])
+            ->middleware('permission:governance.manage')->name('policies.versions.store');
+        Route::patch('/versions/{version}/publish',[GovernanceController::class, 'publishVersion'])
+            ->middleware('permission:governance.manage')->name('versions.publish');
+        Route::post('/versions/{version}/ack',     [GovernanceController::class, 'acknowledge'])
+            ->middleware('permission:governance.acknowledge')->name('versions.ack');
+
+        Route::prefix('certifications')->name('certifications.')->group(function () {
+            Route::get('/',                        [GovernanceController::class, 'certificationsIndex'])->name('index');
+            Route::post('/',                       [GovernanceController::class, 'storeCertification'])
+                ->middleware('permission:governance.cert_manage')->name('store');
+            Route::patch('/{certification}',       [GovernanceController::class, 'updateCertification'])
+                ->middleware('permission:governance.cert_manage')->name('update');
+            Route::delete('/{certification}',      [GovernanceController::class, 'destroyCertification'])
+                ->middleware('permission:governance.cert_manage')->name('destroy');
+            Route::post('/dispatch-reminders',     [GovernanceController::class, 'dispatchReminders'])
+                ->middleware('permission:governance.cert_manage')->name('dispatch-reminders');
+        });
     });
 
     // ── Phase 1: Two-factor auth ──
