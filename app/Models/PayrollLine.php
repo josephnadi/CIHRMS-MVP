@@ -14,6 +14,7 @@ class PayrollLine extends Model
         'ssnit_tier1_employee', 'ssnit_tier1_employer', 'nhia_split',
         'tier2_employer', 'tier3_employee', 'paye',
         'voluntary_deductions', 'net',
+        'overtime_hours', 'overtime_pay',
         'breakdown', 'status', 'skip_reason',
     ];
 
@@ -32,6 +33,8 @@ class PayrollLine extends Model
             'paye'                  => 'decimal:2',
             'voluntary_deductions'  => 'decimal:2',
             'net'                   => 'decimal:2',
+            'overtime_hours'        => 'decimal:2',
+            'overtime_pay'          => 'decimal:2',
             'breakdown'             => 'array',
         ];
     }

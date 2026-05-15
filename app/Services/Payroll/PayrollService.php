@@ -7,6 +7,7 @@ use App\Events\PayrollRunApproved;
 use App\Events\PayrollRunCalculated;
 use App\Events\PayrollRunReversed;
 use App\Events\PayrollRunStarted;
+use App\Models\AttendanceSummary;
 use App\Models\Employee;
 use App\Models\Grade;
 use App\Models\PayrollLine;
@@ -145,6 +146,21 @@ class PayrollService
         $allowanceTotal  = round($allowanceBundle['taxable_total'] + $allowanceBundle['non_taxable_total'], 2);
         $gross           = round($basic + $allowanceTotal, 2);
 
+        // Overtime supplement: sum overtime_hours recorded in the pay period.
+        // overtime_hours on AttendanceSummary already incorporates premium multipliers
+        // from OvertimeCalculator, so a simple hourly-rate multiplication is correct here.
+        $overtimeHours = (float) AttendanceSummary::query()
+            ->where('employee_id', $employee->id)
+            ->whereBetween('summary_date', [$run->period_start, $run->period_end])
+            ->sum('overtime_hours');
+
+        $overtimePay = 0.0;
+        if ($overtimeHours > 0) {
+            $hourlyRate  = $basic / 173.33; // 173.33 = avg monthly working hours (52w × 40h / 12)
+            $overtimePay = round($overtimeHours * $hourlyRate, 2);
+            $gross       = round($gross + $overtimePay, 2);
+        }
+
         $ssnit = $this->ssnit->calculate($basic, $periodDate);
         $tier2 = $this->tier2->calculate($basic, $periodDate);
 
@@ -170,6 +186,8 @@ class PayrollService
             'basic'                 => round($basic, 2),
             'allowance_total'       => $allowanceTotal,
             'gross'                 => $gross,
+            'overtime_hours'        => $overtimeHours,
+            'overtime_pay'          => $overtimePay,
             'ssnit_base'            => $ssnit['base'],
             'ssnit_tier1_employee'  => $ssnit['employee'],
             'ssnit_tier1_employer'  => $ssnit['employer'],
@@ -182,6 +200,7 @@ class PayrollService
 
             'breakdown'             => [
                 'allowances'    => $allowanceBundle,
+                'overtime'      => ['hours' => $overtimeHours, 'pay' => $overtimePay],
                 'ssnit'         => $ssnit,
                 'tier2'         => $tier2,
                 'paye_bands'    => $payeBundle['bands'],
