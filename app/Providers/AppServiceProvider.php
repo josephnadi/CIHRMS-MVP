@@ -124,6 +124,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
         Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
         Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
+        Gate::policy(\App\Models\Asset::class,     \App\Policies\AssetPolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──
         Gate::before(function ($user, string $ability) {

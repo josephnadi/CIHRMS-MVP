@@ -90,6 +90,11 @@ class RolePermissionSeeder extends Seeder
         'loans.disburse'         => ['Loans',        'Disburse approved loans and generate schedule'],
         'loans.manage'           => ['Loans',        'Full administrative access to loans'],
         'loans.product_manage'   => ['Loans',        'Manage loan product catalogue'],
+
+        // ── Phase 3: Assets ──
+        'assets.view'            => ['Assets',       'View asset registry'],
+        'assets.manage'          => ['Assets',       'Register, assign, return, retire assets'],
+        'assets.assign'          => ['Assets',       'Assign assets within own department'],
     ];
 
     /**
@@ -111,6 +116,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.view', 'attendance.manage', 'attendance.clock_self', 'attendance.shift_manage',
             'attendance.approve', 'attendance.correct',
             'loans.view', 'loans.apply', 'loans.manage', 'loans.product_manage',
+            'assets.view', 'assets.manage', 'assets.assign',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -121,6 +127,7 @@ class RolePermissionSeeder extends Seeder
             'complaints.create', 'recruitment.apply',
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
+            'assets.view', 'assets.assign',
             'reports.view',
         ],
         'dept_head' => [
@@ -131,6 +138,7 @@ class RolePermissionSeeder extends Seeder
             'positions.view',
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
+            'assets.view', 'assets.assign',
             'reports.view',
         ],
         'employee' => [
@@ -138,6 +146,7 @@ class RolePermissionSeeder extends Seeder
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'attendance.clock_self', 'attendance.correct',
             'loans.apply',
+            'assets.view',
         ],
         'finance_officer' => [
             'dashboard.view',
@@ -147,6 +156,7 @@ class RolePermissionSeeder extends Seeder
             'employees.view_salary',
             'attendance.correct',
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
+            'assets.view',
             'reports.view',
         ],
         'it_support' => [
@@ -154,6 +164,7 @@ class RolePermissionSeeder extends Seeder
             'leave.request', 'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
             'attendance.correct',
+            'assets.view', 'assets.manage', 'assets.assign',
         ],
         'auditor' => [
             'dashboard.view', 'employees.view',
@@ -161,6 +172,7 @@ class RolePermissionSeeder extends Seeder
             'reports.view', 'audit.view',
             'payroll.view_all', 'positions.view', 'identity.view', 'statutory.export',
             'attendance.view', 'attendance.correct',
+            'assets.view',
         ],
     ];
 
