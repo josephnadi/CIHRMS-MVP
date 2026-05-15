@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Attendance;
 
 use App\Enums\AttendanceSource;
@@ -11,6 +13,7 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\PublicHoliday;
 use App\Models\User;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
@@ -33,11 +36,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AttendanceService
 {
-    private const SCHEDULE_START   = '08:00';
-    private const SCHEDULE_END     = '17:00';
-    private const LATE_THRESHOLD   = '08:15';
-    private const HALF_DAY_HOURS   = 4.0;
-    private const FULL_DAY_HOURS   = 8.0; // worked-hours target (9h window − 1h unpaid lunch)
+    public function __construct(private readonly ShiftService $shiftService) {}
 
     public function record(
         Employee $employee,
@@ -205,7 +204,16 @@ class AttendanceService
         bool $isHoliday,
     ): AttendanceStatus {
         if ($isHoliday) return AttendanceStatus::Holiday;
-        if ($isWeekend) return AttendanceStatus::Weekend;
+
+        $schedule = $this->shiftService->scheduleFor($employee, $day);
+
+        $isNonWorkingDay = ! in_array(
+            strtolower(Carbon::parse($day)->englishDayOfWeek),
+            $schedule['working_days'],
+            true
+        );
+
+        if ($isNonWorkingDay) return AttendanceStatus::Weekend;
 
         // Check for approved leave covering this day
         if ($this->isOnApprovedLeave($employee, $day)) {
@@ -216,13 +224,15 @@ class AttendanceService
             return AttendanceStatus::Absent;
         }
 
-        if ($hoursWorked < self::HALF_DAY_HOURS) {
+        if ($hoursWorked < $schedule['half_day_hours']) {
             return AttendanceStatus::HalfDay;
         }
 
         $firstIn = $records->where('direction', 'in')->min('event_at');
         if ($firstIn) {
-            $lateThreshold = $day->setTimeFromTimeString(self::LATE_THRESHOLD);
+            $lateThreshold = $day->setTimeFromTimeString(
+                Carbon::parse($schedule['start_time'])->addMinutes($schedule['grace_period_minutes'])->format('H:i')
+            );
             if (CarbonImmutable::parse($firstIn)->greaterThan($lateThreshold)) {
                 return AttendanceStatus::Late;
             }
