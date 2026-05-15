@@ -62,6 +62,22 @@ class AttendanceService
             throw new \DomainException('Manual attendance entries require a reason for audit.');
         }
 
+        if ($deviceId !== null && $geoLat !== null && $geoLng !== null) {
+            $device = \App\Models\BiometricDevice::find($deviceId);
+            if ($device && $device->geo_lat !== null && $device->geo_lng !== null && $device->geo_radius_m !== null) {
+                $distanceMeters = $this->haversineMeters(
+                    (float) $device->geo_lat, (float) $device->geo_lng,
+                    $geoLat, $geoLng
+                );
+                if ($distanceMeters > (int) $device->geo_radius_m) {
+                    throw new \DomainException(sprintf(
+                        'Clock event %.0fm outside %dm geofence for device %s.',
+                        $distanceMeters, $device->geo_radius_m, $device->code
+                    ));
+                }
+            }
+        }
+
         $record = DB::transaction(function () use ($employee, $eventAtCarbon, $direction, $source, $deviceId, $geoLat, $geoLng, $recordedBy, $reason, $rawPayload) {
             return AttendanceRecord::create([
                 'employee_id'   => $employee->id,
@@ -268,5 +284,15 @@ class AttendanceService
         }
 
         return round($totalSeconds / 3600, 2);
+    }
+
+    private function haversineMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6_371_000.0;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2
+           + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 }
