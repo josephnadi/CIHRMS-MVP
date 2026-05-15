@@ -83,6 +83,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AttendanceService::class);
         $this->app->singleton(OvertimeCalculator::class);
         $this->app->singleton(BiometricIngestionService::class);
+        $this->app->singleton(\App\Services\Attendance\ShiftService::class);
 
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
