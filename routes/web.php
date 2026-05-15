@@ -26,6 +26,7 @@ use App\Http\Controllers\LoanAccountController;
 use App\Http\Controllers\OffboardingController;
 use App\Http\Controllers\WhistleblowerPublicController;
 use App\Http\Controllers\WhistleblowerAdminController;
+use App\Http\Controllers\AuditorGeneralReportController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
@@ -412,6 +413,16 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware(['permission:loans.disburse', '2fa:fresh'])->name('disburse');
         Route::post('preview',            [LoanAccountController::class, 'preview'])
             ->middleware('permission:loans.apply')->name('preview');
+    });
+
+    // ── Phase 2: Auditor-General Report Pack ──
+    Route::prefix('reports/auditor-general')->name('ag-reports.')->group(function () {
+        Route::get('/',                       [AuditorGeneralReportController::class, 'index'])
+            ->middleware('permission:reports.view')->name('index');
+        Route::post('/',                      [AuditorGeneralReportController::class, 'generate'])
+            ->middleware(['permission:statutory.export', '2fa:fresh'])->name('generate');
+        Route::get('download/{filename}',     [AuditorGeneralReportController::class, 'download'])
+            ->middleware('permission:statutory.export')->name('download');
     });
 
     // ── Phase 2: Whistleblower (investigator dashboard) ──

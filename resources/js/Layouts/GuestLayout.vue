@@ -23,8 +23,8 @@ const headlineWords = ['HR', 'with', 'the', 'dignity', 'of', 'a', 'charter.'];
         <svg class="dm-arc" aria-hidden="true" viewBox="0 0 600 600">
             <defs>
                 <linearGradient id="dm-arc-grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#0E1A2B" stop-opacity="0.10"/>
-                    <stop offset="1" stop-color="#7B8762" stop-opacity="0.06"/>
+                    <stop offset="0" stop-color="#0a1f5c" stop-opacity="0.10"/>
+                    <stop offset="1" stop-color="#5b9fd9" stop-opacity="0.06"/>
                 </linearGradient>
             </defs>
             <g fill="none" stroke="url(#dm-arc-grad)" stroke-width="1.4">
@@ -33,7 +33,7 @@ const headlineWords = ['HR', 'with', 'the', 'dignity', 'of', 'a', 'charter.'];
                 <circle cx="300" cy="300" r="190"/>
                 <circle cx="300" cy="300" r="270"/>
             </g>
-            <g fill="none" stroke="#E9A347" stroke-width="1.2" opacity="0.34">
+            <g fill="none" stroke="#f29111" stroke-width="1.2" opacity="0.34">
                 <path d="M 60 300 A 240 240 0 0 1 540 300" stroke-dasharray="3 7"/>
             </g>
         </svg>
@@ -129,12 +129,12 @@ const headlineWords = ['HR', 'with', 'the', 'dignity', 'of', 'a', 'charter.'];
 .dm-shell {
     --paper:        #f4efe6;
     --paper-deep:   #ece4d4;
-    --ink:          #0e1a2b;
-    --ink-soft:     #324053;
-    --gold:         #e9a347;
-    --gold-deep:    #b67a23;
-    --coral:        #c84b31;
-    --olive:        #7b8762;
+    --ink:          #0a1f5c;
+    --ink-soft:     #475569;
+    --gold:         #f29111;
+    --gold-deep:    #b56a0a;
+    --coral:        #d62782;
+    --olive:        #5b9fd9;
 
     position: relative;
     min-height: 100vh;

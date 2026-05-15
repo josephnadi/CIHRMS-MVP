@@ -71,7 +71,13 @@ const navSections = computed(() => {
                     },
                     { label: 'Governance',   route: 'modules.governance',   module: 'governance',  icon: 'account_balance',  visible: true },
                     { label: 'Assets',       route: 'modules.assets',       module: 'assets',      icon: 'inventory_2',      visible: true },
-                    { label: 'Reports',      route: 'modules.reports',      module: 'reports',     icon: 'assessment',       visible: true },
+                    {
+                        label: 'Reports', icon: 'assessment', expandable: true, visible: can('reports.view'),
+                        children: [
+                            { label: 'Overview',        route: 'modules.reports',  module: 'reports',           icon: 'dashboard',     visible: true },
+                            { label: 'Auditor-General', route: 'ag-reports.index', module: 'ag-reports',        icon: 'gavel',         visible: can('statutory.export') },
+                        ],
+                    },
                 ]
             }
         ];
@@ -98,17 +104,19 @@ const navSections = computed(() => {
             sections.push({
                 title: 'System',
                 items: [
-                    { label: 'Integrations', route: 'admin.integrations.index', module: 'integrations', icon: 'extension', visible: true },
-                    { label: 'Settings',     route: 'profile.edit',             module: 'settings',     icon: 'settings',  visible: true },
-                    { label: 'Audit Logs',   route: 'modules.audit-logs',       module: 'audit-logs',   icon: 'history',   visible: true },
+                    { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: true },
+                    { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'campaign',  visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
+                    { label: 'Settings',      route: 'profile.edit',              module: 'settings',      icon: 'settings',  visible: true },
+                    { label: 'Audit Logs',    route: 'modules.audit-logs',        module: 'audit-logs',    icon: 'history',   visible: true },
                 ]
             });
-        } else if (can('integrations.manage')) {
+        } else if (can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all')) {
             sections.push({
                 title: 'System',
                 items: [
-                    { label: 'Integrations', route: 'admin.integrations.index', module: 'integrations', icon: 'extension', visible: true },
-                    { label: 'Settings',     route: 'profile.edit',             module: 'settings',     icon: 'settings',  visible: true },
+                    { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: can('integrations.manage') },
+                    { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'campaign',  visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
+                    { label: 'Settings',      route: 'profile.edit',              module: 'settings',      icon: 'settings',  visible: true },
                 ]
             });
         } else {
@@ -193,7 +201,7 @@ const resolveHref = (item) => {
 // ── Expandable sidebar groups ─────────────────────────────────────────────────
 // Default-expanded groups (initial state only — auto-expand on active child
 // will keep things open when the user navigates into a child route).
-const expandedGroups = ref(new Set(['Departments', 'Performance', 'Learning', 'Attendance']));
+const expandedGroups = ref(new Set(['Departments', 'Performance', 'Learning', 'Attendance', 'Reports']));
 
 const isGroupExpanded = (label) => expandedGroups.value.has(label);
 

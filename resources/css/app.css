@@ -340,11 +340,11 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.16em;
-    color: #324053;
+    color: #475569;
 }
-.auth-folio-num   { color: #b67a23; font-weight: 700; }
-.auth-folio-rule  { flex: 1; height: 1px; background: rgba(14,26,43,0.18); }
-.auth-folio-label { color: #0e1a2b; }
+.auth-folio-num   { color: #b56a0a; font-weight: 700; }
+.auth-folio-rule  { flex: 1; height: 1px; background: rgba(10,31,92,0.18); }
+.auth-folio-label { color: #0a1f5c; }
 
 .auth-title {
     font-family: 'Fraunces', serif;
@@ -353,19 +353,19 @@
     font-size: clamp(2.4rem, 4.4vw, 3.4rem);
     line-height: 1.0;
     letter-spacing: -0.032em;
-    color: #0e1a2b;
+    color: #0a1f5c;
     margin: 0 0 0.7rem;
 }
 .auth-title em {
     font-style: italic;
     font-variation-settings: 'opsz' 144, 'SOFT' 60, 'WONK' 1;
-    color: #b67a23;
+    color: #b56a0a;
 }
 .auth-deck {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 13.5px;
     line-height: 1.55;
-    color: #324053;
+    color: #475569;
     max-width: 38ch;
     margin: 0 0 2.2rem;
 }
@@ -374,9 +374,9 @@
     display: inline-flex; align-items: center; gap: 0.55rem;
     margin: 0 0 1.4rem;
     padding: 0.5rem 0.85rem;
-    background: rgba(123,135,98,0.12);
-    border: 1px solid rgba(123,135,98,0.3);
-    color: #5a6647;
+    background: rgba(91,159,217,0.12);
+    border: 1px solid rgba(91,159,217,0.3);
+    color: #0a1f5c;
     border-radius: 4px;
     font-size: 12.5px;
     font-weight: 500;
@@ -390,7 +390,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.14em;
-    color: #0e1a2b;
+    color: #0a1f5c;
 }
 .field-hint {
     text-transform: none;
@@ -399,7 +399,7 @@
     font-family: 'Fraunces', serif;
     font-weight: 380;
     font-size: 11.5px;
-    color: #7b8762;
+    color: #5b9fd9;
 }
 .field-input {
     appearance: none;
@@ -407,32 +407,32 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1.5px solid rgba(14,26,43,0.32);
+    border-bottom: 1.5px solid rgba(10,31,92,0.32);
     border-radius: 0;
     padding: 0.7rem 0 0.5rem;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 16.5px;
     font-weight: 400;
-    color: #0e1a2b;
-    caret-color: #c84b31;
+    color: #0a1f5c;
+    caret-color: #d62782;
     transition: border-color 0.25s ease, padding-left 0.25s ease;
     outline: none;
 }
 .field-input::placeholder {
-    color: rgba(14,26,43,0.32);
+    color: rgba(10,31,92,0.32);
     font-style: italic;
     font-family: 'Fraunces', serif;
     font-weight: 380;
     font-size: 15.5px;
 }
-.field-input:focus       { border-bottom-color: #b67a23; }
-.field-input:focus::placeholder { color: rgba(14,26,43,0.18); }
+.field-input:focus       { border-bottom-color: #b56a0a; }
+.field-input:focus::placeholder { color: rgba(10,31,92,0.18); }
 
 .field-mono-wrap   { position: relative; display: flex; align-items: center; }
 .field-mono-prefix {
     font-family: 'JetBrains Mono', monospace;
     font-size: 18px;
-    color: #b67a23;
+    color: #b56a0a;
     margin-right: 8px;
     font-weight: 500;
     user-select: none;
@@ -456,7 +456,7 @@
     font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #c84b31;
+    color: #d62782;
 }
 
 .field-row {
@@ -470,7 +470,7 @@
 .check input { position: absolute; opacity: 0; pointer-events: none; }
 .check-box {
     width: 16px; height: 16px;
-    border: 1.5px solid rgba(14,26,43,0.32);
+    border: 1.5px solid rgba(10,31,92,0.32);
     border-radius: 3px;
     display: grid; place-items: center;
     background: transparent;
@@ -479,16 +479,16 @@
 }
 .check-box svg { opacity: 0; transition: opacity 0.15s ease; }
 .check input:checked + .check-box {
-    background: #0e1a2b;
-    border-color: #0e1a2b;
+    background: #0a1f5c;
+    border-color: #0a1f5c;
 }
 .check input:checked + .check-box svg { opacity: 1; }
 .check input:focus-visible + .check-box {
-    box-shadow: 0 0 0 3px rgba(233,163,71,0.35);
+    box-shadow: 0 0 0 3px rgba(242,145,17,0.35);
 }
 .check-label {
     font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 12.5px; font-weight: 500; color: #324053;
+    font-size: 12.5px; font-weight: 500; color: #475569;
 }
 
 .recover-link {
@@ -496,19 +496,19 @@
     font-style: italic;
     font-size: 13px;
     font-weight: 400;
-    color: #324053;
+    color: #475569;
     text-decoration: none;
-    border-bottom: 1px solid rgba(50,64,83,0.4);
+    border-bottom: 1px solid rgba(71,85,105,0.4);
     transition: color 0.18s ease, border-color 0.18s ease;
 }
-.recover-link:hover { color: #b67a23; border-bottom-color: #b67a23; }
+.recover-link:hover { color: #b56a0a; border-bottom-color: #b56a0a; }
 
 .auth-submit {
     position: relative;
     margin-top: 0.6rem;
     width: 100%;
     padding: 1.05rem 1.5rem;
-    background: #0e1a2b;
+    background: #0a1f5c;
     color: #f4efe6;
     border: none;
     border-radius: 2px;
@@ -521,18 +521,18 @@
     overflow: hidden;
     display: flex; align-items: center; justify-content: center; gap: 0.7rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 1px 0 rgba(14,26,43,1), 0 12px 28px -8px rgba(14,26,43,0.4);
+    box-shadow: 0 1px 0 rgba(10,31,92,1), 0 12px 28px -8px rgba(10,31,92,0.4);
 }
 .auth-submit:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 1px 0 rgba(14,26,43,1), 0 18px 36px -8px rgba(14,26,43,0.5);
+    box-shadow: 0 1px 0 rgba(10,31,92,1), 0 18px 36px -8px rgba(10,31,92,0.5);
 }
 .auth-submit:active:not(:disabled) { transform: translateY(0); }
 .auth-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .auth-submit-shimmer {
     position: absolute; inset: 0;
-    background: linear-gradient(110deg, transparent 30%, rgba(233,163,71,0.45) 50%, transparent 70%);
+    background: linear-gradient(110deg, transparent 30%, rgba(242,145,17,0.45) 50%, transparent 70%);
     transform: translateX(-110%);
     transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
@@ -548,16 +548,16 @@
     font-family: 'Fraunces', serif;
     font-size: 14px;
     font-weight: 380;
-    color: #324053;
+    color: #475569;
     letter-spacing: 0.005em;
 }
 .sister-link a {
-    color: #0e1a2b;
+    color: #0a1f5c;
     font-style: italic;
     text-decoration: none;
-    border-bottom: 1px solid rgba(14,26,43,0.3);
+    border-bottom: 1px solid rgba(10,31,92,0.3);
     margin-left: 0.3em;
     transition: color 0.18s ease, border-color 0.18s ease;
 }
-.sister-link a:hover { color: #b67a23; border-bottom-color: #b67a23; }
+.sister-link a:hover { color: #b56a0a; border-bottom-color: #b56a0a; }
 
