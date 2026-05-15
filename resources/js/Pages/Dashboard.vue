@@ -1222,51 +1222,6 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            <!-- Governance & Compliance Module -->
-            <div v-if="activeModule === 'governance'" class="space-y-8 animate-reveal-up">
-                <div class="grid grid-cols-12 gap-8">
-                    <div class="col-span-12 lg:col-span-7 rounded-3xl border border-outline-variant bg-surface-container-lowest p-1 shadow-sm overflow-hidden">
-                        <div class="px-8 py-6 border-b border-outline-variant flex items-center justify-between">
-                            <h3 class="text-xl font-black text-primary">Compliance Audit</h3>
-                            <span class="px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 text-[10px] font-black uppercase">Institutional Grade: A+</span>
-                        </div>
-                        <div class="p-8 space-y-8">
-                            <div v-for="rule in [
-                                { name: 'Labor Act 2003 Compliance', status: 'Passed', date: 'Oct 12, 2026' },
-                                { name: 'Data Protection (GDPR/Act 843)', status: 'Passed', date: 'Oct 08, 2026' },
-                                { name: 'Institutional Policy Review', status: 'In Review', date: 'Ongoing' }
-                            ]" :key="rule.name" class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="h-10 w-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
-                                        <span class="material-symbols-outlined">gavel</span>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-black text-primary">{{ rule.name }}</p>
-                                        <p class="text-[10px] font-medium text-on-surface-variant">Last verified: {{ rule.date }}</p>
-                                    </div>
-                                </div>
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border" :class="rule.status === 'Passed' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-amber-50 text-amber-700 border-amber-100'">{{ rule.status }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-span-12 lg:col-span-5 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden"
-                         style="background:linear-gradient(135deg,#0051d5,#316bf3);">
-                        <h4 class="text-sm font-black uppercase tracking-widest mb-6 text-white/60">Risk Management</h4>
-                        <div class="space-y-8">
-                            <div class="p-5 rounded-2xl bg-surface-container-lowest/10 border border-white/10">
-                                <h5 class="text-xs font-black mb-2">Policy Updates Required</h5>
-                                <p class="text-[10px] font-medium text-white/70 leading-relaxed">Update the remote work policy to align with the latest executive mandate for hybrid operations.</p>
-                                <button @click="comingSoon('Policy update workflow')" type="button" class="mt-4 text-[10px] font-black text-white hover:underline">Draft Update</button>
-                            </div>
-                            <div class="p-5 rounded-2xl bg-surface-container-lowest/10 border border-white/10">
-                                <h5 class="text-xs font-black mb-2">Certification Expiry</h5>
-                                <p class="text-[10px] font-medium text-white/70 leading-relaxed">34 staff certifications in the Technical department expire within 48 hours.</p>
-                                <button @click="comingSoon('Bulk staff notifications')" type="button" class="mt-4 text-[10px] font-black text-white hover:underline">Notify Staff</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Intelligence Reports Module -->
             <div v-if="activeModule === 'reports'" class="space-y-8 animate-reveal-up">
