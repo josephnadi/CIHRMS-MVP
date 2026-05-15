@@ -166,6 +166,16 @@ class Employee extends Model
         return $this->hasMany(PositionAssignment::class);
     }
 
+    public function dependants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Dependant::class);
+    }
+
+    public function benefitEnrolments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\BenefitEnrolment::class);
+    }
+
     public function latestVerifiedIdentity(): ?IdentityVerification
     {
         return $this->identityVerifications()->usable()->latest('verified_at')->first();

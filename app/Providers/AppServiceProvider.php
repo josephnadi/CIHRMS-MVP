@@ -97,6 +97,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Offboarding\FinalSettlementCalculator::class);
         $this->app->singleton(\App\Services\Offboarding\OffboardingService::class);
 
+        // Phase 2 — Whistleblower (Act 720)
+        $this->app->singleton(\App\Services\Whistleblower\TrackingCodeGenerator::class);
+        $this->app->singleton(\App\Services\Whistleblower\WhistleblowerSubmissionService::class);
+        $this->app->singleton(\App\Services\Whistleblower\WhistleblowerInvestigationService::class);
+
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(OAuthFlow::class);
@@ -108,6 +113,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Phase 3 — Assets
         $this->app->singleton(\App\Services\AssetService::class);
+
+        // Phase 4 — Benefits
+        $this->app->singleton(\App\Services\BenefitsService::class);
     }
 
     public function boot(): void
@@ -128,8 +136,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
         Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
         Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
-        Gate::policy(\App\Models\OffboardingCase::class, \App\Policies\OffboardingCasePolicy::class);
-        Gate::policy(\App\Models\Asset::class,     \App\Policies\AssetPolicy::class);
+        Gate::policy(\App\Models\OffboardingCase::class,     \App\Policies\OffboardingCasePolicy::class);
+        Gate::policy(\App\Models\WhistleblowerReport::class, \App\Policies\WhistleblowerReportPolicy::class);
+        Gate::policy(\App\Models\Asset::class,               \App\Policies\AssetPolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──
         Gate::before(function ($user, string $ability) {
@@ -164,5 +173,12 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\AssetMaintenanceCompleted::class, RecordAnalyticsEvent::class);
         Event::listen(\App\Events\AssetRetired::class, RecordAnalyticsEvent::class);
         Event::listen(\App\Events\AssetMarkedLost::class, RecordAnalyticsEvent::class);
+
+        // Phase 4 — Benefits
+        Event::listen(\App\Events\BenefitPlanCreated::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\BenefitEnroled::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\DependantAdded::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\BenefitClaimSubmitted::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\BenefitClaimDecided::class, RecordAnalyticsEvent::class);
     }
 }

@@ -71,6 +71,26 @@ class RecordAnalyticsEvent implements ShouldQueue
                 'asset.lost',
                 ['asset_id' => $event->asset->id, 'asset_tag' => $event->asset->asset_tag],
             ],
+            $event instanceof \App\Events\BenefitPlanCreated => [
+                'benefit.plan.created',
+                ['plan_id' => $event->plan->id, 'code' => $event->plan->code, 'type' => $event->plan->type?->value],
+            ],
+            $event instanceof \App\Events\BenefitEnroled => [
+                'benefit.enroled',
+                ['enrolment_id' => $event->enrolment->id, 'employee_id' => $event->enrolment->employee_id, 'plan_id' => $event->enrolment->plan_id],
+            ],
+            $event instanceof \App\Events\DependantAdded => [
+                'benefit.dependant.added',
+                ['dependant_id' => $event->dependant->id, 'employee_id' => $event->dependant->employee_id, 'relationship' => $event->dependant->relationship?->value],
+            ],
+            $event instanceof \App\Events\BenefitClaimSubmitted => [
+                'benefit.claim.submitted',
+                ['claim_id' => $event->claim->id, 'claim_reference' => $event->claim->claim_reference, 'amount' => (float) $event->claim->amount],
+            ],
+            $event instanceof \App\Events\BenefitClaimDecided => [
+                'benefit.claim.decided',
+                ['claim_id' => $event->claim->id, 'status' => $event->claim->status?->value],
+            ],
             default => [class_basename($event), []],
         };
 
