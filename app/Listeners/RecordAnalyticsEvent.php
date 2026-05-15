@@ -91,6 +91,30 @@ class RecordAnalyticsEvent implements ShouldQueue
                 'benefit.claim.decided',
                 ['claim_id' => $event->claim->id, 'status' => $event->claim->status?->value],
             ],
+            $event instanceof \App\Events\PolicyDrafted => [
+                'policy.drafted',
+                ['policy_id' => $event->policy->id, 'slug' => $event->policy->slug],
+            ],
+            $event instanceof \App\Events\PolicyVersionAdded => [
+                'policy.version.added',
+                ['policy_id' => $event->version->policy_id, 'version_id' => $event->version->id, 'version_number' => $event->version->version_number],
+            ],
+            $event instanceof \App\Events\PolicyPublished => [
+                'policy.published',
+                ['policy_id' => $event->version->policy_id, 'version_id' => $event->version->id, 'version_number' => $event->version->version_number],
+            ],
+            $event instanceof \App\Events\PolicyAcknowledged => [
+                'policy.acknowledged',
+                ['ack_id' => $event->acknowledgement->id, 'policy_version_id' => $event->acknowledgement->policy_version_id, 'user_id' => $event->acknowledgement->user_id],
+            ],
+            $event instanceof \App\Events\CertificationExpiring => [
+                'certification.expiring',
+                ['certification_id' => $event->certification->id, 'employee_id' => $event->certification->employee_id, 'expires_at' => $event->certification->expires_at?->toDateString()],
+            ],
+            $event instanceof \App\Events\CertificationExpired => [
+                'certification.expired',
+                ['certification_id' => $event->certification->id, 'employee_id' => $event->certification->employee_id, 'expired_at' => $event->certification->expires_at?->toDateString()],
+            ],
             default => [class_basename($event), []],
         };
 

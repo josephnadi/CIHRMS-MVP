@@ -102,6 +102,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Whistleblower\WhistleblowerSubmissionService::class);
         $this->app->singleton(\App\Services\Whistleblower\WhistleblowerInvestigationService::class);
 
+        // Phase 2 — Performance Management completion
+        $this->app->singleton(\App\Services\Performance\PerformanceContractService::class);
+        $this->app->singleton(\App\Services\Performance\CalibrationService::class);
+        $this->app->singleton(\App\Services\Performance\PipService::class);
+
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(OAuthFlow::class);
@@ -116,6 +121,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Phase 4 — Benefits
         $this->app->singleton(\App\Services\BenefitsService::class);
+
+        // Phase 5 — Governance
+        $this->app->singleton(\App\Services\GovernanceService::class);
     }
 
     public function boot(): void
@@ -138,6 +146,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
         Gate::policy(\App\Models\OffboardingCase::class,     \App\Policies\OffboardingCasePolicy::class);
         Gate::policy(\App\Models\WhistleblowerReport::class, \App\Policies\WhistleblowerReportPolicy::class);
+        Gate::policy(\App\Models\PerformanceContract::class, \App\Policies\PerformanceContractPolicy::class);
+        Gate::policy(\App\Models\CalibrationSession::class,  \App\Policies\CalibrationSessionPolicy::class);
+        Gate::policy(\App\Models\PerformanceImprovementPlan::class, \App\Policies\PerformanceImprovementPlanPolicy::class);
         Gate::policy(\App\Models\Asset::class,               \App\Policies\AssetPolicy::class);
         Gate::policy(\App\Models\BenefitPlan::class,         \App\Policies\BenefitsPolicy::class);
         Gate::policy(\App\Models\BenefitEnrolment::class,    \App\Policies\BenefitsPolicy::class);
@@ -183,5 +194,13 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\DependantAdded::class, RecordAnalyticsEvent::class);
         Event::listen(\App\Events\BenefitClaimSubmitted::class, RecordAnalyticsEvent::class);
         Event::listen(\App\Events\BenefitClaimDecided::class, RecordAnalyticsEvent::class);
+
+        // Phase 5 — Governance
+        Event::listen(\App\Events\PolicyDrafted::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\PolicyVersionAdded::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\PolicyPublished::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\PolicyAcknowledged::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\CertificationExpiring::class, RecordAnalyticsEvent::class);
+        Event::listen(\App\Events\CertificationExpired::class, RecordAnalyticsEvent::class);
     }
 }
