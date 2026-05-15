@@ -150,4 +150,49 @@ class DashboardService
 
         return $series;
     }
+
+    private const EVENT_PRESENTATION = [
+        'employee.created'              => ['icon' => 'person_add',    'color' => '#316bf3'],
+        'leave.requested'               => ['icon' => 'calendar_today','color' => '#d97706'],
+        'leave.status_updated'          => ['icon' => 'check_circle',  'color' => '#059669'],
+        'ticket.created'                => ['icon' => 'support_agent', 'color' => '#dc2626'],
+        'payment.created'               => ['icon' => 'payments',      'color' => '#059669'],
+        'payment.paid'                  => ['icon' => 'payments',      'color' => '#059669'],
+        'payslip.generated'             => ['icon' => 'receipt_long',  'color' => '#0f766e'],
+        'recruitment.applicant.created' => ['icon' => 'person_search', 'color' => '#7c3aed'],
+    ];
+
+    public function getRecentActivityFeed(int $limit = 12): array
+    {
+        return AnalyticsEvent::with('user:id,name')
+            ->latest()
+            ->limit($limit)
+            ->get()
+            ->map(function (AnalyticsEvent $e) {
+                $preset = self::EVENT_PRESENTATION[$e->event] ?? ['icon' => 'history', 'color' => '#64748b'];
+                return [
+                    'text'  => $this->describeEvent($e),
+                    'icon'  => $preset['icon'],
+                    'color' => $preset['color'],
+                    'time'  => $e->created_at?->diffForHumans() ?? '',
+                ];
+            })
+            ->all();
+    }
+
+    private function describeEvent(AnalyticsEvent $e): string
+    {
+        $who = $e->user?->name ?? 'System';
+        return match ($e->event) {
+            'employee.created'              => "New hire onboarded — {$who}",
+            'leave.requested'               => "Leave requested — {$who}",
+            'leave.status_updated'          => "Leave decision — {$who}",
+            'ticket.created'                => "Service ticket opened — {$who}",
+            'payment.created'               => "Payment record created",
+            'payment.paid'                  => "Payment marked paid",
+            'payslip.generated'             => "Payslip generated",
+            'recruitment.applicant.created' => "New applicant received",
+            default                         => $e->event,
+        };
+    }
 }

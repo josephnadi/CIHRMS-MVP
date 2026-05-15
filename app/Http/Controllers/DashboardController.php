@@ -49,6 +49,7 @@ class DashboardController extends Controller
                 'payroll'    => $this->dashboard->timeSeries('payslips_paid', 30),
                 'applicants' => $this->dashboard->timeSeries('applicants', 30),
             ],
+            'activityFeed'    => $this->dashboard->getRecentActivityFeed(12),
         ]);
     }
 }

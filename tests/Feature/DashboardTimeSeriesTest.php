@@ -66,3 +66,18 @@ it('throws on unsupported metric', function () {
     expect(fn () => app(DashboardService::class)->timeSeries('not_a_metric', 30))
         ->toThrow(InvalidArgumentException::class);
 });
+
+it('returns a recent activity feed shaped for the dashboard', function () {
+    $user = User::factory()->create();
+    AnalyticsEvent::factory()->create([
+        'user_id'    => $user->id,
+        'event'      => 'leave.requested',
+        'meta'       => ['days' => 5, 'type' => 'annual'],
+        'created_at' => now()->subMinutes(5),
+    ]);
+
+    $feed = app(DashboardService::class)->getRecentActivityFeed(10);
+
+    expect($feed)->toBeArray()->not->toBeEmpty();
+    expect($feed[0])->toHaveKeys(['text', 'icon', 'color', 'time']);
+});

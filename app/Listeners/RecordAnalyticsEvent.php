@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\EmployeeCreated;
 use App\Events\LeaveRequested;
 use App\Events\LeaveStatusUpdated;
+use App\Events\PayslipGenerated;
 use App\Events\TicketCreated;
 use App\Models\AnalyticsEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,6 +32,10 @@ class RecordAnalyticsEvent implements ShouldQueue
             $event instanceof TicketCreated => [
                 'ticket.created',
                 ['ticket_id' => $event->ticket->id, 'priority' => $event->ticket->priority?->value],
+            ],
+            $event instanceof PayslipGenerated => [
+                'payslip.generated',
+                ['payslip_id' => $event->payment->id ?? null, 'employee_id' => $event->payment->employee_id ?? null],
             ],
             default => [class_basename($event), []],
         };

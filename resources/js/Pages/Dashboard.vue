@@ -23,6 +23,7 @@ const props = defineProps({
     leaveByMonth:    { type: Object, default: () => ({}) },
     ticketTrend:     { type: Object, default: () => ({}) },
     sparkSeries:     { type: Object, default: () => ({}) },
+    activityFeed:    { type: Array,  default: () => [] },
     activeModule:    String,
 });
 
@@ -65,18 +66,13 @@ const sparkData = computed(() => {
 // Falls back to a stable baseline so the chart never collapses to zero on empty months.
 const perfBarFallback = [45, 62, 50, 80, 88, 68, 72, 60, 75, 90, 70, 83];
 const feedIdx = ref(0);
-const activityPool = [
-    { text: 'New hire onboarded â€” Ama Asante (Technology)', icon: 'person_add',    color: '#316bf3', time: '2m ago' },
-    { text: 'Leave approved â€” K. Boateng, 5 days annual',  icon: 'calendar_today', color: '#d97706', time: '5m ago' },
-    { text: 'Payroll cycle completed â€” 1,284 staff paid',   icon: 'payments',       color: '#059669', time: '8m ago' },
-    { text: 'Ticket #SD-1029 escalated to IT Lead',         icon: 'warning',        color: '#dc2626', time: '12m ago' },
-    { text: 'Q2 Performance reports generated',             icon: 'analytics',      color: '#7c5cff', time: '18m ago' },
-    { text: 'Compliance audit: Grade A+ certified',         icon: 'verified_user',  color: '#059669', time: '25m ago' },
-    { text: 'Job posted â€” HR Business Partner role',        icon: 'work',           color: '#0891b2', time: '31m ago' },
-    { text: 'Security scan completed â€” all clear',          icon: 'shield',         color: '#316bf3', time: '44m ago' },
-];
+const activityPool = computed(() => {
+    return props.activityFeed.length > 0
+        ? props.activityFeed
+        : [{ text: 'No recent activity yet.', icon: 'history', color: '#64748b', time: '' }];
+});
 const liveActivity = computed(() =>
-    Array.from({ length: 5 }, (_, i) => activityPool[(feedIdx.value + i) % activityPool.length])
+    Array.from({ length: 5 }, (_, i) => activityPool.value[(feedIdx.value + i) % activityPool.value.length])
 );
 
 const kpiCards = computed(() => {
@@ -199,7 +195,7 @@ onMounted(() => {
 
     // Live Activity feed rotation
     _intervals.push(setInterval(() => {
-        feedIdx.value = (feedIdx.value + 1) % activityPool.length;
+        feedIdx.value = (feedIdx.value + 1) % activityPool.value.length;
     }, 1900));
 
     // Departmental sparklines (IT / HR / Marketing / Finance)
