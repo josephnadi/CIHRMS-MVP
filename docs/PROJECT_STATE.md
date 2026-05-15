@@ -1,8 +1,8 @@
 # CIHRMS — Project State
 
-> **Snapshot date:** 2026-05-19
+> **Snapshot date:** 2026-05-15
 > **Stack:** Laravel 13.8 (PHP 8.3 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · SQLite (dev) · Pest 4
-> **Repo:** Not currently a git repository (no `.git/` in `cihrms-mvp/`).
+> **Repo:** Under git on `main`; remote `origin → https://github.com/josephnadi/CIHRMS-MVP.git`; CI on PHP 8.4 via GitHub Actions.
 > **Architecture:** Enum → FormRequest → Service → Event → Listener → Resource → Inertia Page
 
 ---
@@ -17,9 +17,9 @@ The application is feature-complete end-to-end across backend, RBAC, and Vue fro
 
 The remaining residual gaps are:
 
-1. **Tests cannot execute locally on PHP 8.5.5** because [`vendor/laravel/pao`](../vendor/laravel/pao/) calls `stream_filter_remove()` in a way that PHP 8.5 now rejects. The tests are syntactically valid Pest 4 / Laravel 13 code and will pass on PHP 8.3 / 8.4. See §5.
-2. The Dashboard sparkline arrays are still decorative literals (the real KPI numbers come from `DashboardService` props).
-3. The project is not under version control.
+1. **Tests cannot execute locally on PHP 8.5.5** because [`vendor/laravel/pao`](../vendor/laravel/pao/) calls `stream_filter_remove()` in a way that PHP 8.5 now rejects. The tests are syntactically valid Pest 4 / Laravel 13 code and will pass on PHP 8.3 / 8.4 in CI. See §5.
+2. Four sidebar modules (Attendance, Assets, Benefits, Governance) are still styled-skeleton pages with no backend — phased delivery in P2–P5 per [docs/superpowers/specs/2026-05-15-cihrms-end-to-end-wiring-design.md](superpowers/specs/2026-05-15-cihrms-end-to-end-wiring-design.md).
+3. Three sparkline metrics (`pending_payments`, `payslips_paid`, `applicants`) emit zeros until `PaymentCreated` / `PaymentMarkedPaid` / `ApplicantCreated` events are wired in their services — out of scope for P1.
 
 ---
 
@@ -41,7 +41,7 @@ The remaining residual gaps are:
 | Controllers | 17 | ✅ | 57 actions in total |
 | Routes | 93 named | ✅ | Public careers + webhooks + module routes + admin/integrations |
 | Vue Pages | 17 module dirs | ✅ | All Index/Show pages substantial; Performance now has Index + Goals + Reviews + NineBox |
-| Dashboard.vue | ~3,221 LOC | ⚠️ | Headline KPIs wired to `DashboardService` props; sparkline arrays still decorative literals |
+| Dashboard.vue | ~2,725 LOC | ✅ | KPIs + sparklines + activity feed all wired to real `DashboardService` data; duplicated module sections deleted (Assets/Benefits/Learning/Governance); inline forms replaced with quick-action links; zero `comingSoon` calls |
 | Tests | 10 feature files | ⚠️ | Written but cannot execute on PHP 8.5.5 (pao stream-filter incompatibility) |
 
 ---
@@ -108,7 +108,7 @@ Ten Pest 4 feature-test files under [tests/Feature/](../tests/Feature/):
    - Pin or remove `laravel/pao` until it ships 8.5 support.
    - Run tests in CI / Docker on 8.4 (PHPUnit Docker image).
 2. **No version control.** `cihrms-mvp/` is still not a git repo. `git init` is the first item in [implementation_plan.md](implementation_plan.md).
-3. **Dashboard decorative literals.** Headline KPIs (`stats.employees`, `stats.openTickets`, `stats.pendingLeave`, `stats.pendingPayments`) are wired to real backend data, but a few decorative inline sparkline arrays remain hardcoded for visual stability when data is sparse.
+3. **(Resolved 2026-05-15)** Dashboard decorative literals replaced with real `DashboardService::timeSeries()` data + cached `getRecentActivityFeed()`. The duplicated module sections (Assets/Benefits/Learning/Governance) and 5 inline create forms were deleted; sidebar nav routes to dedicated `Pages/<Module>/Index.vue`.
 4. **Notification real-provider delivery untested.** Signature verification is now under test; actual delivery to WhatsApp / Slack / MS Graph / Google for an outbound message is still unverified.
 
 ---
