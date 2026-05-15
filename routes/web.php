@@ -20,6 +20,7 @@ use App\Http\Controllers\PayrollRunController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AssetController;
 use App\Http\Controllers\LoanAccountController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
@@ -93,7 +94,7 @@ Route::middleware(['auth', 'verified'])->prefix('modules')->name('modules.')->gr
     // Modules with dedicated styled-skeleton pages (no real backend yet).
     Route::get('attendance',  fn () => redirect()->route('attendance.index'))                          ->name('attendance');
     Route::get('governance',  [\App\Http\Controllers\StaticPageController::class, 'governance'])         ->name('governance');
-    Route::get('assets',      [\App\Http\Controllers\StaticPageController::class, 'assets'])             ->name('assets');
+    Route::get('assets',      fn () => redirect()->route('assets.index'))->name('assets');
     Route::get('benefits',    [\App\Http\Controllers\StaticPageController::class, 'benefits'])           ->name('benefits');
 
     // Performance: dedicated analytics page.
@@ -396,6 +397,31 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware(['permission:loans.disburse', '2fa:fresh'])->name('disburse');
         Route::post('preview',            [LoanAccountController::class, 'preview'])
             ->middleware('permission:loans.apply')->name('preview');
+    });
+
+    // ── Phase 3: Assets ──
+    Route::prefix('assets')->name('assets.')->group(function () {
+        Route::get('/',                              [AssetController::class, 'index'])
+            ->middleware('permission:assets.view')->name('index');
+        Route::post('/',                             [AssetController::class, 'store'])
+            ->middleware('permission:assets.manage')->name('store');
+        Route::get('/my',                            [AssetController::class, 'myAssets'])->name('my');
+        Route::get('/{asset}',                       [AssetController::class, 'show'])
+            ->middleware('permission:assets.view')->name('show');
+        Route::patch('/{asset}',                     [AssetController::class, 'update'])
+            ->middleware('permission:assets.manage')->name('update');
+        Route::delete('/{asset}',                    [AssetController::class, 'destroy'])
+            ->middleware('permission:assets.manage')->name('destroy');
+        Route::post('/{asset}/assign',               [AssetController::class, 'assign'])->name('assign');
+        Route::post('/assignments/{assignment}/return',   [AssetController::class, 'returnAsset'])->name('return');
+        Route::post('/{asset}/maintenance',          [AssetController::class, 'storeMaintenance'])
+            ->middleware('permission:assets.manage')->name('maintenance.store');
+        Route::patch('/maintenance/{maintenance}/complete', [AssetController::class, 'completeMaintenance'])
+            ->middleware('permission:assets.manage')->name('maintenance.complete');
+        Route::patch('/{asset}/retire',              [AssetController::class, 'retire'])
+            ->middleware('permission:assets.manage')->name('retire');
+        Route::patch('/{asset}/lost',                [AssetController::class, 'markLost'])
+            ->middleware('permission:assets.manage')->name('lost');
     });
 
     // ── Phase 1: Two-factor auth ──
