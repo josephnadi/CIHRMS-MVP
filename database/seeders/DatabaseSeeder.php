@@ -34,6 +34,9 @@ class DatabaseSeeder extends Seeder
         $this->call(GhanaStatutoryReferenceSeeder::class);
         $this->call(PensionTrusteeSeeder::class);
 
+        // Phase 2 — Ghana 2026 statutory holidays.
+        $this->call(GhanaPublicHolidaySeeder::class);
+
         $this->seedFixedAccounts();
         $this->seedDepartmentsAndEmployees();
         $this->seedLeave();
@@ -44,6 +47,7 @@ class DatabaseSeeder extends Seeder
 
         // Establishment demo data has to run AFTER departments exist.
         $this->call(EstablishmentDemoSeeder::class);
+        $this->call(BiometricDeviceDemoSeeder::class);
 
         // Re-run RBAC sync so newly created users (factory-created) pick up role pivots,
         // and so any new permissions land on existing roles.

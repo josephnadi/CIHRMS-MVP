@@ -36,6 +36,11 @@ use App\Services\Payroll\StatutoryReturnGenerator;
 use App\Services\Establishment\PositionService;
 use App\Services\Establishment\StepIncrementService;
 use App\Services\Identity\IdentityVerificationService;
+use App\Services\Attendance\AttendanceService;
+use App\Services\Attendance\OvertimeCalculator;
+use App\Services\Attendance\BiometricIngestionService;
+use App\Models\AttendanceRecord;
+use App\Policies\AttendancePolicy;
 use App\Services\Auth\TwoFactorService;
 use App\Services\ComplaintService;
 use App\Services\DashboardService;
@@ -74,6 +79,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(IdentityVerificationService::class);
         $this->app->singleton(TwoFactorService::class);
 
+        // Phase 2 — Time & Attendance
+        $this->app->singleton(AttendanceService::class);
+        $this->app->singleton(OvertimeCalculator::class);
+        $this->app->singleton(BiometricIngestionService::class);
+
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(OAuthFlow::class);
@@ -100,6 +110,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PayrollRun::class,            PayrollRunPolicy::class);
         Gate::policy(Position::class,              PositionPolicy::class);
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
+        Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──
         Gate::before(function ($user, string $ability) {

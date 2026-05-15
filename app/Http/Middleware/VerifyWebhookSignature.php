@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BiometricDevice;
 use App\Models\Integration;
 use App\Models\IntegrationEvent;
 use Closure;
@@ -21,12 +22,13 @@ class VerifyWebhookSignature
     public function handle(Request $request, Closure $next, string $provider): Response
     {
         $verified = match ($provider) {
-            'whatsapp' => $this->verifyWhatsApp($request),
-            'zoho'     => $this->verifyZoho($request),
-            'ms_graph' => $this->verifyMsGraph($request),
-            'google'   => $this->verifyGoogle($request),
-            'slack'    => $this->verifySlack($request),
-            default    => false,
+            'whatsapp'  => $this->verifyWhatsApp($request),
+            'zoho'      => $this->verifyZoho($request),
+            'ms_graph'  => $this->verifyMsGraph($request),
+            'google'    => $this->verifyGoogle($request),
+            'slack'     => $this->verifySlack($request),
+            'biometric' => $this->verifyBiometric($request),
+            default     => false,
         };
 
         if (! $verified) {
@@ -121,6 +123,47 @@ class VerifyWebhookSignature
         $signature = (string) $request->header('X-Slack-Signature');
 
         return $signature !== '' && hash_equals($expected, $signature);
+    }
+
+    /**
+     * Verify a biometric-device webhook. Each device has its own HMAC secret
+     * stored encrypted in `biometric_devices.shared_secret`. The expected
+     * header is `X-Biometric-Signature: sha256=<hex>` computed over
+     * "{timestamp}.{body}". The device identifies itself via `X-Device-Code`.
+     *
+     * Replay protection: a `X-Biometric-Timestamp` header (unix seconds)
+     * must be within 5 minutes of server time.
+     */
+    protected function verifyBiometric(Request $request): bool
+    {
+        $deviceCode = (string) $request->header('X-Device-Code');
+        $signature  = (string) $request->header('X-Biometric-Signature');
+        $timestamp  = (string) $request->header('X-Biometric-Timestamp', '0');
+
+        if ($deviceCode === '' || $signature === '') {
+            return false;
+        }
+
+        if (abs(time() - (int) $timestamp) > 300) {
+            return false; // stale or future-dated request
+        }
+
+        $device = BiometricDevice::active()->where('code', $deviceCode)->first();
+        if (! $device) {
+            return false;
+        }
+
+        // BiometricDevice::$shared_secret is encrypted; reading it via the model
+        // triggers automatic decryption.
+        $secret = (string) $device->shared_secret;
+        if ($secret === '') {
+            return false;
+        }
+
+        $base     = "{$timestamp}.{$request->getContent()}";
+        $expected = 'sha256='.hash_hmac('sha256', $base, $secret);
+
+        return hash_equals($expected, $signature);
     }
 
     protected function logFailure(string $provider, Request $request): void

@@ -12,6 +12,7 @@ use App\Models\Grade;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
 use App\Models\User;
+use App\Services\Attendance\AttendanceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -34,6 +35,7 @@ class PayrollService
         private readonly Tier2Calculator $tier2,
         private readonly AllowanceAggregator $allowances,
         private readonly DeductionAggregator $deductions,
+        private readonly AttendanceService $attendance,
     ) {}
 
     public function createDraft(int $year, int $month, ?int $departmentId, User $creator, ?string $reason = null): PayrollRun
@@ -83,18 +85,28 @@ class PayrollService
             $totals = $this->resetTotals();
             $skipped = 0;
 
+            $periodStart = CarbonImmutable::parse($run->period_start);
+
             foreach ($employees as $employee) {
+                // Gate 1: identity verification (Phase 1)
                 if (! $employee->hasUsableIdentity()) {
-                    PayrollLine::create([
-                        'payroll_run_id' => $run->id,
-                        'employee_id'    => $employee->id,
-                        'basic'          => 0, 'allowance_total' => 0, 'gross' => 0,
-                        'ssnit_base'     => 0, 'ssnit_tier1_employee' => 0, 'ssnit_tier1_employer' => 0,
-                        'nhia_split'     => 0, 'tier2_employer' => 0, 'tier3_employee' => 0,
-                        'paye'           => 0, 'voluntary_deductions' => 0, 'net' => 0,
-                        'status'         => 'skipped',
-                        'skip_reason'    => 'Identity unverified — Ghana Card validation required.',
-                    ]);
+                    $this->skipLine($run, $employee, 'Identity unverified — Ghana Card validation required.');
+                    $skipped++;
+                    continue;
+                }
+
+                // Gate 2: attendance — zero-attendance employees are the ghost-worker signal.
+                // We pay only those who have at least one recorded working day in the period.
+                $attendance = $this->attendance->aggregatePeriod($employee, $periodStart, $periodEnd);
+                if ($attendance['days_worked'] === 0 && $attendance['days_on_leave'] === 0) {
+                    $this->skipLine(
+                        $run,
+                        $employee,
+                        sprintf(
+                            'No attendance recorded in %d working days — potential ghost worker.',
+                            $attendance['working_days'],
+                        ),
+                    );
                     $skipped++;
                     continue;
                 }
@@ -248,6 +260,20 @@ class PayrollService
         ]);
 
         return $run->fresh();
+    }
+
+    private function skipLine(PayrollRun $run, Employee $employee, string $reason): void
+    {
+        PayrollLine::create([
+            'payroll_run_id' => $run->id,
+            'employee_id'    => $employee->id,
+            'basic'          => 0, 'allowance_total' => 0, 'gross' => 0,
+            'ssnit_base'     => 0, 'ssnit_tier1_employee' => 0, 'ssnit_tier1_employer' => 0,
+            'nhia_split'     => 0, 'tier2_employer' => 0, 'tier3_employee' => 0,
+            'paye'           => 0, 'voluntary_deductions' => 0, 'net' => 0,
+            'status'         => 'skipped',
+            'skip_reason'    => $reason,
+        ]);
     }
 
     private function resetTotals(): array

@@ -74,6 +74,11 @@ class RolePermissionSeeder extends Seeder
         // ── Phase 1: Identity verification ──
         'identity.view'          => ['Identity',     'View Ghana Card verification records'],
         'identity.verify'        => ['Identity',     'Submit Ghana Card verifications'],
+
+        // ── Phase 2: Time & Attendance ──
+        'attendance.view'        => ['Attendance',   'View attendance records org-wide'],
+        'attendance.manage'      => ['Attendance',   'Manual entries, device management, corrections'],
+        'attendance.clock_self'  => ['Attendance',   'Clock self in/out (employee self-service)'],
     ];
 
     /**
@@ -92,6 +97,7 @@ class RolePermissionSeeder extends Seeder
             'payroll.view', 'payroll.run', 'payroll.view_all',
             'positions.view', 'positions.manage', 'grades.manage',
             'identity.view', 'identity.verify',
+            'attendance.view', 'attendance.manage', 'attendance.clock_self',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -100,6 +106,7 @@ class RolePermissionSeeder extends Seeder
             'leave.request', 'leave.approve',
             'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
+            'attendance.view', 'attendance.clock_self',
             'reports.view',
         ],
         'dept_head' => [
@@ -108,11 +115,13 @@ class RolePermissionSeeder extends Seeder
             'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
             'positions.view',
+            'attendance.view', 'attendance.clock_self',
             'reports.view',
         ],
         'employee' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
+            'attendance.clock_self',
         ],
         'finance_officer' => [
             'dashboard.view',
@@ -132,6 +141,7 @@ class RolePermissionSeeder extends Seeder
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'reports.view', 'audit.view',
             'payroll.view_all', 'positions.view', 'identity.view', 'statutory.export',
+            'attendance.view',
         ],
     ];
 

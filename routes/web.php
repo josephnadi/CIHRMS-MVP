@@ -19,6 +19,8 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\PayrollRunController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\IdentityVerificationController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
 use App\Http\Controllers\Webhooks\WebhookController;
@@ -63,6 +65,11 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
         ->defaults('provider', 'slack')
         ->middleware('webhook.signature:slack')
         ->name('slack');
+
+    // Biometric clock-in/out ingest (HMAC-signed per device)
+    Route::post('/biometric', [BiometricWebhookController::class, 'handle'])
+        ->middleware('webhook.signature:biometric')
+        ->name('biometric');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -83,7 +90,7 @@ Route::middleware(['auth', 'verified'])->prefix('modules')->name('modules.')->gr
     Route::get('audit-logs',  fn () => redirect()->route('audit-logs.index'))                            ->name('audit-logs');
 
     // Modules with dedicated styled-skeleton pages (no real backend yet).
-    Route::get('attendance',  [\App\Http\Controllers\StaticPageController::class, 'attendance'])         ->name('attendance');
+    Route::get('attendance',  fn () => redirect()->route('attendance.index'))                          ->name('attendance');
     Route::get('governance',  [\App\Http\Controllers\StaticPageController::class, 'governance'])         ->name('governance');
     Route::get('assets',      [\App\Http\Controllers\StaticPageController::class, 'assets'])             ->name('assets');
     Route::get('benefits',    [\App\Http\Controllers\StaticPageController::class, 'benefits'])           ->name('benefits');
@@ -343,6 +350,18 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:identity.view')->name('index');
         Route::post('/',   [IdentityVerificationController::class, 'store'])
             ->middleware('permission:identity.verify')->name('store');
+    });
+
+    // ── Phase 2: Time & Attendance ──
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/',          [AttendanceController::class, 'index'])
+            ->middleware('permission:attendance.view')->name('index');
+        Route::get('/me',        [AttendanceController::class, 'myAttendance'])
+            ->name('me'); // any authenticated user with an employee record
+        Route::post('/clock',    [AttendanceController::class, 'clockSelf'])
+            ->middleware('permission:attendance.clock_self')->name('clock');
+        Route::post('/manual',   [AttendanceController::class, 'manualEntry'])
+            ->middleware('permission:attendance.manage')->name('manual');
     });
 
     // ── Phase 1: Two-factor auth ──
