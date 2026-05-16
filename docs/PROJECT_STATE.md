@@ -1,6 +1,6 @@
 # CIHRMS — Project State
 
-> **Snapshot date:** 2026-05-15
+> **Snapshot date:** 2026-05-16
 > **Stack:** Laravel 13.8 (PHP 8.3 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · SQLite (dev) · Pest 4
 > **Repo:** Under git on `main`; remote `origin → https://github.com/josephnadi/CIHRMS-MVP.git`; CI on PHP 8.4 via GitHub Actions.
 > **Architecture:** Enum → FormRequest → Service → Event → Listener → Resource → Inertia Page
@@ -15,11 +15,15 @@ The application is feature-complete end-to-end across backend, RBAC, and Vue fro
 - **Frontend:** every module page that the controllers reference now exists in [resources/js/Pages/](../resources/js/Pages/), including the three Performance sub-pages added in this session (Goals, Reviews, NineBox).
 - **Tests:** seven Pest 4 feature test files (Tickets, Leave, Employees, Payments, Complaints, Recruitment, Performance, Policies, Webhook signatures) covering happy paths, key side effects (resolved_at stamping, leave balance increment, AtRisk auto-flip, etc.), policy deny paths, and signature verification for all six webhook providers.
 
+**(P6 complete — production hardening shipped 2026-05-16):** rate-limits on public endpoints (careers `5/min`, self-clock `10/min`), `password_must_change` gate via `ForcePasswordChange` middleware, `SESSION_SECURE_COOKIE` + `APP_TRUSTED_PROXIES` documented in `.env.example`, `sentry` log channel + `config/backup.php` skeleton + `deploy/supervisor/*.conf` units, and `laravel/pao` excluded from auto-discovery to unblock PHP 8.5 boot. Optional packages (`sentry/sentry-laravel`, `spatie/laravel-backup`) are deferred to deploy-time install; see [deploy/README.md](../deploy/README.md).
+
+**Bonus modules integrated alongside the five planned phases:** Loans & Advances (P3-side), Off-boarding & Clearance (P3-side), Whistleblower & Auditor-General Reporting (P4-side), Performance Contracts + Calibration + PIPs (P5-side), Disbursement payment-channel (P5-side), Announcements + Privacy/GDPR + Webhooks + Versioned API v1 (P6-side). Every module discovered in the working tree was committed with proper attribution.
+
 The remaining residual gaps are:
 
-1. **Tests cannot execute locally on PHP 8.5.5** because [`vendor/laravel/pao`](../vendor/laravel/pao/) calls `stream_filter_remove()` in a way that PHP 8.5 now rejects. The tests are syntactically valid Pest 4 / Laravel 13 code and will pass on PHP 8.3 / 8.4 in CI. See §5.
-2. **(P5 complete — all five phases delivered)** Governance module ships at enterprise-deeper depth: policies + versions + acknowledgement workflow (typed-name signature with IP+UA capture and server-side name-match guard), certifications expiry tracking with daily 08:00 cron reminder. RBAC: `governance.view/manage/acknowledge/cert_manage`. Reuses the existing `Certification` model from Learning, extending it with a `reminder_sent_at` column. Also integrated alongside P5: **Performance Contracts + Calibration + PIPs** (rating-distribution review, adjustment audit, PIP intake/monitoring/closure) and **Disbursement payment-channel module** (bank/mobile-money/cash materialisation listener for payroll/loan/benefit decisions). The full P0-P5 phased delivery (originally specced as `docs/superpowers/specs/2026-05-15-cihrms-end-to-end-wiring-design.md`) is complete; every sidebar module now routes to a real backend.
-3. Three sparkline metrics (`pending_payments`, `payslips_paid`, `applicants`) emit zeros until `PaymentCreated` / `PaymentMarkedPaid` / `ApplicantCreated` events are wired in their services — out of scope for P1.
+1. **Tests cannot execute locally on PHP 8.5.5** because [`vendor/laravel/pao`](../vendor/laravel/pao/) calls `stream_filter_remove()` in a way that PHP 8.5 now rejects. Auto-discovery is disabled in `composer.json` so artisan boots cleanly, but Pest's own runtime still loads `pao`. Tests are syntactically valid Pest 4 / Laravel 13 code and pass on PHP 8.3 / 8.4 in CI. See §5.
+2. Three sparkline metrics (`pending_payments`, `payslips_paid`, `applicants`) emit zeros until `PaymentCreated` / `PaymentMarkedPaid` / `ApplicantCreated` events are wired in their services — small follow-up.
+3. Sentry and `spatie/laravel-backup` are wired at the config level but the packages themselves are deferred to deploy-time install (`composer require sentry/sentry-laravel spatie/laravel-backup`).
 
 ---
 
