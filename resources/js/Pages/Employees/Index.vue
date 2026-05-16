@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -17,7 +17,7 @@ const props = defineProps({
     activeModule: String,
 });
 
-// ── Filter state ─────────────────────────────────────────────────────────────
+// â”€â”€ Filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const localFilters = reactive({
     search:        props.filters?.search        ?? '',
     department_id: props.filters?.department_id ?? '',
@@ -43,7 +43,7 @@ watch(() => localFilters.search, () => {
     searchTimer = setTimeout(applyFilters, 380);
 });
 
-// ── Panels / dialogs ─────────────────────────────────────────────────────────
+// â”€â”€ Panels / dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const showAddPanel     = ref(false);
 const showDeptPanel    = ref(false);
 const showDeleteDialog = ref(false);
@@ -56,7 +56,7 @@ onMounted(() => {
     }
 });
 
-// ── Add Employee form (creates User + Employee in one POST) ──────────────────
+// â”€â”€ Add Employee form (creates User + Employee in one POST) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const form = useForm({
     create_user:   true,
     user_name:     '',
@@ -82,7 +82,7 @@ const submitEmployee = () => {
     });
 };
 
-// ── Add Department form ──────────────────────────────────────────────────────
+// â”€â”€ Add Department form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const deptForm = useForm({
     name:        '',
     code:        '',
@@ -98,7 +98,7 @@ const submitDepartment = () => {
     });
 };
 
-// ── Delete ───────────────────────────────────────────────────────────────────
+// â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const confirmDelete = (id, event) => {
     event.stopPropagation();
     selectedId.value = id;
@@ -114,7 +114,7 @@ const doDelete = () => {
     });
 };
 
-// ── Stats derived from meta (backend should provide these) ───────────────────
+// â”€â”€ Stats derived from meta (backend should provide these) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const stats = computed(() => ({
     total:       props.employees?.meta?.total             ?? 0,
     active:      props.employees?.meta?.active_count      ?? 0,
@@ -122,14 +122,17 @@ const stats = computed(() => ({
     departments: props.employees?.meta?.departments_count ?? props.departments?.length ?? 0,
 }));
 
-// ── Initials + gradient ───────────────────────────────────────────────────────
+// Avatar gradients — disciplined cool family aligned with "Sovereign Precision".
+// People module = navy/cobalt dominant + one magenta variant (5% accent for people)
+// and one cyan variant (tech/young). No warm reds or ambers — they pollute the
+// page-wide palette and break the institutional feel.
 const gradients = [
-    'linear-gradient(135deg,#0051d5,#316bf3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295)',          // navy → cobalt (institutional)
+    'linear-gradient(135deg,#205295,#7cb6e8)',          // cobalt → soft sky
+    'linear-gradient(135deg,#06192f,#0a2647)',          // deep navy → navy (senior)
+    'linear-gradient(135deg,#205295,#2c74b3)',          // cobalt → bright blue
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',  // navy → cobalt → magenta (people spark)
+    'linear-gradient(135deg,#205295,#12d9e3)',          // cobalt → cyan (tech)
 ];
 
 const avatarGradient = (id) => gradients[id % gradients.length];
@@ -143,7 +146,7 @@ const initials = (name) => {
 };
 
 const formatDate = (d) => {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -152,7 +155,7 @@ const formatDate = (d) => {
     <Head title="Employees" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header slot ─────────────────────────────────────────────────── -->
+        <!-- â”€â”€ Header slot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template #header>
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -167,19 +170,17 @@ const formatDate = (d) => {
                 <div class="flex items-center gap-2.5">
                     <button
                         @click="showDeptPanel = true"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container hover:border-secondary/30 hover:text-secondary transition-all"
                     >
-                        <span class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[18px]">corporate_fare</span>
-                            Add Department
-                        </span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">corporate_fare</span>
+                        Add Department
                     </button>
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
-                        <span class="material-symbols-outlined text-[18px]">add</span>
+                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">person_add</span>
                         Add Employee
                     </button>
                 </div>
@@ -188,79 +189,98 @@ const formatDate = (d) => {
 
         <div class="space-y-6">
 
-            <!-- ── Stats row ──────────────────────────────────────────────────── -->
+            <!-- Stats row — disciplined Sovereign Precision palette.
+                 magenta = people (module identity), blue = action, cyan = rest,
+                 navy = institutional structure. Gold deliberately absent here
+                 to keep its 5% reservation for the hairline below. -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <StatCard
                     :value="stats.total"
                     label="Total Employees"
-                    icon="people"
-                    color="#0051d5"
+                    icon="groups"
+                    color="magenta"
                     :href="route('employees.index')"
                 />
                 <StatCard
                     :value="stats.active"
                     label="Active"
                     icon="check_circle"
-                    color="#059669"
+                    color="blue"
                 />
                 <StatCard
                     :value="stats.onLeave"
                     label="On Leave"
                     icon="beach_access"
-                    color="#d97706"
+                    color="cyan"
                 />
                 <StatCard
                     :value="stats.departments"
                     label="Departments"
                     icon="corporate_fare"
-                    color="#7c3aed"
+                    color="navy"
                     :href="route('departments.index')"
                 />
             </div>
 
-            <!-- ── Filters bar ─────────────────────────────────────────────────── -->
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex-1 min-w-[200px] max-w-xs">
+            <!-- 5% gold hairline — the single institutional accent moment on this page -->
+            <div class="h-px w-full" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.45),transparent)"></div>
+
+            <!-- Filters strip -->
+            <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">
+                <div class="flex items-center gap-2 pl-2 pr-1 text-on-surface-variant/60">
+                    <span class="material-symbols-outlined text-[18px]" style="color:#205295">filter_list</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.18em]">Filter</span>
+                </div>
+
+                <div class="flex-1 min-w-[220px] max-w-sm">
                     <SearchInput
                         v-model="localFilters.search"
                         placeholder="Search name, ID, position…"
                     />
                 </div>
 
-                <select
-                    v-model="localFilters.department_id"
-                    @change="applyFilters"
-                    class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                >
-                    <option value="">All Departments</option>
-                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                        {{ dept.name }}
-                    </option>
-                </select>
+                <div class="relative">
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">corporate_fare</span>
+                    <select
+                        v-model="localFilters.department_id"
+                        @change="applyFilters"
+                        class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                    >
+                        <option value="">All Departments</option>
+                        <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+                            {{ dept.name }}
+                        </option>
+                    </select>
+                    <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/60">expand_more</span>
+                </div>
 
-                <select
-                    v-model="localFilters.status"
-                    @change="applyFilters"
-                    class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                >
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="on_leave">On Leave</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="terminated">Terminated</option>
-                </select>
+                <div class="relative">
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">workspaces</span>
+                    <select
+                        v-model="localFilters.status"
+                        @change="applyFilters"
+                        class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="on_leave">On Leave</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="terminated">Terminated</option>
+                    </select>
+                    <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/60">expand_more</span>
+                </div>
 
                 <button
                     v-if="localFilters.search || localFilters.department_id || localFilters.status"
                     @click="() => { localFilters.search = ''; localFilters.department_id = ''; localFilters.status = ''; applyFilters(); }"
-                    class="rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-1.5"
+                    class="ml-auto flex items-center gap-1.5 rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container hover:border-red-300/60 hover:text-red-600 transition-all"
                 >
-                    <span class="material-symbols-outlined text-[16px]">close</span>
+                    <span class="material-symbols-outlined text-[16px]">backspace</span>
                     Clear
                 </button>
             </div>
 
-            <!-- ── Employee table ──────────────────────────────────────────────── -->
+            <!-- â”€â”€ Employee table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
 
                 <div v-if="employees?.data?.length === 0" class="p-12">
@@ -272,10 +292,10 @@ const formatDate = (d) => {
                         <template #action>
                             <button
                                 @click="showAddPanel = true"
-                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
-                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">person_add</span>
                                 Add Employee
                             </button>
                         </template>
@@ -285,36 +305,36 @@ const formatDate = (d) => {
                 <div v-else class="max-h-[calc(100vh-440px)] min-h-[280px] overflow-auto">
                     <table class="w-full text-left">
                         <thead class="sticky top-0 z-10">
-                            <tr>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Employee</th>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Staff ID</th>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Department</th>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Position</th>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Hire Date</th>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Status</th>
-                                <th class="bg-surface-container-low px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Actions</th>
+                            <tr class="relative">
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Employee</th>
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Staff ID</th>
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Department</th>
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Position</th>
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Hire Date</th>
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Status</th>
+                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-right text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-outline-variant/40">
+                        <tbody class="divide-y divide-outline-variant/30">
                             <tr
-                                v-for="emp in employees.data"
+                                v-for="(emp, idx) in employees.data"
                                 :key="emp.id"
-                                class="border-b border-outline-variant/50 hover:bg-surface-container/40 cursor-pointer transition-colors"
+                                class="group cursor-pointer transition-colors hover:bg-secondary/[0.04]"
                                 @click="router.get(route('employees.show', emp.id))"
                             >
                                 <!-- Avatar + name -->
                                 <td class="px-4 py-3.5">
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="h-8 w-8 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white overflow-hidden"
+                                            class="h-9 w-9 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[11px] font-black text-white overflow-hidden transition-transform group-hover:scale-105"
                                             :style="emp.avatar_url ? '' : `background:${avatarGradient(emp.id)}`"
                                         >
                                             <img v-if="emp.avatar_url" :src="emp.avatar_url" :alt="emp.user?.name" class="h-full w-full object-cover" />
                                             <span v-else>{{ initials(emp.user?.name) }}</span>
                                         </div>
-                                        <div>
-                                            <p class="text-[13px] font-semibold text-on-surface leading-tight">{{ emp.user?.name ?? '—' }}</p>
-                                            <p class="text-[11px] text-on-surface-variant/60 leading-tight">
+                                        <div class="min-w-0">
+                                            <p class="text-[13px] font-bold text-on-surface leading-tight truncate">{{ emp.user?.name ?? '—' }}</p>
+                                            <p class="mt-0.5 text-[11px] text-on-surface-variant/60 leading-tight truncate">
                                                 {{ emp.user?.email ?? '' }}
                                                 <span v-if="emp.manager?.name" class="ml-1 text-on-surface-variant/45">· reports to {{ emp.manager.name }}</span>
                                             </p>
@@ -323,7 +343,7 @@ const formatDate = (d) => {
                                 </td>
 
                                 <td class="px-4 py-3.5">
-                                    <span class="font-mono text-[12px] text-on-surface-variant">{{ emp.employee_no }}</span>
+                                    <span class="font-mono text-[12px] text-on-surface-variant tracking-tight">{{ emp.employee_no }}</span>
                                 </td>
 
                                 <td class="px-4 py-3.5 text-[13px] text-on-surface-variant">
@@ -334,7 +354,7 @@ const formatDate = (d) => {
                                     {{ emp.position ?? '—' }}
                                 </td>
 
-                                <td class="px-4 py-3.5 text-[13px] text-on-surface-variant">
+                                <td class="px-4 py-3.5 text-[13px] text-on-surface-variant tabular-nums">
                                     {{ formatDate(emp.hire_date) }}
                                 </td>
 
@@ -344,21 +364,25 @@ const formatDate = (d) => {
 
                                 <!-- Actions -->
                                 <td class="px-4 py-3.5" @click.stop>
-                                    <div class="flex items-center gap-1">
+                                    <div class="flex items-center justify-end gap-1">
                                         <Link
                                             :href="route('employees.show', emp.id)"
-                                            class="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant hover:bg-secondary/10 hover:text-secondary transition-colors"
-                                            title="View"
+                                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-on-surface-variant/70 hover:bg-secondary/10 hover:text-secondary hover:border-secondary/15 transition-all"
+                                            title="View employee"
+                                            aria-label="View employee"
                                         >
                                             <span class="material-symbols-outlined text-[17px]">visibility</span>
                                         </Link>
                                         <button
+                                            type="button"
                                             @click="confirmDelete(emp.id, $event)"
-                                            class="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant hover:bg-red-500/10 hover:text-red-600 transition-colors"
-                                            title="Delete"
+                                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-on-surface-variant/70 hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/15 transition-all"
+                                            title="Delete employee"
+                                            aria-label="Delete employee"
                                         >
                                             <span class="material-symbols-outlined text-[17px]">delete</span>
                                         </button>
+                                        <span class="material-symbols-outlined ml-0.5 text-[18px] text-on-surface-variant/30 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-secondary/70" aria-hidden="true">chevron_right</span>
                                     </div>
                                 </td>
                             </tr>
@@ -367,15 +391,16 @@ const formatDate = (d) => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="employees?.links?.length > 3" class="border-t border-outline-variant/50 px-4 py-3">
+                <div v-if="employees?.links?.length > 3" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
                     <div class="flex items-center justify-between">
-                        <p class="text-[12px] text-on-surface-variant">
+                        <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[15px]" style="color:#205295;opacity:0.7">format_list_numbered</span>
                             Showing
-                            <span class="font-semibold text-on-surface">{{ employees.meta?.from }}</span>
+                            <span class="font-bold text-on-surface tabular-nums">{{ employees.meta?.from }}</span>
                             –
-                            <span class="font-semibold text-on-surface">{{ employees.meta?.to }}</span>
+                            <span class="font-bold text-on-surface tabular-nums">{{ employees.meta?.to }}</span>
                             of
-                            <span class="font-semibold text-on-surface">{{ employees.meta?.total }}</span>
+                            <span class="font-bold text-on-surface tabular-nums">{{ employees.meta?.total }}</span>
                         </p>
                         <Pagination :links="employees.links" />
                     </div>
@@ -383,7 +408,7 @@ const formatDate = (d) => {
             </div>
         </div>
 
-        <!-- ── Add Employee SlidePanel ──────────────────────────────────────── -->
+        <!-- â”€â”€ Add Employee SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <SlidePanel
             :open="showAddPanel"
             title="Add Employee"
@@ -392,10 +417,11 @@ const formatDate = (d) => {
         >
             <form @submit.prevent="submitEmployee" class="space-y-5 p-6">
 
-                <!-- ── Login account block ────────────────────────────────────── -->
-                <div class="rounded-2xl border border-secondary/15 bg-secondary/5 p-4 space-y-4">
-                    <div class="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-secondary">
-                        <span class="material-symbols-outlined text-[15px]">account_circle</span>
+                <!-- Login account block — cobalt-tinted (action context) -->
+                <div class="rounded-2xl border border-secondary/15 bg-secondary/[0.04] p-4 space-y-4 relative overflow-hidden">
+                    <div class="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full" style="background:radial-gradient(circle,rgba(32,82,149,0.10),transparent 70%)"></div>
+                    <div class="relative flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-secondary">
+                        <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">badge</span>
                         Login account
                     </div>
 
@@ -563,8 +589,8 @@ const formatDate = (d) => {
                     <button
                         @click="submitEmployee"
                         :disabled="form.processing"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Save Employee</span>
@@ -573,7 +599,7 @@ const formatDate = (d) => {
             </template>
         </SlidePanel>
 
-        <!-- ── Add Department SlidePanel ────────────────────────────────────── -->
+        <!-- â”€â”€ Add Department SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <SlidePanel
             :open="showDeptPanel"
             title="Add Department"
@@ -597,7 +623,7 @@ const formatDate = (d) => {
                 <div>
                     <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                         Department Code <span class="text-red-500">*</span>
-                        <span class="ml-1 font-normal text-on-surface-variant/60">(2–10 chars, uppercase)</span>
+                        <span class="ml-1 font-normal text-on-surface-variant/60">(2â€“10 chars, uppercase)</span>
                     </label>
                     <input
                         v-model="deptForm.code"
@@ -616,7 +642,7 @@ const formatDate = (d) => {
                     <textarea
                         v-model="deptForm.description"
                         rows="3"
-                        placeholder="Brief description of this department…"
+                        placeholder="Brief description of this departmentâ€¦"
                         class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                     />
                 </div>
@@ -634,8 +660,8 @@ const formatDate = (d) => {
                     <button
                         @click="submitDepartment"
                         :disabled="deptForm.processing"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="deptForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Save Department</span>
@@ -644,7 +670,7 @@ const formatDate = (d) => {
             </template>
         </SlidePanel>
 
-        <!-- ── Delete confirmation ───────────────────────────────────────────── -->
+        <!-- â”€â”€ Delete confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <ConfirmDialog
             :open="showDeleteDialog"
             title="Delete Employee"
