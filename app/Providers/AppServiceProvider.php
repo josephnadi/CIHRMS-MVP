@@ -179,6 +179,10 @@ class AppServiceProvider extends ServiceProvider
         // Phase 1 — Payroll run approval triggers statutory return generation
         Event::listen(PayrollRunApproved::class, GenerateStatutoryReturns::class);
 
+        // Phase 3 — Approval also materialises disbursement instructions
+        // (HR/Finance then dispatches them explicitly via the UI).
+        Event::listen(PayrollRunApproved::class, \App\Listeners\MaterialiseDisbursements::class);
+
         // Wave 10 — UploadPayslipToCloud is auto-discovered via its typed PayslipGenerated parameter.
 
         // Phase 3 — Assets

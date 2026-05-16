@@ -6,4 +6,5 @@ use App\Providers\IdentityServiceProvider;
 return [
     AppServiceProvider::class,
     IdentityServiceProvider::class,
+    \App\Providers\DisbursementServiceProvider::class,
 ];
