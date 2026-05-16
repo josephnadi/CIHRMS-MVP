@@ -1,9 +1,10 @@
 # CIHRMS — Project State
 
-> **Snapshot date:** 2026-05-16
+> **Snapshot date:** 2026-05-16 (updated post UI redesign campaign)
 > **Stack:** Laravel 13.8 (PHP 8.3 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · SQLite (dev) · Pest 4
 > **Repo:** Under git on `main`; remote `origin → https://github.com/josephnadi/CIHRMS-MVP.git`; CI on PHP 8.4 via GitHub Actions.
 > **Architecture:** Enum → FormRequest → Service → Event → Listener → Resource → Inertia Page
+> **Design system:** "Sovereign Precision" — obsidian sidebar, cobalt gradients, RGB-triplet stat cards, card-lift / btn-shimmer / animate-reveal-up motion. Reference pages: Employees/Index (651 LOC), Tickets/Index (472 LOC).
 
 ---
 
@@ -16,6 +17,10 @@ The application is feature-complete end-to-end across backend, RBAC, and Vue fro
 - **Tests:** seven Pest 4 feature test files (Tickets, Leave, Employees, Payments, Complaints, Recruitment, Performance, Policies, Webhook signatures) covering happy paths, key side effects (resolved_at stamping, leave balance increment, AtRisk auto-flip, etc.), policy deny paths, and signature verification for all six webhook providers.
 
 **(P6 complete — production hardening shipped 2026-05-16):** rate-limits on public endpoints (careers `5/min`, self-clock `10/min`), `password_must_change` gate via `ForcePasswordChange` middleware, `SESSION_SECURE_COOKIE` + `APP_TRUSTED_PROXIES` documented in `.env.example`, `sentry` log channel + `config/backup.php` skeleton + `deploy/supervisor/*.conf` units, and `laravel/pao` excluded from auto-discovery to unblock PHP 8.5 boot. Optional packages (`sentry/sentry-laravel`, `spatie/laravel-backup`) are deferred to deploy-time install; see [deploy/README.md](../deploy/README.md).
+
+**(UI redesign campaign complete — shipped 2026-05-16):** 18 module pages elevated from baseline (84–215 LOC stubs) to gold-standard "Sovereign Precision" treatment (~440–740 LOC each), matching the Employees/Tickets reference implementations. Build clean (Vite 19.93s, 0 warnings). Two waves of parallel design agents:
+- **Wave 1** (`677e3a2`, 10 files, +4,630/−920): Attendance × 3, Loans × 2, Off-boarding × 2, Performance group 2 (Contracts / Calibration / PIPs).
+- **Wave 2** (`f3cdb54`, 8 files, +2,896/−1,159): Learning × 3 (Catalog / MyLearning / SkillsMatrix), Performance group 1 (Index / Goals / Reviews / NineBox), plus a PIPs follow-up tweak.
 
 **Bonus modules integrated alongside the five planned phases:** Loans & Advances (P3-side), Off-boarding & Clearance (P3-side), Whistleblower & Auditor-General Reporting (P4-side), Performance Contracts + Calibration + PIPs (P5-side), Disbursement payment-channel (P5-side), Announcements + Privacy/GDPR + Webhooks + Versioned API v1 (P6-side). Every module discovered in the working tree was committed with proper attribution.
 
@@ -66,18 +71,27 @@ The remaining residual gaps are:
 
 ### Frontend (all module pages present and substantial)
 
+Pages marked **★** were redesigned in the 2026-05-16 UI campaign to the "Sovereign Precision" gold-standard.
+
 | Module | Pages | Lines | Notes |
 |---|---|---|---|
-| Employees | Index, Show | 651, 789 | Most complete reference implementation |
+| Employees | Index, Show | 651, 789 | Reference implementation (gold-standard source) |
 | Leave | Index, Show | 1,181, 354 | |
-| Tickets | Index, Show | 472, 242 | Inline quick-status + quick-assign |
+| Tickets | Index, Show | 472, 242 | Reference implementation (gold-standard source) |
 | Payments | Index, Show | 1,155, 271 | Payslip preview + analytics dashboard |
 | Notifications | Index, Channels | 184, 158 | Inbox + per-channel consent UI |
 | AuditLogs | Index | 166 | Compliance trail |
 | Reports | Index | 288 | Live sparkline previews + XLSX export config |
 | Recruitment | Index, Show, Applicants | 256, 280, 371 | Kanban pipeline included |
 | Complaints | Index, Track | 391, 98 | Public reference-lookup form |
-| **Performance** | **Index, Goals, Reviews, NineBox** | 469, 530, 460, 240 | Added in this session |
+| **Performance** ★ | Index, Goals, Reviews, NineBox | 451, 733, 698, 444 | Group 1 redesigned in Wave 2 |
+| **Performance / Contracts** ★ | Index | 511 | Dual-signature checkpoint cards (Wave 1) |
+| **Performance / Calibration** ★ | Index | 382 | Distribution bar + facilitator cards (Wave 1) |
+| **Performance / PIPs** ★ | Index | 426 | Severity-tinted left border, mentor avatar (Wave 1 + W2 tweak) |
+| **Attendance** ★ | MyAttendance, Shifts, Corrections | 526, 650, 473 | Live clock hero, GPS clock button, kanban corrections (Wave 1) |
+| **Learning** ★ | Catalog, MyLearning, SkillsMatrix | 676, 627, 519 | Discovery hero, learner dashboard, role-vs-staff heatmap (Wave 2) |
+| **Loans** ★ | Index, Show | 525, 494 | Repayment progress + 4-tab detail + 2FA-gated disbursement (Wave 1) |
+| **Offboarding** ★ | Index, Show | 479, 834 | LWD countdown, multi-area clearance, final settlement (Wave 1) |
 | Careers | Show | — | Public unauthenticated job posting view |
 | Profile | Edit + tabs | — | Self-service employee portal |
 | Departments | Index | 217 | |
@@ -111,9 +125,10 @@ Ten Pest 4 feature-test files under [tests/Feature/](../tests/Feature/):
    - Downgrade local PHP to 8.4.
    - Pin or remove `laravel/pao` until it ships 8.5 support.
    - Run tests in CI / Docker on 8.4 (PHPUnit Docker image).
-2. **No version control.** `cihrms-mvp/` is still not a git repo. `git init` is the first item in [implementation_plan.md](implementation_plan.md).
+2. **(Resolved 2026-05-16)** `cihrms-mvp/` is now under git on `main`, remote `origin → github.com/josephnadi/CIHRMS-MVP.git`, with CI on PHP 8.4.
 3. **(Resolved 2026-05-15)** Dashboard decorative literals replaced with real `DashboardService::timeSeries()` data + cached `getRecentActivityFeed()`. The duplicated module sections (Assets/Benefits/Learning/Governance) and 5 inline create forms were deleted; sidebar nav routes to dedicated `Pages/<Module>/Index.vue`.
 4. **Notification real-provider delivery untested.** Signature verification is now under test; actual delivery to WhatsApp / Slack / MS Graph / Google for an outbound message is still unverified.
+5. **In-flight uncommitted platform workstreams** in the working tree (not yet reviewed or committed in this session): SSO (identity providers + login attempts + identity links), I18n (locale switching + lang files), Messaging (SMS + USSD inbound webhooks + outbound channels), API v1 (versioned REST + OpenAPI YAML + scoped tokens), PWA (service worker + manifest + offline view), Accessibility (skip link + ARIA live announcer + audit command + WCAG checklist), plus ~79 modified files and 116 untracked files. These are coherent feature bundles but need curated commits before they can be landed.
 
 ---
 
@@ -121,11 +136,11 @@ Ten Pest 4 feature-test files under [tests/Feature/](../tests/Feature/):
 
 In leverage order:
 
-1. **`git init`** + initial commit. Then add a CI workflow that runs `composer test` on PHP 8.4.
-2. **Resolve the PHP 8.5 / pao incompatibility** so tests can run locally.
-3. **Real-provider integration tests** (outbound) for the messaging listeners — sandbox tokens or Mock HTTP fakes.
-4. **Replace the residual sparkline literals** in Dashboard.vue with real time-series from `DashboardService`.
-5. **Production hardening** (Phase 6 of the plan): queue driver, rate limiting on the public careers endpoint, password-reset-on-first-login, backup strategy.
+1. **Push redesign commits** (`677e3a2`, `f3cdb54`) to `origin/main` so the UI campaign is durable.
+2. **Curate the in-flight platform workstreams** (see gap #5) into themed commits. Suggested grouping: (a) SSO bundle, (b) Messaging / SMS / USSD bundle, (c) API v1 + OpenAPI bundle, (d) I18n + locale, (e) PWA + Accessibility. Each should land with a build check and any tests that ship alongside.
+3. **Resolve the PHP 8.5 / pao incompatibility** so tests can run locally (downgrade to 8.4, pin/remove pao, or run via Docker).
+4. **Real-provider integration tests** (outbound) for the messaging listeners — sandbox tokens or Mock HTTP fakes.
+5. **Replace the residual sparkline literals** in Dashboard.vue (`pending_payments`, `payslips_paid`, `applicants`) with real time-series from `DashboardService` once the event wiring lands.
 
 ---
 
