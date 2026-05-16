@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Cache;
     // Phase 1 — TOTP 2FA
     'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at',
     'two_factor_required', 'two_factor_last_used_at',
+    // P6 — force first-login password change
+    'password_must_change',
 ])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
@@ -45,6 +47,7 @@ class User extends Authenticatable
             'integrations.manage',
             'performance.view', 'performance.manage',
             'learning.view', 'learning.manage',
+            'announcements.manage',
             // HR sees every department portal for cross-functional oversight.
             'portal.hr', 'portal.it', 'portal.finance', 'portal.marketing',
         ],
@@ -110,6 +113,7 @@ class User extends Authenticatable
             'two_factor_confirmed_at'  => 'datetime',
             'two_factor_last_used_at'  => 'datetime',
             'two_factor_required'      => 'bool',
+            'password_must_change'     => 'bool',
         ];
     }
 

@@ -180,7 +180,8 @@ class ProfileController extends Controller
         ]);
 
         $request->user()->update([
-            'password' => Hash::make($request->password),
+            'password'             => Hash::make($request->password),
+            'password_must_change' => false,
         ]);
 
         return back()->with('success', 'Password updated.');
