@@ -107,6 +107,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Performance\CalibrationService::class);
         $this->app->singleton(\App\Services\Performance\PipService::class);
 
+        // Phase 3 — DPA 2012 Data-Subject Portal
+        $this->app->singleton(\App\Services\Privacy\DataSubjectExportBuilder::class);
+        $this->app->singleton(\App\Services\Privacy\ErasureService::class);
+        $this->app->singleton(\App\Services\Privacy\DataSubjectRequestService::class);
+
+        // Phase 3 — Webhook dispatcher (WS14)
+        $this->app->singleton(\App\Services\Webhooks\WebhookDispatcher::class);
+
         // Integrations layer (Wave 9)
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(OAuthFlow::class);
@@ -149,6 +157,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\PerformanceContract::class, \App\Policies\PerformanceContractPolicy::class);
         Gate::policy(\App\Models\CalibrationSession::class,  \App\Policies\CalibrationSessionPolicy::class);
         Gate::policy(\App\Models\PerformanceImprovementPlan::class, \App\Policies\PerformanceImprovementPlanPolicy::class);
+        Gate::policy(\App\Models\DataSubjectRequest::class,         \App\Policies\DataSubjectRequestPolicy::class);
         Gate::policy(\App\Models\Asset::class,               \App\Policies\AssetPolicy::class);
         Gate::policy(\App\Models\BenefitPlan::class,         \App\Policies\BenefitsPolicy::class);
         Gate::policy(\App\Models\BenefitEnrolment::class,    \App\Policies\BenefitsPolicy::class);

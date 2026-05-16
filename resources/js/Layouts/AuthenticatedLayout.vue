@@ -1,9 +1,10 @@
 <script setup>
 import { computed, ref, onMounted, watch } from 'vue';
-import Dropdown         from '@/Components/Dropdown.vue';
-import DropdownLink     from '@/Components/DropdownLink.vue';
-import NotificationBell from '@/Components/NotificationBell.vue';
-import Toast            from '@/Components/Toast.vue';
+import Dropdown            from '@/Components/Dropdown.vue';
+import DropdownLink        from '@/Components/DropdownLink.vue';
+import NotificationBell    from '@/Components/NotificationBell.vue';
+import AnnouncementTicker  from '@/Components/AnnouncementTicker.vue';
+import Toast               from '@/Components/Toast.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import { useDark } from '@/composables/useDark';
 
@@ -107,18 +108,20 @@ const navSections = computed(() => {
             sections.push({
                 title: 'System',
                 items: [
+                    { label: 'Notice Board',  route: 'announcements.index',       module: 'announcements', icon: 'campaign',  visible: true },
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: true },
-                    { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'campaign',  visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
+                    { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
                     { label: 'Settings',      route: 'profile.edit',              module: 'settings',      icon: 'settings',  visible: true },
                     { label: 'Audit Logs',    route: 'modules.audit-logs',        module: 'audit-logs',    icon: 'history',   visible: true },
                 ]
             });
-        } else if (can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all')) {
+        } else if (can('announcements.manage') || can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all')) {
             sections.push({
                 title: 'System',
                 items: [
+                    { label: 'Notice Board',  route: 'announcements.index',       module: 'announcements', icon: 'campaign',  visible: can('announcements.manage') },
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: can('integrations.manage') },
-                    { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'campaign',  visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
+                    { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
                     { label: 'Settings',      route: 'profile.edit',              module: 'settings',      icon: 'settings',  visible: true },
                 ]
             });
@@ -492,6 +495,9 @@ const quickActions = computed(() => [
 
         <!-- ── Main Content ──────────────────────────────────── -->
         <div class="flex h-screen flex-col lg:ml-[248px]">
+
+            <!-- Announcement ticker — runs across the very top of the page -->
+            <AnnouncementTicker />
 
             <!-- Header -->
             <header class="z-40 flex-shrink-0 header-glass border-b border-black/[0.06] dark:border-outline-variant/40"

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\AnnouncementService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,6 +39,9 @@ class HandleInertiaRequests extends Middleware
                     'time'    => $n->created_at->diffForHumans(),
                 ]) ?? [],
             'notificationCount' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
+            'announcementTicker' => fn () => $request->user()
+                ? app(AnnouncementService::class)->ticker($request->user())->values()->all()
+                : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),

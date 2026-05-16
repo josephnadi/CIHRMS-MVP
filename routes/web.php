@@ -33,6 +33,7 @@ use App\Http\Controllers\DisbursementController;
 use App\Http\Controllers\PerformanceContractController;
 use App\Http\Controllers\CalibrationController;
 use App\Http\Controllers\PipController;
+use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
@@ -478,6 +479,25 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::post('{pip}/close',       [PipController::class, 'close'])
                 ->middleware(['permission:performance.pip_manage', '2fa:fresh'])->name('close');
         });
+    });
+
+    // ── Phase 3: DPA 2012 Data-Subject Portal ──
+    // Subject self-service (any authenticated user)
+    Route::prefix('privacy')->name('privacy.')->group(function () {
+        Route::get('/',                          [PrivacyController::class, 'myRequests'])->name('my');
+        Route::post('/',                         [PrivacyController::class, 'submit'])->name('submit');
+        Route::post('{req}/withdraw',            [PrivacyController::class, 'withdraw'])->name('withdraw');
+        Route::get('{req}/download',             [PrivacyController::class, 'downloadMyExport'])->name('download');
+    });
+
+    // DPO admin queue
+    Route::prefix('admin/privacy')->name('privacy.admin.')->middleware('permission:privacy.fulfill')->group(function () {
+        Route::get('/',                          [PrivacyController::class, 'adminIndex'])->name('index');
+        Route::get('{req}',                      [PrivacyController::class, 'adminShow'])->name('show');
+        Route::post('{req}/acknowledge',         [PrivacyController::class, 'acknowledge'])->name('acknowledge');
+        Route::post('{req}/fulfill',             [PrivacyController::class, 'fulfill'])
+            ->middleware('2fa:fresh')->name('fulfill');
+        Route::post('{req}/reject',              [PrivacyController::class, 'reject'])->name('reject');
     });
 
     // ── Phase 3: Disbursements (MoMo + GhIPSS) ──

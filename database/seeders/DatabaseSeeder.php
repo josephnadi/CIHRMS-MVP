@@ -50,6 +50,9 @@ class DatabaseSeeder extends Seeder
         $this->call(EstablishmentDemoSeeder::class);
         $this->call(BiometricDeviceDemoSeeder::class);
 
+        // Communications: seed sample notices for the top-of-page ticker.
+        $this->call(AnnouncementSeeder::class);
+
         // Re-run RBAC sync so newly created users (factory-created) pick up role pivots,
         // and so any new permissions land on existing roles.
         $this->call(RolePermissionSeeder::class);

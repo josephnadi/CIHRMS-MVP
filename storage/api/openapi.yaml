@@ -1,0 +1,310 @@
+openapi: 3.0.3
+info:
+  title: CIHRMS API
+  version: "1.0.0"
+  description: |
+    Public REST API for the Chartered Institute of Human Resource Management — Ghana HRMS.
+
+    Authentication: Laravel Sanctum personal access tokens. Issue a token via the
+    web UI (Profile → API Tokens) and pass it in the `Authorization: Bearer <token>`
+    header on every request.
+
+    Audit trail: every API call is recorded in `audit_logs` with the SHA-256 chain-hash
+    so external integrations are tamper-evident alongside web traffic.
+
+    Webhooks: external systems can subscribe to events (POST `/v1/webhook-subscriptions`).
+    Delivery includes an `X-CIHRMS-Signature: sha256=<hex>` header computed as
+    `hmac_sha256(body, signing_secret)` so subscribers can verify authenticity.
+  contact:
+    name: CIHRM Ghana
+    url:  https://cihrm.npontutechnologies.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://hrms.cihrm.org.gh/api
+    description: Production
+  - url: https://staging.hrms.cihrm.org.gh/api
+    description: Staging
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+    Pagination:
+      type: object
+      properties:
+        current_page:  { type: integer }
+        last_page:     { type: integer }
+        per_page:      { type: integer }
+        total:         { type: integer }
+    Me:
+      type: object
+      properties:
+        id:          { type: integer }
+        name:        { type: string }
+        email:       { type: string, format: email }
+        staff_id:    { type: string }
+        role:        { type: string }
+        permissions: { type: array, items: { type: string } }
+    Employee:
+      type: object
+      properties:
+        id:           { type: integer }
+        employee_no:  { type: string, example: "CIHRM-0042" }
+        name:         { type: string }
+        email:        { type: string, format: email }
+        department:   { type: string }
+        position:     { type: string }
+        grade_code:   { type: string, example: "GS-12" }
+        step:         { type: integer, example: 3 }
+        hire_date:    { type: string, format: date }
+        status:       { type: string, enum: [active, on_leave, suspended, terminated] }
+    PayrollRun:
+      type: object
+      properties:
+        id:           { type: integer }
+        reference:    { type: string }
+        period_year:  { type: integer }
+        period_month: { type: integer }
+        status:       { type: string, enum: [draft, calculating, calculated, approved, paid, reversed] }
+        totals:
+          type: object
+          properties:
+            gross:           { type: number, format: float }
+            net:             { type: number, format: float }
+            paye:            { type: number, format: float }
+            ssnit_employee:  { type: number, format: float }
+            ssnit_employer:  { type: number, format: float }
+            nhia:            { type: number, format: float }
+            tier2:           { type: number, format: float }
+    WebhookSubscription:
+      type: object
+      required: [name, target_url, event_types]
+      properties:
+        id:                   { type: integer }
+        name:                 { type: string,  example: "GIFMIS payroll feed" }
+        target_url:           { type: string,  format: uri }
+        event_types:
+          type: array
+          items: { type: string }
+          example:
+            - payroll.run.approved
+            - identity.verified
+            - loan.approved
+            - offboarding.completed
+        is_active:            { type: boolean }
+        consecutive_failures: { type: integer }
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid token.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Token holder lacks required permission.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found or not visible to caller.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+paths:
+  /v1/me:
+    get:
+      summary: Introspect the current token holder.
+      tags: [Auth]
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/employees:
+    get:
+      summary: List employees visible to the caller.
+      tags: [Employees]
+      parameters:
+        - in: query
+          name: department_id
+          schema: { type: integer }
+        - in: query
+          name: q
+          description: Full-text match against employee_no and name.
+          schema: { type: string }
+        - in: query
+          name: per_page
+          schema: { type: integer, default: 25, maximum: 100 }
+      responses:
+        '200':
+          description: Paged employee list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Employee' }
+                  meta: { $ref: '#/components/schemas/Pagination' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/employees/{employee}:
+    get:
+      summary: Get a single employee by id.
+      tags: [Employees]
+      parameters:
+        - in: path
+          name: employee
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Employee' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/payroll/runs:
+    get:
+      summary: List payroll runs.
+      tags: [Payroll]
+      parameters:
+        - in: query
+          name: year
+          schema: { type: integer }
+        - in: query
+          name: status
+          schema: { type: string, enum: [draft, calculating, calculated, approved, paid, reversed] }
+      responses:
+        '200':
+          description: Paged payroll-run list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/PayrollRun' }
+                  meta: { $ref: '#/components/schemas/Pagination' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/payroll/runs/{run}:
+    get:
+      summary: Get one payroll run.
+      tags: [Payroll]
+      parameters:
+        - in: path
+          name: run
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Payroll run
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PayrollRun' }
+
+  /v1/webhook-subscriptions:
+    get:
+      summary: List configured webhook subscriptions.
+      tags: [Webhooks]
+      responses:
+        '200':
+          description: Subscriptions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/WebhookSubscription' }
+    post:
+      summary: Create a new subscription. The `signing_secret` is returned ONCE.
+      tags: [Webhooks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WebhookSubscription' }
+      responses:
+        '201':
+          description: Created — `signing_secret` is returned in plaintext only here.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:           { $ref: '#/components/schemas/WebhookSubscription' }
+                  signing_secret: { type: string, example: "a1b2c3...64hex" }
+                  verification_note:
+                    type: string
+                    example: "POSTs include X-CIHRMS-Signature header: sha256=hex(hmac_sha256(body, signing_secret))."
+
+  /v1/webhook-subscriptions/{subscription}:
+    delete:
+      summary: Soft-delete a subscription.
+      tags: [Webhooks]
+      parameters:
+        - in: path
+          name: subscription
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: boolean }
+
+x-webhook-events:
+  description: |
+    Event types CIHRMS emits. Subscribe to specific ones via `event_types`
+    on a webhook subscription, or use `*` to receive everything.
+  events:
+    - name: payroll.run.approved
+      description: A payroll run has been approved (statutory returns generating).
+    - name: loan.approved
+      description: A loan application has been approved (not yet disbursed).
+    - name: identity.verified
+      description: An employee's Ghana Card was verified.
+    - name: offboarding.completed
+      description: An employee off-boarding case has been completed.

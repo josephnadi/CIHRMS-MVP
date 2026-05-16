@@ -64,6 +64,7 @@ class RolePermissionSeeder extends Seeder
         'payroll.reverse'        => ['Payroll',      'Reverse an approved or paid payroll run'],
         'payroll.view_all'       => ['Payroll',      'View all payroll runs across departments'],
         'statutory.export'       => ['Payroll',      'Download statutory return files (PAYE/SSNIT/Tier-2)'],
+        'payroll.disburse'       => ['Payroll',      'Dispatch and reconcile disbursements (MoMo/GhIPSS)'],
 
         // ── Phase 1: Establishment ──
         'positions.view'         => ['Establishment','View positions and org structure'],
@@ -106,6 +107,12 @@ class RolePermissionSeeder extends Seeder
         'whistleblower.manage'      => ['Whistleblower', 'Reassign, delete, full administrative access'],
         'whistleblower.view_all'    => ['Whistleblower', 'Read-only access (Auditor lane)'],
 
+        // ── Phase 3: DPA 2012 (Act 843) ──
+        // Self-service rights are inherent — no permission needed. These two
+        // gate the Data Protection Officer (DPO) lane.
+        'privacy.fulfill'           => ['Privacy', 'Fulfil/reject data-subject requests (DPO role)'],
+        'privacy.erase'             => ['Privacy', 'Execute right-to-erasure tombstoning (super-admin gate)'],
+
         // ── Phase 2: Performance Management completion ──
         // Calibration uses dual-control: facilitator locks, a different user applies.
         'performance.calibrate'       => ['Performance', 'Facilitate calibration sessions and record adjustments'],
@@ -129,6 +136,9 @@ class RolePermissionSeeder extends Seeder
         'governance.manage'       => ['Governance', 'Create / edit / publish policies'],
         'governance.acknowledge'  => ['Governance', 'Acknowledge published policies (self)'],
         'governance.cert_manage'  => ['Governance', 'Manage certification records + reminders'],
+
+        // ── Communications: notice board / ticker ──
+        'announcements.manage'    => ['Communications', 'Create, edit, and remove org-wide notices on the ticker'],
     ];
 
     /**
@@ -156,6 +166,7 @@ class RolePermissionSeeder extends Seeder
             'assets.view', 'assets.manage', 'assets.assign',
             'benefits.view', 'benefits.view_all', 'benefits.manage', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
+            'announcements.manage',
             'reports.view',
             'integrations.manage', 'users.manage',
         ],
@@ -201,6 +212,7 @@ class RolePermissionSeeder extends Seeder
             'employees.view_salary',
             'attendance.correct',
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
+            'payroll.disburse',
             'offboarding.view', 'offboarding.settle', 'offboarding.approve',
             'assets.view',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
@@ -231,6 +243,10 @@ class RolePermissionSeeder extends Seeder
             // — facilitates can adjust ratings, but a different user with apply
             // rights commits them to the underlying reviews.
             'performance.calibrate_apply',
+            // Privacy: Auditor doubles as the Data Protection Officer (DPO) so
+            // data-subject requests don't flow through HR (avoids conflict of
+            // interest where HR processes their own employees' erasure requests).
+            'privacy.fulfill',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
         ],
