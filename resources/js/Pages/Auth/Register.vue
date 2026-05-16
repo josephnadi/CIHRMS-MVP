@@ -21,16 +21,16 @@ const submit = () => {
         <Head title="Enrol · CIHRM Ghana" />
 
         <header class="auth-folio">
-            <span class="auth-folio-num">N° 02</span>
+            <span class="auth-folio-num">02</span>
             <span class="auth-folio-rule"></span>
-            <span class="auth-folio-label">Enrolment</span>
+            <span class="auth-folio-label">Request access</span>
         </header>
 
         <h2 class="auth-title">
-            Inscribe <em>your</em> name.
+            Request <em>access.</em>
         </h2>
         <p class="auth-deck">
-            Enrolment opens a personal record in the institutional register. HR will issue your staff number after the appointment letter is signed.
+            HR will issue your staff number after review.
         </p>
 
         <form @submit.prevent="submit" class="auth-form" novalidate>
@@ -39,7 +39,6 @@ const submit = () => {
             <div class="field">
                 <label for="name" class="field-label">
                     <span>Full name</span>
-                    <span class="field-hint">surname last, no titles</span>
                 </label>
                 <input id="name" type="text"
                        v-model="form.name"
@@ -53,7 +52,6 @@ const submit = () => {
             <div class="field">
                 <label for="email" class="field-label">
                     <span>Institutional email</span>
-                    <span class="field-hint">verified by HR</span>
                 </label>
                 <input id="email" type="email"
                        v-model="form.email"
@@ -66,8 +64,8 @@ const submit = () => {
             <!-- Password -->
             <div class="field">
                 <label for="password" class="field-label">
-                    <span>Choose a password</span>
-                    <span class="field-hint">12+ characters recommended</span>
+                    <span>Password</span>
+                    <span class="field-hint">12+ characters</span>
                 </label>
                 <input id="password" type="password"
                        v-model="form.password"
@@ -81,7 +79,6 @@ const submit = () => {
             <div class="field">
                 <label for="password_confirmation" class="field-label">
                     <span>Confirm password</span>
-                    <span class="field-hint">repeat above</span>
                 </label>
                 <input id="password_confirmation" type="password"
                        v-model="form.password_confirmation"
@@ -91,10 +88,8 @@ const submit = () => {
                 <p v-if="form.errors.password_confirmation" class="field-error">{{ form.errors.password_confirmation }}</p>
             </div>
 
-            <!-- Consent ledger -->
             <p class="auth-consent">
-                By enrolling I acknowledge the <a href="#">Charter</a> and the institutional
-                <a href="#">privacy notice</a>. Records are retained per the Records Retention Schedule.
+                I acknowledge the <a href="#">Charter</a> and <a href="#">privacy notice</a>.
             </p>
 
             <!-- Submit -->
@@ -104,8 +99,8 @@ const submit = () => {
                     :class="{ 'is-busy': form.processing }">
                 <span class="auth-submit-shimmer" aria-hidden="true"></span>
                 <span class="auth-submit-label">
-                    <template v-if="form.processing">Inscribing</template>
-                    <template v-else>Inscribe my name</template>
+                    <template v-if="form.processing">Submitting</template>
+                    <template v-else>Submit request</template>
                 </span>
                 <span class="auth-submit-arrow" aria-hidden="true">
                     <svg v-if="!form.processing" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -119,8 +114,8 @@ const submit = () => {
             </button>
 
             <p class="sister-link">
-                Already on the register?
-                <Link :href="route('login')">Sign in instead.</Link>
+                Already have access?
+                <Link :href="route('login')">Sign in.</Link>
             </p>
         </form>
     </GuestLayout>
@@ -134,14 +129,14 @@ const submit = () => {
     font-style: italic;
     font-size: 12.5px;
     line-height: 1.55;
-    color: #324053;
+    color: #5a6b80;
     max-width: 40ch;
 }
 .auth-consent a {
-    color: #0e1a2b;
+    color: #0a2647;
     text-decoration: none;
-    border-bottom: 1px solid rgba(14,26,43,0.3);
+    border-bottom: 1px solid rgba(10,38,71,0.3);
     transition: color 0.18s ease, border-color 0.18s ease;
 }
-.auth-consent a:hover { color: #b67a23; border-bottom-color: #b67a23; }
+.auth-consent a:hover { color: #205295; border-bottom-color: #205295; }
 </style>

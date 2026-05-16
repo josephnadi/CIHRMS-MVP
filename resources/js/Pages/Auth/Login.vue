@@ -24,9 +24,8 @@ const submit = () => {
     <GuestLayout>
         <Head title="Sign In · CIHRM Ghana" />
 
-        <!-- Folio header — like the top of a ledger page -->
         <header class="auth-folio">
-            <span class="auth-folio-num">N° 01</span>
+            <span class="auth-folio-num">01</span>
             <span class="auth-folio-rule"></span>
             <span class="auth-folio-label">Sign in</span>
         </header>
@@ -35,7 +34,7 @@ const submit = () => {
             Welcome <em>back.</em>
         </h2>
         <p class="auth-deck">
-            Identify yourself with the name and staff number on record. Sessions expire after 12 hours of inactivity.
+            Name and staff number, please.
         </p>
 
         <!-- Status flash -->
@@ -53,7 +52,6 @@ const submit = () => {
             <div class="field">
                 <label for="name" class="field-label">
                     <span>Full name</span>
-                    <span class="field-hint">as on appointment letter</span>
                 </label>
                 <input id="name" type="text"
                        v-model="form.name"
@@ -67,7 +65,6 @@ const submit = () => {
             <div class="field">
                 <label for="staff_id" class="field-label">
                     <span>Staff number</span>
-                    <span class="field-hint">issued by HR</span>
                 </label>
                 <div class="field-mono-wrap">
                     <span class="field-mono-prefix" aria-hidden="true">/</span>
@@ -103,8 +100,8 @@ const submit = () => {
                     :class="{ 'is-busy': form.processing }">
                 <span class="auth-submit-shimmer" aria-hidden="true"></span>
                 <span class="auth-submit-label">
-                    <template v-if="form.processing">Authenticating</template>
-                    <template v-else>Enter the register</template>
+                    <template v-if="form.processing">Signing in</template>
+                    <template v-else>Sign in</template>
                 </span>
                 <span class="auth-submit-arrow" aria-hidden="true">
                     <svg v-if="!form.processing" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -119,8 +116,8 @@ const submit = () => {
 
             <!-- Sister-link to register -->
             <p class="sister-link">
-                Not yet on the register?
-                <Link :href="route('register')">Request enrolment.</Link>
+                New here?
+                <Link :href="route('register')">Request access.</Link>
             </p>
         </form>
     </GuestLayout>

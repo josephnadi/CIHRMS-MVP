@@ -48,10 +48,13 @@ const navSections = computed(() => {
                     {
                         label: 'Performance', icon: 'monitoring', expandable: true, visible: can('performance.view'),
                         children: [
-                            { label: 'Analytics',  route: 'modules.performance',         module: 'performance',          icon: 'insights',           visible: true },
-                            { label: 'Goals',      route: 'performance.goals.index',     module: 'performance-goals',    icon: 'flag',               visible: true },
-                            { label: 'Reviews',    route: 'performance.reviews.index',   module: 'performance-reviews',  icon: 'rate_review',        visible: true },
-                            { label: '9-Box',      route: 'performance.nine-box',        module: 'performance-9box',     icon: 'grid_view',          visible: can('performance.manage') },
+                            { label: 'Analytics',  route: 'modules.performance',          module: 'performance',             icon: 'insights',     visible: true },
+                            { label: 'Goals',      route: 'performance.goals.index',      module: 'performance-goals',       icon: 'flag',         visible: true },
+                            { label: 'Reviews',    route: 'performance.reviews.index',    module: 'performance-reviews',     icon: 'rate_review',  visible: true },
+                            { label: 'Contracts',  route: 'performance.contracts.index',  module: 'performance-contracts',   icon: 'description',  visible: true },
+                            { label: 'Calibration',route: 'performance.calibration.index',module: 'performance-calibration', icon: 'tune',         visible: can('performance.calibrate') },
+                            { label: 'PIPs',       route: 'performance.pips.index',       module: 'performance-pips',        icon: 'support',      visible: can('performance.pip_manage') },
+                            { label: '9-Box',      route: 'performance.nine-box',         module: 'performance-9box',        icon: 'grid_view',    visible: can('performance.manage') },
                         ],
                     },
                 ]

@@ -58,25 +58,33 @@ export default {
                 primary:      'rgb(var(--ct-primary)        / <alpha-value>)',
                 'on-primary': 'rgb(var(--ct-on-primary)     / <alpha-value>)',
 
-                // ── CIHRM brand colors (from Core Values board) ──
-                // Navy is the brand primary; we use the slightly brighter
-                // brand-blue as the action / active-state colour so it has
-                // enough contrast on white. `secondary` is the action token
-                // semantically used across the codebase (buttons, active nav,
-                // links, focus rings) so we point it at brand-blue.
-                secondary:              '#1d4ed8',  // brand-aligned action blue
+                // ── CIHRM brand: deep navy (#0a2647) is the primary identity.
+                //    `secondary` is the action token used app-wide for buttons,
+                //    active nav, links and focus rings — a mid-blue derived
+                //    from the primary so it stays cohesive on white surfaces.
+                secondary:              '#205295',  // primary action blue
                 'on-secondary':         '#ffffff',
-                'secondary-container':  '#3b82f6',  // hover / brighter action
-                'on-secondary-container': '#fefcff',
+                'secondary-container':  '#2c74b3',  // hover / brighter action
+                'on-secondary-container': '#ffffff',
 
-                // ── CIHRM core-values palette (use for module/category accents) ──
-                'brand-navy':           '#0a1f5c',  // deep brand — sidebar bg, key headings
-                'brand-navy-deep':      '#061745',  // ambient glow, gradients
-                'brand-sky':            '#5b9fd9',  // Professionalism — info / light accent
-                'brand-empathy':        '#d62782',  // Empathy — HR / people accent
-                'brand-curiosity':      '#6fc4d8',  // Curiosity — learning / discovery
-                'brand-collaboration':  '#f29111',  // Collaboration — recruitment / orange ops
-                'brand-vision':         '#f9e1a8',  // Vision — yellow highlight
+                // ── CIHRM brand palette (blue-dominant; gold ≤5% across app) ──
+                'brand-navy':           '#0a2647',  // deep brand — sidebar bg, key headings
+                'brand-navy-deep':      '#06192f',  // ambient glow, gradients
+                'brand-blue':           '#205295',  // mid-blue action
+                'brand-blue-bright':    '#2c74b3',  // brighter blue accent
+                'brand-sky':            '#a7d3f0',  // soft blue tint — info bg
+
+                // Reserved accents — use sparingly (≤5% combined across UI)
+                'brand-gold':           '#ffd700',  // gold — primary 5% accent (CTAs/charts)
+                'brand-gold-deep':      '#b88a08',  // darker gold for text/ink
+                'brand-cyan':           '#12d9e3',  // electric cyan — chart/spark only
+                'brand-magenta':        '#d912e3',  // electric magenta — chart/spark only
+
+                // Legacy aliases (kept so existing pages don't break)
+                'brand-empathy':        '#d912e3',  // re-routed to magenta accent
+                'brand-curiosity':      '#12d9e3',  // re-routed to cyan accent
+                'brand-collaboration':  '#ffd700',  // re-routed to gold accent
+                'brand-vision':         '#ffd700',
 
                 'surface-container-lowest': 'rgb(var(--ct-surface-lowest) / <alpha-value>)',
                 'surface-container-low':    'rgb(var(--ct-surface-low)    / <alpha-value>)',
@@ -94,21 +102,22 @@ export default {
                 'tertiary-container':    '#25005a',
                 'on-tertiary-container': '#9863ff',
 
-                // Sidebar — keyed off brand navy (#0a1f5c)
-                sidebar:         '#0a1f5c',
-                'sidebar-surface': '#102868',
-                'sidebar-border':  '#1a3375',
-                'sidebar-hover':   '#143076',
-                'sidebar-active':  '#1d4ed8',
+                // Sidebar — keyed off brand navy (#0a2647)
+                sidebar:         '#0a2647',
+                'sidebar-surface': '#0f3057',
+                'sidebar-border':  '#173a66',
+                'sidebar-hover':   '#143a6e',
+                'sidebar-active':  '#205295',
             },
             backgroundSize: {
                 '200%': '200%',
                 '300%': '300%',
             },
             boxShadow: {
-                'glow-sm':   '0 0 12px rgba(29, 78, 216, 0.28)',
-                'glow':      '0 0 24px rgba(29, 78, 216, 0.32)',
-                'glow-lg':   '0 0 48px rgba(29, 78, 216, 0.36)',
+                'glow-sm':   '0 0 12px rgba(32, 82, 149, 0.28)',
+                'glow':      '0 0 24px rgba(32, 82, 149, 0.32)',
+                'glow-lg':   '0 0 48px rgba(32, 82, 149, 0.36)',
+                'glow-gold': '0 0 20px rgba(255, 215, 0, 0.32)',
                 'lifted':    '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
                 'lifted-lg': '0 16px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06)',
                 'card':      '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',

@@ -2,119 +2,68 @@
 import { onMounted, ref } from 'vue';
 
 defineProps({
-    accent:  { type: String, default: 'gold' },
-    eyebrow: { type: String, default: 'CIHRM Ghana · Charter MMXXIV' },
+    eyebrow: { type: String, default: 'CIHRM · Ghana' },
 });
 
 const mounted = ref(false);
 onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
-
-// Headline split into words for stagger reveal
-const headlineWords = ['HR', 'with', 'the', 'dignity', 'of', 'a', 'charter.'];
 </script>
 
 <template>
-    <div class="dm-shell" :data-accent="accent" :class="{ 'is-mounted': mounted }">
+    <div class="sv-shell" :class="{ 'is-mounted': mounted }">
 
-        <!-- Paper grain overlay (sits above gradient, below content) -->
-        <div class="dm-grain" aria-hidden="true"></div>
+        <!-- ── Editorial column (left) · DEEP NAVY ─────────────────────── -->
+        <aside class="sv-edit">
 
-        <!-- Decorative concentric arcs — one bold motif, low opacity -->
-        <svg class="dm-arc" aria-hidden="true" viewBox="0 0 600 600">
-            <defs>
-                <linearGradient id="dm-arc-grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#0a1f5c" stop-opacity="0.10"/>
-                    <stop offset="1" stop-color="#5b9fd9" stop-opacity="0.06"/>
-                </linearGradient>
-            </defs>
-            <g fill="none" stroke="url(#dm-arc-grad)" stroke-width="1.4">
-                <circle cx="300" cy="300" r="60"/>
-                <circle cx="300" cy="300" r="120"/>
-                <circle cx="300" cy="300" r="190"/>
-                <circle cx="300" cy="300" r="270"/>
-            </g>
-            <g fill="none" stroke="#f29111" stroke-width="1.2" opacity="0.34">
-                <path d="M 60 300 A 240 240 0 0 1 540 300" stroke-dasharray="3 7"/>
-            </g>
-        </svg>
+            <!-- Atmospheric mesh: navy base + faint cyan/magenta sparks -->
+            <div class="sv-mesh" aria-hidden="true"></div>
 
-        <!-- ── Editorial column (left) ────────────────────────────────────── -->
-        <aside class="dm-edit">
-            <!-- Top row: monogram lockup -->
-            <div class="dm-lockup">
-                <span class="dm-plate" aria-hidden="true">
-                    <!-- Inline crest: chartered diamond + serif C -->
-                    <svg viewBox="0 0 48 48" width="32" height="32" aria-hidden="true">
+            <!-- Grain overlay -->
+            <div class="sv-grain" aria-hidden="true"></div>
+
+            <!-- A single gold hairline — the 5% accent -->
+            <div class="sv-hairline" aria-hidden="true"></div>
+
+            <!-- Lockup -->
+            <div class="sv-lockup">
+                <span class="sv-mark" aria-hidden="true">
+                    <svg viewBox="0 0 40 40" width="28" height="28">
                         <g fill="none" stroke="currentColor" stroke-width="1.4">
-                            <rect x="3" y="3" width="42" height="42" rx="2" transform="rotate(45 24 24)"/>
-                            <rect x="9" y="9" width="30" height="30" rx="2" transform="rotate(45 24 24)"/>
+                            <rect x="3" y="3" width="34" height="34" rx="2" transform="rotate(45 20 20)"/>
                         </g>
-                        <text x="24" y="30" text-anchor="middle"
-                              font-family="Fraunces, serif" font-style="italic" font-weight="700"
-                              font-size="22" fill="currentColor">C</text>
+                        <text x="20" y="25" text-anchor="middle"
+                              font-family="Fraunces, serif" font-style="italic"
+                              font-weight="500" font-size="18" fill="currentColor">C</text>
                     </svg>
                 </span>
-                <div class="dm-lockup-text">
-                    <p class="dm-lockup-name">Chartered Institute of Human Resource <span class="dm-lockup-italic">Management</span></p>
-                    <p class="dm-lockup-meta">{{ eyebrow }} · Accra · Ghana</p>
-                </div>
+                <span class="sv-wordmark">CIHRM <span class="sv-wordmark-thin">Ghana</span></span>
             </div>
 
-            <!-- Editorial display headline -->
-            <h1 class="dm-display">
-                <span class="dm-display-line">
-                    <template v-for="(w, i) in headlineWords" :key="i">
-                        <span class="dm-word" :style="`--i:${i}`">
-                            <em v-if="i === 5">{{ w }}</em>
-                            <template v-else-if="i === 6">{{ w.replace('.', '') }}<em class="dm-stop">.</em></template>
-                            <template v-else>{{ w }}</template>
-                        </span>
-                    </template>
-                </span>
+            <!-- Minimal display — one short line -->
+            <h1 class="sv-display">
+                Workforce, <em>registered.</em>
             </h1>
 
-            <!-- Standfirst -->
-            <p class="dm-stand">
-                A unified register for the Institute's workforce — leave, payroll, recruitment, governance —
-                administered with the deliberate restraint of a public charter, not a SaaS tool.
-            </p>
-
-            <!-- Footnote rule + meta strip -->
-            <div class="dm-rule"></div>
-            <div class="dm-meta">
-                <span><span class="dm-meta-num">§ I.</span> Mandate · Act 1020 of 2024</span>
-                <span><span class="dm-meta-num">§ II.</span> Patrons · Council of Trustees</span>
-                <span><span class="dm-meta-num">§ III.</span> Records · 1,284 in active register</span>
-            </div>
-
-            <!-- Quotation pull -->
-            <figure class="dm-quote">
-                <blockquote>
-                    "An institution is the lengthened shadow of a single
-                    <em>discipline,</em> kept honest by its records."
-                </blockquote>
-                <figcaption>— Charter preamble, transcribed from Council minutes, 2024.</figcaption>
-            </figure>
+            <!-- Bottom institutional strip -->
+            <footer class="sv-edit-foot">
+                <span class="sv-foot-num">N° 2026</span>
+                <span class="sv-foot-rule"></span>
+                <span class="sv-foot-label">{{ eyebrow }}</span>
+            </footer>
         </aside>
 
-        <!-- ── Form panel (right) ─────────────────────────────────────────── -->
-        <main class="dm-panel">
-            <div class="dm-panel-inner">
+        <!-- ── Form panel (right) ─────────────────────────────────────── -->
+        <main class="sv-panel">
+            <div class="sv-panel-inner">
                 <slot />
             </div>
 
-            <!-- Bottom institutional strip -->
-            <footer class="dm-footer">
-                <div class="dm-footer-rule"></div>
-                <div class="dm-footer-row">
-                    <span>© MMXXVI · CIHRM Ghana</span>
-                    <span class="dm-footer-dot">·</span>
-                    <a href="#" class="dm-footer-link">Charter</a>
-                    <span class="dm-footer-dot">·</span>
-                    <a href="#" class="dm-footer-link">Privacy</a>
-                    <span class="dm-footer-dot">·</span>
-                    <a href="#" class="dm-footer-link">Code of conduct</a>
-                </div>
+            <footer class="sv-panel-foot">
+                <span>© MMXXVI · CIHRM Ghana</span>
+                <span class="sv-foot-dot">·</span>
+                <a href="#" class="sv-foot-link">Charter</a>
+                <span class="sv-foot-dot">·</span>
+                <a href="#" class="sv-foot-link">Privacy</a>
             </footer>
         </main>
     </div>
@@ -122,228 +71,175 @@ const headlineWords = ['HR', 'with', 'the', 'dignity', 'of', 'a', 'charter.'];
 
 <style scoped>
 /* ────────────────────────────────────────────────────────────────────
-   Diasporic Modern · auth aesthetic
-   Ivory paper · midnight ink · sunrise gold · kente coral (in reserve)
+   Sovereign Precision · auth shell
+   Deep navy left (#0a2647) · clean ivory-white right.
+   Gold appears only as ONE hairline + the CTA shimmer = ~5% of pixels.
+   Cyan/magenta are atmospheric sparks in the mesh — barely there.
 ──────────────────────────────────────────────────────────────────── */
 
-.dm-shell {
-    --paper:        #f4efe6;
-    --paper-deep:   #ece4d4;
-    --ink:          #0a1f5c;
-    --ink-soft:     #475569;
-    --gold:         #f29111;
-    --gold-deep:    #b56a0a;
-    --coral:        #d62782;
-    --olive:        #5b9fd9;
+.sv-shell {
+    --navy:        #0a2647;
+    --navy-deep:   #06192f;
+    --navy-soft:   #143a6e;
+    --blue:        #205295;
+    --blue-bright: #2c74b3;
+    --gold:        #ffd700;
+    --gold-deep:   #b88a08;
+    --cyan:        #12d9e3;
+    --magenta:     #d912e3;
+    --ink-soft:    #5a6b80;
 
     position: relative;
     min-height: 100vh;
-    background:
-        radial-gradient(1200px 700px at 18% 20%, #faf6ec 0%, var(--paper) 55%, var(--paper-deep) 110%);
-    color: var(--ink);
+    background: #ffffff;
+    color: #0a2647;
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    overflow: hidden;
 
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
 }
 
 @media (min-width: 960px) {
-    .dm-shell { grid-template-columns: 1.15fr 1fr; }
+    .sv-shell { grid-template-columns: 1.1fr 1fr; }
 }
 
-/* Paper grain overlay */
-.dm-grain {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.55;
-    z-index: 1;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.06  0 0 0 0 0.10  0 0 0 0 0.17  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Concentric arc motif */
-.dm-arc {
-    position: absolute;
-    left: -12vw;
-    top: 50%;
-    transform: translateY(-50%) rotate(-12deg);
-    width: 80vh;
-    max-width: 920px;
-    height: auto;
-    pointer-events: none;
-    z-index: 0;
-    color: var(--ink);
-    transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.is-mounted .dm-arc { transform: translateY(-50%) rotate(0deg); }
-
-@media (min-width: 960px) {
-    .dm-arc { left: 2vw; width: 92vh; }
-}
-
-/* ── Editorial column ────────────────────────────────────────────── */
-.dm-edit {
+/* ── Editorial column (left) ────────────────────────────────────── */
+.sv-edit {
     position: relative;
-    z-index: 2;
-    padding: 4rem 3rem 3rem;
+    isolation: isolate;
+    padding: 3.25rem 2.75rem 2.5rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     min-height: 100vh;
-    max-width: 720px;
+    background: var(--navy);
+    color: #eaf2ff;
+    overflow: hidden;
 }
-@media (min-width: 960px) { .dm-edit { padding: 5rem 4.5rem 4rem; } }
+@media (min-width: 960px) { .sv-edit { padding: 4rem 4rem 3rem; } }
 
-.dm-lockup { display: flex; align-items: flex-start; gap: 0.95rem; opacity: 0; transform: translateY(-6px); animation: dm-rise 0.8s 0.05s cubic-bezier(0.22,1,0.36,1) forwards; }
-.dm-plate {
-    flex-shrink: 0;
-    color: var(--ink);
-    width: 44px; height: 44px;
+/* Atmospheric blue mesh with whisper-quiet cyan & magenta sparks */
+.sv-mesh {
+    position: absolute; inset: 0; z-index: -2;
+    background:
+        radial-gradient(at 18% 22%, rgba(44,116,179,0.42) 0px, transparent 55%),
+        radial-gradient(at 88% 12%, rgba(18,217,227,0.08) 0px, transparent 45%),
+        radial-gradient(at 70% 95%, rgba(217,18,227,0.06) 0px, transparent 50%),
+        radial-gradient(at 30% 85%, rgba(32,82,149,0.34) 0px, transparent 55%),
+        linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    opacity: 0;
+    transition: opacity 1.2s ease;
+}
+.is-mounted .sv-mesh { opacity: 1; }
+
+/* Subtle paper grain so the navy doesn't read flat */
+.sv-grain {
+    position: absolute; inset: 0; z-index: -1;
+    pointer-events: none;
+    opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: screen;
+}
+
+/* The one gold accent: a single thin vertical hairline on the right edge */
+.sv-hairline {
+    position: absolute;
+    top: 18%; bottom: 18%;
+    right: 0;
+    width: 1px;
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(255,215,0,0.55) 30%,
+        rgba(255,215,0,0.85) 50%,
+        rgba(255,215,0,0.55) 70%,
+        transparent 100%);
+    transform-origin: top;
+    transform: scaleY(0);
+    animation: sv-scaleY 1.4s 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* ── Lockup ─────────────────────────────────────────────────────── */
+.sv-lockup {
+    display: flex; align-items: center; gap: 0.7rem;
+    color: #ffffff;
+    opacity: 0;
+    transform: translateY(-6px);
+    animation: sv-rise 0.85s 0.15s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.sv-mark {
+    width: 36px; height: 36px;
     display: grid; place-items: center;
-    border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
-    border-radius: 6px;
-    background: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    color: #ffffff;
 }
-.dm-lockup-text { padding-top: 2px; }
-.dm-lockup-name {
+.sv-wordmark {
     font-family: 'Fraunces', serif;
-    font-size: 13.5px;
+    font-size: 16px;
     font-weight: 500;
-    letter-spacing: -0.005em;
-    color: var(--ink);
-    line-height: 1.25;
-    max-width: 28ch;
+    letter-spacing: 0.01em;
+    color: #ffffff;
 }
-.dm-lockup-italic { font-style: italic; font-weight: 400; }
-.dm-lockup-meta {
-    margin-top: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
+.sv-wordmark-thin {
+    font-weight: 300;
+    font-style: italic;
+    opacity: 0.7;
 }
 
-/* ── Display headline ───────────────────────────────────────────── */
-.dm-display {
+/* ── Display headline — one short line, generous space ─────────── */
+.sv-display {
     font-family: 'Fraunces', serif;
-    font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 0;
-    font-weight: 360;
-    font-size: clamp(2.6rem, 6.4vw, 5.4rem);
-    line-height: 0.96;
-    letter-spacing: -0.038em;
-    color: var(--ink);
-    margin: 2.4rem 0 1.8rem;
+    font-variation-settings: 'opsz' 144, 'SOFT' 0;
+    font-weight: 350;
+    font-size: clamp(2.4rem, 5.4vw, 4.2rem);
+    line-height: 0.98;
+    letter-spacing: -0.034em;
+    color: #ffffff;
+    margin: 0;
+    max-width: 11ch;
     text-wrap: balance;
-}
-.dm-display-line { display: block; }
-.dm-word {
-    display: inline-block;
-    margin-right: 0.22em;
     opacity: 0;
     transform: translateY(14px);
-    animation: dm-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: calc(0.18s + var(--i) * 0.07s);
+    animation: sv-rise 1.1s 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
 }
-.dm-display em {
+.sv-display em {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'SOFT' 60, 'WONK' 1;
-    color: var(--gold-deep);
+    font-variation-settings: 'opsz' 144, 'SOFT' 50, 'WONK' 1;
+    color: #2c74b3;
     font-weight: 380;
 }
-.dm-stop {
-    color: var(--coral);
-    font-style: normal;
-    font-weight: 500;
-    margin-left: 0.04em;
-}
 
-/* ── Standfirst ─────────────────────────────────────────────────── */
-.dm-stand {
-    max-width: 44ch;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 14.5px;
-    font-weight: 400;
-    line-height: 1.55;
-    color: var(--ink-soft);
-    letter-spacing: 0.005em;
-    opacity: 0;
-    transform: translateY(8px);
-    animation: dm-rise 1.1s 0.85s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-
-/* ── Hairline rule + meta strip ─────────────────────────────────── */
-.dm-rule {
-    margin: 2.4rem 0 1rem;
-    height: 1px;
-    width: 64%;
-    background: linear-gradient(to right, var(--ink) 0, var(--ink) 28%, transparent 100%);
-    opacity: 0.4;
-    transform-origin: left;
-    transform: scaleX(0);
-    animation: dm-scaleX 1s 1.05s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-.dm-meta {
-    display: flex; flex-wrap: wrap; gap: 1.6rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px; font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    opacity: 0;
-    animation: dm-fade 1s 1.2s ease forwards;
-}
-.dm-meta-num { color: var(--gold-deep); margin-right: 6px; font-weight: 700; }
-
-/* ── Pull quote ─────────────────────────────────────────────────── */
-.dm-quote {
-    margin: 2.6rem 0 0;
-    border-left: 2px solid var(--gold);
-    padding: 0.4rem 0 0.4rem 1.2rem;
-    max-width: 46ch;
-    opacity: 0;
-    transform: translateX(-6px);
-    animation: dm-rise-x 1s 1.4s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-.dm-quote blockquote {
-    font-family: 'Fraunces', serif;
-    font-variation-settings: 'opsz' 36;
-    font-weight: 380;
-    font-size: 17.5px;
-    line-height: 1.42;
-    color: var(--ink);
-    letter-spacing: -0.01em;
-    quotes: "\201C" "\201D";
-}
-.dm-quote em { font-style: italic; color: var(--gold-deep); font-variation-settings: 'opsz' 36, 'WONK' 1; }
-.dm-quote figcaption {
-    margin-top: 0.6rem;
+/* ── Edit column footer ─────────────────────────────────────────── */
+.sv-edit-foot {
+    display: flex; align-items: center; gap: 0.85rem;
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
-    opacity: 0.8;
+    color: rgba(255,255,255,0.6);
+    opacity: 0;
+    animation: sv-fade 1s 1.1s ease forwards;
 }
+.sv-foot-num   { color: var(--gold); font-weight: 700; }  /* gold accent — tiny */
+.sv-foot-rule  { flex: 1; height: 1px; background: rgba(255,255,255,0.18); }
+.sv-foot-label { color: rgba(255,255,255,0.85); }
 
 /* ── Form panel (right) ─────────────────────────────────────────── */
-.dm-panel {
+.sv-panel {
     position: relative;
-    z-index: 2;
-    background:
-        linear-gradient(180deg, rgba(255,255,255,0.6) 0, rgba(255,255,255,0.85) 100%);
-    border-left: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-    padding: 4rem 3rem 1.5rem;
+    background: #ffffff;
+    padding: 4rem 2.5rem 1.75rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     min-height: 100vh;
 }
-@media (min-width: 960px) { .dm-panel { padding: 5.5rem 4.5rem 1.75rem; } }
+@media (min-width: 960px) { .sv-panel { padding: 5.5rem 4.5rem 1.75rem; } }
 
-.dm-panel-inner {
+.sv-panel-inner {
     width: 100%;
     max-width: 420px;
     margin: 0 auto;
@@ -353,70 +249,49 @@ const headlineWords = ['HR', 'with', 'the', 'dignity', 'of', 'a', 'charter.'];
     justify-content: center;
     opacity: 0;
     transform: translateY(12px);
-    animation: dm-rise 1.05s 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+    animation: sv-rise 1.05s 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
 }
 
-/* ── Footer ─────────────────────────────────────────────────────── */
-.dm-footer {
-    margin-top: 2.5rem;
-    opacity: 0;
-    animation: dm-fade 1s 1.5s ease forwards;
-}
-.dm-footer-rule {
-    height: 1px;
-    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--ink) 18%, transparent), transparent);
-    margin-bottom: 0.9rem;
-}
-.dm-footer-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
+.sv-panel-foot {
+    margin: 2rem auto 0;
+    display: flex; align-items: center; justify-content: center;
     gap: 0.45rem;
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-soft);
+    color: #6585a8;
+    opacity: 0;
+    animation: sv-fade 1s 1.3s ease forwards;
 }
-.dm-footer-dot { opacity: 0.4; }
-.dm-footer-link {
-    color: var(--ink-soft);
+.sv-foot-dot { opacity: 0.5; }
+.sv-foot-link {
+    color: #5a6b80;
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s ease, color 0.2s ease;
 }
-.dm-footer-link:hover { color: var(--ink); border-bottom-color: var(--gold); }
+.sv-foot-link:hover { color: #0a2647; border-bottom-color: #205295; }
 
 /* ── Animations ─────────────────────────────────────────────────── */
-@keyframes dm-rise {
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes dm-rise-x {
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes dm-scaleX {
-    to { transform: scaleX(1); }
-}
-@keyframes dm-fade {
-    to { opacity: 1; }
-}
+@keyframes sv-rise   { to { opacity: 1; transform: translateY(0); } }
+@keyframes sv-fade   { to { opacity: 1; } }
+@keyframes sv-scaleY { to { transform: scaleY(1); } }
 
 /* ── Reduced motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-    .dm-arc { transition: none; }
-    .dm-word, .dm-lockup, .dm-stand, .dm-rule, .dm-meta,
-    .dm-quote, .dm-panel-inner, .dm-footer {
+    .sv-mesh, .sv-hairline, .sv-lockup, .sv-display,
+    .sv-edit-foot, .sv-panel-inner, .sv-panel-foot {
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
     }
 }
 
-/* Hide editorial column on small screens — form panel takes full width */
+/* ── Small screens — hide the navy column, form takes full width ── */
 @media (max-width: 959px) {
-    .dm-edit { display: none; }
-    .dm-panel { border-left: none; min-height: 100vh; padding: 3rem 1.75rem; }
+    .sv-edit { display: none; }
+    .sv-panel { min-height: 100vh; padding: 3rem 1.75rem; }
 }
 </style>
