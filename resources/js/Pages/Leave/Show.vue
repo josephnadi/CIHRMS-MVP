@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -15,35 +15,48 @@ const isHR = computed(() => ['hr_admin', 'super_admin', 'manager'].includes(user
 
 const lr = computed(() => props.leaveRequest?.data ?? props.leaveRequest);
 
+// Leave type palette — aligned with Index.vue LEAVE_TYPES.
+// annual=cobalt (action), maternity=magenta (people/family), paternity=cyan,
+// study=cyan (learning), sick/emergency keep semantic colors.
+// Fixes prior bug where annual+maternity both used #205295 but maternity had
+// the wrong rgb triplet for its tint.
 const TYPE_META = {
-    annual:    { color: '#0051d5', icon: 'beach_access',    rgb: '0,81,213' },
-    sick:      { color: '#d97706', icon: 'medical_services', rgb: '217,119,6' },
-    maternity: { color: '#7c3aed', icon: 'child_care',      rgb: '124,58,237' },
-    paternity: { color: '#0891b2', icon: 'family_restroom', rgb: '8,145,178' },
-    emergency: { color: '#dc2626', icon: 'emergency',       rgb: '220,38,38' },
-    study:     { color: '#059669', icon: 'school',          rgb: '5,150,105' },
-    unpaid:    { color: '#64748b', icon: 'money_off',       rgb: '100,116,139' },
+    annual:    { color: '#205295', icon: 'beach_access',     rgb: '32,82,149'  },
+    sick:      { color: '#d97706', icon: 'medical_services', rgb: '217,119,6'  },
+    maternity: { color: '#d912e3', icon: 'child_care',       rgb: '217,18,227' },
+    paternity: { color: '#0e8a93', icon: 'family_restroom',  rgb: '18,217,227' },
+    emergency: { color: '#dc2626', icon: 'emergency',        rgb: '220,38,38'  },
+    study:     { color: '#0e8a93', icon: 'school',           rgb: '18,217,227' },
+    unpaid:    { color: '#64748b', icon: 'money_off',        rgb: '100,116,139'},
 };
 function metaFor(type) { return TYPE_META[type] ?? { color: '#64748b', icon: 'event', rgb: '100,116,139' }; }
 
 function fmt(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GH', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 }
 function fmtShort(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 function fmtDateTime(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleString('en-GH', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+// Avatar gradient pool — disciplined cool family (matches Employees + Leave/Index)
+const AVATAR_GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
+];
 function avatarColor(name) {
-    const colors = ['#0051d5','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
     let h = 0;
     for (let i = 0; i < (name?.length ?? 0); i++) h = name.charCodeAt(i) + ((h << 5) - h);
-    return colors[Math.abs(h) % colors.length];
+    return AVATAR_GRADIENTS[Math.abs(h) % AVATAR_GRADIENTS.length];
 }
 function initials(name) {
     if (!name) return '?';
@@ -78,13 +91,14 @@ function submit() {
 
 // Build quick timeline
 const timeline = computed(() => {
+    // First event uses cobalt (action) — second event keeps semantic green/red/amber.
     const t = [
         {
             icon: 'send',
             title: 'Leave Requested',
             actor: lr.value?.employee?.name ?? 'Employee',
             at:    lr.value?.created_at,
-            color: '#0051d5',
+            color: '#205295',
         },
     ];
     if (lr.value?.status === 'approved' && lr.value?.approver) {
@@ -118,7 +132,7 @@ const timeline = computed(() => {
 </script>
 
 <template>
-    <Head :title="`Leave Request — ${lr?.type_label ?? ''}`" />
+    <Head :title="`Leave Request â€” ${lr?.type_label ?? ''}`" />
 
     <AuthenticatedLayout :activeModule="activeModule">
 
@@ -132,10 +146,11 @@ const timeline = computed(() => {
         <!-- Header -->
         <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl shadow-glow-sm"
-                     :style="`background:rgba(${metaFor(lr?.type).rgb},0.12);border:1px solid rgba(${metaFor(lr?.type).rgb},0.25);`">
-                    <span class="material-symbols-outlined text-[26px]"
-                          :style="`color:${metaFor(lr?.type).color};font-variation-settings:'FILL' 1`">
+                <div class="relative flex h-14 w-14 items-center justify-center rounded-2xl shadow-glow-sm overflow-hidden"
+                     :style="`background:rgba(${metaFor(lr?.type).rgb},0.12);border:1px solid rgba(${metaFor(lr?.type).rgb},0.28);`">
+                    <div class="pointer-events-none absolute inset-0" :style="`background:radial-gradient(circle at 30% 30%,rgba(${metaFor(lr?.type).rgb},0.20),transparent 70%)`"></div>
+                    <span class="relative material-symbols-outlined text-[26px]"
+                          :style="`color:${metaFor(lr?.type).color};font-variation-settings:'FILL' 1;filter:drop-shadow(0 0 6px rgba(${metaFor(lr?.type).rgb},0.35))`">
                         {{ metaFor(lr?.type).icon }}
                     </span>
                 </div>
@@ -145,7 +160,7 @@ const timeline = computed(() => {
                         <StatusBadge :status="lr?.status" type="leave" />
                     </div>
                     <p class="mt-0.5 text-[13px] text-on-surface-variant">
-                        Submitted {{ fmtShort(lr?.created_at) }} · Request #{{ lr?.id }}
+                        Submitted <span class="font-semibold text-on-surface">{{ fmtShort(lr?.created_at) }}</span> · Request <span class="font-mono text-[12px]">#{{ lr?.id }}</span>
                     </p>
                 </div>
             </div>
@@ -153,14 +168,14 @@ const timeline = computed(() => {
             <div v-if="isHR && lr?.status === 'pending'" class="flex items-center gap-2">
                 <button
                     @click="open('approved')"
-                    class="flex items-center gap-2 rounded-xl border border-green-200 dark:border-green-700/40 bg-green-50 dark:bg-green-900/20 px-4 py-2 text-[13px] font-bold text-green-700 dark:text-green-400 hover:bg-green-100 transition-colors"
+                    class="flex items-center gap-2 rounded-xl border border-green-200/60 dark:border-green-700/40 bg-green-50 dark:bg-green-900/20 px-4 py-2 text-[13px] font-bold text-green-700 dark:text-green-400 hover:bg-green-100 hover:border-green-400/60 transition-all hover:-translate-y-px shadow-sm"
                 >
                     <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">check_circle</span>
                     Approve
                 </button>
                 <button
                     @click="open('rejected')"
-                    class="flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-[13px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 transition-colors"
+                    class="flex items-center gap-2 rounded-xl border border-red-200/60 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 px-4 py-2 text-[13px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 hover:border-red-400/60 transition-all hover:-translate-y-px shadow-sm"
                 >
                     <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">cancel</span>
                     Reject
@@ -177,7 +192,7 @@ const timeline = computed(() => {
                 <div class="overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card">
                     <div class="h-1 w-full" :style="`background:linear-gradient(90deg,${metaFor(lr?.type).color},transparent)`"></div>
                     <div class="p-6">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-4">Period</p>
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-4">Period</p>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/45 mb-1">Start</p>
@@ -198,7 +213,7 @@ const timeline = computed(() => {
                             </div>
                             <div class="flex-1">
                                 <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/55">Working Days</p>
-                                <p class="text-[18px] font-black tabular-nums text-on-surface">{{ lr?.duration_days ?? '—' }} days</p>
+                                <p class="text-[18px] font-black tabular-nums text-on-surface">{{ lr?.duration_days ?? 'â€”' }} days</p>
                             </div>
                         </div>
                     </div>
@@ -206,7 +221,7 @@ const timeline = computed(() => {
 
                 <!-- Reason -->
                 <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-card">
-                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Reason for Leave</p>
+                    <p class="mb-3 text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60">Reason for Leave</p>
                     <p v-if="lr?.reason" class="text-[14px] leading-relaxed text-on-surface whitespace-pre-line">{{ lr.reason }}</p>
                     <p v-else class="text-[13px] italic text-on-surface-variant/45">No reason provided.</p>
                 </div>
@@ -241,14 +256,14 @@ const timeline = computed(() => {
 
                 <!-- Employee card -->
                 <div v-if="lr?.employee" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-5 shadow-card">
-                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Requester</p>
+                    <p class="mb-3 text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60">Requester</p>
                     <div class="flex items-center gap-3">
-                        <div class="h-12 w-12 flex-shrink-0 rounded-2xl flex items-center justify-center text-[14px] font-black text-white shadow-glow-sm"
+                        <div class="h-12 w-12 flex-shrink-0 rounded-2xl ring-2 ring-white dark:ring-surface-container-lowest flex items-center justify-center text-[14px] font-black text-white shadow-glow-sm overflow-hidden"
                              :style="`background:${avatarColor(lr.employee.name ?? lr.employee.employee_no)}`">
                             {{ initials(lr.employee.name ?? lr.employee.employee_no) }}
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="text-[14px] font-bold text-on-surface truncate">{{ lr.employee.name ?? '—' }}</p>
+                            <p class="text-[14px] font-bold text-on-surface truncate">{{ lr.employee.name ?? 'â€”' }}</p>
                             <p class="text-[11px] text-on-surface-variant/60">{{ lr.employee.employee_no }}</p>
                             <p v-if="lr.employee.position" class="text-[11px] text-on-surface-variant/60 truncate">{{ lr.employee.position }}</p>
                         </div>
@@ -257,7 +272,7 @@ const timeline = computed(() => {
 
                 <!-- Timeline -->
                 <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-5 shadow-card">
-                    <p class="mb-4 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Activity</p>
+                    <p class="mb-4 text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60">Activity</p>
                     <ol class="relative border-l-2 border-outline-variant/40 pl-5 space-y-5">
                         <li v-for="(ev, i) in timeline" :key="i" class="relative">
                             <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-white"
@@ -277,16 +292,21 @@ const timeline = computed(() => {
                 </div>
 
                 <!-- Quick links -->
-                <div class="rounded-2xl border border-secondary/15 bg-secondary/5 p-5">
-                    <p class="text-[10px] font-black uppercase tracking-wider text-secondary mb-3">Quick Links</p>
-                    <div class="space-y-2">
-                        <Link :href="route('leave.index')" class="flex items-center gap-2 text-[12.5px] font-bold text-secondary hover:underline">
+                <div class="relative rounded-2xl border border-secondary/15 bg-secondary/5 p-5 overflow-hidden">
+                    <div class="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full" style="background:radial-gradient(circle,rgba(32,82,149,0.10),transparent 70%)"></div>
+                    <p class="relative text-[10px] font-black uppercase tracking-[0.14em] text-secondary mb-3">Quick Links</p>
+                    <div class="relative space-y-1">
+                        <Link :href="route('leave.index')"
+                              class="group flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 text-[12.5px] font-bold text-secondary hover:bg-secondary/10 transition-colors">
                             <span class="material-symbols-outlined text-[16px]">arrow_back</span>
                             All leave requests
+                            <span class="material-symbols-outlined ml-auto text-[15px] opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0">chevron_right</span>
                         </Link>
-                        <Link v-if="lr?.employee?.id" :href="route('employees.show', lr.employee.id)" class="flex items-center gap-2 text-[12.5px] font-bold text-secondary hover:underline">
+                        <Link v-if="lr?.employee?.id" :href="route('employees.show', lr.employee.id)"
+                              class="group flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 text-[12.5px] font-bold text-secondary hover:bg-secondary/10 transition-colors">
                             <span class="material-symbols-outlined text-[16px]">badge</span>
                             View employee profile
+                            <span class="material-symbols-outlined ml-auto text-[15px] opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0">chevron_right</span>
                         </Link>
                     </div>
                 </div>
@@ -322,7 +342,7 @@ const timeline = computed(() => {
                             {{ actionType === 'approved' ? 'Approve Leave Request' : 'Reject Leave Request' }}
                         </h3>
                         <p class="text-[13px] text-on-surface-variant text-center mt-1 mb-5">
-                            {{ lr?.employee?.name ?? 'Employee' }} — {{ lr?.type_label }}, {{ lr?.duration_days }} days
+                            {{ lr?.employee?.name ?? 'Employee' }} â€” {{ lr?.type_label }}, {{ lr?.duration_days }} days
                         </p>
 
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1.5">

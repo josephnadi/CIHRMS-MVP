@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel          from '@/Components/SlidePanel.vue';
 import ConfirmDialog       from '@/Components/ConfirmDialog.vue';
@@ -11,9 +11,9 @@ import ProgressRing        from '@/Components/ProgressRing.vue';
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch, onMounted } from 'vue';
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Props â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const props = defineProps({
-    requests:     Object,  // paginated
+    leaves:       Object,  // paginated leave-request collection
     balances:     Array,   // [{ type, label, total_days, used_days, remaining }]
     pendingCount: Number,
     myRequests:   Boolean,
@@ -22,20 +22,29 @@ const props = defineProps({
     activeModule: String,
 });
 
-// ── Auth / role ───────────────────────────────────────────────────────────────
+// Template alias — controllers ship the collection as `leaves` but the
+// template/UI semantics read more naturally as `requests`. Computed alias
+// keeps script and template aligned without forcing a controller change.
+const requests = computed(() => props.leaves);
+
+// â”€â”€ Auth / role â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const isHR = computed(() => ['hr_admin', 'super_admin'].includes(user.value?.role));
 
-// ── Ghana leave types ─────────────────────────────────────────────────────────
+// â”€â”€ Ghana leave types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Leave type palette — disciplined Sovereign Precision colors.
+// annual=cobalt (action), maternity=magenta (people/family), paternity=cyan,
+// study=cyan (learning), sick=amber (medical alarm — semantic, retained),
+// emergency=red (alarm — semantic, retained), unpaid=slate (neutral).
 const LEAVE_TYPES = [
-    { value: 'annual',    label: 'Annual Leave',    days: 15,  icon: 'beach_access',    color: '#0051d5', chipColor: 'blue'   },
-    { value: 'sick',      label: 'Sick Leave',      days: 14,  icon: 'medical_services', color: '#d97706', chipColor: 'amber'  },
-    { value: 'maternity', label: 'Maternity Leave', days: 84,  icon: 'child_care',      color: '#7c3aed', chipColor: 'violet' },
-    { value: 'paternity', label: 'Paternity Leave', days: 5,   icon: 'family_restroom', color: '#0891b2', chipColor: 'cyan'   },
-    { value: 'emergency', label: 'Emergency Leave', days: 3,   icon: 'emergency',       color: '#dc2626', chipColor: 'red'    },
-    { value: 'study',     label: 'Study Leave',     days: null, icon: 'school',          color: '#059669', chipColor: 'green'  },
-    { value: 'unpaid',    label: 'Unpaid Leave',    days: null, icon: 'money_off',       color: '#64748b', chipColor: 'gray'   },
+    { value: 'annual',    label: 'Annual Leave',    days: 15,  icon: 'beach_access',     color: '#205295', chipColor: 'blue'    },
+    { value: 'sick',      label: 'Sick Leave',      days: 14,  icon: 'medical_services', color: '#d97706', chipColor: 'amber'   },
+    { value: 'maternity', label: 'Maternity Leave', days: 84,  icon: 'child_care',       color: '#d912e3', chipColor: 'magenta' },
+    { value: 'paternity', label: 'Paternity Leave', days: 5,   icon: 'family_restroom',  color: '#0e8a93', chipColor: 'cyan'    },
+    { value: 'emergency', label: 'Emergency Leave', days: 3,   icon: 'emergency',        color: '#dc2626', chipColor: 'red'     },
+    { value: 'study',     label: 'Study Leave',     days: null, icon: 'school',          color: '#0e8a93', chipColor: 'cyan'    },
+    { value: 'unpaid',    label: 'Unpaid Leave',    days: null, icon: 'money_off',       color: '#64748b', chipColor: 'gray'    },
 ];
 
 const typeMap = Object.fromEntries(LEAVE_TYPES.map(t => [t.value, t]));
@@ -48,18 +57,25 @@ function leaveTypeLabel(type) {
     return typeMap[type]?.label ?? type;
 }
 
-// Balance card colors
+// Balance card colors — aligned with LEAVE_TYPES palette
 const balanceColors = {
-    annual:    { color: '#0051d5', bg: 'bg-blue-50   dark:bg-blue-950/20',  ring: 'ring-blue-200   dark:ring-blue-800/30'   },
+    annual:    { color: '#205295', bg: 'bg-blue-50   dark:bg-blue-950/20',  ring: 'ring-blue-200   dark:ring-blue-800/30'   },
     sick:      { color: '#d97706', bg: 'bg-amber-50  dark:bg-amber-950/20', ring: 'ring-amber-200  dark:ring-amber-800/30'  },
-    maternity: { color: '#7c3aed', bg: 'bg-violet-50 dark:bg-violet-950/20',ring: 'ring-violet-200 dark:ring-violet-800/30' },
-    paternity: { color: '#0891b2', bg: 'bg-cyan-50   dark:bg-cyan-950/20',  ring: 'ring-cyan-200   dark:ring-cyan-800/30'   },
+    maternity: { color: '#d912e3', bg: '',                                  ring: '',                                       },
+    paternity: { color: '#0e8a93', bg: '',                                  ring: '',                                       },
     emergency: { color: '#dc2626', bg: 'bg-red-50    dark:bg-red-950/20',   ring: 'ring-red-200    dark:ring-red-800/30'    },
-    study:     { color: '#059669', bg: 'bg-green-50  dark:bg-green-950/20', ring: 'ring-green-200  dark:ring-green-800/30'  },
+    study:     { color: '#0e8a93', bg: '',                                  ring: '',                                       },
     unpaid:    { color: '#64748b', bg: 'bg-slate-50  dark:bg-slate-900/20', ring: 'ring-slate-200  dark:ring-slate-700/30'  },
 };
+const balanceTint = (type) => {
+    const c = balanceColors[type]?.color ?? '#64748b';
+    // inline rgba-tinted card background for cyan/magenta (where Tailwind 50/950 doesn't fit the brand palette)
+    if (c === '#d912e3') return 'background:rgba(217,18,227,0.06)';
+    if (c === '#0e8a93') return 'background:rgba(18,217,227,0.07)';
+    return '';
+};
 
-// ── Employee view: apply leave panel ─────────────────────────────────────────
+// â”€â”€ Employee view: apply leave panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const showApplyPanel   = ref(false);
 
 // Auto-open the leave request panel when navigated to via Quick Action (?new=1)
@@ -109,7 +125,7 @@ function openDetail(req) {
     showDetailPanel.value = true;
 }
 
-// ── Manager/HR view ───────────────────────────────────────────────────────────
+// â”€â”€ Manager/HR view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const activeTab = ref('pending');
 const hrTabs = computed(() => [
     { value: 'pending', label: 'Pending Approvals', icon: 'pending_actions', count: props.pendingCount ?? 0 },
@@ -188,21 +204,28 @@ function urgencyClass(days) {
 
 // Formatted date
 function fmtDate(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function fmtDateShort(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short' });
 }
 
-// Avatars: generate initials color
+// Avatars — disciplined cool-family gradients (matches Employees pages)
+const AVATAR_GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',          // navy → cobalt
+    'linear-gradient(135deg,#205295,#7cb6e8)',          // cobalt → soft sky
+    'linear-gradient(135deg,#06192f,#0a2647)',          // deep navy → navy
+    'linear-gradient(135deg,#205295,#2c74b3)',          // cobalt → bright blue
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',  // navy → cobalt → magenta (people spark)
+    'linear-gradient(135deg,#205295,#12d9e3)',          // cobalt → cyan
+];
 function avatarColor(name) {
-    const colors = ['#0051d5','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
     let hash = 0;
     for (let i = 0; i < (name?.length ?? 0); i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
+    return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
 }
 
 function initials(name) {
@@ -213,14 +236,14 @@ function initials(name) {
 // Today stats (HR)
 const approvedToday = computed(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return props.requests?.data?.filter(r =>
+    return props.leaves?.data?.filter(r =>
         r.status === 'approved' && r.updated_at?.startsWith(today)
     ).length ?? 0;
 });
 
 const onLeaveNow = computed(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return props.requests?.data?.filter(r =>
+    return props.leaves?.data?.filter(r =>
         r.status === 'approved' &&
         r.start_date <= today && r.end_date >= today
     ).length ?? 0;
@@ -262,7 +285,7 @@ const calDays = computed(() => {
             date: dateStr,
             day:  d,
             holiday: GH_HOLIDAYS[mmdd] ?? null,
-            leaves: (props.requests?.data ?? []).filter(r =>
+            leaves: (props.leaves?.data ?? []).filter(r =>
                 r.status === 'approved' &&
                 r.start_date <= dateStr && r.end_date >= dateStr
             ),
@@ -306,11 +329,11 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
 </script>
 
 <template>
-    <Head title="Leave Management — CIHRMS" />
+    <Head title="Leave Management â€” CIHRMS" />
 
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── EMPLOYEE / MANAGER VIEW ──────────────────────────────────────── -->
+        <!-- â”€â”€ EMPLOYEE / MANAGER VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template v-if="!isHR">
 
             <!-- Header -->
@@ -318,15 +341,15 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 <div>
                     <h1 class="text-[22px] font-black tracking-tight text-on-surface">My Leave</h1>
                     <p class="mt-0.5 text-[13px] text-on-surface-variant">
-                        Ghana Labour Act 651 — Manage your leave entitlements
+                        Ghana Labour Act 651 â€” Manage your leave entitlements
                     </p>
                 </div>
                 <button
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px active:scale-[0.97] transition-all"
-                    style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                     @click="showApplyPanel = true"
                 >
-                    <span class="material-symbols-outlined text-[17px]">add_circle</span>
+                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">event_available</span>
                     Apply for Leave
                 </button>
             </div>
@@ -337,7 +360,8 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     v-for="bal in (balances ?? [])"
                     :key="bal.type"
                     class="group flex-shrink-0 min-w-[148px] rounded-2xl border border-outline-variant/50 p-4 text-center shadow-card transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 cursor-default ring-1 ring-transparent hover:ring-outline-variant/30"
-                    :class="balanceColors[bal.type]?.bg ?? 'bg-surface-container-lowest'"
+                    :class="balanceColors[bal.type]?.bg || 'bg-surface-container-lowest'"
+                    :style="balanceTint(bal.type)"
                 >
                     <!-- Ring -->
                     <div class="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center">
@@ -391,21 +415,21 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 <div class="max-h-[calc(100vh-460px)] min-h-[260px] overflow-auto">
                     <table class="w-full text-[13px]">
                         <thead class="sticky top-0 z-10">
-                            <tr class="bg-surface-container-low border-b border-outline-variant/40">
-                                <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Type</th>
-                                <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Start</th>
-                                <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">End</th>
-                                <th class="px-4 py-3 text-center text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Days</th>
-                                <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden md:table-cell">Reason</th>
-                                <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Status</th>
-                                <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden lg:table-cell">Applied</th>
+                            <tr class="bg-surface-container-low/95 backdrop-blur-sm border-b border-outline-variant/40">
+                                <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Type</th>
+                                <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Start</th>
+                                <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">End</th>
+                                <th class="px-4 py-3 text-center text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Days</th>
+                                <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 hidden md:table-cell">Reason</th>
+                                <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Status</th>
+                                <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 hidden lg:table-cell">Applied</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr
                                 v-for="(req, idx) in (requests?.data ?? [])"
                                 :key="req.id"
-                                class="border-b border-outline-variant/25 hover:bg-surface-container-low cursor-pointer transition-colors"
+                                class="group cursor-pointer transition-colors hover:bg-secondary/[0.04]"
                                 :style="idx % 2 === 1 ? 'background:rgba(var(--ct-surface-low)/0.35)' : ''"
                                 @click="openDetail(req)"
                             >
@@ -424,11 +448,11 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                 <td class="px-5 py-3.5 text-on-surface font-medium">{{ fmtDateShort(req.end_date) }}</td>
                                 <td class="px-4 py-3.5 text-center">
                                     <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-container text-[11px] font-black text-on-surface-variant">
-                                        {{ req.days_count ?? '—' }}
+                                        {{ req.days_count ?? 'â€”' }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-3.5 hidden md:table-cell">
-                                    <span class="text-on-surface-variant/70 line-clamp-1 max-w-[180px] block">{{ req.reason ?? '—' }}</span>
+                                    <span class="text-on-surface-variant/70 line-clamp-1 max-w-[180px] block">{{ req.reason ?? 'â€”' }}</span>
                                 </td>
                                 <td class="px-5 py-3.5">
                                     <StatusBadge :status="req.status" type="leave" />
@@ -447,7 +471,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         <template #action>
                             <button
                                 class="btn-shimmer rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                                 @click="showApplyPanel = true"
                             >Apply for Leave</button>
                         </template>
@@ -463,7 +487,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
         </template><!-- END employee view -->
 
 
-        <!-- ── HR / ADMIN VIEW ────────────────────────────────────────────────── -->
+        <!-- â”€â”€ HR / ADMIN VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template v-else>
 
             <!-- Header -->
@@ -472,22 +496,38 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     <h1 class="text-[22px] font-black tracking-tight text-on-surface">Leave Management</h1>
                     <p class="mt-0.5 text-[13px] text-on-surface-variant">Review and manage leave requests across the organisation</p>
                 </div>
-                <!-- Stats row -->
+                <!-- Stats row — Pending gets the 5% gold accent (the HR's most important number) -->
                 <div class="flex items-center gap-3 flex-wrap">
-                    <!-- Pending badge -->
-                    <div class="flex items-center gap-2 rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/20 px-4 py-2">
-                        <span class="material-symbols-outlined text-[18px] text-amber-600 dark:text-amber-400" style="font-variation-settings:'FILL' 1">pending_actions</span>
-                        <span class="text-[13px] font-bold text-amber-700 dark:text-amber-400">{{ pendingCount ?? 0 }} Pending</span>
+                    <!-- Pending (gold accent moment) -->
+                    <div class="relative flex items-center gap-2.5 rounded-xl border bg-surface-container-lowest px-4 py-2 shadow-card overflow-hidden" style="border-color:rgba(255,215,0,0.35)">
+                        <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" style="background:rgba(255,215,0,0.14)">
+                            <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">pending_actions</span>
+                        </span>
+                        <span class="text-[13px] font-bold text-on-surface">
+                            <span class="tabular-nums">{{ pendingCount ?? 0 }}</span>
+                            <span class="ml-0.5 text-on-surface-variant/70 font-semibold">Pending</span>
+                        </span>
                     </div>
-                    <!-- Approved today -->
-                    <div class="flex items-center gap-2 rounded-xl border border-green-200 dark:border-green-700/40 bg-green-50 dark:bg-green-900/20 px-4 py-2">
-                        <span class="material-symbols-outlined text-[18px] text-green-600 dark:text-green-400" style="font-variation-settings:'FILL' 1">task_alt</span>
-                        <span class="text-[13px] font-bold text-green-700 dark:text-green-400">{{ approvedToday }} Approved Today</span>
+                    <!-- Approved today (semantic green) -->
+                    <div class="flex items-center gap-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2 shadow-card">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/12">
+                            <span class="material-symbols-outlined text-[16px] text-green-600 dark:text-green-400" style="font-variation-settings:'FILL' 1">task_alt</span>
+                        </span>
+                        <span class="text-[13px] font-bold text-on-surface">
+                            <span class="tabular-nums">{{ approvedToday }}</span>
+                            <span class="ml-0.5 text-on-surface-variant/70 font-semibold">Approved today</span>
+                        </span>
                     </div>
-                    <!-- On leave now -->
-                    <div class="flex items-center gap-2 rounded-xl border border-blue-200 dark:border-blue-700/40 bg-blue-50 dark:bg-blue-900/20 px-4 py-2">
-                        <span class="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400" style="font-variation-settings:'FILL' 1">beach_access</span>
-                        <span class="text-[13px] font-bold text-blue-700 dark:text-blue-400">{{ onLeaveNow }} On Leave Now</span>
+                    <!-- On leave now (cobalt) -->
+                    <div class="flex items-center gap-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2 shadow-card">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" style="background:rgba(32,82,149,0.12)">
+                            <span class="material-symbols-outlined text-[16px]" style="color:#205295;font-variation-settings:'FILL' 1">beach_access</span>
+                        </span>
+                        <span class="text-[13px] font-bold text-on-surface">
+                            <span class="tabular-nums">{{ onLeaveNow }}</span>
+                            <span class="ml-0.5 text-on-surface-variant/70 font-semibold">On leave now</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -502,36 +542,36 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
             <!-- Tab content -->
             <div class="rounded-b-2xl bg-surface-container-lowest border border-outline-variant/50 border-t-0 shadow-card overflow-hidden">
 
-                <!-- ── PENDING APPROVALS ── -->
+                <!-- â”€â”€ PENDING APPROVALS â”€â”€ -->
                 <template v-if="activeTab === 'pending'">
                     <div class="max-h-[calc(100vh-460px)] min-h-[260px] overflow-auto">
                         <table class="w-full text-[13px]">
                             <thead class="sticky top-0 z-10">
-                                <tr class="bg-surface-container-low border-b border-outline-variant/40">
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Employee</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Type</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Dates</th>
-                                    <th class="px-4 py-3 text-center text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Days</th>
-                                    <th class="px-4 py-3 text-center text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden md:table-cell">Waiting</th>
-                                    <th class="px-5 py-3 text-right text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Actions</th>
+                                <tr class="bg-surface-container-low/95 backdrop-blur-sm border-b border-outline-variant/40">
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Employee</th>
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Type</th>
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Dates</th>
+                                    <th class="px-4 py-3 text-center text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Days</th>
+                                    <th class="px-4 py-3 text-center text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 hidden md:table-cell">Waiting</th>
+                                    <th class="px-5 py-3 text-right text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr
                                     v-for="req in (requests?.data ?? []).filter(r => r.status === 'pending')"
                                     :key="req.id"
-                                    class="border-b border-outline-variant/25 hover:bg-surface-container/50 transition-colors"
+                                    class="group border-b border-outline-variant/25 transition-colors hover:bg-secondary/[0.04]"
                                 >
                                     <!-- Employee -->
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-2.5">
                                             <div
-                                                class="h-8 w-8 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white"
+                                                class="h-9 w-9 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[11px] font-black text-white transition-transform group-hover:scale-105"
                                                 :style="`background:${avatarColor(req.employee_name)}`"
                                             >{{ initials(req.employee_name) }}</div>
                                             <div class="min-w-0">
-                                                <p class="font-semibold text-on-surface truncate max-w-[140px]">{{ req.employee_name }}</p>
-                                                <p class="text-[11px] text-on-surface-variant/50">{{ req.employee_no ?? '' }}</p>
+                                                <p class="font-bold text-on-surface truncate max-w-[140px]">{{ req.employee_name }}</p>
+                                                <p class="text-[11px] text-on-surface-variant/55 font-mono">{{ req.employee_no ?? '' }}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -548,7 +588,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                     <!-- Dates -->
                                     <td class="px-5 py-3.5">
                                         <span class="font-medium text-on-surface">{{ fmtDateShort(req.start_date) }}</span>
-                                        <span class="mx-1 text-on-surface-variant/40">–</span>
+                                        <span class="mx-1 text-on-surface-variant/40">â€“</span>
                                         <span class="font-medium text-on-surface">{{ fmtDateShort(req.end_date) }}</span>
                                     </td>
                                     <!-- Days count -->
@@ -568,17 +608,17 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center justify-end gap-2">
                                             <button
-                                                class="rounded-lg border border-green-200 dark:border-green-700/40 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 text-[12px] font-bold text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+                                                class="flex items-center gap-1.5 rounded-lg border border-green-200/60 dark:border-green-700/40 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 text-[12px] font-bold text-green-700 dark:text-green-400 hover:bg-green-100 hover:border-green-400/60 dark:hover:bg-green-900/40 transition-all hover:-translate-y-px"
                                                 @click.stop="initiateAction(req, 'approved')"
                                             >
-                                                <span class="material-symbols-outlined text-[14px] align-middle mr-0.5" style="font-variation-settings:'FILL' 1">check_circle</span>
+                                                <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">check_circle</span>
                                                 Approve
                                             </button>
                                             <button
-                                                class="rounded-lg border border-red-200 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 text-[12px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                                class="flex items-center gap-1.5 rounded-lg border border-red-200/60 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 text-[12px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 hover:border-red-400/60 dark:hover:bg-red-900/40 transition-all hover:-translate-y-px"
                                                 @click.stop="initiateAction(req, 'rejected')"
                                             >
-                                                <span class="material-symbols-outlined text-[14px] align-middle mr-0.5" style="font-variation-settings:'FILL' 1">cancel</span>
+                                                <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">cancel</span>
                                                 Reject
                                             </button>
                                         </div>
@@ -596,7 +636,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     </div>
                 </template>
 
-                <!-- ── ALL REQUESTS ── -->
+                <!-- â”€â”€ ALL REQUESTS â”€â”€ -->
                 <template v-else-if="activeTab === 'all'">
                     <!-- Filter bar -->
                     <div class="border-b border-outline-variant/40 bg-surface-container-low/50 px-5 py-4">
@@ -641,7 +681,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                             <div class="flex gap-2">
                                 <button
                                     class="btn-shimmer rounded-xl px-4 py-2.5 text-[13px] font-bold text-white"
-                                    style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                                     @click="applyFilters"
                                 >Apply</button>
                                 <button
@@ -655,30 +695,30 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     <div class="max-h-[calc(100vh-460px)] min-h-[260px] overflow-auto">
                         <table class="w-full text-[13px]">
                             <thead class="sticky top-0 z-10">
-                                <tr class="bg-surface-container-low border-b border-outline-variant/40">
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Employee</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Type</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden md:table-cell">Period</th>
-                                    <th class="px-4 py-3 text-center text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Days</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Status</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden lg:table-cell">Applied</th>
-                                    <th class="px-5 py-3 text-right text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Actions</th>
+                                <tr class="bg-surface-container-low/95 backdrop-blur-sm border-b border-outline-variant/40">
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Employee</th>
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Type</th>
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 hidden md:table-cell">Period</th>
+                                    <th class="px-4 py-3 text-center text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Days</th>
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Status</th>
+                                    <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 hidden lg:table-cell">Applied</th>
+                                    <th class="px-5 py-3 text-right text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr
                                     v-for="(req, idx) in (requests?.data ?? [])"
                                     :key="req.id"
-                                    class="border-b border-outline-variant/25 hover:bg-surface-container/50 transition-colors"
+                                    class="group border-b border-outline-variant/25 transition-colors hover:bg-secondary/[0.04]"
                                     :style="idx % 2 === 1 ? 'background:rgba(var(--ct-surface-low)/0.3)' : ''"
                                 >
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-2.5">
                                             <div
-                                                class="h-7 w-7 flex-shrink-0 rounded-full flex items-center justify-center text-[10px] font-black text-white"
+                                                class="h-8 w-8 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[10px] font-black text-white"
                                                 :style="`background:${avatarColor(req.employee_name)}`"
                                             >{{ initials(req.employee_name) }}</div>
-                                            <span class="font-semibold text-on-surface truncate max-w-[120px]">{{ req.employee_name }}</span>
+                                            <span class="font-bold text-on-surface truncate max-w-[120px]">{{ req.employee_name }}</span>
                                         </div>
                                     </td>
                                     <td class="px-5 py-3.5">
@@ -688,7 +728,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                         >{{ leaveTypeLabel(req.type) }}</span>
                                     </td>
                                     <td class="px-5 py-3.5 hidden md:table-cell text-on-surface-variant">
-                                        {{ fmtDateShort(req.start_date) }} – {{ fmtDateShort(req.end_date) }}
+                                        {{ fmtDateShort(req.start_date) }} â€“ {{ fmtDateShort(req.end_date) }}
                                     </td>
                                     <td class="px-4 py-3.5 text-center">
                                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-container text-[11px] font-black text-on-surface-variant">
@@ -703,18 +743,30 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                         <div class="flex justify-end gap-1">
                                             <button
                                                 v-if="req.status === 'pending'"
-                                                class="rounded-lg bg-green-50 dark:bg-green-900/20 px-2.5 py-1 text-[11px] font-bold text-green-700 dark:text-green-400 hover:bg-green-100 transition-colors"
+                                                class="flex items-center gap-1 rounded-lg border border-green-200/60 dark:border-green-700/40 bg-green-50 dark:bg-green-900/20 px-2.5 py-1 text-[11px] font-bold text-green-700 dark:text-green-400 hover:bg-green-100 hover:border-green-400/60 dark:hover:bg-green-900/40 transition-all"
                                                 @click.stop="initiateAction(req, 'approved')"
-                                            >Approve</button>
+                                                title="Approve request"
+                                            >
+                                                <span class="material-symbols-outlined text-[13px]" style="font-variation-settings:'FILL' 1">check_circle</span>
+                                                Approve
+                                            </button>
                                             <button
                                                 v-if="req.status === 'pending'"
-                                                class="rounded-lg bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 transition-colors"
+                                                class="flex items-center gap-1 rounded-lg border border-red-200/60 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 hover:border-red-400/60 dark:hover:bg-red-900/40 transition-all"
                                                 @click.stop="initiateAction(req, 'rejected')"
-                                            >Reject</button>
+                                                title="Reject request"
+                                            >
+                                                <span class="material-symbols-outlined text-[13px]" style="font-variation-settings:'FILL' 1">cancel</span>
+                                                Reject
+                                            </button>
                                             <button
-                                                class="rounded-lg bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                                                class="flex items-center gap-1 rounded-lg border border-transparent bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/15 transition-all"
                                                 @click.stop="openDetail(req)"
-                                            >View</button>
+                                                title="View details"
+                                            >
+                                                View
+                                                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -735,7 +787,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     </div>
                 </template>
 
-                <!-- ── CALENDAR TAB ── -->
+                <!-- â”€â”€ CALENDAR TAB â”€â”€ -->
                 <template v-else-if="activeTab === 'calendar'">
                     <div class="p-5">
                         <!-- Calendar nav -->
@@ -836,9 +888,9 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
         </template><!-- END HR view -->
 
 
-        <!-- ════════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              SLIDE PANELS & MODALS
-        ═════════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 
         <!-- Apply Leave Panel (employee) -->
         <SlidePanel
@@ -922,7 +974,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         v-model="leaveForm.reason"
                         :class="inputCls + ' resize-none'"
                         rows="3"
-                        placeholder="Brief reason for your leave request…"
+                        placeholder="Brief reason for your leave requestâ€¦"
                         required
                     ></textarea>
                     <p v-if="leaveForm.errors.reason" class="mt-1 text-[12px] text-red-500">{{ leaveForm.errors.reason }}</p>
@@ -950,7 +1002,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 <button
                     type="button"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                    style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                     :disabled="leaveForm.processing"
                     @click="submitLeave"
                 >
@@ -997,7 +1049,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     </div>
                     <div class="rounded-xl bg-surface-container-low p-3">
                         <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-1">Working Days</p>
-                        <p class="text-[22px] font-black text-on-surface tabular-nums">{{ selectedRequest.days_count ?? '—' }}</p>
+                        <p class="text-[22px] font-black text-on-surface tabular-nums">{{ selectedRequest.days_count ?? 'â€”' }}</p>
                     </div>
                     <div class="rounded-xl bg-surface-container-low p-3">
                         <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-1">Applied On</p>
@@ -1076,7 +1128,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         class="flex items-center gap-3 rounded-xl bg-surface-container-low p-3"
                     >
                         <div
-                            class="h-8 w-8 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white"
+                            class="h-9 w-9 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[11px] font-black text-white"
                             :style="`background:${avatarColor(leave.employee_name)}`"
                         >{{ initials(leave.employee_name) }}</div>
                         <div class="flex-1 min-w-0">
@@ -1142,7 +1194,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                 {{ actionType === 'approved' ? 'Approve Leave Request' : 'Reject Leave Request' }}
                             </h3>
                             <p class="text-[13px] text-on-surface-variant text-center mt-1 mb-5">
-                                {{ actionTarget?.employee_name }} — {{ leaveTypeLabel(actionTarget?.type) }},
+                                {{ actionTarget?.employee_name }} â€” {{ leaveTypeLabel(actionTarget?.type) }},
                                 {{ actionTarget?.days_count }} days
                             </p>
 
@@ -1153,7 +1205,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                     v-model="actionComment"
                                     :class="inputCls + ' resize-none'"
                                     rows="3"
-                                    :placeholder="actionType === 'approved' ? 'Any notes for the employee…' : 'Reason for rejection…'"
+                                    :placeholder="actionType === 'approved' ? 'Any notes for the employeeâ€¦' : 'Reason for rejectionâ€¦'"
                                 ></textarea>
                             </div>
 
