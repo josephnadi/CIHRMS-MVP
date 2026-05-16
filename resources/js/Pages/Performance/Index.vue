@@ -1,8 +1,9 @@
-<script setup>
+﻿<script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
+import LiveBars from '@/Components/charts/LiveBars.vue';
 
 const props = defineProps({
     analytics:    Object,
@@ -12,7 +13,7 @@ const props = defineProps({
 const a = computed(() => props.analytics ?? {});
 const kpis = computed(() => a.value.kpis ?? {});
 
-// ── Live sync: random 15–20s Inertia partial reload of analytics ─────────
+// â”€â”€ Live sync: random 15â€“20s Inertia partial reload of analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const lastSync  = ref(Date.now());
 const isSyncing = ref(false);
 const nowTick   = ref(Date.now());
@@ -53,7 +54,7 @@ onBeforeUnmount(() => {
     if (_reloadTimer) clearTimeout(_reloadTimer);
 });
 
-// ── SVG line/area chart helpers ──────────────────────────────────────────────
+// â”€â”€ SVG line/area chart helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const w = 720, h = 220, pad = 30;
 
 const linePath = (data, key = 'value') => {
@@ -94,7 +95,7 @@ const pointPositions = (data, key = 'value') => {
     }));
 };
 
-// ── Donut chart helpers ──────────────────────────────────────────────────────
+// â”€â”€ Donut chart helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const donutSegments = (data) => {
     if (!data?.length) return [];
     const total = data.reduce((s, d) => s + (d.value ?? 0), 0);
@@ -117,21 +118,21 @@ const donutSegments = (data) => {
 };
 
 const donutColor = (i) => {
-    const palette = ['#0051d5', '#316bf3', '#7c5cff', '#0891b2', '#059669', '#d97706', '#dc2626'];
+    const palette = ['#205295', '#2c74b3', '#205295', '#0891b2', '#059669', '#d97706', '#dc2626'];
     return palette[i % palette.length];
 };
 
 const totalLeave = computed(() => (a.value.leaveTypeSplit ?? []).reduce((s, d) => s + d.value, 0));
 
-// ── Horizontal bar (department efficiency) helpers ───────────────────────────
+// â”€â”€ Horizontal bar (department efficiency) helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const efficiencyColor = (score) => {
     if (score >= 80) return '#059669';
-    if (score >= 60) return '#316bf3';
+    if (score >= 60) return '#2c74b3';
     if (score >= 40) return '#d97706';
     return '#dc2626';
 };
 
-// ── Vertical bar (headcount / hires / tickets) ───────────────────────────────
+// â”€â”€ Vertical bar (headcount / hires / tickets) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const barMax = (data, key = 'value') => Math.max(...(data ?? []).map(d => d[key] ?? 0), 1);
 
 const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
@@ -146,11 +147,11 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                 <div>
                     <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Performance Analytics</h2>
                     <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Workforce health, productivity signals and institutional metrics — auto-refreshed every 15–20 seconds.
+                        Workforce health, productivity signals and institutional metrics â€” auto-refreshed every 15â€“20 seconds.
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- Live sync pill — pulses while reloading, otherwise shows seconds since last refresh -->
+                    <!-- Live sync pill â€” pulses while reloading, otherwise shows seconds since last refresh -->
                     <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
                          :class="isSyncing
                             ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/40 text-blue-700 dark:text-blue-300'
@@ -158,7 +159,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                         <span class="h-1.5 w-1.5 rounded-full"
                               :class="isSyncing ? 'bg-blue-500 animate-pulse' : 'bg-green-500 live-dot'"></span>
                         <span class="text-[10px] font-bold uppercase tracking-wider">
-                            {{ isSyncing ? 'Syncing…' : `Live · ${syncAgoLabel}` }}
+                            {{ isSyncing ? 'Syncingâ€¦' : `Live Â· ${syncAgoLabel}` }}
                         </span>
                     </div>
                 </div>
@@ -167,17 +168,17 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
 
         <div class="space-y-6">
 
-            <!-- ── KPI strip ───────────────────────────────────────────────── -->
+            <!-- â”€â”€ KPI strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                <StatCard :value="formatNum(kpis.active)"        label="Active Staff"     icon="badge"          color="#0051d5" />
+                <StatCard :value="formatNum(kpis.active)"        label="Active Staff"     icon="badge"          color="#205295" />
                 <StatCard :value="formatNum(kpis.on_leave)"      label="On Leave"         icon="beach_access"   color="#d97706" />
                 <StatCard :value="formatNum(kpis.new_hires_90d)" label="New Hires (90d)"  icon="person_add"     color="#059669" />
                 <StatCard :value="formatNum(kpis.terminated_90d)"label="Terminated (90d)" icon="trending_down"  color="#dc2626" />
-                <StatCard :value="`${kpis.retention_pct ?? 0}%`" label="Retention"        icon="check_circle"   color="#7c5cff" />
+                <StatCard :value="`${kpis.retention_pct ?? 0}%`" label="Retention"        icon="check_circle"   color="#205295" />
                 <StatCard :value="`${kpis.turnover_pct ?? 0}%`"  label="Turnover"         icon="rotate_right"   color="#0891b2" />
             </div>
 
-            <!-- ── Row 1: Hires trend + Department efficiency ──────────────── -->
+            <!-- â”€â”€ Row 1: Hires trend + Department efficiency â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid gap-6 lg:grid-cols-3">
 
                 <!-- Hires trend (line+area) -->
@@ -188,15 +189,15 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <p class="mt-0.5 text-[11px] text-on-surface-variant">New hires per month, trailing 12 months</p>
                         </div>
                         <div class="flex items-center gap-3 text-[10px] font-semibold">
-                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0051d5,#316bf3)"></span>Hires</span>
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#205295,#2c74b3)"></span>Hires</span>
                         </div>
                     </div>
 
                     <svg :viewBox="`0 0 ${w} ${h}`" preserveAspectRatio="xMidYMid meet" class="w-full h-[220px]">
                         <defs>
                             <linearGradient id="hiresFill" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#316bf3" stop-opacity="0.35"/>
-                                <stop offset="100%" stop-color="#316bf3" stop-opacity="0"/>
+                                <stop offset="0%" stop-color="#2c74b3" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#2c74b3" stop-opacity="0"/>
                             </linearGradient>
                         </defs>
 
@@ -208,10 +209,10 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                         </g>
 
                         <path :d="areaPath(a.hiresByMonth)" fill="url(#hiresFill)" />
-                        <path :d="linePath(a.hiresByMonth)" fill="none" stroke="#0051d5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path :d="linePath(a.hiresByMonth)" fill="none" stroke="#205295" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
 
                         <g v-for="(p, i) in pointPositions(a.hiresByMonth)" :key="i">
-                            <circle :cx="p.x" :cy="p.y" r="3.5" fill="#fff" stroke="#0051d5" stroke-width="2" />
+                            <circle :cx="p.x" :cy="p.y" r="3.5" fill="#fff" stroke="#205295" stroke-width="2" />
                             <text :x="p.x" :y="h - pad + 18" class="fill-current text-on-surface-variant" text-anchor="middle" font-size="10" font-weight="600">{{ p.label }}</text>
                         </g>
                     </svg>
@@ -231,7 +232,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <div class="h-2 w-full rounded-full bg-surface-container-low overflow-hidden">
                                 <div
                                     class="h-full rounded-full transition-all"
-                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#0051d5,#316bf3);transition-duration:0.8s`"
+                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#205295,#2c74b3);transition-duration:0.8s`"
                                 ></div>
                             </div>
                         </div>
@@ -239,7 +240,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                 </div>
             </div>
 
-            <!-- ── Row 2: Department efficiency + Leave type donut ─────────── -->
+            <!-- â”€â”€ Row 2: Department efficiency + Leave type donut â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid gap-6 lg:grid-cols-3">
 
                 <!-- Department efficiency (horizontal bars) -->
@@ -325,7 +326,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                 </div>
             </div>
 
-            <!-- ── Row 3: Headcount by dept + Top performers ───────────────── -->
+            <!-- â”€â”€ Row 3: Headcount by dept + Top performers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid gap-6 lg:grid-cols-3">
 
                 <!-- Headcount by department (bars) -->
@@ -333,20 +334,15 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                     <h3 class="text-[14px] font-bold text-on-surface mb-1">Headcount by Department</h3>
                     <p class="text-[11px] text-on-surface-variant mb-5">Active employees only</p>
 
-                    <div class="flex h-[180px] items-end gap-3 px-1">
-                        <div
-                            v-for="dept in a.headcountByDept ?? []"
-                            :key="dept.code"
-                            class="group relative flex-1 flex flex-col items-center gap-2 cursor-default"
-                        >
-                            <span class="text-[10px] font-bold text-on-surface-variant tabular-nums">{{ dept.value }}</span>
-                            <div
-                                class="w-full rounded-t-md relative overflow-hidden"
-                                :style="`height:${(dept.value / barMax(a.headcountByDept)) * 140}px;background:linear-gradient(to top,#0051d5,#7c5cff);transition:height 0.9s cubic-bezier(0.22,1,0.36,1)`"
-                            ></div>
-                            <span class="text-[10px] font-semibold text-on-surface-variant/70 truncate max-w-full text-center">{{ dept.label }}</span>
-                        </div>
-                    </div>
+                    <LiveBars
+                        :data="(a.headcountByDept ?? []).map(d => ({ label: d.label, value: d.value }))"
+                        :height="180"
+                        color="#205295"
+                        accent-color="#ffd700"
+                        second-color="#12d9e3"
+                        :show-median="true"
+                        :rounded="6"
+                    />
                 </div>
 
                 <!-- Top performers -->
@@ -367,7 +363,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <div class="relative">
                                 <div
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-[12px] font-black text-white flex-shrink-0"
-                                    :style="`background:linear-gradient(135deg,#0051d5,#316bf3)`"
+                                    :style="`background:linear-gradient(135deg,#205295,#2c74b3)`"
                                 >
                                     {{ emp.name?.charAt(0) ?? '?' }}
                                 </div>
@@ -379,7 +375,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             </div>
                             <div class="min-w-0 flex-1">
                                 <p class="text-[12px] font-semibold text-on-surface truncate">{{ emp.name }}</p>
-                                <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.position ?? '—' }}</p>
+                                <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.position ?? 'â€”' }}</p>
                             </div>
                             <div class="text-right flex-shrink-0">
                                 <p class="text-[15px] font-black text-secondary tabular-nums">{{ emp.resolved }}</p>
@@ -390,7 +386,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                 </div>
             </div>
 
-            <!-- ── Row 4: Ticket trend + Leave volume side by side ─────────── -->
+            <!-- â”€â”€ Row 4: Ticket trend + Leave volume side by side â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid gap-6 lg:grid-cols-2">
 
                 <!-- Ticket trend -->
@@ -401,7 +397,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <p class="mt-0.5 text-[11px] text-on-surface-variant">Service desk activity, monthly</p>
                         </div>
                         <Link :href="route('tickets.index')" class="text-[11px] font-semibold text-secondary hover:underline">
-                            View tickets →
+                            View tickets â†’
                         </Link>
                     </div>
 
@@ -464,28 +460,19 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <p class="mt-0.5 text-[11px] text-on-surface-variant">Monthly requests, trailing 12 months</p>
                         </div>
                         <Link :href="route('leave.index')" class="text-[11px] font-semibold text-secondary hover:underline">
-                            View leave →
+                            View leave â†’
                         </Link>
                     </div>
 
-                    <div class="flex h-[160px] items-end gap-1.5">
-                        <div
-                            v-for="(p, i) in a.leaveByMonth ?? []"
-                            :key="i"
-                            class="group relative flex-1 flex flex-col items-center gap-1.5"
-                        >
-                            <div
-                                class="w-full rounded-t relative overflow-hidden"
-                                :style="`height:${(p.value / barMax(a.leaveByMonth)) * 120}px;background:linear-gradient(to top,#059669,#34d399);transition:height 0.9s cubic-bezier(0.22,1,0.36,1);min-height:2px`"
-                            >
-                                <div
-                                    class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white whitespace-nowrap"
-                                    style="background:#0c0e14"
-                                >{{ p.value }}</div>
-                            </div>
-                            <span class="text-[9px] font-bold text-on-surface-variant/70">{{ p.label }}</span>
-                        </div>
-                    </div>
+                    <LiveBars
+                        :data="(a.leaveByMonth ?? []).map(p => ({ label: p.label, value: p.value }))"
+                        :height="160"
+                        color="#205295"
+                        accent-color="#ffd700"
+                        second-color="#12d9e3"
+                        :show-median="true"
+                        :rounded="6"
+                    />
                 </div>
             </div>
         </div>

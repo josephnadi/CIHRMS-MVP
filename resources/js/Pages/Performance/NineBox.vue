@@ -1,13 +1,20 @@
-<script setup>
+﻿<script setup>
 import { ref, computed, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 
 const props = defineProps({
     matrix:       Object,
     cycles:       Object,
     activeModule: String,
+});
+
+const page = usePage();
+const canManage = computed(() => {
+    const perms = page.props.auth?.permissions ?? [];
+    return perms.includes('*') || perms.includes('performance.manage');
 });
 
 const cycleList = computed(() => props.cycles?.data ?? props.cycles ?? []);
@@ -20,29 +27,142 @@ watch(selectedCycle, (val) => {
     }, { preserveState: true, replace: true });
 });
 
-// Cells are returned ordered top-left first by service: high_low, high_medium, high_high, medium_low, ...
+// Cells are returned ordered by service: potential (highâ†’low) Ã— performance (lowâ†’high)
 const cells = computed(() => props.matrix?.cells ?? []);
 
-// Quadrant colour by intent: top-right = stars, bottom-left = risk.
+// â”€â”€ Cell metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// The grid renders as a 3Ã—3 matrix: rows = potential (high, medium, low), cols = performance (low, medium, high)
 const CELL_META = {
-    high_low:     { tint: '#d97706', stripe: 'linear-gradient(135deg,#fde68a,#fbbf24)',   label: 'Enigma',                badge: 'AMBER',  description: 'High potential not yet delivering. Coach for performance.' },
-    high_medium:  { tint: '#0051d5', stripe: 'linear-gradient(135deg,#bfdbfe,#3b82f6)',   label: 'Growth Employee',       badge: 'BLUE',   description: 'High potential, consistent. Invest in stretch assignments.' },
-    high_high:    { tint: '#059669', stripe: 'linear-gradient(135deg,#bbf7d0,#10b981)',   label: 'Future Leader',         badge: 'GREEN',  description: 'High potential and high performance. Plan succession.' },
-    medium_low:   { tint: '#d97706', stripe: 'linear-gradient(135deg,#fed7aa,#f97316)',   label: 'Inconsistent',          badge: 'AMBER',  description: 'Mixed signals. Clarify role and re-evaluate.' },
-    medium_medium:{ tint: '#0051d5', stripe: 'linear-gradient(135deg,#dbeafe,#60a5fa)',   label: 'Core Player',           badge: 'BLUE',   description: 'Solid contributor. Retain and recognise.' },
-    medium_high:  { tint: '#059669', stripe: 'linear-gradient(135deg,#d1fae5,#34d399)',   label: 'High Impact Performer', badge: 'GREEN',  description: 'Strong delivery, growth potential. Develop leadership.' },
-    low_low:      { tint: '#dc2626', stripe: 'linear-gradient(135deg,#fecaca,#ef4444)',   label: 'Risk',                  badge: 'RED',    description: 'Low across both axes. Address performance plan.' },
-    low_medium:   { tint: '#7c3aed', stripe: 'linear-gradient(135deg,#ddd6fe,#a78bfa)',   label: 'Effective',             badge: 'PURPLE', description: 'Steady performer in their current role.' },
-    low_high:     { tint: '#059669', stripe: 'linear-gradient(135deg,#d1fae5,#34d399)',   label: 'Trusted Professional',  badge: 'GREEN',  description: 'Experienced specialist. Recognise and retain.' },
+    high_low:      {
+        label:       'Enigma',
+        description: 'High potential, not yet delivering. Assign a coach to unlock performance.',
+        tint:        '217,119,6',
+        bg:          'rgba(217,119,6,0.06)',
+        border:      'rgba(217,119,6,0.25)',
+        zone:        'develop',
+    },
+    high_medium:   {
+        label:       'Growth Employee',
+        description: 'High potential, consistent output. Stretch with visible assignments.',
+        tint:        '32,82,149',
+        bg:          'rgba(32,82,149,0.06)',
+        border:      'rgba(32,82,149,0.2)',
+        zone:        'invest',
+    },
+    high_high:     {
+        label:       'Future Leader',
+        description: 'Stars: highest potential AND highest performance. Plan succession.',
+        tint:        '5,150,105',
+        bg:          'rgba(5,150,105,0.08)',
+        border:      'rgba(5,150,105,0.3)',
+        zone:        'star',
+    },
+    medium_low:    {
+        label:       'Inconsistent',
+        description: 'Mixed signals. Clarify role expectations and re-evaluate in 90 days.',
+        tint:        '217,119,6',
+        bg:          'rgba(217,119,6,0.05)',
+        border:      'rgba(217,119,6,0.2)',
+        zone:        'watch',
+    },
+    medium_medium: {
+        label:       'Core Player',
+        description: 'Solid, reliable contributor. Retain, recognise, and prevent disengagement.',
+        tint:        '32,82,149',
+        bg:          'rgba(32,82,149,0.05)',
+        border:      'rgba(32,82,149,0.15)',
+        zone:        'core',
+    },
+    medium_high:   {
+        label:       'High Performer',
+        description: 'Strong delivery, developing potential. Build towards a leadership path.',
+        tint:        '5,150,105',
+        bg:          'rgba(5,150,105,0.07)',
+        border:      'rgba(5,150,105,0.25)',
+        zone:        'invest',
+    },
+    low_low:       {
+        label:       'Risk',
+        description: 'Low on both dimensions. Initiate a performance improvement plan promptly.',
+        tint:        '220,38,38',
+        bg:          'rgba(220,38,38,0.07)',
+        border:      'rgba(220,38,38,0.3)',
+        zone:        'risk',
+    },
+    low_medium:    {
+        label:       'Effective',
+        description: 'Steady performer in current role. Recognise contribution; watch for stagnation.',
+        tint:        '32,82,149',
+        bg:          'rgba(32,82,149,0.04)',
+        border:      'rgba(32,82,149,0.12)',
+        zone:        'core',
+    },
+    low_high:      {
+        label:       'Trusted Professional',
+        description: 'Expert specialist with strong delivery. Retain expertise; design expert career track.',
+        tint:        '5,150,105',
+        bg:          'rgba(5,150,105,0.06)',
+        border:      'rgba(5,150,105,0.22)',
+        zone:        'retain',
+    },
 };
 
 const meta = (key) => CELL_META[key] ?? CELL_META.medium_medium;
 
-const cycleStatusColor = (status) => ({
-    active:  '#059669',
-    draft:   '#6b7280',
-    closed:  '#9ca3af',
-}[status] ?? '#6b7280');
+// â”€â”€ Grid layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Rows: potential (high â†’ medium â†’ low)
+// Cols: performance (low â†’ medium â†’ high)
+const GRID_ROWS = ['high', 'medium', 'low'];
+const GRID_COLS = ['low', 'medium', 'high'];
+
+const cellAt = (potential, performance) =>
+    cells.value.find(c => c.potential === potential && c.performance === performance)
+    ?? { key: `${potential}_${performance}`, potential, performance, count: 0, employees: [] };
+
+// â”€â”€ Cell detail slide panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const activeCellKey  = ref(null);
+const showCellPanel  = ref(false);
+
+const activeCell = computed(() =>
+    activeCellKey.value ? cells.value.find(c => c.key === activeCellKey.value) : null
+);
+const activeMeta = computed(() => meta(activeCellKey.value ?? 'medium_medium'));
+
+const openCell = (cell) => {
+    if (!cell.count) return;
+    activeCellKey.value  = cell.key;
+    showCellPanel.value  = true;
+};
+
+// â”€â”€ Bucket totals for legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const buckets = computed(() => {
+    const star  = ['high_high', 'medium_high', 'low_high'];
+    const inv   = ['high_medium', 'high_low', 'medium_medium'];
+    const risk  = ['low_low', 'medium_low', 'low_medium'];
+    const sum   = (keys) => cells.value.filter(c => keys.includes(c.key)).reduce((s, c) => s + c.count, 0);
+    return [
+        { label: 'High Performers',  count: sum(star), rgb: '5,150,105',   icon: 'star',     description: 'Retain, develop, reward.' },
+        { label: 'Growth Pool',      count: sum(inv),  rgb: '32,82,149',    icon: 'trending_up', description: 'Invest in stretch and coaching.' },
+        { label: 'Needs Attention',  count: sum(risk), rgb: '220,38,38',   icon: 'warning',  description: 'Address with targeted plans.' },
+    ];
+});
+
+// â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const GRADIENTS = [
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#059669,#34d399)',
+    'linear-gradient(135deg,#d97706,#fbbf24)',
+    'linear-gradient(135deg,#7c5cbf,#a78bfa)',
+    'linear-gradient(135deg,#dc2626,#f87171)',
+    'linear-gradient(135deg,#0891b2,#22d3ee)',
+];
+const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
+
+const initials = (name) => {
+    if (!name) return '?';
+    const p = name.trim().split(' ');
+    return (p.length >= 2 ? p[0][0] + p[p.length - 1][0] : name.slice(0, 2)).toUpperCase();
+};
 </script>
 
 <template>
@@ -55,13 +175,13 @@ const cycleStatusColor = (status) => ({
                     <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70">
                         <Link :href="route('modules.performance')" class="hover:text-secondary">Performance</Link>
                         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                        <span>9-Box Talent Matrix</span>
+                        <span>9-Box Matrix</span>
                     </div>
                     <h2 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">9-Box Talent Matrix</h2>
                     <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Performance × Potential. Bucketed from submitted review ratings.
+                        Performance Ã— Potential. Bucketed from submitted review ratings.
                         <span v-if="matrix?.cycle" class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                            {{ matrix.cycle.name }} · {{ matrix.total }} employees
+                            {{ matrix.cycle.name }} Â· {{ matrix.total }} placed
                         </span>
                     </p>
                 </div>
@@ -72,6 +192,15 @@ const cycleStatusColor = (status) => ({
                     >
                         <span class="material-symbols-outlined text-[18px]">rate_review</span>
                         Reviews
+                    </Link>
+                    <!-- Calibration hint for HR -->
+                    <Link
+                        v-if="canManage && matrix?.cycle"
+                        :href="route('performance.calibration.index')"
+                        class="rounded-xl border border-violet-400/50 bg-violet-500/8 px-4 py-2 text-[13px] font-semibold text-violet-600 hover:bg-violet-500/15 transition-colors flex items-center gap-2"
+                    >
+                        <span class="material-symbols-outlined text-[18px]">tune</span>
+                        Calibration
                     </Link>
                     <select
                         v-model="selectedCycle"
@@ -86,9 +215,9 @@ const cycleStatusColor = (status) => ({
             </div>
         </template>
 
-        <div class="space-y-6">
+        <div class="p-6 space-y-6 animate-reveal-up">
 
-            <!-- No data state -->
+            <!-- â”€â”€ No data state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-if="!matrix?.cycle" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-16">
                 <EmptyState
                     title="No active review cycle"
@@ -99,7 +228,7 @@ const cycleStatusColor = (status) => ({
                         <Link
                             :href="route('performance.reviews.index')"
                             class="btn-shimmer inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Go to Reviews
@@ -109,124 +238,247 @@ const cycleStatusColor = (status) => ({
             </div>
 
             <template v-else>
-                <!-- Axis labels + Matrix -->
-                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                    <div class="grid grid-cols-[auto_1fr] gap-x-3">
-                        <!-- Y-axis vertical label -->
-                        <div class="flex items-center justify-center">
-                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-on-surface-variant/60" style="writing-mode:vertical-rl;transform:rotate(180deg)">
-                                Potential →
-                            </p>
-                        </div>
 
-                        <div class="space-y-3">
-                            <!-- Potential axis labels above the grid -->
-                            <div class="grid grid-cols-3 gap-3 mb-1 pl-12">
-                                <p class="text-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Low Performance</p>
-                                <p class="text-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Medium Performance</p>
-                                <p class="text-center text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">High Performance</p>
+                <!-- â”€â”€ Bucket summary cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div
+                        v-for="(bkt, i) in buckets"
+                        :key="bkt.label"
+                        class="card-lift rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden p-5"
+                        :style="`border-left: 3px solid rgba(${bkt.rgb},0.7); animation-delay: ${i * 0.06}s`"
+                    >
+                        <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl" :style="`background:rgba(${bkt.rgb},0.12)`">
+                            <span class="material-symbols-outlined text-[20px]" :style="`color:rgb(${bkt.rgb});font-variation-settings:'FILL' 1`">{{ bkt.icon }}</span>
+                        </div>
+                        <p class="text-[2rem] font-black leading-none tabular-nums" :style="`color:rgb(${bkt.rgb})`">{{ bkt.count }}</p>
+                        <p class="mt-1 text-[11px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">{{ bkt.label }}</p>
+                        <p class="mt-1 text-[11px] text-on-surface-variant/60">{{ bkt.description }}</p>
+                    </div>
+                </div>
+
+                <!-- â”€â”€ The 9-box grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden shadow-card">
+                    <!-- Column headers: Performance axis -->
+                    <div class="border-b border-outline-variant/40 bg-surface-container/40 px-5 py-3">
+                        <p class="text-center text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant/60">
+                            Performance â†’
+                        </p>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="grid grid-cols-[36px_1fr_1fr_1fr] gap-3">
+                            <!-- Top-left empty corner -->
+                            <div></div>
+                            <!-- Performance column labels -->
+                            <div class="text-center">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Low</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">Solid</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">High</span>
                             </div>
 
-                            <!-- Row by row: high potential (top), medium, low -->
-                            <template v-for="row in ['high','medium','low']" :key="row">
-                                <div class="grid grid-cols-[40px_1fr_1fr_1fr] gap-3">
-                                    <div class="flex items-center justify-end">
-                                        <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60 rotate-0">
-                                            <template v-if="row==='high'">High</template>
-                                            <template v-else-if="row==='medium'">Med</template>
-                                            <template v-else>Low</template>
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        v-for="cell in cells.filter(c => c.potential === row)"
-                                        :key="cell.key"
-                                        class="relative rounded-xl border border-outline-variant/60 bg-surface-container-low/40 p-3.5 min-h-[150px] overflow-hidden transition-all hover:shadow-card"
+                            <!-- 3 rows (potential: high â†’ medium â†’ low) -->
+                            <template v-for="(potRow, ri) in GRID_ROWS" :key="potRow">
+                                <!-- Y-axis potential label -->
+                                <div class="flex items-center justify-center">
+                                    <span
+                                        class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50"
+                                        style="writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: 0.12em"
                                     >
-                                        <!-- Top accent stripe -->
-                                        <div class="absolute top-0 left-0 right-0 h-1" :style="`background:${meta(cell.key).stripe}`"></div>
+                                        <template v-if="potRow === 'high'">High</template>
+                                        <template v-else-if="potRow === 'medium'">Med</template>
+                                        <template v-else>Low</template>
+                                    </span>
+                                </div>
 
+                                <!-- 3 cells in this row -->
+                                <div
+                                    v-for="(perfCol) in GRID_COLS"
+                                    :key="`${potRow}_${perfCol}`"
+                                    class="relative rounded-2xl border overflow-hidden transition-all min-h-[160px]"
+                                    :style="`background:${meta(cellAt(potRow, perfCol).key).bg};border-color:${meta(cellAt(potRow, perfCol).key).border}`"
+                                    :class="cellAt(potRow, perfCol).count > 0 ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lifted' : ''"
+                                    @click="openCell(cellAt(potRow, perfCol))"
+                                >
+                                    <!-- Star corner highlight for top-right star cell -->
+                                    <div
+                                        v-if="potRow === 'high' && perfCol === 'high'"
+                                        class="absolute inset-0 pointer-events-none"
+                                        style="background:radial-gradient(ellipse at 100% 0%, rgba(5,150,105,0.15) 0%, transparent 60%)"
+                                    ></div>
+                                    <!-- Risk corner highlight for bottom-left risk cell -->
+                                    <div
+                                        v-if="potRow === 'low' && perfCol === 'low'"
+                                        class="absolute inset-0 pointer-events-none"
+                                        style="background:radial-gradient(ellipse at 0% 100%, rgba(220,38,38,0.12) 0%, transparent 60%)"
+                                    ></div>
+
+                                    <div class="p-3.5">
+                                        <!-- Cell label -->
                                         <div class="flex items-start justify-between gap-2 mb-2">
-                                            <div class="min-w-0">
-                                                <p class="text-[11px] font-black uppercase tracking-wider truncate" :style="`color:${meta(cell.key).tint}`">{{ cell.label }}</p>
-                                                <p class="text-[20px] font-black font-mono leading-none mt-0.5" :style="`color:${meta(cell.key).tint}`">
-                                                    {{ cell.count }}
-                                                </p>
-                                            </div>
-                                            <span v-if="cell.count > 0"
-                                                  class="flex h-6 w-6 items-center justify-center rounded-full text-[9px] font-black text-white"
-                                                  :style="`background:${meta(cell.key).tint}`">
-                                                {{ Math.round((cell.count / Math.max(1, matrix.total)) * 100) }}%
-                                            </span>
+                                            <p
+                                                class="text-[10px] font-black uppercase tracking-wider leading-snug"
+                                                :style="`color:rgb(${meta(cellAt(potRow, perfCol).key).tint})`"
+                                            >{{ meta(cellAt(potRow, perfCol).key).label }}</p>
+                                            <!-- Count badge -->
+                                            <span
+                                                v-if="cellAt(potRow, perfCol).count > 0"
+                                                class="inline-flex items-center justify-center h-6 min-w-[24px] rounded-full text-[11px] font-black text-white tabular-nums px-1.5"
+                                                :style="`background:rgb(${meta(cellAt(potRow, perfCol).key).tint})`"
+                                            >{{ cellAt(potRow, perfCol).count }}</span>
                                         </div>
 
-                                        <p class="text-[10px] text-on-surface-variant/70 leading-snug line-clamp-2 mb-2">
-                                            {{ meta(cell.key).description }}
+                                        <!-- Description -->
+                                        <p class="text-[10px] text-on-surface-variant/65 leading-snug line-clamp-2 mb-2.5">
+                                            {{ meta(cellAt(potRow, perfCol).key).description }}
                                         </p>
 
-                                        <!-- Employee chips -->
-                                        <div v-if="cell.employees?.length" class="space-y-1">
-                                            <div
-                                                v-for="emp in cell.employees.slice(0, 3)" :key="emp.id"
-                                                class="flex items-center justify-between gap-2 rounded-md bg-surface-container/60 px-2 py-1 text-[10px]"
-                                            >
-                                                <p class="font-semibold text-on-surface truncate">{{ emp.name }}</p>
-                                                <span class="font-mono text-on-surface-variant/60 whitespace-nowrap">
-                                                    {{ emp.avg_perf.toFixed(1) }} · {{ emp.avg_pot.toFixed(1) }}
-                                                </span>
+                                        <!-- Employee avatar stack (up to 6) -->
+                                        <div v-if="cellAt(potRow, perfCol).employees?.length" class="space-y-1">
+                                            <!-- First 4: stacked avatar row -->
+                                            <div class="flex items-center -space-x-1.5 mb-1">
+                                                <div
+                                                    v-for="emp in cellAt(potRow, perfCol).employees.slice(0, 5)"
+                                                    :key="emp.id"
+                                                    class="h-6 w-6 rounded-full flex items-center justify-center text-[8px] font-black text-white ring-2 ring-surface-container-lowest"
+                                                    :style="`background:${avatarGrad(emp.id)}`"
+                                                    :title="emp.name"
+                                                >{{ initials(emp.name) }}</div>
+                                                <div
+                                                    v-if="cellAt(potRow, perfCol).count > 5"
+                                                    class="h-6 w-6 rounded-full flex items-center justify-center text-[8px] font-black text-white ring-2 ring-surface-container-lowest"
+                                                    :style="`background:rgb(${meta(cellAt(potRow, perfCol).key).tint})`"
+                                                >+{{ cellAt(potRow, perfCol).count - 5 }}</div>
                                             </div>
-                                            <p v-if="cell.employees.length > 3" class="text-[10px] italic text-on-surface-variant/50 pl-2">
-                                                + {{ cell.employees.length - 3 }} more
-                                            </p>
+                                            <!-- "View all" affordance -->
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-1 text-[10px] font-bold transition-colors"
+                                                :style="`color:rgb(${meta(cellAt(potRow, perfCol).key).tint})`"
+                                                @click.stop="openCell(cellAt(potRow, perfCol))"
+                                            >
+                                                <span class="material-symbols-outlined text-[12px]">group</span>
+                                                View all ({{ cellAt(potRow, perfCol).count }})
+                                            </button>
                                         </div>
-                                        <p v-else class="text-[10px] italic text-on-surface-variant/40 mt-1">No employees</p>
+                                        <p v-else class="text-[10px] italic text-on-surface-variant/35">No employees</p>
                                     </div>
                                 </div>
                             </template>
+                        </div>
 
-                            <!-- X-axis horizontal label -->
-                            <p class="text-center text-[11px] font-black uppercase tracking-[0.25em] text-on-surface-variant/60 pt-2 pl-12">
-                                Performance →
+                        <!-- Potential Y-axis label (vertical, below the grid rows label) -->
+                        <div class="mt-3 flex justify-start pl-9">
+                            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant/50">
+                                â†‘ Potential
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Legend + summary -->
-                <div class="grid gap-4 md:grid-cols-3">
-                    <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5">
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="h-2.5 w-2.5 rounded-full" style="background:#059669"></div>
-                            <p class="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">Strong (Green)</p>
-                        </div>
-                        <p class="text-[20px] font-black font-mono text-on-surface">
-                            {{ cells.filter(c => ['high_high','medium_high','low_high'].includes(c.key)).reduce((s, c) => s + c.count, 0) }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-on-surface-variant/70">High-performance bucket. Retain, develop, and reward.</p>
-                    </div>
-                    <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5">
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="h-2.5 w-2.5 rounded-full" style="background:#d97706"></div>
-                            <p class="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">Develop (Amber)</p>
-                        </div>
-                        <p class="text-[20px] font-black font-mono text-on-surface">
-                            {{ cells.filter(c => ['high_low','medium_low'].includes(c.key)).reduce((s, c) => s + c.count, 0) }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-on-surface-variant/70">Potential without delivery. Coach into the green bucket.</p>
-                    </div>
-                    <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5">
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="h-2.5 w-2.5 rounded-full" style="background:#dc2626"></div>
-                            <p class="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">At Risk (Red)</p>
-                        </div>
-                        <p class="text-[20px] font-black font-mono text-on-surface">
-                            {{ cells.filter(c => c.key === 'low_low').reduce((s, c) => s + c.count, 0) }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-on-surface-variant/70">Low on both axes. Address with performance plans.</p>
-                    </div>
-                </div>
             </template>
         </div>
+
+        <!-- â”€â”€ Cell Detail SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <SlidePanel
+            :open="showCellPanel"
+            :title="activeMeta.label"
+            size="md"
+            @close="showCellPanel = false; activeCellKey = null"
+        >
+            <div v-if="activeCell" class="p-6 space-y-5">
+
+                <!-- Cell description banner -->
+                <div
+                    class="rounded-xl border p-4"
+                    :style="`background:${activeMeta.bg};border-color:${activeMeta.border}`"
+                >
+                    <div class="flex items-center gap-2 mb-2">
+                        <div
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg"
+                            :style="`background:rgba(${activeMeta.tint},0.2)`"
+                        >
+                            <span class="material-symbols-outlined text-[18px]" :style="`color:rgb(${activeMeta.tint});font-variation-settings:'FILL' 1`">
+                                {{ activeMeta.zone === 'star' ? 'star' : activeMeta.zone === 'risk' ? 'warning' : 'person' }}
+                            </span>
+                        </div>
+                        <p class="text-[13px] font-black" :style="`color:rgb(${activeMeta.tint})`">{{ activeMeta.label }}</p>
+                    </div>
+                    <p class="text-[12px] text-on-surface-variant/80 leading-relaxed">{{ activeMeta.description }}</p>
+                    <div class="mt-2 flex items-center gap-3 text-[11px] text-on-surface-variant/60">
+                        <span>Performance: <strong class="text-on-surface capitalize">{{ activeCell.performance }}</strong></span>
+                        <span class="text-outline-variant">Â·</span>
+                        <span>Potential: <strong class="text-on-surface capitalize">{{ activeCell.potential }}</strong></span>
+                        <span class="text-outline-variant">Â·</span>
+                        <span class="font-bold" :style="`color:rgb(${activeMeta.tint})`">{{ activeCell.count }} employees</span>
+                    </div>
+                </div>
+
+                <!-- Employee list -->
+                <div class="space-y-2">
+                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Employees in this cell</p>
+
+                    <div v-if="activeCell.employees?.length === 0" class="rounded-xl border border-dashed border-outline-variant/50 py-8 text-center">
+                        <p class="text-[12px] italic text-on-surface-variant/40">No employees assigned to this cell</p>
+                    </div>
+
+                    <div
+                        v-for="emp in activeCell.employees"
+                        :key="emp.id"
+                        class="flex items-center gap-3 rounded-xl border border-outline-variant/40 bg-surface-container/30 px-4 py-3 hover:bg-surface-container/60 transition-colors"
+                    >
+                        <!-- Avatar -->
+                        <div
+                            class="h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-black text-white flex-shrink-0"
+                            :style="`background:${avatarGrad(emp.id)}`"
+                        >{{ initials(emp.name) }}</div>
+
+                        <!-- Details -->
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[13px] font-bold text-on-surface truncate">{{ emp.name }}</p>
+                            <p class="text-[11px] text-on-surface-variant/60 truncate">{{ emp.manager_name ? `Reports to ${emp.manager_name}` : 'Manager not set' }}</p>
+                        </div>
+
+                        <!-- Ratings -->
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <div class="text-center">
+                                <p class="text-[9px] font-black uppercase tracking-wider text-on-surface-variant/50">Perf</p>
+                                <p
+                                    class="text-[16px] font-black font-mono tabular-nums"
+                                    :style="`color:rgb(${activeMeta.tint})`"
+                                >{{ emp.avg_perf?.toFixed(1) ?? 'â€”' }}</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[9px] font-black uppercase tracking-wider text-on-surface-variant/50">Pot</p>
+                                <p
+                                    class="text-[16px] font-black font-mono tabular-nums"
+                                    :style="`color:rgb(${activeMeta.tint})`"
+                                >{{ emp.avg_pot?.toFixed(1) ?? 'â€”' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggested action footer -->
+                <div class="rounded-xl border border-outline-variant/40 bg-surface-container/40 p-4">
+                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1.5">Suggested Action</p>
+                    <p class="text-[12px] text-on-surface-variant/80 leading-relaxed">{{ activeMeta.description }}</p>
+                    <div v-if="canManage" class="mt-3">
+                        <Link
+                            :href="route('performance.calibration.index')"
+                            class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-colors"
+                            :style="`color:rgb(${activeMeta.tint});background:rgba(${activeMeta.tint},0.1)`"
+                        >
+                            <span class="material-symbols-outlined text-[14px]">tune</span>
+                            Open Calibration
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </SlidePanel>
 
     </AuthenticatedLayout>
 </template>
