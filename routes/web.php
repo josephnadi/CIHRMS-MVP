@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\IntegrationController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\GovernanceController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\OffboardingController;
 use App\Http\Controllers\WhistleblowerPublicController;
 use App\Http\Controllers\WhistleblowerAdminController;
 use App\Http\Controllers\AuditorGeneralReportController;
+use App\Http\Controllers\DisbursementController;
 use App\Http\Controllers\PerformanceContractController;
 use App\Http\Controllers\CalibrationController;
 use App\Http\Controllers\PipController;
@@ -52,7 +54,9 @@ Route::get('/', function () {
 
 // Public careers portal (unauthenticated)
 Route::get('/careers/{job}',        [RecruitmentController::class, 'showPublic'])->name('careers.show');
-Route::post('/careers/{job}/apply', [RecruitmentController::class, 'apply'])->name('careers.apply');
+Route::post('/careers/{job}/apply', [RecruitmentController::class, 'apply'])
+    ->middleware('throttle:5,1')
+    ->name('careers.apply');
 
 // ── Public whistleblower channel (anonymous; Whistleblower Act 2006 / Act 720) ──
 // Rate-limited to discourage flooding while still allowing legitimate use.
@@ -319,6 +323,16 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::get('/export',  [ReportsController::class, 'export']) ->name('export');
     });
 
+    // Announcements / Notice ticker
+    Route::prefix('announcements')->name('announcements.')->group(function () {
+        Route::get('/',                  [AnnouncementController::class, 'index'])
+            ->middleware('permission:announcements.manage')->name('index');
+        Route::post('/',                 [AnnouncementController::class, 'store'])
+            ->middleware('permission:announcements.manage')->name('store');
+        Route::delete('{announcement}',  [AnnouncementController::class, 'destroy'])
+            ->middleware('permission:announcements.manage')->name('destroy');
+    });
+
     // Notifications
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/',          [NotificationController::class, 'index'])         ->name('index');
@@ -381,7 +395,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::get('/me',        [AttendanceController::class, 'myAttendance'])
             ->name('me'); // any authenticated user with an employee record
         Route::post('/clock',    [AttendanceController::class, 'clockSelf'])
-            ->middleware('permission:attendance.clock_self')->name('clock');
+            ->middleware(['permission:attendance.clock_self', 'throttle:10,1'])->name('clock');
         Route::post('/manual',   [AttendanceController::class, 'manualEntry'])
             ->middleware('permission:attendance.manage')->name('manual');
 
@@ -464,6 +478,16 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::post('{pip}/close',       [PipController::class, 'close'])
                 ->middleware(['permission:performance.pip_manage', '2fa:fresh'])->name('close');
         });
+    });
+
+    // ── Phase 3: Disbursements (MoMo + GhIPSS) ──
+    Route::prefix('disbursements')->name('disbursements.')->group(function () {
+        Route::get('/',                          [DisbursementController::class, 'index'])
+            ->middleware('permission:payroll.view_all')->name('index');
+        Route::post('runs/{run}/dispatch',       [DisbursementController::class, 'dispatchRun'])
+            ->middleware(['permission:payroll.disburse', '2fa:fresh'])->name('dispatch');
+        Route::post('runs/{run}/reconcile',      [DisbursementController::class, 'reconcile'])
+            ->middleware('permission:payroll.disburse')->name('reconcile');
     });
 
     // ── Phase 2: Auditor-General Report Pack ──
