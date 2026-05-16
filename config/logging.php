@@ -123,6 +123,18 @@ return [
             'handler' => NullHandler::class,
         ],
 
+        /*
+         * Sentry channel — activates when SENTRY_LARAVEL_DSN is set AND
+         * sentry/sentry-laravel is installed via composer. Without either,
+         * Laravel logs a warning and falls back to the stack channel; no
+         * runtime failure. Install with: composer require sentry/sentry-laravel
+         */
+        'sentry' => [
+            'driver' => 'sentry',
+            'level'  => env('LOG_LEVEL', 'error'),
+            'bubble' => true,
+        ],
+
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
