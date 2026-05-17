@@ -2,54 +2,91 @@
 
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Api\v1\AttendanceController as AttendanceApiController;
 use App\Http\Controllers\Api\v1\EmployeesApiController;
+use App\Http\Controllers\Api\v1\HealthController as HealthApiController;
+use App\Http\Controllers\Api\v1\MeController as MeApiController;
+use App\Http\Controllers\Api\v1\OpenApiController as OpenApiSpecController;
 use App\Http\Controllers\Api\v1\PayrollApiController;
+use App\Http\Controllers\Api\v1\PayrollController as PayrollV1Controller;
 use App\Http\Controllers\Api\v1\WebhookSubscriptionController;
 use App\Http\Controllers\OpenApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Public OpenAPI 3.0 spec — useful for SDK generation and discovery tools.
-Route::get('/v1/openapi.yaml', [OpenApiController::class, 'show'])->name('api.v1.openapi');
+/*
+|--------------------------------------------------------------------------
+| Public-facing OpenAPI spec (no auth) — partners and SDK generators
+| can discover the API surface before exchanging credentials.
+|--------------------------------------------------------------------------
+*/
+Route::get('/v1/openapi.yaml', [OpenApiSpecController::class, 'yaml'])->name('api.v1.openapi.yaml');
+Route::get('/v1/openapi.json', [OpenApiSpecController::class, 'json'])->name('api.v1.openapi.json');
+
+// Health probe — no auth, no rate limit beyond throttle
+Route::get('/v1/health', [HealthApiController::class, 'index'])
+    ->middleware('throttle:60,1')
+    ->name('api.v1.health');
+
+// Legacy /v1/openapi.yaml backed by the older Web-facing OpenApiController too,
+// retained so partners using the previous URL don't break.
+Route::get('/v1/openapi-legacy', [OpenApiController::class, 'show'])
+    ->name('api.v1.openapi.legacy');
 
 /*
 |--------------------------------------------------------------------------
-| CIHRMS Public API · v1
+| CIHRMS Public API · v1 (authenticated, scoped)
 |--------------------------------------------------------------------------
-| Sanctum-authenticated. AuditTrail middleware ensures every external API
-| call shows in audit_logs alongside web traffic. OpenAPI 3.0 spec lives
-| at storage/api/openapi.yaml.
+| All endpoints require Sanctum auth + the appropriate ability (scope).
+| AuditTrail middleware ensures every external call shows in audit_logs.
+| Per-route `api.scope:<ability>` enforces token scopes via the sidecar
+| metadata table (revoked / expired / IP-allowlist checks).
 */
 
-Route::middleware(['auth:sanctum', 'audit'])->prefix('v1')->name('api.v1.')->group(function () {
+Route::middleware(['auth:sanctum', 'audit', 'throttle:api'])
+    ->prefix('v1')->name('api.v1.')->group(function () {
 
-    Route::get('/me', function (Request $request) {
-        $user = $request->user();
-        return response()->json(['data' => [
-            'id'          => $user->id,
-            'name'        => $user->name,
-            'email'       => $user->email,
-            'staff_id'    => $user->staff_id,
-            'role'        => $user->role?->value ?? $user->role,
-            'permissions' => $user->allPermissions(),
-        ]]);
-    })->name('me');
+        // Token introspection — every authenticated token can hit this
+        Route::get('/me', [MeApiController::class, 'show'])->name('me');
 
-    Route::get('/employees',                              [EmployeesApiController::class, 'index'])->name('employees.index');
-    Route::get('/employees/{employee}',                   [EmployeesApiController::class, 'show'])->name('employees.show');
+        // Employees
+        Route::middleware('api.scope:employees:read')->group(function () {
+            Route::get('/employees',           [EmployeesApiController::class, 'index'])->name('employees.index');
+            Route::get('/employees/{employee}',[EmployeesApiController::class, 'show'])->name('employees.show');
+        });
 
-    Route::get('/payroll/runs',                           [PayrollApiController::class, 'index'])->name('payroll.index');
-    Route::get('/payroll/runs/{run}',                     [PayrollApiController::class, 'show'])->name('payroll.show');
+        // Payroll
+        Route::middleware('api.scope:payroll:read')->group(function () {
+            Route::get('/payroll/runs',                [PayrollApiController::class, 'index'])->name('payroll.index');
+            Route::get('/payroll/runs/{run}',          [PayrollApiController::class, 'show'])->name('payroll.show');
+            Route::get('/payroll/runs/{run}/returns',  [PayrollV1Controller::class, 'returns'])->name('payroll.returns');
+        });
 
-    Route::get('/webhook-subscriptions',                  [WebhookSubscriptionController::class, 'index'])->name('webhooks.index');
-    Route::post('/webhook-subscriptions',                 [WebhookSubscriptionController::class, 'store'])->name('webhooks.store');
-    Route::delete('/webhook-subscriptions/{subscription}', [WebhookSubscriptionController::class, 'destroy'])->name('webhooks.destroy');
+        // Statutory returns (separately scoped — these contain GRA/SSNIT/Tier-2 files)
+        Route::middleware('api.scope:statutory:export')->group(function () {
+            Route::get('/payroll/runs/{run}/returns/{return}/download',
+                [PayrollV1Controller::class, 'downloadReturn'])
+                ->name('payroll.returns.download');
+        });
 
-    Route::post('/analytics-events',                      [AnalyticsController::class, 'store'])->name('analytics-events.store');
-    Route::post('/ai/employee-summary',                   [AiAssistantController::class, 'summary'])->name('ai.employee-summary');
-});
+        // Attendance
+        Route::middleware('api.scope:attendance:read')->group(function () {
+            Route::get('/attendance/summaries', [AttendanceApiController::class, 'index'])->name('attendance.summaries');
+        });
 
-// Legacy un-prefixed
+        // Webhook subscriptions (only tokens with webhooks:manage)
+        Route::middleware('api.scope:webhooks:manage')->group(function () {
+            Route::get('/webhook-subscriptions',                  [WebhookSubscriptionController::class, 'index'])->name('webhooks.index');
+            Route::post('/webhook-subscriptions',                 [WebhookSubscriptionController::class, 'store'])->name('webhooks.store');
+            Route::delete('/webhook-subscriptions/{subscription}',[WebhookSubscriptionController::class, 'destroy'])->name('webhooks.destroy');
+        });
+
+        // First-party analytics ingestion (legacy SPA route)
+        Route::post('/analytics-events',     [AnalyticsController::class, 'store'])->name('analytics-events.store');
+        Route::post('/ai/employee-summary',  [AiAssistantController::class, 'summary'])->name('ai.employee-summary');
+    });
+
+// Legacy un-prefixed for back-compat with first-party SPA
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/analytics-events',     [AnalyticsController::class, 'store']);
     Route::post('/ai/employee-summary',  [AiAssistantController::class, 'summary']);

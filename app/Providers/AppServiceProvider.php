@@ -112,6 +112,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Privacy\ErasureService::class);
         $this->app->singleton(\App\Services\Privacy\DataSubjectRequestService::class);
 
+        // Phase 3 — Public API v1 + webhooks
+        $this->app->singleton(\App\Services\Api\WebhookDispatcher::class);
+
         // Phase 3 — Webhook dispatcher (WS14)
         $this->app->singleton(\App\Services\Webhooks\WebhookDispatcher::class);
 
@@ -138,8 +141,26 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        // Strict mode catches lazy loading, mass assignment, and missing attributes in development
-        Model::shouldBeStrict(! $this->app->isProduction());
+        // ── API rate-limiter (referenced by throttle:api on /api/v1/* routes) ──
+        // 60/min per token (auth'd) or per IP (anonymous) — generous for HRMS
+        // partner traffic but low enough to flag a misbehaving integration.
+        \Illuminate\Support\Facades\RateLimiter::for('api', function ($request) {
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(60)
+                    ->by($request->user()?->id ?: $request->ip()),
+            ];
+        });
+
+        // Strict mode — opt in selectively. We keep:
+        //   • preventLazyLoading             — catches N+1 in dev
+        //   • preventSilentlyDiscardingAttributes — catches typos in fillable
+        // but DO NOT enable preventAccessingMissingAttributes, because
+        // middleware (LocaleResolver, ForcePasswordChange, …) routinely
+        // reads optional User columns that aren't always present on factory
+        // or partially-hydrated instances — strict mode would 500 those flows.
+        $strict = ! $this->app->isProduction();
+        Model::preventLazyLoading($strict);
+        Model::preventSilentlyDiscardingAttributes($strict);
 
         // ── Authorization policies (M11 RBAC + Phase 1) ──
         Gate::policy(Employee::class,              EmployeePolicy::class);

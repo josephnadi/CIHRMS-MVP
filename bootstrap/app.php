@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            \App\Http\Middleware\SetUserLocale::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\ForcePasswordChange::class,
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'audit'             => \App\Http\Middleware\AuditTrail::class,
             'webhook.signature' => \App\Http\Middleware\VerifyWebhookSignature::class,
             '2fa'               => \App\Http\Middleware\RequireTwoFactor::class,
+            'api.scope'         => \App\Http\Middleware\RequireApiScope::class,
         ]);
 
         $middleware->throttleApi('60,1');

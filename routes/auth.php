@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -21,6 +22,11 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    // ── SSO (Phase 4 / WS19): initiate + callback ──
+    Route::get('auth/sso/{slug}',          [SsoController::class, 'initiate'])->name('sso.initiate');
+    Route::get('auth/sso/{slug}/callback', [SsoController::class, 'callback'])->name('sso.callback');
+    Route::post('auth/sso/{slug}/callback',[SsoController::class, 'callback'])->name('sso.callback.post');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

@@ -22,13 +22,15 @@ class VerifyWebhookSignature
     public function handle(Request $request, Closure $next, string $provider): Response
     {
         $verified = match ($provider) {
-            'whatsapp'  => $this->verifyWhatsApp($request),
-            'zoho'      => $this->verifyZoho($request),
-            'ms_graph'  => $this->verifyMsGraph($request),
-            'google'    => $this->verifyGoogle($request),
-            'slack'     => $this->verifySlack($request),
-            'biometric' => $this->verifyBiometric($request),
-            default     => false,
+            'whatsapp'    => $this->verifyWhatsApp($request),
+            'zoho'        => $this->verifyZoho($request),
+            'ms_graph'    => $this->verifyMsGraph($request),
+            'google'      => $this->verifyGoogle($request),
+            'slack'       => $this->verifySlack($request),
+            'biometric'   => $this->verifyBiometric($request),
+            'hubtel_sms'  => $this->verifyHubtelSms($request),
+            'hubtel_ussd' => $this->verifyHubtelUssd($request),
+            default       => false,
         };
 
         if (! $verified) {
@@ -163,6 +165,44 @@ class VerifyWebhookSignature
         $base     = "{$timestamp}.{$request->getContent()}";
         $expected = 'sha256='.hash_hmac('sha256', $base, $secret);
 
+        return hash_equals($expected, $signature);
+    }
+
+    /**
+     * Hubtel SMS delivery-receipt + inbound-message webhooks.
+     * Hubtel posts with `X-Hubtel-Signature: sha256=<hex>` over the raw body
+     * using the shared secret configured at integration registration.
+     */
+    protected function verifyHubtelSms(Request $request): bool
+    {
+        return $this->verifyHmacSignature(
+            $request,
+            header:    'X-Hubtel-Signature',
+            secretKey: 'messaging.sms.hubtel.webhook_secret',
+        );
+    }
+
+    /** Hubtel USSD shares the same scheme on a separate secret. */
+    protected function verifyHubtelUssd(Request $request): bool
+    {
+        return $this->verifyHmacSignature(
+            $request,
+            header:    'X-Hubtel-Signature',
+            secretKey: 'messaging.ussd.webhook_secret',
+        );
+    }
+
+    /**
+     * Shared HMAC-SHA256 verifier for providers that use the
+     * `<algo>=<hex>` Webhook-Signature pattern over the raw body.
+     */
+    protected function verifyHmacSignature(Request $request, string $header, string $secretKey): bool
+    {
+        $signature = (string) $request->header($header);
+        $secret    = (string) config($secretKey);
+        if ($signature === '' || $secret === '') return false;
+
+        $expected = 'sha256=' . hash_hmac('sha256', $request->getContent(), $secret);
         return hash_equals($expected, $signature);
     }
 

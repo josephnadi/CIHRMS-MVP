@@ -30,6 +30,10 @@ use App\Http\Controllers\WhistleblowerPublicController;
 use App\Http\Controllers\WhistleblowerAdminController;
 use App\Http\Controllers\AuditorGeneralReportController;
 use App\Http\Controllers\DisbursementController;
+use App\Http\Controllers\ApiDocsController;
+use App\Http\Controllers\ApiTokenController;
+use App\Http\Controllers\WebhookSubscriptionController as WebhooksController;
+use App\Http\Controllers\MessagingController;
 use App\Http\Controllers\PerformanceContractController;
 use App\Http\Controllers\CalibrationController;
 use App\Http\Controllers\PipController;
@@ -52,6 +56,13 @@ Route::get('/', function () {
         'phpVersion'     => PHP_VERSION,
     ]);
 });
+
+// Public API documentation (Stoplight Elements rendered from /api/v1/openapi.yaml)
+Route::get('/api/docs', [ApiDocsController::class, 'show'])->name('api.docs');
+
+// PWA offline fallback (WS21) — served from a plain Blade view so it loads
+// without Inertia / Vite / authenticated state.
+Route::view('/offline', 'offline')->name('pwa.offline');
 
 // Public careers portal (unauthenticated)
 Route::get('/careers/{job}',        [RecruitmentController::class, 'showPublic'])->name('careers.show');
@@ -97,11 +108,25 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/biometric', [BiometricWebhookController::class, 'handle'])
         ->middleware('webhook.signature:biometric')
         ->name('biometric');
+
+    // SMS provider callbacks (delivery receipts + inbound messages)
+    Route::post('/sms', [\App\Http\Controllers\Webhooks\SmsWebhookController::class, 'handle'])
+        ->middleware('webhook.signature:hubtel_sms')
+        ->name('sms');
+
+    // USSD callback — provider POSTs each menu step here
+    Route::post('/ussd', [\App\Http\Controllers\Webhooks\UssdWebhookController::class, 'handle'])
+        ->middleware('webhook.signature:hubtel_ussd')
+        ->name('ussd');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+// Public complaint tracking endpoint — lookup-by-reference, no auth required.
+Route::get('/complaints/track', [ComplaintController::class, 'track'])
+    ->name('complaints.track');
 
 // ── Module entry points (sidebar links) ─────────────────────────────────────
 // Most route directly to a dedicated page; a few that don't have one yet fall
@@ -134,6 +159,9 @@ Route::middleware(['auth', 'verified'])->prefix('departments')->name('department
 });
 
 Route::middleware(['auth', 'audit'])->group(function () {
+    // Locale preference (Phase 4 / WS20). Any authenticated user can set their own.
+    Route::post('/locale', [\App\Http\Controllers\LocaleController::class, 'update'])->name('locale.update');
+
     // Profile / Employee Portal
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/',                    [ProfileController::class, 'edit'])           ->name('edit');
@@ -153,6 +181,12 @@ Route::middleware(['auth', 'audit'])->group(function () {
     Route::post('/departments', [EmployeeController::class, 'storeDepartment'])
         ->middleware('permission:employees.manage')
         ->name('departments.store');
+    Route::patch('/departments/{department}', [EmployeeController::class, 'updateDepartment'])
+        ->middleware('permission:employees.manage')
+        ->name('departments.update');
+    Route::delete('/departments/{department}', [EmployeeController::class, 'destroyDepartment'])
+        ->middleware('permission:employees.manage')
+        ->name('departments.destroy');
 
     // Employees
     Route::prefix('employees')->name('employees.')->group(function () {
@@ -189,6 +223,9 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::patch('{leaveRequest}',     [LeaveRequestController::class, 'updateStatus'])
             ->middleware('permission:leave.approve')
             ->name('update');
+        Route::delete('{leaveRequest}',    [LeaveRequestController::class, 'destroy'])
+            ->middleware('permission:leave.request')
+            ->name('destroy');
     });
 
     // Tickets
@@ -210,7 +247,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->name('destroy');
     });
 
-    // Complaints
+    // Complaints (authenticated routes only — public tracking endpoint lives outside this group)
     Route::prefix('complaints')->name('complaints.')->group(function () {
         Route::get('/',                    [ComplaintController::class, 'index'])
             ->middleware('permission:complaints.manage')
@@ -218,8 +255,6 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::post('/',                   [ComplaintController::class, 'store'])
             ->middleware('permission:complaints.create')
             ->name('store');
-        Route::get('/track',               [ComplaintController::class, 'track'])
-            ->name('track');
         Route::patch('{complaint}',        [ComplaintController::class, 'updateStatus'])
             ->middleware('permission:complaints.manage')
             ->name('updateStatus');
@@ -262,6 +297,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::post('/reviews',                    [PerformanceController::class, 'storeReview'])       ->name('reviews.store');
         Route::patch('/reviews/{review}/submit',   [PerformanceController::class, 'submitReview'])      ->name('reviews.submit');
         Route::patch('/reviews/{review}/ack',      [PerformanceController::class, 'acknowledgeReview']) ->name('reviews.acknowledge');
+        // Short alias — preserved for tests + older client-side route() helpers
+        Route::patch('/reviews/{review}/acknowledge', [PerformanceController::class, 'acknowledgeReview'])->name('reviews.ack');
 
         // Cycles (HR-managed)
         Route::post('/cycles',                     [PerformanceController::class, 'storeCycle'])
@@ -330,6 +367,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:announcements.manage')->name('index');
         Route::post('/',                 [AnnouncementController::class, 'store'])
             ->middleware('permission:announcements.manage')->name('store');
+        Route::patch('{announcement}',   [AnnouncementController::class, 'update'])
+            ->middleware('permission:announcements.manage')->name('update');
         Route::delete('{announcement}',  [AnnouncementController::class, 'destroy'])
             ->middleware('permission:announcements.manage')->name('destroy');
     });
@@ -432,6 +471,13 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware(['permission:loans.disburse', '2fa:fresh'])->name('disburse');
         Route::post('preview',            [LoanAccountController::class, 'preview'])
             ->middleware('permission:loans.apply')->name('preview');
+
+        // Loan product catalogue (HR / Finance with loans.product_manage)
+        Route::prefix('products')->name('products.')->middleware('permission:loans.product_manage')->group(function () {
+            Route::post('/',           [LoanAccountController::class, 'storeProduct'])->name('store');
+            Route::patch('{product}',  [LoanAccountController::class, 'updateProduct'])->name('update');
+            Route::delete('{product}', [LoanAccountController::class, 'destroyProduct'])->name('destroy');
+        });
     });
 
     // ── Phase 2: Performance Management — Contracts / Calibration / PIPs ──
@@ -445,6 +491,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
                 ->middleware('permission:performance.view')->name('show');
             Route::post('{contract}/send',     [PerformanceContractController::class, 'send'])
                 ->middleware('permission:performance.manage')->name('send');
+            Route::post('{contract}/revoke',   [PerformanceContractController::class, 'revoke'])
+                ->middleware('permission:performance.manage')->name('revoke');
             Route::post('{contract}/sign',     [PerformanceContractController::class, 'sign'])->name('sign');
             Route::post('{contract}/evaluate', [PerformanceContractController::class, 'evaluate'])
                 ->middleware(['permission:performance.manage', '2fa:fresh'])->name('evaluate');
@@ -463,6 +511,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
                 ->middleware('permission:performance.calibrate')->name('lock');
             Route::post('{session}/apply',   [CalibrationController::class, 'apply'])
                 ->middleware(['permission:performance.calibrate_apply', '2fa:fresh'])->name('apply');
+            Route::post('{session}/reopen',  [CalibrationController::class, 'reopen'])
+                ->middleware('permission:performance.calibrate')->name('reopen');
         });
 
         Route::prefix('pips')->name('pips.')->group(function () {
@@ -508,6 +558,29 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware(['permission:payroll.disburse', '2fa:fresh'])->name('dispatch');
         Route::post('runs/{run}/reconcile',      [DisbursementController::class, 'reconcile'])
             ->middleware('permission:payroll.disburse')->name('reconcile');
+    });
+
+    // ── Phase 3: SMS / USSD message log (WS18) ──
+    Route::prefix('admin/messaging')->name('messaging.')->group(function () {
+        Route::get('/',           [MessagingController::class, 'index'])
+            ->middleware('permission:messaging.view')->name('index');
+        Route::post('/send',      [MessagingController::class, 'send'])
+            ->middleware('permission:messaging.send')->name('send');
+        Route::post('/pins',      [MessagingController::class, 'issuePin'])
+            ->middleware(['permission:messaging.manage', '2fa:fresh'])->name('pins.issue');
+    });
+
+    // ── Phase 3: API token + webhook admin (WS16) ──
+    Route::prefix('admin/api-tokens')->name('api-tokens.')->middleware('permission:api.token_manage')->group(function () {
+        Route::get('/',           [ApiTokenController::class, 'index'])  ->name('index');
+        Route::post('/',          [ApiTokenController::class, 'store'])  ->name('store');
+        Route::delete('{token}',  [ApiTokenController::class, 'destroy'])->name('destroy');
+    });
+    Route::prefix('admin/webhooks')->name('webhooks.')->middleware('permission:api.webhooks_manage')->group(function () {
+        Route::get('/',                  [WebhooksController::class, 'index'])  ->name('index');
+        Route::post('/',                 [WebhooksController::class, 'store'])  ->name('store');
+        Route::patch('{subscription}',   [WebhooksController::class, 'update']) ->name('update');
+        Route::delete('{subscription}',  [WebhooksController::class, 'destroy'])->name('destroy');
     });
 
     // ── Phase 2: Auditor-General Report Pack ──
@@ -668,6 +741,27 @@ Route::middleware(['auth', 'audit'])->group(function () {
     Route::get('/admin/integrations/{provider}/callback', [IntegrationController::class, 'callback'])
         ->middleware('permission:integrations.manage')
         ->name('admin.integrations.callback');
+});
+
+// ── Phase 4: SSO (WS19) ──
+// SSO initiate / callback are public — they replace the password login flow.
+Route::prefix('auth/sso')->name('sso.')->middleware('throttle:30,1')->group(function () {
+    Route::get('{slug}',           [\App\Http\Controllers\Auth\SsoController::class, 'initiate'])->name('initiate');
+    Route::match(['get', 'post'], '{slug}/callback', [\App\Http\Controllers\Auth\SsoController::class, 'callback'])->name('callback');
+});
+
+// SSO provider admin (authenticated, audit-trailed)
+Route::middleware(['auth', 'audit'])->group(function () {
+    Route::prefix('admin/sso/providers')->name('sso-admin.')->group(function () {
+        Route::get('/',          [\App\Http\Controllers\Admin\SsoProviderController::class, 'index'])
+            ->middleware('permission:sso.manage')->name('index');
+        Route::post('/',         [\App\Http\Controllers\Admin\SsoProviderController::class, 'store'])
+            ->middleware(['permission:sso.manage', '2fa:fresh'])->name('store');
+        Route::patch('{provider}', [\App\Http\Controllers\Admin\SsoProviderController::class, 'update'])
+            ->middleware(['permission:sso.manage', '2fa:fresh'])->name('update');
+        Route::delete('{provider}',[\App\Http\Controllers\Admin\SsoProviderController::class, 'destroy'])
+            ->middleware(['permission:sso.manage', '2fa:fresh'])->name('destroy');
+    });
 });
 
 require __DIR__.'/auth.php';
