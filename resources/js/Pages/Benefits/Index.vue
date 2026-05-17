@@ -157,23 +157,6 @@ const submitClaim = () => claimForm.post(route('benefits.claims.store'), {
 // ── Helpers ──
 const fmtGhs = (n) => `GHS ${Number(n ?? 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-
-// ── Editorial Sovereign masthead label ──
-const editionLabel = computed(() => {
-    const d   = new Date();
-    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
-    const vol = d.getFullYear() - 2023;
-    const roman = (n) => {
-        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
-        let s = '';
-        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
-        return s;
-    };
-    return {
-        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-        edition: `Vol. ${roman(vol)} · No. ${day}`,
-    };
-});
 </script>
 
 <template>

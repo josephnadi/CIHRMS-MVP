@@ -161,26 +161,6 @@ const stats = computed(() => ({
     departments: props.employees?.meta?.departments_count ?? props.departments?.length ?? 0,
 }));
 
-// ── Editorial-Sovereign masthead label ───────────────────────────
-// Mirrors Dashboard.vue: long-form date + Vol. (Roman, years since 2023
-// platform inception) + No. (day-of-year). Recomputed on render — the
-// roster page does not need a live ticker, but the format stays consistent.
-const editionLabel = computed(() => {
-    const d   = new Date();
-    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
-    const vol = d.getFullYear() - 2023;
-    const roman = (n) => {
-        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
-        let s = '';
-        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
-        return s;
-    };
-    return {
-        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-        edition: `Vol. ${roman(vol)} · No. ${day}`,
-    };
-});
-
 // Avatar gradients — disciplined cool family aligned with "Sovereign Precision".
 // People module = navy/cobalt dominant + one magenta variant (5% accent for people)
 // and one cyan variant (tech/young). No warm reds or ambers — they pollute the
@@ -214,93 +194,41 @@ const formatDate = (d) => {
     <Head title="Employees" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header slot · Editorial Sovereign masthead ─────────────── -->
+        <!-- ── Header slot · executive header ─────────────── -->
         <template #header>
-            <div class="space-y-6">
-                <!-- Masthead strip -->
-                <div class="es-masthead">
-                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">WORKFORCE ROSTER</span></span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.date }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.edition }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span class="es-masthead-live">
-                        <span class="es-dot" aria-hidden="true"></span>
-                        Live · updated
-                    </span>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">badge</span>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">WORKFORCE REGISTER</p>
+                    </div>
+                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Employee Directory</h1>
+                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">Every name on record — positions, postings, and employment standing across the institute.</p>
                 </div>
 
-                <!-- Broadsheet hero -->
-                <div class="es-broadsheet rounded-none">
-                    <!-- LEAD column -->
-                    <div class="es-broadsheet-lead">
-                        <p class="es-eyebrow mb-6">Personnel · Establishment register</p>
-                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                            The active
-                            <span class="es-display-italic">roster.</span>
-                        </h2>
-                        <p class="es-display-sub">
-                            Every name on record — positions, postings, and employment standing across the institute.
-                            Filter, audit, and amend the establishment from this directory.
-                        </p>
-
-                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                            <button @click="showAddPanel = true" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">person_add</span>
-                                Add Employee
-                            </button>
-                            <span class="text-on-surface-variant/30">·</span>
-                            <button @click="showDeptPanel = true" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
-                                Add Department
-                            </button>
-                            <span class="text-on-surface-variant/30">·</span>
-                            <button @click="router.visit(route('departments.index'))" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">account_tree</span>
-                                Departments
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- SIDEBAR column · feature KPI -->
-                    <div class="es-broadsheet-sidebar">
-                        <div class="es-stat-hero">
-                            <p class="es-stat-hero-label">Workforce on record</p>
-                            <p class="es-stat-hero-value">{{ stats.total.toLocaleString() }}</p>
-                            <p class="es-stat-hero-caption">
-                                Across {{ stats.departments }} department{{ stats.departments === 1 ? '' : 's' }} · {{ stats.active.toLocaleString() }} active
-                            </p>
-                            <span class="es-stat-hero-delta">
-                                <span class="material-symbols-outlined text-[13px]">badge</span>
-                                Establishment of the Institute
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Supporting metrics strip -->
-                <div class="es-stat-strip rounded-none">
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Total</p>
-                        <p class="es-stat-cell-value">{{ stats.total.toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Names on the register</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Active</p>
-                        <p class="es-stat-cell-value">{{ stats.active.toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Currently in post</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">On Leave</p>
-                        <p class="es-stat-cell-value">{{ stats.onLeave.toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Sanctioned absence</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Departments</p>
-                        <p class="es-stat-cell-value">{{ stats.departments.toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Organisational units</p>
-                    </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        @click="showAddPanel = true"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
+                    >
+                        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">person_add</span>
+                        Add Employee
+                    </button>
+                    <button
+                        @click="showDeptPanel = true"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[13px] font-semibold text-on-surface hover:bg-surface-container transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[16px]">corporate_fare</span>
+                        Add Department
+                    </button>
+                    <button
+                        @click="router.visit(route('departments.index'))"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[13px] font-semibold text-on-surface hover:bg-surface-container transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[16px]">account_tree</span>
+                        Departments
+                    </button>
                 </div>
             </div>
         </template>

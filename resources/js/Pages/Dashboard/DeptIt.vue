@@ -1,107 +1,44 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import Sparkline from '@/Components/charts/Sparkline.vue';
 
 const props = defineProps({
     spark:   { type: Object,  required: true },   // deptSparkData.it slice
     tickets: { type: Array,   default: () => [] },
 });
 
-const editionDate = computed(() => new Date().toLocaleDateString('en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-}));
-const serversOnline = computed(() => Math.round(props.spark.servers[props.spark.servers.length - 1]));
-const openTicketsNow = computed(() => Math.round(props.spark.tickets[props.spark.tickets.length - 1]));
-const securityAlertsNow = computed(() => Math.round(props.spark.alerts[props.spark.alerts.length - 1]));
 const uptimePct = computed(() => props.spark.uptime[props.spark.uptime.length - 1].toFixed(2));
 </script>
 
 <template>
     <div class="space-y-8 animate-reveal-up">
 
-        <!-- ─── Masthead strip ────────────────────────────────────── -->
-        <div class="es-masthead">
-            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">IT GOVERNANCE EDITION</span></span>
-            <span class="es-masthead-spacer"></span>
-            <span>{{ editionDate }}</span>
-            <span class="es-masthead-spacer"></span>
-            <span>Bulletin · Infrastructure Desk</span>
-            <span class="es-masthead-spacer"></span>
-            <span class="es-masthead-live">
-                <span class="es-dot" aria-hidden="true"></span>
-                Live · {{ uptimePct }}% SLA
-            </span>
-        </div>
-
-        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
-        <div class="es-broadsheet rounded-none">
-            <!-- LEAD column -->
-            <div class="es-broadsheet-lead">
-                <p class="es-eyebrow mb-6">From the IT &amp; Technology desk</p>
-                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                    Systems holding the line.
-                    <span class="es-display-italic block">All green, all clear.</span>
-                </h2>
-                <p class="es-display-sub">
-                    A standing watch on infrastructure, service-desk velocity, and the security perimeter —
-                    every host, queue, and gateway accounted for as of this morning's roll-call.
+        <!-- ─── Executive header ──────────────────────────────────── -->
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">dns</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">IT GOVERNANCE</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Infrastructure &amp; Service Desk</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Standing watch on infrastructure, service-desk velocity, and the security perimeter.
                 </p>
-
-                <!-- Quick-action chips — typographic, not gradient buttons -->
-                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                    <button @click="router.visit(route('tickets.index', { new: 1 }))" class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">bug_report</span>
-                        New Ticket
-                    </button>
-                    <span class="text-on-surface-variant/30">·</span>
-                    <button @click="router.visit(route('tickets.index'))" class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">list_alt</span>
-                        Service Desk
-                    </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1.5 rounded-full bg-green-50 border border-green-100 px-3 py-1.5">
+                    <span class="h-2 w-2 rounded-full bg-green-400 live-dot"></span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-green-700">Live · {{ uptimePct }}% SLA</span>
                 </div>
-            </div>
-
-            <!-- SIDEBAR column: feature KPI as magazine drop-cap stat -->
-            <div class="es-broadsheet-sidebar">
-                <div class="es-stat-hero">
-                    <p class="es-stat-hero-label">Uptime SLA</p>
-                    <p class="es-stat-hero-value">{{ uptimePct }}<span style="font-size:0.45em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                    <p class="es-stat-hero-caption">
-                        Rolling 30-day availability · target 99.9%
-                    </p>
-                    <span class="es-stat-hero-delta">
-                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
-                        Within tolerance · sparkline below
-                    </span>
-                    <div class="mt-4 -mx-1">
-                        <Sparkline :data="spark.uptime" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Uptime SLA" class="!block w-full"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── Supporting metrics strip ───────────────────────────── -->
-        <div class="es-stat-strip rounded-none">
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Servers Online</p>
-                <p class="es-stat-cell-value">{{ serversOnline }}<span style="font-size:0.5em;color:rgb(var(--ct-on-surface-variant)/0.5)"> / 24</span></p>
-                <p class="es-stat-cell-caption">Production fleet · live</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Open Tickets</p>
-                <p class="es-stat-cell-value">{{ openTicketsNow }}</p>
-                <p class="es-stat-cell-caption">Service desk in flight</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Security Alerts</p>
-                <p class="es-stat-cell-value">{{ securityAlertsNow }}</p>
-                <p class="es-stat-cell-caption">Low severity · monitored</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Team Strength</p>
-                <p class="es-stat-cell-value">42</p>
-                <p class="es-stat-cell-caption">Engineers on roster</p>
+                <button @click="router.visit(route('tickets.index', { new: 1 }))"
+                        class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)">
+                    <span class="material-symbols-outlined text-[15px]">add</span> New Ticket
+                </button>
+                <button @click="router.visit(route('tickets.index'))"
+                        class="flex items-center gap-1.5 rounded-xl border border-outline-variant px-4 py-2 text-[12px] font-bold text-primary hover:bg-surface-container-low transition-colors">
+                    <span class="material-symbols-outlined text-[15px]">list_alt</span> Service Desk
+                </button>
             </div>
         </div>
 
