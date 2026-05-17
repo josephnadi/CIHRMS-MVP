@@ -140,21 +140,25 @@ const buckets = computed(() => {
     const inv   = ['high_medium', 'high_low', 'medium_medium'];
     const risk  = ['low_low', 'medium_low', 'low_medium'];
     const sum   = (keys) => cells.value.filter(c => keys.includes(c.key)).reduce((s, c) => s + c.count, 0);
+    // High Performers gets the 5% gold — the institutional "star talent"
+    // bucket is the most valuable surface on the matrix. Growth Pool stays
+    // cobalt (action), Needs Attention stays red (alarm semantic).
     return [
-        { label: 'High Performers',  count: sum(star), rgb: '5,150,105',   icon: 'star',     description: 'Retain, develop, reward.' },
-        { label: 'Growth Pool',      count: sum(inv),  rgb: '32,82,149',    icon: 'trending_up', description: 'Invest in stretch and coaching.' },
-        { label: 'Needs Attention',  count: sum(risk), rgb: '220,38,38',   icon: 'warning',  description: 'Address with targeted plans.' },
+        { label: 'High Performers',  count: sum(star), rgb: '255,215,0',  icon: 'star',        description: 'Retain, develop, reward.' },
+        { label: 'Growth Pool',      count: sum(inv),  rgb: '32,82,149',  icon: 'trending_up', description: 'Invest in stretch and coaching.' },
+        { label: 'Needs Attention',  count: sum(risk), rgb: '220,38,38',  icon: 'warning',     description: 'Address with targeted plans.' },
     ];
 });
 
 // â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Avatar gradient pool — disciplined cool family
 const GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
     'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#7c5cbf,#a78bfa)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
@@ -188,18 +192,19 @@ const initials = (name) => {
                 <div class="flex items-center gap-2">
                     <Link
                         :href="route('performance.reviews.index')"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-2"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[18px]">rate_review</span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">rate_review</span>
                         Reviews
                     </Link>
-                    <!-- Calibration hint for HR -->
+                    <!-- Calibration hint for HR — magenta (people-management) -->
                     <Link
                         v-if="canManage && matrix?.cycle"
                         :href="route('performance.calibration.index')"
-                        class="rounded-xl border border-violet-400/50 bg-violet-500/8 px-4 py-2 text-[13px] font-semibold text-violet-600 hover:bg-violet-500/15 transition-colors flex items-center gap-2"
+                        class="flex items-center gap-2 rounded-xl border px-4 py-2.5 text-[13px] font-semibold transition-all hover:-translate-y-px"
+                        style="border-color:rgba(217,18,227,0.32);background:rgba(217,18,227,0.06);color:#a30db0"
                     >
-                        <span class="material-symbols-outlined text-[18px]">tune</span>
+                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">tune</span>
                         Calibration
                     </Link>
                     <select
@@ -227,10 +232,10 @@ const initials = (name) => {
                     <template #action>
                         <Link
                             :href="route('performance.reviews.index')"
-                            class="btn-shimmer inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            class="btn-shimmer inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
-                            <span class="material-symbols-outlined text-[18px]">add</span>
+                            <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">rate_review</span>
                             Go to Reviews
                         </Link>
                     </template>

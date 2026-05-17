@@ -117,8 +117,11 @@ const donutSegments = (data) => {
     });
 };
 
+// Disciplined donut palette — fixes a duplicate #205295 at index 2 (the
+// original list had cobalt twice). Sovereign Precision blue family + cyan
+// + magenta + semantic green/amber/red for outcome categories.
 const donutColor = (i) => {
-    const palette = ['#205295', '#2c74b3', '#205295', '#0891b2', '#059669', '#d97706', '#dc2626'];
+    const palette = ['#0a2647', '#205295', '#7cb6e8', '#0e8a93', '#d912e3', '#059669', '#d97706', '#dc2626'];
     return palette[i % palette.length];
 };
 
@@ -168,14 +171,15 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
 
         <div class="space-y-6">
 
-            <!-- â”€â”€ KPI strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- KPI strip — disciplined palette. Retention is the institutional
+                 health metric the page exists for, so it gets the 5% gold. -->
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                <StatCard :value="formatNum(kpis.active)"        label="Active Staff"     icon="badge"          color="#205295" />
-                <StatCard :value="formatNum(kpis.on_leave)"      label="On Leave"         icon="beach_access"   color="#d97706" />
-                <StatCard :value="formatNum(kpis.new_hires_90d)" label="New Hires (90d)"  icon="person_add"     color="#059669" />
-                <StatCard :value="formatNum(kpis.terminated_90d)"label="Terminated (90d)" icon="trending_down"  color="#dc2626" />
-                <StatCard :value="`${kpis.retention_pct ?? 0}%`" label="Retention"        icon="check_circle"   color="#205295" />
-                <StatCard :value="`${kpis.turnover_pct ?? 0}%`"  label="Turnover"         icon="rotate_right"   color="#0891b2" />
+                <StatCard :value="formatNum(kpis.active)"        label="Active Staff"     icon="badge"          color="navy" />
+                <StatCard :value="formatNum(kpis.on_leave)"      label="On Leave"         icon="beach_access"   color="cyan" />
+                <StatCard :value="formatNum(kpis.new_hires_90d)" label="New Hires (90d)"  icon="person_add"     color="green" />
+                <StatCard :value="formatNum(kpis.terminated_90d)"label="Terminated (90d)" icon="trending_down"  color="red" />
+                <StatCard :value="`${kpis.retention_pct ?? 0}%`" label="Retention"        icon="check_circle"   color="gold" />
+                <StatCard :value="`${kpis.turnover_pct ?? 0}%`"  label="Turnover"         icon="rotate_right"   color="magenta" />
             </div>
 
             <!-- â”€â”€ Row 1: Hires trend + Department efficiency â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
@@ -189,15 +193,15 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <p class="mt-0.5 text-[11px] text-on-surface-variant">New hires per month, trailing 12 months</p>
                         </div>
                         <div class="flex items-center gap-3 text-[10px] font-semibold">
-                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#205295,#2c74b3)"></span>Hires</span>
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0a2647,#205295)"></span>Hires</span>
                         </div>
                     </div>
 
                     <svg :viewBox="`0 0 ${w} ${h}`" preserveAspectRatio="xMidYMid meet" class="w-full h-[220px]">
                         <defs>
                             <linearGradient id="hiresFill" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#2c74b3" stop-opacity="0.35"/>
-                                <stop offset="100%" stop-color="#2c74b3" stop-opacity="0"/>
+                                <stop offset="0%" stop-color="#205295" stop-opacity="0.32"/>
+                                <stop offset="100%" stop-color="#205295" stop-opacity="0"/>
                             </linearGradient>
                         </defs>
 
@@ -232,7 +236,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <div class="h-2 w-full rounded-full bg-surface-container-low overflow-hidden">
                                 <div
                                     class="h-full rounded-full transition-all"
-                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#205295,#2c74b3);transition-duration:0.8s`"
+                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#0a2647,#205295);transition-duration:0.8s`"
                                 ></div>
                             </div>
                         </div>
@@ -358,28 +362,29 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                         <div
                             v-for="(emp, i) in a.topPerformers"
                             :key="emp.id"
-                            class="flex items-center gap-3 rounded-xl bg-surface-container-low/50 p-2.5"
+                            class="group flex items-center gap-3 rounded-xl bg-surface-container-low/50 p-2.5 hover:bg-secondary/[0.05] transition-colors"
                         >
-                            <div class="relative">
+                            <div class="relative flex-shrink-0">
                                 <div
-                                    class="flex h-9 w-9 items-center justify-center rounded-full text-[12px] font-black text-white flex-shrink-0"
-                                    :style="`background:linear-gradient(135deg,#205295,#2c74b3)`"
+                                    class="flex h-9 w-9 items-center justify-center rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm text-[12px] font-black text-white transition-transform group-hover:scale-105"
+                                    :style="`background:${['linear-gradient(135deg,#0a2647,#205295)','linear-gradient(135deg,#205295,#7cb6e8)','linear-gradient(135deg,#06192f,#0a2647)','linear-gradient(135deg,#0a2647,#205295,#d912e3)','linear-gradient(135deg,#205295,#12d9e3)'][i % 5]}`"
                                 >
                                     {{ emp.name?.charAt(0) ?? '?' }}
                                 </div>
+                                <!-- Top 3 rank dot: gold for #1 (5% accent), silver/bronze for #2/#3 -->
                                 <span
                                     v-if="i < 3"
-                                    class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-black text-white shadow-sm"
-                                    :style="`background:${['#f59e0b','#94a3b8','#a16207'][i]}`"
+                                    class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-black shadow-sm ring-2 ring-white dark:ring-surface-container-lowest"
+                                    :style="`background:${['#ffd700','#94a3b8','#b88a08'][i]};color:${i === 0 ? '#7a5400' : '#fff'}`"
                                 >{{ i + 1 }}</span>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="text-[12px] font-semibold text-on-surface truncate">{{ emp.name }}</p>
-                                <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.position ?? 'â€”' }}</p>
+                                <p class="text-[12px] font-bold text-on-surface truncate">{{ emp.name }}</p>
+                                <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.position ?? '—' }}</p>
                             </div>
                             <div class="text-right flex-shrink-0">
                                 <p class="text-[15px] font-black text-secondary tabular-nums">{{ emp.resolved }}</p>
-                                <p class="text-[9px] uppercase tracking-wider font-bold text-on-surface-variant/60">closed</p>
+                                <p class="text-[9px] uppercase tracking-[0.12em] font-black text-on-surface-variant/60">closed</p>
                             </div>
                         </div>
                     </div>
@@ -404,8 +409,8 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                     <svg :viewBox="`0 0 ${w} 180`" preserveAspectRatio="xMidYMid meet" class="w-full h-[180px]">
                         <defs>
                             <linearGradient id="ticketFill" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#dc2626" stop-opacity="0.25"/>
-                                <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+                                <stop offset="0%" stop-color="#0e8a93" stop-opacity="0.30"/>
+                                <stop offset="100%" stop-color="#0e8a93" stop-opacity="0"/>
                             </linearGradient>
                         </defs>
                         <g stroke="currentColor" class="text-outline-variant/40" stroke-dasharray="3 4">
@@ -442,7 +447,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                                         return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
                                     }).join(' ');
                                 })()"
-                                fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                fill="none" stroke="#0e8a93" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
                             />
                         </g>
 

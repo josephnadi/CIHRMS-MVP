@@ -56,11 +56,14 @@ const stats = computed(() => {
     };
 });
 
+// Hero cards — disciplined palette. Pending Acknowledgement swapped from
+// violet to magenta (people-side action color) to align with the broader
+// Sovereign Precision system.
 const heroCards = computed(() => [
-    { label: 'In Progress',           value: stats.value.draft,        icon: 'edit_note',  rgb: '32,82,149'   },
-    { label: 'Awaiting Feedback',     value: stats.value.submitted,    icon: 'hourglass_empty', rgb: '217,119,6' },
-    { label: 'Pending Acknowledgement', value: stats.value.submitted,  icon: 'mark_email_unread', rgb: '124,92,255' },
-    { label: 'Completed',             value: stats.value.acknowledged, icon: 'task_alt',   rgb: '5,150,105'  },
+    { label: 'In Progress',             value: stats.value.draft,        icon: 'edit_note',         rgb: '32,82,149'  },
+    { label: 'Awaiting Feedback',       value: stats.value.submitted,    icon: 'hourglass_empty',   rgb: '217,119,6'  },
+    { label: 'Pending Acknowledgement', value: stats.value.submitted,    icon: 'mark_email_unread', rgb: '217,18,227' },
+    { label: 'Completed',               value: stats.value.acknowledged, icon: 'task_alt',          rgb: '5,150,105'  },
 ]);
 
 // â”€â”€ Rating distribution for HR view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -148,11 +151,11 @@ const closeCycle = (cycle) => {
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TYPE_META = {
-    self:       { label: 'Self',        rgb: '32,82,149',   icon: 'person'           },
-    manager:    { label: 'Manager',     rgb: '32,82,149',   icon: 'manage_accounts'  },
-    peer:       { label: 'Peer',        rgb: '8,145,178',  icon: 'people'           },
-    skip_level: { label: 'Skip-level',  rgb: '217,119,6',  icon: 'supervisor_account' },
-    upward:     { label: 'Upward',      rgb: '5,150,105',  icon: 'arrow_upward'     },
+    self:       { label: 'Self',        rgb: '10,38,71',   icon: 'person'             },  // navy
+    manager:    { label: 'Manager',     rgb: '32,82,149',  icon: 'manage_accounts'    },  // cobalt
+    peer:       { label: 'Peer',        rgb: '18,217,227', icon: 'people'             },  // cyan (proper brand cyan)
+    skip_level: { label: 'Skip-level',  rgb: '217,119,6',  icon: 'supervisor_account' },  // amber
+    upward:     { label: 'Upward',      rgb: '5,150,105',  icon: 'arrow_upward'       },  // green
 };
 
 const STATUS_META = {
@@ -210,13 +213,14 @@ const initials = (name) => {
     return (p.length >= 2 ? p[0][0] + p[p.length - 1][0] : name.slice(0, 2)).toUpperCase();
 };
 
+// Avatar gradient pool — disciplined cool family (matches all other modules)
 const GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
     'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#7c5cbf,#a78bfa)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 </script>
@@ -267,7 +271,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         New Review
@@ -432,7 +436,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         <button
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             New Review
@@ -673,7 +677,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitReview" :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)">
+                        style="background:linear-gradient(135deg,#0a2647,#205295)">
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Draft
                     </button>
@@ -746,7 +750,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitCycle" :disabled="cycleForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)">
+                        style="background:linear-gradient(135deg,#0a2647,#205295)">
                         <span v-if="cycleForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Create Cycle
                     </button>

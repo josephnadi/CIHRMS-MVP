@@ -83,33 +83,35 @@ const stats = computed(() => {
 });
 
 // â”€â”€ Hero stat card config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Hero cards — disciplined palette. Avg Achievement is the institutional
+// performance metric the page exists for, so it gets the 5% gold accent.
 const heroCards = computed(() => [
     {
         label:   'Active Goals',
         value:   stats.value.active,
         icon:    'trending_up',
-        rgb:     '32,82,149',
+        rgb:     '32,82,149',     // cobalt (action)
         suffix:  '',
     },
     {
         label:   'At Risk',
         value:   stats.value.atRisk,
         icon:    'warning',
-        rgb:     '220,38,38',
+        rgb:     '220,38,38',     // red (alarm semantic)
         suffix:  '',
     },
     {
         label:   'Completed',
         value:   stats.value.completed,
         icon:    'check_circle',
-        rgb:     '5,150,105',
+        rgb:     '5,150,105',     // green (success semantic)
         suffix:  '',
     },
     {
         label:   'Avg Achievement',
         value:   stats.value.avgPct,
         icon:    'analytics',
-        rgb:     '124,92,255',
+        rgb:     '255,215,0',     // 5% gold — institutional achievement
         suffix:  '%',
     },
 ]);
@@ -244,13 +246,14 @@ const initials = (name) => {
     return (p.length >= 2 ? p[0][0] + p[p.length - 1][0] : name.slice(0, 2)).toUpperCase();
 };
 
+// Avatar gradient pool — disciplined cool family (matches Employees/Leave/Tickets/Payments)
 const GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
     'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#7c5cbf,#a78bfa)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
@@ -288,17 +291,17 @@ const sparkPath = (values) => {
                 <div class="flex items-center gap-2">
                     <Link
                         :href="route('performance.reviews.index')"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-2"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[18px]">rate_review</span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">rate_review</span>
                         Reviews
                     </Link>
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
-                        <span class="material-symbols-outlined text-[18px]">add</span>
+                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">track_changes</span>
                         New Goal
                     </button>
                 </div>
@@ -408,7 +411,7 @@ const sparkPath = (values) => {
                         <button
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             New Goal
@@ -438,7 +441,7 @@ const sparkPath = (values) => {
                             <div class="flex items-center gap-2 min-w-0 flex-1">
                                 <!-- Employee avatar -->
                                 <div
-                                    class="h-7 w-7 flex-shrink-0 rounded-full flex items-center justify-center text-[10px] font-black text-white"
+                                    class="h-8 w-8 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[10px] font-black text-white transition-transform group-hover:scale-105"
                                     :style="`background:${avatarGrad(goal.employee_id)}`"
                                 >{{ initials(goal.employee?.name) }}</div>
                                 <div class="min-w-0">
@@ -553,8 +556,9 @@ const sparkPath = (values) => {
                                 <button
                                     v-if="canManage"
                                     @click="confirmDelete(goal.id, $event)"
-                                    class="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant/50 hover:bg-red-500/10 hover:text-red-600 transition-colors"
+                                    class="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-on-surface-variant/60 hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/15 transition-all"
                                     title="Delete goal"
+                                    aria-label="Delete goal"
                                 >
                                     <span class="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
@@ -689,7 +693,7 @@ const sparkPath = (values) => {
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitGoal" :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)">
+                        style="background:linear-gradient(135deg,#0a2647,#205295)">
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Goal
                     </button>
@@ -779,7 +783,7 @@ const sparkPath = (values) => {
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitCheckin" :disabled="checkinForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)">
+                        style="background:linear-gradient(135deg,#0a2647,#205295)">
                         <span v-if="checkinForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Record Check-in
                     </button>
