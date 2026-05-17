@@ -18,7 +18,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['move']);
+const emit = defineEmits(['move', 'add']);
 
 // â”€â”€ Drag state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const draggingItemId   = ref(null);
@@ -138,6 +138,20 @@ function otherColumns(currentColumnId) {
     return props.columns.filter(c => c.id !== currentColumnId);
 }
 
+// Distinct assignee count inside a column — drives the small "group N" chip
+// in the column header (mirrors the screenshot's "👥 3"). Looks at the
+// standard shape `item.assigned_to.id` since that's how the Ticket payload
+// flows in. Any consumer with a different shape will simply see 0 (which
+// hides the chip).
+function assigneeCountIn(column) {
+    const seen = new Set();
+    (column.items ?? []).forEach(item => {
+        const id = item?.assigned_to?.id;
+        if (id !== undefined && id !== null) seen.add(id);
+    });
+    return seen.size;
+}
+
 const skeletonCounts = [3, 2, 4, 1];
 </script>
 
@@ -172,14 +186,38 @@ const skeletonCounts = [3, 2, 4, 1];
                 :key="column.id"
                 class="min-w-[300px] flex-shrink-0 flex flex-col"
             >
-                <!-- Column header -->
+                <!-- Column header — Plaky/Asana style: name + tinted count chip,
+                     right-aligned `+ add` button and assignee count. -->
                 <div class="flex items-center gap-2 mb-3 px-1">
-                    <span class="w-2 h-2 rounded-full shrink-0" :class="getColor(column.color).dot"></span>
-                    <span class="text-[13px] font-bold tracking-tight" :class="getColor(column.color).header">{{ column.label }}</span>
+                    <span class="text-[14px] font-black tracking-tight text-on-surface">{{ column.label }}</span>
                     <span
-                        class="ml-auto inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-black"
+                        class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10.5px] font-black"
                         :class="getColor(column.color).badge"
                     >{{ column.items.length }}</span>
+
+                    <span class="flex-1"></span>
+
+                    <!-- Add ticket to this column — emits `add` with the columnId -->
+                    <button
+                        v-if="interactive"
+                        type="button"
+                        @click="$emit('add', column.id)"
+                        class="kb-col-action flex h-6 w-6 items-center justify-center rounded-md text-on-surface-variant/60 hover:bg-surface-container hover:text-secondary transition-colors"
+                        :title="`Add to ${column.label}`"
+                        :aria-label="`Add to ${column.label}`"
+                    >
+                        <span class="material-symbols-outlined text-[16px]">add</span>
+                    </button>
+
+                    <!-- Distinct assignee count for this column — small icon + number -->
+                    <span
+                        v-if="assigneeCountIn(column) > 0"
+                        class="kb-col-action inline-flex items-center gap-0.5 rounded-md px-1.5 h-6 text-[10.5px] font-bold text-on-surface-variant/70"
+                        :title="`${assigneeCountIn(column)} assignee${assigneeCountIn(column) === 1 ? '' : 's'} in ${column.label}`"
+                    >
+                        <span class="material-symbols-outlined text-[14px]">group</span>
+                        {{ assigneeCountIn(column) }}
+                    </span>
                 </div>
 
                 <!-- Drop zone -->

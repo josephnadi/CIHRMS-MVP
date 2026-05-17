@@ -301,6 +301,13 @@ const onTicketMove = ({ itemId, toColumnId }) => {
     }, { preserveScroll: true, preserveState: true });
 };
 
+// Click on a column's "+" button → open the new-ticket slide panel.
+// The status the ticket is filed under is set server-side on store (always
+// Open by default), so we don't pass the column id here.
+const onColumnAdd = (_columnId) => {
+    showAddPanel.value = true;
+};
+
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const priorityClasses = {
     critical: 'bg-red-500/15 text-red-600 dark:text-red-400',
@@ -375,6 +382,30 @@ const ageMeta = (createdAt) => {
     return            { color: '#dc2626', label: 'cold',   hours: Math.round(days) + 'd' };
 };
 
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Treats the Service Desk like the front page of an institutional broadsheet.
+// Volume = year offset from CIHRM-GH platform inception (2023). Issue = day-of-year.
+const nowTick = ref(Date.now());
+let nowTimer = null;
+onMounted(() => { nowTimer = setInterval(() => { nowTick.value = Date.now(); }, 1000); });
+onBeforeUnmount(() => { if (nowTimer) clearInterval(nowTimer); });
+
+const editionLabel = computed(() => {
+    const d   = new Date(nowTick.value);
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // ── Mission-control SLA stats ──
 // Derived purely client-side from the visible page so the hero feels live
 // without an extra round-trip.
@@ -410,110 +441,98 @@ const ops = computed(() => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Service Desk</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Track, triage and resolve internal support requests.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                            {{ stats.total }} total
-                        </span>
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <!-- View toggle: List | Board -->
-                    <div class="inline-flex items-center rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-0.5 shadow-sm">
-                        <button
-                            type="button"
-                            @click="view = 'list'"
-                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-bold transition-all"
-                            :class="view === 'list'
-                                ? 'bg-secondary/10 text-secondary'
-                                : 'text-on-surface-variant/70 hover:text-on-surface'"
-                            aria-label="List view"
-                            title="List view"
-                        >
-                            <span class="material-symbols-outlined text-[16px]">view_list</span>
-                            List
-                        </button>
-                        <button
-                            type="button"
-                            @click="view = 'board'"
-                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-bold transition-all"
-                            :class="view === 'board'
-                                ? 'bg-secondary/10 text-secondary'
-                                : 'text-on-surface-variant/70 hover:text-on-surface'"
-                            aria-label="Board view"
-                            title="Board view"
-                        >
-                            <span class="material-symbols-outlined text-[16px]">view_kanban</span>
-                            Board
-                        </button>
-                    </div>
-
-                    <button
-                        @click="showAddPanel = true"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">add_circle</span>
-                        New Ticket
-                    </button>
-                </div>
+            <!-- ── Masthead strip ────────────────────────────────────── -->
+            <div class="es-masthead">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">SERVICE DESK</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Live · desk open
+                </span>
             </div>
         </template>
 
         <div class="space-y-6">
 
-            <!-- ── Operations hero ─────────────────────────────────
-                 The Service Desk is operational territory — the visual
-                 should feel like a live console, not four passive cards.
-                 We pack the four primary KPIs into a single hero band with
-                 a pulsing live ribbon and on-duty resolver count. -->
-            <div class="relative overflow-hidden rounded-3xl px-7 py-6 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#1a237e 0%,#283593 55%,#3949ab 100%);border:1px solid rgba(255,255,255,0.07);">
-                <!-- Atmospheric radials -->
-                <div class="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.22),transparent 70%)"></div>
-                <div class="pointer-events-none absolute -left-6 bottom-0 h-44 w-44 rounded-full blur-2xl" style="background:rgba(255,215,0,0.10)"></div>
+            <!-- ── Broadsheet hero ─────────────────────────────────────
+                 Editorial-Sovereign treatment: a lead column with institutional
+                 voice on the left, a single headline KPI (open tickets) on the
+                 right — the way a broadsheet leads with one number, not four. -->
+            <div class="es-broadsheet rounded-none animate-reveal-up">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <p class="es-eyebrow mb-6">IT &amp; Operations · SLA-bound</p>
+                    <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                        Service
+                        <span class="es-display-italic">desk.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        The institutional record of requests in flight — triaged, assigned and resolved against
+                        service-level commitments. Cadence is daily; accountability is named.
+                    </p>
 
-                <!-- Live ribbon — a thin gradient bar at the top of the card,
-                     loops to suggest "data flowing in". -->
-                <div class="absolute inset-x-0 top-0 h-px overflow-hidden">
-                    <div class="tk-ribbon h-px w-1/3"></div>
+                    <!-- Quick-action chips — typographic, not gradient buttons -->
+                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                        <button @click="showAddPanel = true" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">add_circle</span>
+                            New Ticket
+                        </button>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button @click="view = 'board'" class="es-chip"
+                                :class="view === 'board' ? 'text-secondary' : ''">
+                            <span class="material-symbols-outlined text-[15px]">view_kanban</span>
+                            Kanban view
+                        </button>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button @click="view = 'list'" class="es-chip"
+                                :class="view === 'list' ? 'text-secondary' : ''">
+                            <span class="material-symbols-outlined text-[15px]">view_list</span>
+                            List view
+                        </button>
+                    </div>
                 </div>
 
-                <div class="relative flex flex-wrap items-center justify-between gap-8">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 live-dot"></span>
-                            <p class="text-[9px] font-black uppercase tracking-[0.25em]" style="color:rgba(18,217,227,0.85)">Service desk · live operations</p>
-                        </div>
-                        <h2 class="text-3xl font-black leading-tight">
-                            <em class="not-italic" style="color:#12d9e3">{{ stats.open + stats.inProgress }}</em> active ticket<span v-if="(stats.open + stats.inProgress) !== 1">s</span>
-                            <template v-if="ops.critical > 0"> · <em class="not-italic" style="color:#fda4af">{{ ops.critical }}</em> critical</template>
-                        </h2>
-                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.55)">
-                            <span style="color:#ffd700">{{ ops.slaPct }}%</span> resolved on time ·
-                            <span style="color:#7986cb">{{ ops.avgAgeDays }}d</span> avg open age ·
-                            <span style="color:#a7f3d0">{{ ops.activeResolvers }}</span> on duty
+                <!-- SIDEBAR column: headline KPI as magazine drop-cap stat -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Open Tickets</p>
+                        <p class="es-stat-hero-value">{{ stats.open.toLocaleString() }}</p>
+                        <p class="es-stat-hero-caption">
+                            In flight · {{ stats.overdue }} overdue
                         </p>
+                        <span class="es-stat-hero-delta">
+                            <span class="material-symbols-outlined text-[13px]">support_agent</span>
+                            Awaiting triage &amp; assignment
+                        </span>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Inline KPI strip — four counters with palette personalities -->
-                    <div class="flex items-center gap-7 flex-shrink-0">
-                        <div v-for="(kpi, i) in [
-                            { label: 'Total',       val: stats.total,      color: '#ffffff' },
-                            { label: 'Open',        val: stats.open,       color: '#12d9e3' },
-                            { label: 'In progress', val: stats.inProgress, color: '#7986cb' },
-                            { label: 'Overdue',     val: stats.overdue,    color: '#fda4af', accent: stats.overdue > 0 },
-                        ]" :key="kpi.label" class="text-center"
-                             :style="`animation:slideUpFade 0.45s ease both;animation-delay:${i*0.06}s`">
-                            <p class="text-[34px] font-black leading-none tabular-nums"
-                               :class="kpi.accent ? 'tk-kpi-warn' : ''"
-                               :style="`color:${kpi.color}`">{{ kpi.val }}</p>
-                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.4)">{{ kpi.label }}</p>
-                        </div>
-                    </div>
+            <!-- ── Supporting metrics strip (broadsheet sub-numbers) ── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Total on Record</p>
+                    <p class="es-stat-cell-value">{{ stats.total.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">All tickets in register</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Open</p>
+                    <p class="es-stat-cell-value">{{ stats.open.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Awaiting first response</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">In Progress</p>
+                    <p class="es-stat-cell-value">{{ stats.inProgress.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Actively being resolved</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Overdue</p>
+                    <p class="es-stat-cell-value">{{ stats.overdue.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Past SLA · escalate</p>
                 </div>
             </div>
 
@@ -669,104 +688,162 @@ const ops = computed(() => {
                 </button>
             </div>
 
-            <!-- â”€â”€ Board view (Kanban) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Board view (Kanban with swimlanes) ── -->
             <div v-if="view === 'board'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5">
-                <div v-if="tickets?.data?.length === 0" class="p-8">
+                <div v-if="filteredTickets.length === 0" class="p-8">
                     <EmptyState
-                        title="No tickets to show"
-                        description="Open a new ticket or adjust your filters to start populating the board."
+                        title="No tickets in this view"
+                        :description="quickFilter !== 'none' ? 'Try another quick filter or clear it to see everything.' : 'Open a new ticket or adjust your filters to start populating the board.'"
                         icon="confirmation_number"
                     >
                         <template #action>
-                            <button
-                                @click="showAddPanel = true"
-                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                            >
-                                <span class="material-symbols-outlined text-[18px]">add</span>
-                                New Ticket
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button v-if="quickFilter !== 'none'" @click="quickFilter = 'none'"
+                                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors">
+                                    Clear quick filter
+                                </button>
+                                <button @click="showAddPanel = true"
+                                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
+                                        style="background:linear-gradient(135deg,#1a237e,#3949ab)">
+                                    <span class="material-symbols-outlined text-[18px]">add</span>
+                                    New Ticket
+                                </button>
+                            </div>
                         </template>
                     </EmptyState>
                 </div>
 
-                <KanbanBoard
-                    v-else
-                    :columns="kanbanColumns"
-                    :interactive="canManage"
-                    @move="onTicketMove"
-                >
-                    <template #card="{ item }">
-                        <Link :href="route('tickets.show', item.id)" class="block relative">
-                            <!-- Priority left-rail — fast scan signal for triage.
-                                 Critical/high get a subtle pulse to draw the eye. -->
-                            <span
-                                class="absolute -left-3 top-0 bottom-0 w-[3px] rounded-full"
-                                :class="(item.priority === 'critical' || item.priority === 'high') ? 'tk-rail-pulse' : ''"
-                                :style="`background:${priorityRail[item.priority] ?? '#94a3b8'}`"
-                                aria-hidden="true"
-                            ></span>
+                <!-- Swimlane v-for (Jira's signature) -->
+                <div v-else :class="['tk-density', density === 'compact' ? 'tk-density--compact' : '']">
+                    <div v-for="(group, gi) in swimlaneGroups" :key="group.id"
+                         :class="['tk-swimlane', gi > 0 ? 'mt-6 pt-6 border-t border-outline-variant/40' : '']">
 
-                            <!-- Priority chip + ID + age pip -->
-                            <div class="flex items-start gap-2 mb-2">
-                                <span
-                                    :class="['inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider whitespace-nowrap', priorityClasses[item.priority]]"
-                                    :title="`Priority: ${item.priority_label}`"
-                                >
-                                    <span class="material-symbols-outlined text-[12px]">{{ priorityIcon[item.priority] }}</span>
-                                    {{ item.priority_label }}
-                                </span>
-                                <span class="text-[10px] font-mono text-on-surface-variant/50">#{{ item.id }}</span>
+                        <!-- Swimlane header (hidden when group label is null/none) -->
+                        <div v-if="group.label" class="flex items-center gap-2 mb-3 px-1">
+                            <span v-if="group.color" class="h-2.5 w-2.5 rounded-full" :style="`background:${group.color}`"></span>
+                            <span class="material-symbols-outlined text-[14px] text-on-surface-variant/60">
+                                {{ swimlane === 'priority' ? 'flag' : 'person' }}
+                            </span>
+                            <h3 class="text-[12px] font-black uppercase tracking-[0.14em] text-on-surface">{{ group.label }}</h3>
+                            <span class="text-[10.5px] font-bold text-on-surface-variant/60 tabular-nums">{{ group.items.length }} ticket<span v-if="group.items.length !== 1">s</span></span>
+                            <span class="ml-auto h-px flex-1 bg-gradient-to-r from-outline-variant/30 to-transparent"></span>
+                        </div>
 
-                                <!-- Age pip — small dot + numeric age. Hot colours = aging fast. -->
-                                <span
-                                    v-if="ageMeta(item.created_at)"
-                                    class="ml-auto inline-flex items-center gap-1 text-[9.5px] font-bold tabular-nums"
-                                    :style="`color:${ageMeta(item.created_at).color}`"
-                                    :title="`Created ${daysSince(item.created_at)} — ${ageMeta(item.created_at).label}`"
-                                >
-                                    <span
-                                        class="h-1.5 w-1.5 rounded-full"
-                                        :style="`background:${ageMeta(item.created_at).color};box-shadow:0 0 0 2px ${ageMeta(item.created_at).color}22`"
-                                    ></span>
-                                    {{ ageMeta(item.created_at).hours }}
-                                </span>
-                            </div>
+                        <KanbanBoard
+                            :columns="columnsFor(group)"
+                            :interactive="canManage"
+                            @move="onTicketMove"
+                            @add="onColumnAdd"
+                        >
+                            <template #card="{ item }">
+                                <div @click.stop="openDrawer(item)" class="tk-pcard block relative cursor-pointer">
+                                    <!-- Title -->
+                                    <h4 class="tk-pcard__title text-[14px] font-black text-on-surface leading-snug" :class="density === 'compact' ? 'line-clamp-1' : 'line-clamp-2'">
+                                        {{ item.title }}
+                                    </h4>
 
-                            <p class="text-[13px] font-bold text-on-surface leading-snug line-clamp-2">{{ item.title }}</p>
+                                    <!-- Dual label row — STATUS pill + PRIORITY pill (Plaky/Asana style) -->
+                                    <div class="tk-pcard__labels mt-2 flex flex-wrap items-center gap-1.5">
+                                        <span :class="['tk-label', `tk-label--${item.status}`]">
+                                            {{ item.status_label }}
+                                        </span>
+                                        <span :class="['tk-label', `tk-label--prio-${item.priority}`]">
+                                            {{ item.priority_label }}
+                                        </span>
+                                    </div>
 
-                            <p v-if="item.description" class="mt-1 text-[11px] text-on-surface-variant/70 line-clamp-2">{{ item.description }}</p>
+                                    <!-- Labeled field table — the screenshot's signature layout -->
+                                    <dl class="tk-fields mt-3 space-y-2">
+                                        <div class="tk-field">
+                                            <dt class="tk-field__label">
+                                                <span class="material-symbols-outlined text-[14px]">tag</span>
+                                                Task ID
+                                            </dt>
+                                            <dd class="tk-field__value font-mono font-bold">{{ issueKey(item.id) }}</dd>
+                                        </div>
 
-                            <!-- Meta row -->
-                            <div class="mt-3 flex items-center justify-between gap-2 text-[10.5px]">
-                                <div class="min-w-0 flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/40">person</span>
-                                    <span class="truncate text-on-surface-variant">{{ item.employee?.name ?? 'Unknown' }}</span>
+                                        <div class="tk-field">
+                                            <dt class="tk-field__label">
+                                                <span class="material-symbols-outlined text-[14px]">group</span>
+                                                Assignees
+                                            </dt>
+                                            <dd class="tk-field__value">
+                                                <span class="tk-avatar-stack">
+                                                    <span v-if="item.assigned_to"
+                                                          class="tk-avatar flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-surface-container-lowest"
+                                                          :style="`background:${avatarTone(item.assigned_to.name).bg};color:${avatarTone(item.assigned_to.name).fg}`"
+                                                          :title="`Assigned to ${item.assigned_to.name}`">
+                                                        {{ initials(item.assigned_to.name) }}
+                                                    </span>
+                                                    <span v-else class="text-[11px] text-on-surface-variant/50 italic">Unassigned</span>
+                                                    <button v-if="canManage"
+                                                            type="button"
+                                                            @click.stop="openDrawer(item)"
+                                                            class="tk-avatar tk-avatar--add flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-outline-variant/70 text-on-surface-variant/50 hover:border-secondary hover:text-secondary transition-colors"
+                                                            title="Add assignee">
+                                                        <span class="material-symbols-outlined text-[14px]">add</span>
+                                                    </button>
+                                                </span>
+                                            </dd>
+                                        </div>
+
+                                        <div v-if="item.due_at || density !== 'compact'" class="tk-field">
+                                            <dt class="tk-field__label">
+                                                <span class="material-symbols-outlined text-[14px]">calendar_month</span>
+                                                Due date
+                                            </dt>
+                                            <dd class="tk-field__value tabular-nums"
+                                                :class="item.is_overdue ? 'text-red-600 font-black' : ''">
+                                                <span v-if="item.due_at" class="inline-flex items-center gap-1">
+                                                    <span v-if="item.is_overdue" class="material-symbols-outlined text-[13px] tk-overdue">warning</span>
+                                                    {{ formatDate(item.due_at) }}
+                                                </span>
+                                                <span v-else class="text-on-surface-variant/50">—</span>
+                                            </dd>
+                                        </div>
+
+                                        <div v-if="density !== 'compact'" class="tk-field">
+                                            <dt class="tk-field__label">
+                                                <span class="material-symbols-outlined text-[14px]">timer</span>
+                                                Age
+                                            </dt>
+                                            <dd class="tk-field__value tabular-nums"
+                                                :style="`color:${ageMeta(item.created_at)?.color ?? 'inherit'}`">
+                                                <span v-if="ageMeta(item.created_at)" class="inline-flex items-center gap-1.5">
+                                                    <span class="h-1.5 w-1.5 rounded-full"
+                                                          :style="`background:${ageMeta(item.created_at).color};box-shadow:0 0 0 2px ${ageMeta(item.created_at).color}22`"></span>
+                                                    {{ ageMeta(item.created_at).hours }} · {{ ageMeta(item.created_at).label }}
+                                                </span>
+                                                <span v-else>—</span>
+                                            </dd>
+                                        </div>
+                                    </dl>
+
+                                    <!-- Footer — requester, age compact, priority diamond accent -->
+                                    <div class="tk-pcard__footer mt-3 pt-3 border-t border-outline-variant/40 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50">person</span>
+                                            <span class="text-[11px] text-on-surface-variant/70 truncate">{{ item.employee?.name ?? 'Unknown' }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <span class="text-[10.5px] font-mono text-on-surface-variant/50 tabular-nums">{{ daysSince(item.created_at) }}</span>
+                                            <span v-if="item.priority === 'critical' || item.priority === 'high'"
+                                                  class="tk-prio-diamond flex h-4 w-4 items-center justify-center"
+                                                  :style="`color:${priorityRail[item.priority]}`"
+                                                  :title="`${item.priority_label} priority`">
+                                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">stat_1</span>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div
-                                    v-if="item.assigned_to"
-                                    class="flex items-center gap-1 rounded-full px-1.5 py-0.5"
-                                    style="background:rgba(26, 35, 126,0.10);color:#1a237e"
-                                >
-                                    <span class="material-symbols-outlined text-[12px]">badge</span>
-                                    <span class="font-bold truncate max-w-[80px]">{{ item.assigned_to.name }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Due date -->
-                            <div v-if="item.due_at" class="mt-2 flex items-center gap-1 text-[10px]"
-                                 :class="item.is_overdue ? 'text-red-600 font-bold tk-overdue' : 'text-on-surface-variant/60'">
-                                <span class="material-symbols-outlined text-[12px]">schedule</span>
-                                <span>Due {{ formatDate(item.due_at) }}</span>
-                                <span v-if="item.is_overdue" class="ml-auto text-[9px] font-black uppercase tracking-wider">Overdue</span>
-                            </div>
-                        </Link>
-                    </template>
-                </KanbanBoard>
+                            </template>
+                        </KanbanBoard>
+                    </div>
+                </div>
 
                 <p v-if="!canManage" class="mt-4 flex items-center gap-1.5 text-[11px] text-on-surface-variant/60 italic">
                     <span class="material-symbols-outlined text-[14px]">lock</span>
-                    Read-only view â€” only ticket managers can move cards or change status.
+                    Read-only view — only ticket managers can move cards or change status.
                 </p>
             </div>
 
@@ -1015,6 +1092,139 @@ const ops = computed(() => {
             @cancel="showDeleteDialog = false"
         />
 
+        <!-- ── Jira-style detail drawer ──
+             Clicking a card opens this from the right edge. Keeps the user
+             on the board so triage can happen rapidly. Inline transitions,
+             priority, and assignee changes patch via the existing
+             quickStatus / quickAssign / quickPriority handlers. -->
+        <SlidePanel
+            :open="drawerTicket !== null"
+            :title="drawerTicket ? `${issueKey(drawerTicket.id)} · ${drawerTicket.title}` : ''"
+            size="lg"
+            @close="closeDrawer"
+        >
+            <div v-if="drawerTicket" class="p-6 space-y-5">
+
+                <!-- Status + priority row (inline editors) -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Status pill -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60">Status</span>
+                        <div class="inline-flex items-center rounded-lg border border-outline-variant/60 bg-surface-container-low p-0.5">
+                            <button v-for="opt in [
+                                { id: 'open',        label: 'Open',        color: '#12d9e3' },
+                                { id: 'in_progress', label: 'In progress', color: '#1a237e' },
+                                { id: 'resolved',    label: 'Resolved',    color: '#16a34a' },
+                                { id: 'closed',      label: 'Closed',      color: '#64748b' },
+                            ]" :key="opt.id" @click="canManage && quickStatus(drawerTicket, opt.id)"
+                                    :disabled="!canManage"
+                                    :class="['inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-bold transition-all',
+                                              drawerTicket.status === opt.id
+                                                ? 'text-white shadow-sm'
+                                                : 'text-on-surface-variant hover:bg-surface-container',
+                                              !canManage ? 'cursor-not-allowed opacity-70' : '']"
+                                    :style="drawerTicket.status === opt.id ? `background:${opt.color}` : ''">
+                                <span class="h-1.5 w-1.5 rounded-full" :style="`background:${drawerTicket.status === opt.id ? 'rgba(255,255,255,0.85)' : opt.color}`"></span>
+                                {{ opt.label }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority inline editor -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 min-w-[60px]">Priority</span>
+                    <div class="inline-flex items-center gap-1">
+                        <button v-for="p in ['critical','high','medium','low']" :key="p"
+                                @click="canManage && quickPriority(drawerTicket, p)"
+                                :disabled="!canManage"
+                                :class="['inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wider transition-all',
+                                          drawerTicket.priority === p ? priorityClasses[p] + ' ring-1 ring-current' : 'text-on-surface-variant/60 hover:bg-surface-container',
+                                          !canManage ? 'cursor-not-allowed opacity-70' : '']">
+                            <span class="material-symbols-outlined text-[12px]">{{ priorityIcon[p] }}</span>
+                            {{ p }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Assignee inline editor -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 min-w-[60px]">Assignee</span>
+                    <select
+                        :value="drawerTicket.assigned_to?.id ?? ''"
+                        @change="ev => canManage && quickAssign(drawerTicket, ev.target.value || null)"
+                        :disabled="!canManage"
+                        class="rounded-lg border-outline-variant bg-surface-container-low px-3 py-1.5 text-[12.5px] focus:border-secondary focus:ring-secondary/20"
+                    >
+                        <option value="">Unassigned</option>
+                        <option v-for="u in staff" :key="u.id" :value="u.id">{{ u.name }}</option>
+                    </select>
+                    <div v-if="drawerTicket.assigned_to"
+                         class="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-black"
+                         :style="`background:${avatarTone(drawerTicket.assigned_to.name).bg};color:${avatarTone(drawerTicket.assigned_to.name).fg}`">
+                        {{ initials(drawerTicket.assigned_to.name) }}
+                    </div>
+                </div>
+
+                <hr class="border-outline-variant/40"/>
+
+                <!-- Description -->
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Description</p>
+                    <p class="text-[13px] text-on-surface leading-relaxed whitespace-pre-wrap">{{ drawerTicket.description || 'No description.' }}</p>
+                </div>
+
+                <!-- Meta grid -->
+                <div class="grid grid-cols-2 gap-3 text-[12px]">
+                    <div class="rounded-xl border border-outline-variant/50 bg-surface-container-low/30 p-3">
+                        <p class="text-[9.5px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-0.5">Requester</p>
+                        <p class="font-bold text-primary">{{ drawerTicket.employee?.name ?? 'Unknown' }}</p>
+                        <p v-if="drawerTicket.employee?.employee_no" class="text-[10.5px] font-mono text-on-surface-variant/60">{{ drawerTicket.employee.employee_no }}</p>
+                    </div>
+                    <div class="rounded-xl border border-outline-variant/50 bg-surface-container-low/30 p-3">
+                        <p class="text-[9.5px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-0.5">Created</p>
+                        <p class="font-bold text-primary">{{ daysSince(drawerTicket.created_at) }}</p>
+                        <p class="text-[10.5px] text-on-surface-variant/60">{{ drawerTicket.created_at ? new Date(drawerTicket.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—' }}</p>
+                    </div>
+                    <div v-if="drawerTicket.due_at" class="rounded-xl border p-3"
+                         :class="drawerTicket.is_overdue
+                            ? 'border-red-300/60 bg-red-50/40 dark:bg-red-900/15'
+                            : 'border-outline-variant/50 bg-surface-container-low/30'">
+                        <p class="text-[9.5px] font-black uppercase tracking-widest mb-0.5"
+                           :class="drawerTicket.is_overdue ? 'text-red-700/70' : 'text-on-surface-variant/60'">Due</p>
+                        <p class="font-bold" :class="drawerTicket.is_overdue ? 'text-red-700' : 'text-primary'">{{ formatDate(drawerTicket.due_at) }}</p>
+                        <p v-if="drawerTicket.is_overdue" class="text-[10.5px] font-black uppercase tracking-wider text-red-600">Overdue</p>
+                    </div>
+                    <div v-if="ageMeta(drawerTicket.created_at)" class="rounded-xl border border-outline-variant/50 bg-surface-container-low/30 p-3">
+                        <p class="text-[9.5px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-0.5">Freshness</p>
+                        <p class="font-bold capitalize" :style="`color:${ageMeta(drawerTicket.created_at).color}`">{{ ageMeta(drawerTicket.created_at).label }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="flex items-center justify-between gap-3">
+                    <Link v-if="drawerTicket" :href="route('tickets.show', drawerTicket.id)"
+                          class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                        Open full view
+                    </Link>
+                    <div class="flex items-center gap-2">
+                        <button v-if="canManage && drawerTicket && drawerTicket.status !== 'resolved' && drawerTicket.status !== 'closed'"
+                                @click="quickStatus(drawerTicket, 'resolved'); closeDrawer()"
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-[13px] font-black uppercase tracking-wide text-emerald-700 hover:bg-emerald-100 transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                            Resolve
+                        </button>
+                        <button @click="closeDrawer"
+                                class="rounded-xl px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </SlidePanel>
+
     </AuthenticatedLayout>
 </template>
 
@@ -1054,6 +1264,49 @@ const ops = computed(() => {
     50%      { opacity: 0.6; filter: brightness(1.4); }
 }
 
+/* ── Jira issue key — slightly off-balance, monospace, deserves space ── */
+.tk-key {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(26, 35, 126, 0.06);
+    color: #1a237e !important;
+}
+.dark .tk-key {
+    background: rgba(121, 134, 203, 0.16);
+    color: #c5cae9 !important;
+}
+
+/* ── Density modes — Jira's "Compact" vs "Comfortable" ──
+   Compact tightens vertical spacing inside every card and drops the
+   description + due-date row to maximise on-screen card count. */
+.tk-density--compact :deep(.kb-zone) {
+    gap: 4px !important;
+}
+.tk-density--compact .tk-title {
+    font-size: 12px !important;
+    -webkit-line-clamp: 1 !important;
+    line-clamp: 1 !important;
+}
+.tk-density--compact .tk-meta {
+    margin-top: 6px !important;
+}
+.tk-density--compact .tk-avatar {
+    height: 20px !important;
+    width:  20px !important;
+    font-size: 9px !important;
+}
+
+/* Quick-filter chips — subtle press feedback */
+.tk-chip:active { transform: translateY(1px); }
+
+/* Swimlane subtle bg gradient — keeps groups feeling like distinct lanes
+   without heavy borders. */
+.tk-swimlane { animation: tkSwimIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes tkSwimIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
 /* Overdue due-date — a faint flicker so it never goes silent. */
 .tk-overdue {
     animation: tkOverdueFlash 2.6s ease-in-out infinite;
@@ -1067,5 +1320,108 @@ const ops = computed(() => {
     .tk-ribbon, .live-dot, .tk-kpi-warn, .tk-rail-pulse, .tk-overdue {
         animation: none !important;
     }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Plaky/Asana-style card — labeled-row field table inside each
+   ticket card. Bigger title up top, two pills below, then a
+   compact field grid with iconographic labels, then a divider
+   footer with requester + age + priority diamond.
+─────────────────────────────────────────────────────────────── */
+.tk-pcard {
+    padding-block: 2px;
+}
+.tk-pcard__title {
+    color: rgb(var(--ct-on-surface));
+}
+
+/* Label pills — slightly chunky, uppercase-bold, rounded-md (not full
+   pill) to match Plaky's slab look. */
+.tk-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-transform: capitalize;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+/* Status pill colours — mirror the reference's vivid label palette. */
+.tk-label--open        { background: #ffe8d6; color: #c2410c; }
+.tk-label--in_progress { background: #fce7f3; color: #be185d; }
+.tk-label--resolved    { background: #dcfce7; color: #15803d; }
+.tk-label--closed      { background: #e2e8f0; color: #475569; }
+.dark .tk-label--open        { background: rgba(194, 65, 12, 0.20); color: #fdba74; }
+.dark .tk-label--in_progress { background: rgba(190, 24, 93, 0.20); color: #f9a8d4; }
+.dark .tk-label--resolved    { background: rgba(21, 128, 61, 0.20); color: #86efac; }
+.dark .tk-label--closed      { background: rgba(71, 85, 105, 0.30); color: #cbd5e1; }
+
+/* Priority pill colours — semantic with a "yellow MOFU" warm middle.
+   Critical=red slab, High=orange, Medium=warm yellow (MOFU vibe),
+   Low=cool blue. */
+.tk-label--prio-critical { background: #fee2e2; color: #b91c1c; }
+.tk-label--prio-high     { background: #ffedd5; color: #c2410c; }
+.tk-label--prio-medium   { background: #fef9c3; color: #a16207; }
+.tk-label--prio-low      { background: #e0f2fe; color: #0369a1; }
+.dark .tk-label--prio-critical { background: rgba(185, 28, 28, 0.20); color: #fca5a5; }
+.dark .tk-label--prio-high     { background: rgba(194, 65, 12, 0.20); color: #fdba74; }
+.dark .tk-label--prio-medium   { background: rgba(161, 98, 7, 0.22); color: #fde047; }
+.dark .tk-label--prio-low      { background: rgba(3, 105, 161, 0.22); color: #7dd3fc; }
+
+/* Field rows — the labeled-row signature. Icon + name on the left,
+   value on the right, baseline-aligned. */
+.tk-fields {
+    margin: 0;
+}
+.tk-field {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.9fr) 1fr;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+}
+.tk-field__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: rgb(var(--ct-on-surface-variant) / 0.85);
+}
+.tk-field__label .material-symbols-outlined {
+    color: rgb(var(--ct-on-surface-variant) / 0.55);
+}
+.tk-field__value {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgb(var(--ct-on-surface));
+    margin: 0;
+    min-width: 0;
+}
+
+/* Avatar stack — overlapping circles with an "+ add" affordance on
+   the right, matching the reference's UI. */
+.tk-avatar-stack {
+    display: inline-flex;
+    align-items: center;
+}
+.tk-avatar-stack > .tk-avatar + .tk-avatar {
+    margin-left: -6px;
+}
+.tk-avatar--add {
+    margin-left: 4px;
+}
+
+/* Priority diamond — a small filled diamond in the footer for
+   critical/high tickets. Visually echoes the reference's red diamond. */
+.tk-prio-diamond {
+    transform: rotate(45deg);
+    line-height: 1;
+}
+.tk-prio-diamond > .material-symbols-outlined {
+    transform: rotate(-45deg);
 }
 </style>
