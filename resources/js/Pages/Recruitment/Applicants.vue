@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -14,13 +14,17 @@ const props = defineProps({
     activeModule: String,
 });
 
+// Stage palette — disciplined. Fixes two pre-existing color/accent
+// mismatch bugs: shortlisted was 'violet' with cobalt accent, and offered
+// was 'green' with cyan accent. Now shortlisted = magenta (people-side
+// selection), offered = cobalt (action), hired = green (success).
 const STAGES = [
-    { id: 'applied',     label: 'Applied',     color: 'blue',   accent: '#0051d5' },
-    { id: 'shortlisted', label: 'Shortlisted', color: 'violet', accent: '#7c3aed' },
-    { id: 'interviewed', label: 'Interviewed', color: 'amber',  accent: '#d97706' },
-    { id: 'offered',     label: 'Offered',     color: 'green',  accent: '#0891b2' },
-    { id: 'hired',       label: 'Hired',       color: 'green',  accent: '#059669' },
-    { id: 'rejected',    label: 'Rejected',    color: 'red',    accent: '#dc2626' },
+    { id: 'applied',     label: 'Applied',     color: 'blue',    accent: '#205295' },
+    { id: 'shortlisted', label: 'Shortlisted', color: 'magenta', accent: '#d912e3' },
+    { id: 'interviewed', label: 'Interviewed', color: 'amber',   accent: '#d97706' },
+    { id: 'offered',     label: 'Offered',     color: 'blue',    accent: '#205295' },
+    { id: 'hired',       label: 'Hired',       color: 'green',   accent: '#059669' },
+    { id: 'rejected',    label: 'Rejected',    color: 'red',     accent: '#dc2626' },
 ];
 
 const view = ref('pipeline');
@@ -63,11 +67,19 @@ function onMove({ itemId, toColumnId }) {
     });
 }
 
+// Applicant avatar gradient pool — disciplined cool family (matches all other modules)
+const AVATAR_GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
+];
 function avatarColor(name) {
-    const colors = ['#0051d5','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
     let h = 0;
     for (let i = 0; i < (name?.length ?? 0); i++) h = name.charCodeAt(i) + ((h << 5) - h);
-    return colors[Math.abs(h) % colors.length];
+    return AVATAR_GRADIENTS[Math.abs(h) % AVATAR_GRADIENTS.length];
 }
 function initials(name) {
     if (!name) return '?';
@@ -75,7 +87,7 @@ function initials(name) {
 }
 
 function fmtDate(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -113,7 +125,7 @@ const filteredList = computed(() => {
 </script>
 
 <template>
-    <Head :title="`Applicants — ${job?.title ?? 'Job'}`" />
+    <Head :title="`Applicants â€” ${job?.title ?? 'Job'}`" />
 
     <AuthenticatedLayout :activeModule="activeModule">
 
@@ -135,14 +147,14 @@ const filteredList = computed(() => {
                 </div>
                 <p class="mt-0.5 text-[13px] text-on-surface-variant">
                     {{ stats.total }} applicants in the pipeline
-                    <span v-if="job?.closes_at" class="ml-2 text-on-surface-variant/50">· closes {{ fmtDate(job.closes_at) }}</span>
+                    <span v-if="job?.closes_at" class="ml-2 text-on-surface-variant/50">Â· closes {{ fmtDate(job.closes_at) }}</span>
                 </p>
             </div>
             <Link
                 :href="route('jobs.show', job?.id)"
-                class="flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors"
+                class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
             >
-                <span class="material-symbols-outlined text-[17px]">work</span>
+                <span class="material-symbols-outlined text-[17px]" style="color:#205295">work</span>
                 Job details
             </Link>
         </div>
@@ -150,10 +162,10 @@ const filteredList = computed(() => {
         <!-- Stats -->
         <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div v-for="(s, i) in [
-                { label: 'Total Applicants', val: stats.total,    rgb: '0,81,213',   icon: 'group',          sub: 'all stages' },
-                { label: 'In Pipeline',      val: stats.active,   rgb: '124,92,255', icon: 'autorenew',      sub: 'active' },
-                { label: 'Hired',            val: stats.hired,    rgb: '5,150,105',  icon: 'check_circle',   sub: 'completed' },
-                { label: 'Conversion Rate',  val: conversionRate + '%', rgb: '14,116,144', icon: 'trending_up', sub: 'hire ratio' },
+                { label: 'Total Applicants', val: stats.total,           rgb: '10,38,71',   icon: 'group',        sub: 'all stages' },
+                { label: 'In Pipeline',      val: stats.active,          rgb: '217,18,227', icon: 'autorenew',    sub: 'active' },
+                { label: 'Hired',            val: stats.hired,           rgb: '5,150,105',  icon: 'check_circle', sub: 'completed' },
+                { label: 'Conversion Rate',  val: conversionRate + '%',  rgb: '255,215,0',  icon: 'trending_up',  sub: 'hire ratio' },
             ]" :key="i"
                 class="card-lift relative overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card"
             >
@@ -230,18 +242,18 @@ const filteredList = computed(() => {
             <!-- LIST VIEW -->
             <div v-else class="overflow-x-auto">
                 <table class="w-full text-[13px]">
-                    <thead>
-                        <tr class="bg-surface-container-low border-b border-outline-variant/40">
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Applicant</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Stage</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 hidden md:table-cell">CV</th>
-                            <th class="px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Applied</th>
-                            <th class="px-5 py-3 text-right text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">Actions</th>
+                    <thead class="sticky top-0 z-10">
+                        <tr class="bg-surface-container-low/95 backdrop-blur-sm border-b border-outline-variant/40">
+                            <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Applicant</th>
+                            <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Stage</th>
+                            <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 hidden md:table-cell">CV</th>
+                            <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Applied</th>
+                            <th class="px-5 py-3 text-right text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-outline-variant/30">
                         <tr v-for="a in filteredList" :key="a.id"
-                            class="border-b border-outline-variant/25 hover:bg-surface-container/40 cursor-pointer transition-colors"
+                            class="group cursor-pointer transition-colors hover:bg-secondary/[0.04]"
                             @click="selected = a"
                         >
                             <td class="px-5 py-3.5">
@@ -268,22 +280,29 @@ const filteredList = computed(() => {
                                     <span class="material-symbols-outlined text-[13px]">picture_as_pdf</span>
                                     Download
                                 </a>
-                                <span v-else class="text-[11px] text-on-surface-variant/40">—</span>
+                                <span v-else class="text-[11px] text-on-surface-variant/40">â€”</span>
                             </td>
                             <td class="px-5 py-3.5 text-on-surface-variant/70 text-[12px]">
                                 {{ fmtDate(a.created_at) }}
                                 <span class="block text-[10px] text-on-surface-variant/40">{{ timeAgo(a.created_at) }}</span>
                             </td>
                             <td class="px-5 py-3.5">
-                                <div class="flex justify-end gap-2">
+                                <div class="flex justify-end gap-1">
                                     <button @click.stop="moveStage(a, 'shortlisted')"
                                             v-if="a.status === 'applied'"
-                                            class="rounded-lg bg-violet-50 dark:bg-violet-900/20 px-2.5 py-1 text-[11px] font-bold text-violet-700 dark:text-violet-400 hover:bg-violet-100">
+                                            class="flex items-center gap-1 rounded-lg border border-transparent px-2.5 py-1 text-[11px] font-bold transition-all hover:-translate-y-px"
+                                            style="background:rgba(217,18,227,0.08);color:#a30db0"
+                                            title="Shortlist applicant"
+                                    >
+                                        <span class="material-symbols-outlined text-[13px]" style="font-variation-settings:'FILL' 1">star</span>
                                         Shortlist
                                     </button>
                                     <button @click.stop="moveStage(a, 'rejected')"
                                             v-if="!['hired','rejected'].includes(a.status)"
-                                            class="rounded-lg bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100">
+                                            class="flex items-center gap-1 rounded-lg border border-red-200/60 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 hover:border-red-400/60 dark:hover:bg-red-900/40 transition-all hover:-translate-y-px"
+                                            title="Reject applicant"
+                                    >
+                                        <span class="material-symbols-outlined text-[13px]">cancel</span>
                                         Reject
                                     </button>
                                 </div>

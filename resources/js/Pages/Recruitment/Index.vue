@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -68,12 +68,14 @@ const daysUntilClose = (d) => {
     return { text: `${diff}d left`, color: 'text-on-surface-variant' };
 };
 
+// Job posting card top-stripe pool — disciplined cool family (matches Departments cards + avatar pools elsewhere)
 const gradients = [
-    'linear-gradient(135deg,#0051d5,#316bf3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const cardGradient = (id) => gradients[id % gradients.length];
 </script>
@@ -94,9 +96,9 @@ const cardGradient = (id) => gradients[id % gradients.length];
                     v-if="canManage"
                     @click="showCreatePanel = true"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                    style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                 >
-                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">work</span>
                     New Posting
                 </button>
             </div>
@@ -104,33 +106,34 @@ const cardGradient = (id) => gradients[id % gradients.length];
 
         <div class="space-y-6">
 
-            <!-- Stats -->
+            <!-- Stats — Applicants gets gold (institutional pipeline metric the page exists to grow) -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard :value="stats.total" label="Total Postings" icon="work" color="#0051d5" />
-                <StatCard :value="stats.open" label="Open" icon="how_to_reg" color="#059669" />
-                <StatCard :value="stats.applicants" label="Applicants" icon="groups" color="#7c3aed" />
-                <StatCard :value="stats.closed" label="Closed" icon="archive" color="#94a3b8" />
+                <StatCard :value="stats.total" label="Total Postings" icon="work" color="navy" />
+                <StatCard :value="stats.open" label="Open" icon="how_to_reg" color="green" />
+                <StatCard :value="stats.applicants" label="Applicants" icon="groups" color="gold" />
+                <StatCard :value="stats.closed" label="Closed" icon="archive" color="magenta" />
             </div>
 
-            <!-- Filter tabs -->
+            <!-- Filter pills -->
             <div class="flex flex-wrap items-center gap-2">
                 <button
                     v-for="opt in [
-                        { id: 'all',   label: 'All Postings' },
-                        { id: 'open',  label: 'Open' },
-                        { id: 'draft', label: 'Draft' },
-                        { id: 'closed', label: 'Closed' },
-                        { id: 'filled', label: 'Filled' },
+                        { id: 'all',    label: 'All Postings', icon: 'list_alt' },
+                        { id: 'open',   label: 'Open',         icon: 'how_to_reg' },
+                        { id: 'draft',  label: 'Draft',        icon: 'edit_note' },
+                        { id: 'closed', label: 'Closed',       icon: 'archive' },
+                        { id: 'filled', label: 'Filled',       icon: 'check_circle' },
                     ]"
                     :key="opt.id"
                     @click="filter = opt.id"
                     :class="[
-                        'rounded-xl px-4 py-2 text-[12px] font-semibold transition-all',
+                        'flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-bold transition-all',
                         filter === opt.id
-                            ? 'bg-secondary text-white shadow-glow-sm'
-                            : 'border border-outline-variant text-on-surface-variant hover:bg-surface-container',
+                            ? 'bg-secondary text-white shadow-glow-sm hover:-translate-y-px'
+                            : 'border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:border-secondary/30 hover:text-secondary',
                     ]"
                 >
+                    <span class="material-symbols-outlined text-[15px]" :style="filter === opt.id ? `font-variation-settings:'FILL' 1` : ''">{{ opt.icon }}</span>
                     {{ opt.label }}
                 </button>
             </div>
@@ -146,7 +149,7 @@ const cardGradient = (id) => gradients[id % gradients.length];
                         <button
                             @click="showCreatePanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             New Posting
@@ -177,11 +180,14 @@ const cardGradient = (id) => gradients[id % gradients.length];
 
                         <div class="flex items-center justify-between pt-3 border-t border-outline-variant/40">
                             <div class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant/60">groups</span>
-                                <span class="text-[12px] font-bold text-on-surface">{{ job.applicants_count ?? 0 }}</span>
+                                <span class="flex h-5 w-5 items-center justify-center rounded" style="background:rgba(255,215,0,0.14)">
+                                    <span class="material-symbols-outlined text-[13px]" style="color:#b88a08;font-variation-settings:'FILL' 1">groups</span>
+                                </span>
+                                <span class="text-[13px] font-black text-on-surface tabular-nums">{{ job.applicants_count ?? 0 }}</span>
                                 <span class="text-[11px] text-on-surface-variant/60">applicants</span>
                             </div>
-                            <span :class="['text-[11px]', daysUntilClose(job.closes_at)?.color ?? 'text-on-surface-variant']">
+                            <span :class="['flex items-center gap-1 text-[11px]', daysUntilClose(job.closes_at)?.color ?? 'text-on-surface-variant']">
+                                <span v-if="job.closes_at" class="material-symbols-outlined text-[13px]">schedule</span>
                                 {{ daysUntilClose(job.closes_at)?.text ?? formatDate(job.closes_at) }}
                             </span>
                         </div>
@@ -211,7 +217,7 @@ const cardGradient = (id) => gradients[id % gradients.length];
                     <textarea
                         v-model="form.description"
                         rows="8"
-                        placeholder="Describe the role, responsibilities, required qualifications, and benefits…"
+                        placeholder="Describe the role, responsibilities, required qualifications, and benefitsâ€¦"
                         required
                         class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                         :class="{ 'border-red-400': form.errors.description }"
@@ -243,7 +249,7 @@ const cardGradient = (id) => gradients[id % gradients.length];
                         @click="submit"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Publish Posting</span>

@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -16,7 +16,7 @@ const canManage = computed(() => {
     return perms.includes('*') || perms.includes('recruitment.manage');
 });
 
-// ── Send-offer flow ──────────────────────────────────────────────────────────
+// â”€â”€ Send-offer flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const offerApplicant = ref(null);
 const offerForm = useForm({
     salary:     '',
@@ -41,7 +41,7 @@ const submitOffer = () => {
 const envelopePill = (applicant) => {
     const map = {
         sent:      { bg: 'rgba(217,119,6,0.10)',  fg: '#d97706', label: 'Offer sent' },
-        viewed:    { bg: 'rgba(0,81,213,0.10)',   fg: '#0051d5', label: 'Offer viewed' },
+        viewed:    { bg: 'rgba(32,82,149,0.10)',   fg: '#205295', label: 'Offer viewed' },
         completed: { bg: 'rgba(5,150,105,0.10)',  fg: '#059669', label: 'Offer signed' },
         declined:  { bg: 'rgba(220,38,38,0.10)',  fg: '#dc2626', label: 'Offer declined' },
         voided:    { bg: 'rgba(107,114,128,0.10)',fg: '#6b7280', label: 'Offer voided' },
@@ -54,12 +54,12 @@ const j = computed(() => props.job?.data ?? props.job);
 const applicants = computed(() => j.value?.applicants?.data ?? j.value?.applicants ?? []);
 
 const stages = [
-    { id: 'applied',     label: 'Applied',     color: 'blue'   },
-    { id: 'shortlisted', label: 'Shortlisted', color: 'violet' },
-    { id: 'interviewed', label: 'Interviewed', color: 'amber'  },
-    { id: 'offered',     label: 'Offered',     color: 'green'  },
-    { id: 'hired',       label: 'Hired',       color: 'green'  },
-    { id: 'rejected',    label: 'Rejected',    color: 'red'    },
+    { id: 'applied',     label: 'Applied',     color: 'blue'    },
+    { id: 'shortlisted', label: 'Shortlisted', color: 'magenta' },  // magenta = people-side selection
+    { id: 'interviewed', label: 'Interviewed', color: 'amber'   },
+    { id: 'offered',     label: 'Offered',     color: 'green'   },
+    { id: 'hired',       label: 'Hired',       color: 'green'   },
+    { id: 'rejected',    label: 'Rejected',    color: 'red'     },
 ];
 
 const columns = computed(() =>
@@ -124,9 +124,9 @@ const initials = (name) => {
                 </div>
                 <Link
                     :href="route('jobs.index')"
-                    class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-2"
+                    class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                 >
-                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span class="material-symbols-outlined text-[17px]">arrow_back</span>
                     Back
                 </Link>
             </div>
@@ -134,17 +134,30 @@ const initials = (name) => {
 
         <div class="space-y-6">
 
-            <!-- Description -->
-            <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                <h3 class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-3">Job Description</h3>
+            <!-- Description — gold hairline on top edge (5% accent for the posting's headline) -->
+            <div class="relative rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 overflow-hidden">
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.45),transparent)"></div>
+                <h3 class="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 mb-3">
+                    <span class="flex h-6 w-6 items-center justify-center rounded-md bg-secondary/10">
+                        <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings:'FILL' 1">description</span>
+                    </span>
+                    Job Description
+                </h3>
                 <p class="text-[13px] text-on-surface whitespace-pre-line leading-relaxed">{{ j.description }}</p>
             </div>
 
             <!-- Applicant pipeline -->
             <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-4 flex-shrink-0">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant/70">Applicant Pipeline</h3>
-                    <span class="text-[11px] text-on-surface-variant/60">{{ applicants.length }} total</span>
+                    <h3 class="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md" style="background:rgba(217,18,227,0.10)">
+                            <span class="material-symbols-outlined text-[15px]" style="color:#d912e3;font-variation-settings:'FILL' 1">group_work</span>
+                        </span>
+                        Applicant Pipeline
+                    </h3>
+                    <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-[10.5px] font-black uppercase tracking-[0.12em] text-on-surface-variant/60">
+                        <span class="tabular-nums">{{ applicants.length }}</span> total
+                    </span>
                 </div>
 
                 <div v-if="applicants.length === 0" class="py-12 text-center">
@@ -160,8 +173,8 @@ const initials = (name) => {
                     <template #card="{ item }">
                         <div class="flex items-start gap-2.5">
                             <div
-                                class="h-8 w-8 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                class="h-9 w-9 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[11px] font-black text-white"
+                                :style="`background:${['linear-gradient(135deg,#0a2647,#205295)','linear-gradient(135deg,#205295,#7cb6e8)','linear-gradient(135deg,#06192f,#0a2647)','linear-gradient(135deg,#0a2647,#205295,#d912e3)','linear-gradient(135deg,#205295,#12d9e3)'][item.id % 5]}`"
                             >
                                 {{ initials(item.name) }}
                             </div>
@@ -209,7 +222,7 @@ const initials = (name) => {
             </div>
         </div>
 
-        <!-- ── Send-offer modal ── -->
+        <!-- â”€â”€ Send-offer modal â”€â”€ -->
         <Teleport to="body">
             <div
                 v-if="offerApplicant"
@@ -264,10 +277,10 @@ const initials = (name) => {
                             <button
                                 type="submit"
                                 :disabled="offerForm.processing"
-                                class="rounded-xl px-4 py-2 text-[12px] font-bold text-white shadow-glow-sm hover:-translate-y-px transition-all disabled:opacity-60 flex items-center gap-1.5"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[12px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px transition-all disabled:opacity-60"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
-                                <span class="material-symbols-outlined text-[14px]">send</span>
+                                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">send</span>
                                 {{ offerForm.processing ? 'Sending…' : 'Send for signature' }}
                             </button>
                         </div>
