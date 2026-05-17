@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -53,7 +53,7 @@ const formatCurrency = (amount, currency = 'GHS') => {
 };
 
 const formatDate = (d) => {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -75,18 +75,18 @@ const formatDate = (d) => {
                 <div class="flex items-center gap-2">
                     <Link
                         :href="route('payments.index')"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-2"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span class="material-symbols-outlined text-[17px]">arrow_back</span>
                         Back
                     </Link>
                     <button
                         v-if="p.status === 'pending'"
                         @click="markPaid"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px transition-all"
-                        style="background:linear-gradient(135deg,#059669,#34d399)"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-sm hover:shadow-md hover:-translate-y-px transition-all"
+                        style="background:linear-gradient(135deg,#059669,#10b981)"
                     >
-                        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">check_circle</span>
                         Mark as Paid
                     </button>
                 </div>
@@ -98,15 +98,21 @@ const formatDate = (d) => {
             <!-- Payslip body -->
             <div class="lg:col-span-2 space-y-6">
 
-                <!-- Header card -->
+                <!-- Header card — single 5% gold accent stripe on top edge -->
                 <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
-                    <div class="h-1.5 w-full" style="background:linear-gradient(90deg,#0051d5,#316bf3,#7c5cff)"></div>
+                    <div class="h-1 w-full" style="background:linear-gradient(90deg,#0a2647,#205295,#0a2647)"></div>
+                    <div class="h-px w-full" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.55),transparent)"></div>
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-2">Payslip</p>
-                                <h3 class="text-[18px] font-bold text-on-surface">{{ p.employee?.name ?? '—' }}</h3>
-                                <p class="mt-0.5 text-[12px] font-mono text-on-surface-variant">{{ p.employee?.employee_no }}</p>
+                            <div class="flex items-center gap-4">
+                                <span class="flex h-12 w-12 items-center justify-center rounded-2xl shadow-glow-sm" style="background:rgba(32,82,149,0.10);border:1px solid rgba(32,82,149,0.22)">
+                                    <span class="material-symbols-outlined text-[24px]" style="color:#205295;font-variation-settings:'FILL' 1">receipt_long</span>
+                                </span>
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1">Payslip</p>
+                                    <h3 class="text-[18px] font-bold text-on-surface">{{ p.employee?.name ?? '—' }}</h3>
+                                    <p class="mt-0.5 text-[12px] font-mono text-on-surface-variant">{{ p.employee?.employee_no }}</p>
+                                </div>
                             </div>
                             <StatusBadge :status="p.status" type="payment" />
                         </div>
@@ -115,7 +121,12 @@ const formatDate = (d) => {
 
                 <!-- Line items -->
                 <div v-if="items.length > 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-4">Line Items</h3>
+                    <h3 class="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 mb-4">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-secondary/10">
+                            <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings:'FILL' 1">list_alt</span>
+                        </span>
+                        Line Items
+                    </h3>
 
                     <div v-if="earnings.length > 0" class="mb-5">
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-green-700 dark:text-green-400 mb-2">Earnings</p>
@@ -143,12 +154,12 @@ const formatDate = (d) => {
                         <div class="space-y-1">
                             <div v-for="item in statutoryDeductions" :key="item.id" class="flex items-center justify-between rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2">
                                 <span class="text-[13px] text-on-surface">{{ item.label }}</span>
-                                <span class="text-[13px] font-mono font-bold text-red-700 dark:text-red-400">−{{ formatCurrency(Math.abs(item.amount), p.currency) }}</span>
+                                <span class="text-[13px] font-mono font-bold text-red-700 dark:text-red-400">âˆ’{{ formatCurrency(Math.abs(item.amount), p.currency) }}</span>
                             </div>
                         </div>
                         <div class="mt-2 flex items-center justify-between border-t border-red-200 dark:border-red-900/40 pt-2 px-3">
                             <span class="text-[12px] font-bold text-on-surface-variant">Subtotal</span>
-                            <span class="text-[14px] font-mono font-bold text-red-700 dark:text-red-400">−{{ formatCurrency(totalStatutory, p.currency) }}</span>
+                            <span class="text-[14px] font-mono font-bold text-red-700 dark:text-red-400">âˆ’{{ formatCurrency(totalStatutory, p.currency) }}</span>
                         </div>
                     </div>
 
@@ -158,23 +169,26 @@ const formatDate = (d) => {
                         <div class="space-y-1">
                             <div v-for="item in voluntaryDeductions" :key="item.id" class="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/20 px-3 py-2">
                                 <span class="text-[13px] text-on-surface">{{ item.label }}</span>
-                                <span class="text-[13px] font-mono font-bold text-amber-700 dark:text-amber-400">−{{ formatCurrency(Math.abs(item.amount), p.currency) }}</span>
+                                <span class="text-[13px] font-mono font-bold text-amber-700 dark:text-amber-400">âˆ’{{ formatCurrency(Math.abs(item.amount), p.currency) }}</span>
                             </div>
                         </div>
                         <div class="mt-2 flex items-center justify-between border-t border-amber-200 dark:border-amber-900/40 pt-2 px-3">
                             <span class="text-[12px] font-bold text-on-surface-variant">Subtotal</span>
-                            <span class="text-[14px] font-mono font-bold text-amber-700 dark:text-amber-400">−{{ formatCurrency(totalVoluntary, p.currency) }}</span>
+                            <span class="text-[14px] font-mono font-bold text-amber-700 dark:text-amber-400">âˆ’{{ formatCurrency(totalVoluntary, p.currency) }}</span>
                         </div>
                     </div>
 
-                    <!-- Net pay -->
-                    <div class="mt-6 rounded-xl p-4" style="background:linear-gradient(135deg,#0051d5,#316bf3);color:#fff">
-                        <div class="flex items-center justify-between">
+                    <!-- Net pay — gold-hairline 5% accent -->
+                    <div class="relative mt-6 rounded-2xl p-5 overflow-hidden shadow-glow"
+                         style="background:linear-gradient(135deg,#0a2647,#205295);color:#fff">
+                        <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
+                        <div class="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full" style="background:radial-gradient(circle,rgba(255,215,0,0.10),transparent 70%)"></div>
+                        <div class="relative flex items-center justify-between">
                             <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider opacity-80">Net Pay</p>
+                                <p class="text-[10px] font-black uppercase tracking-[0.18em] opacity-80">Net Pay</p>
                                 <p class="mt-1 text-[10px] opacity-70">Earnings − Deductions</p>
                             </div>
-                            <p class="text-[22px] font-black font-mono">{{ formatCurrency(net, p.currency) }}</p>
+                            <p class="text-[24px] font-black font-mono tabular-nums">{{ formatCurrency(net, p.currency) }}</p>
                         </div>
                     </div>
                 </div>
@@ -189,37 +203,46 @@ const formatDate = (d) => {
 
             <!-- Sidebar -->
             <div class="space-y-4">
-                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 space-y-4">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Status</p>
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 divide-y divide-outline-variant/30">
+                    <div class="pb-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Status</p>
                         <StatusBadge :status="p.status" type="payment" />
                     </div>
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Amount</p>
-                        <p class="text-[16px] font-bold font-mono text-on-surface">{{ formatCurrency(p.amount, p.currency) }}</p>
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Amount</p>
+                        <p class="text-[16px] font-black font-mono text-on-surface tabular-nums">{{ formatCurrency(p.amount, p.currency) }}</p>
                     </div>
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Created</p>
-                        <p class="text-[13px] text-on-surface">{{ formatDate(p.created_at) }}</p>
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Created</p>
+                        <p class="text-[13px] text-on-surface tabular-nums">{{ formatDate(p.created_at) }}</p>
                     </div>
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Paid On</p>
-                        <p :class="['text-[13px]', p.paid_at ? 'text-on-surface font-semibold' : 'text-on-surface-variant italic']">
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Paid On</p>
+                        <p :class="['text-[13px] tabular-nums', p.paid_at ? 'text-on-surface font-bold' : 'text-on-surface-variant italic']">
                             {{ formatDate(p.paid_at) }}
                         </p>
                     </div>
-                    <div v-if="p.processed_by">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Processed By</p>
-                        <p class="text-[13px] text-on-surface">{{ p.processed_by.name }}</p>
+                    <div v-if="p.processed_by" class="pt-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Processed By</p>
+                        <p class="text-[13px] text-on-surface flex items-center gap-1.5">
+                            <span class="flex h-5 w-5 items-center justify-center rounded-full" style="background:rgba(32,82,149,0.10)">
+                                <span class="material-symbols-outlined text-[12px]" style="color:#205295">person</span>
+                            </span>
+                            {{ p.processed_by.name }}
+                        </p>
                     </div>
                 </div>
 
                 <!-- Employer cost panel -->
                 <div v-if="basicAmount > 0" class="rounded-2xl border border-outline-variant/50 shadow-card p-6"
-                     style="background:linear-gradient(180deg,rgba(124,58,237,0.06),transparent)">
+                     style="background:linear-gradient(180deg,rgba(32,82,149,0.06),transparent)">
                     <div class="flex items-center justify-between mb-3">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Employer Cost</p>
-                        <span class="material-symbols-outlined text-[16px] text-on-surface-variant/50">business</span>
+                        <p class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">
+                            <span class="flex h-5 w-5 items-center justify-center rounded-md bg-secondary/10">
+                                <span class="material-symbols-outlined text-[12px] text-secondary" style="font-variation-settings:'FILL' 1">business</span>
+                            </span>
+                            Employer Cost
+                        </p>
                     </div>
                     <div class="space-y-1.5 text-[12px]">
                         <div class="flex justify-between">
@@ -246,19 +269,24 @@ const formatDate = (d) => {
 
                 <!-- Remittance deadlines -->
                 <div v-if="totalStatutory > 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-3">Remittance Schedule</p>
+                    <p class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 mb-3">
+                        <span class="flex h-5 w-5 items-center justify-center rounded-md" style="background:rgba(255,215,0,0.14)">
+                            <span class="material-symbols-outlined text-[12px]" style="color:#b88a08;font-variation-settings:'FILL' 1">verified_user</span>
+                        </span>
+                        Remittance Schedule
+                    </p>
                     <div class="space-y-2 text-[11px]">
                         <div class="flex items-start gap-2">
                             <span class="material-symbols-outlined text-[16px] text-amber-600 mt-0.5">event_upcoming</span>
                             <div>
-                                <p class="font-bold text-on-surface">SSNIT — by 14th</p>
+                                <p class="font-bold text-on-surface">SSNIT â€” by 14th</p>
                                 <p class="text-on-surface-variant">Tier 1 employee + employer share, plus Tier 2, due to SSNIT/NPRA by the 14th of the following month.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-2">
                             <span class="material-symbols-outlined text-[16px] text-red-600 mt-0.5">event_upcoming</span>
                             <div>
-                                <p class="font-bold text-on-surface">PAYE — by 15th</p>
+                                <p class="font-bold text-on-surface">PAYE â€” by 15th</p>
                                 <p class="text-on-surface-variant">File monthly PAYE return and remit via GRA taxpayers portal by the 15th of the following month.</p>
                             </div>
                         </div>
