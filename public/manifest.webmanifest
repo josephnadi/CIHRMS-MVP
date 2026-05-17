@@ -1,0 +1,75 @@
+{
+  "name": "CIHRMS Ghana",
+  "short_name": "CIHRMS",
+  "description": "Ghana's chartered HR management system — payroll, leave, attendance, and self-service for the public service workforce.",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "theme_color": "#0d1452",
+  "background_color": "#ffffff",
+  "lang": "en-GH",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "government"],
+  "icons": [
+    {
+      "src": "/img/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/img/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Clock in",
+      "short_name": "Clock in",
+      "description": "Record an attendance clock-in",
+      "url": "/attendance/me?action=clock-in",
+      "icons": [{ "src": "/img/icons/shortcut-clock.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Latest payslip",
+      "short_name": "Payslip",
+      "description": "View the most recent payslip",
+      "url": "/profile?tab=pay",
+      "icons": [{ "src": "/img/icons/shortcut-pay.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Request leave",
+      "short_name": "Leave",
+      "description": "File a new leave request",
+      "url": "/leave-requests?new=1",
+      "icons": [{ "src": "/img/icons/shortcut-leave.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/img/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CIHRMS dashboard"
+    }
+  ],
+  "prefer_related_applications": false
+}
