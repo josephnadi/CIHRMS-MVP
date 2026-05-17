@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -12,16 +12,19 @@ const props = defineProps({
 
 const { comingSoon } = useToast();
 
-// ── Per-portal branding + KPI templates ──────────────────────────────
+// â”€â”€ Per-portal branding + KPI templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Portal palettes — aligned with the sidebar SIDEBAR_ICON_COLORS map:
+// IT=cyan, HR=magenta, Marketing=soft-sky, Finance=blue-family. Fixes a
+// prior bug in Marketing where accent was cobalt but rgb was violet.
 const PORTALS = {
     it: {
         title:  'IT &amp; Technology',
         tagline:'Infrastructure, security, and service operations.',
         icon:   'computer',
-        accent: '#316bf3',
-        rgb:    '49,107,243',
+        accent: '#12d9e3',
+        rgb:    '18,217,227',
         kpis: [
-            { label: 'Servers Online', val: '23 / 24',  sub: 'capacity',     color: '#316bf3', icon: 'dns' },
+            { label: 'Servers Online', val: '23 / 24',  sub: 'capacity',     color: '#2c74b3', icon: 'dns' },
             { label: 'Open Tickets',   val: 18,         sub: '3 critical',   color: '#dc2626', icon: 'bug_report' },
             { label: 'Security Alerts',val: 4,          sub: 'low severity', color: '#d97706', icon: 'security' },
             { label: 'Uptime SLA',     val: '99.97%',   sub: 'target 99.9%', color: '#059669', icon: 'electric_bolt' },
@@ -29,20 +32,20 @@ const PORTALS = {
         sections: [
             { icon: 'dns',           title: 'Infrastructure', body: 'Production cluster running 99.97% uptime over the last 30 days. Active workloads spread across 3 availability zones.' },
             { icon: 'security',      title: 'Security Posture', body: 'No active incidents. Last penetration test passed Apr 2026. EDR deployed across 1,212 endpoints.' },
-            { icon: 'integration_instructions', title: 'Integrations', body: 'Slack, Microsoft 365, Zoho CRM, WhatsApp Business — all green.' },
+            { icon: 'integration_instructions', title: 'Integrations', body: 'Slack, Microsoft 365, Zoho CRM, WhatsApp Business â€” all green.' },
         ],
     },
     hr: {
         title:  'Human Resources',
         tagline:'People operations, recruitment and culture.',
         icon:   'people',
-        accent: '#0891b2',
-        rgb:    '8,145,178',
+        accent: '#d912e3',
+        rgb:    '217,18,227',
         kpis: [
             { label: 'Headcount',       val: '1,284', sub: '+2 this week',  color: '#059669', icon: 'badge' },
-            { label: 'Turnover Rate',   val: '2.8%',  sub: 'vs 5% target',  color: '#0051d5', icon: 'person_remove' },
+            { label: 'Turnover Rate',   val: '2.8%',  sub: 'vs 5% target',  color: '#205295', icon: 'person_remove' },
             { label: 'Open Positions',  val: 14,      sub: '6 in pipeline', color: '#d97706', icon: 'work_outline' },
-            { label: 'Training Compl.', val: '83%',   sub: 'annual goal',   color: '#7c5cff', icon: 'school' },
+            { label: 'Training Compl.', val: '83%',   sub: 'annual goal',   color: '#205295', icon: 'school' },
         ],
         sections: [
             { icon: 'group_add',  title: 'Recruitment Pipeline', body: '14 active roles, 187 applicants in review. Average time-to-hire 18 days.' },
@@ -54,16 +57,16 @@ const PORTALS = {
         title:  'Marketing',
         tagline:'Brand, communications and campaign delivery.',
         icon:   'campaign',
-        accent: '#7c3aed',
-        rgb:    '124,58,237',
+        accent: '#7cb6e8',
+        rgb:    '124,182,232',
         kpis: [
-            { label: 'Campaign ROI',   val: '320%',  sub: 'YTD',           color: '#7c3aed', icon: 'trending_up' },
-            { label: 'Budget Used',    val: '74%',   sub: 'of GHS 2.4M',   color: '#0051d5', icon: 'pie_chart' },
+            { label: 'Campaign ROI',   val: '320%',  sub: 'YTD',           color: '#205295', icon: 'trending_up' },
+            { label: 'Budget Used',    val: '74%',   sub: 'of GHS 2.4M',   color: '#205295', icon: 'pie_chart' },
             { label: 'Leads Generated',val: '2,847', sub: 'this quarter',  color: '#059669', icon: 'how_to_vote' },
-            { label: 'Conversion',     val: '5.2%',  sub: 'lead → meeting',color: '#d97706', icon: 'percent' },
+            { label: 'Conversion',     val: '5.2%',  sub: 'lead â†’ meeting',color: '#d97706', icon: 'percent' },
         ],
         sections: [
-            { icon: 'rocket_launch', title: 'Active Campaigns', body: '3 institutional campaigns running. Top performer: "Charter Anniversary Series" — 1.2M impressions.' },
+            { icon: 'rocket_launch', title: 'Active Campaigns', body: '3 institutional campaigns running. Top performer: "Charter Anniversary Series" â€” 1.2M impressions.' },
             { icon: 'palette',       title: 'Brand Assets',     body: 'Updated logo system rolled out to 6 product surfaces. Asset library: 412 files, 22 contributors.' },
             { icon: 'forum',         title: 'External Channels',body: 'LinkedIn 18.4K followers (+340 this month). Press mentions: 7 institutional features.' },
         ],
@@ -72,13 +75,13 @@ const PORTALS = {
         title:  'Finance',
         tagline:'Treasury, payroll and statutory compliance.',
         icon:   'account_balance_wallet',
-        accent: '#059669',
-        rgb:    '5,150,105',
+        accent: '#2c74b3',
+        rgb:    '44,116,179',
         kpis: [
             { label: 'Monthly Revenue',val: 'GHS 8.7M', sub: '+4.2% MoM',    color: '#059669', icon: 'attach_money' },
-            { label: 'Budget Variance',val: '-2.1%',    sub: 'under budget', color: '#0051d5', icon: 'analytics' },
+            { label: 'Budget Variance',val: '-2.1%',    sub: 'under budget', color: '#205295', icon: 'analytics' },
             { label: 'Pending Invoices',val: 142,       sub: 'GHS 1.2M',     color: '#d97706', icon: 'receipt_long' },
-            { label: 'Fund Efficiency',val: '94%',      sub: 'utilization',  color: '#7c3aed', icon: 'savings' },
+            { label: 'Fund Efficiency',val: '94%',      sub: 'utilization',  color: '#205295', icon: 'savings' },
         ],
         sections: [
             { icon: 'payments',      title: 'Payroll Cycle',     body: 'May 2026 cycle 85% processed. SSNIT and PAYE remittances on schedule.' },
@@ -92,7 +95,7 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
 </script>
 
 <template>
-    <Head :title="`${portal.title} — CIHRMS`" />
+    <Head :title="`${portal.title} â€” CIHRMS`" />
 
     <AuthenticatedLayout :activeModule="activeModule || 'dept-' + slug">
 
@@ -171,8 +174,8 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
                 <span class="text-[11.5px] font-black text-on-surface">Service Desk</span>
             </Link>
             <Link :href="route('reports.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600">
-                    <span class="material-symbols-outlined text-[19px]">assessment</span>
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(255,215,0,0.14);color:#b88a08">
+                    <span class="material-symbols-outlined text-[19px]" style="font-variation-settings:'FILL' 1">assessment</span>
                 </span>
                 <span class="text-[11.5px] font-black text-on-surface">Reports</span>
             </Link>

@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -18,7 +18,7 @@ const doTrack = () => {
 };
 
 const formatDate = (d) => {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -55,10 +55,10 @@ const formatDate = (d) => {
                     />
                     <button
                         @click="doTrack"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
-                        <span class="material-symbols-outlined text-[16px]">search</span>
+                        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">search</span>
                         Track
                     </button>
                 </div>

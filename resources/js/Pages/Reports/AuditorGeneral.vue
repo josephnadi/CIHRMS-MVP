@@ -30,16 +30,35 @@ const fmtDate = (unix) => new Date(unix * 1000).toLocaleString('en-GH');
 
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div>
-                <p class="text-xs text-on-surface-variant/60">Phase 2 · External audit readiness</p>
-                <h1 class="text-2xl font-semibold tracking-tight">Auditor-General Report Pack</h1>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70">
+                        <Link :href="route('reports.index')" class="hover:text-secondary">Reports</Link>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span>Auditor-General</span>
+                    </div>
+                    <h1 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Auditor-General Report Pack</h1>
+                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">Phase 2 · External audit readiness · SHA-256 verified bundle.</p>
+                </div>
+                <!-- Gold compliance pill — 5% accent for the institutional audit surface -->
+                <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
+                     style="background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.35)">
+                    <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">gavel</span>
+                    <span class="text-[11px] font-black uppercase tracking-[0.14em]" style="color:#7a5400">Auditor-General · Ghana</span>
+                </div>
             </div>
         </template>
 
         <div class="py-6 space-y-6">
-            <!-- What's in the pack -->
-            <div class="rounded-2xl bg-brand-navy/[0.04] border border-brand-navy/15 p-6 space-y-3">
-                <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-navy/70">What's bundled</p>
+            <!-- What's in the pack — gold hairline accent on top edge -->
+            <div class="relative rounded-2xl bg-brand-navy/[0.04] border border-brand-navy/15 p-6 space-y-3 overflow-hidden">
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.55),transparent)"></div>
+                <p class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand-navy/70">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-md" style="background:rgba(255,215,0,0.14)">
+                        <span class="material-symbols-outlined text-[12px]" style="color:#b88a08;font-variation-settings:'FILL' 1">inventory_2</span>
+                    </span>
+                    What's bundled
+                </p>
                 <ul class="text-sm grid md:grid-cols-2 gap-2 text-on-surface-variant">
                     <li class="flex gap-2"><span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span> All payroll runs (totals + per-employee lines)</li>
                     <li class="flex gap-2"><span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span> Statutory returns (PAYE, SSNIT, NHIA, Tier-2)</li>
@@ -85,22 +104,25 @@ const fmtDate = (unix) => new Date(unix * 1000).toLocaleString('en-GH');
                     <h2 class="font-semibold text-base">Existing packs</h2>
                 </div>
                 <table v-if="existing.length > 0" class="w-full text-sm">
-                    <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase">
+                    <thead class="bg-surface-container-low/95 backdrop-blur-sm">
                         <tr>
-                            <th class="px-5 py-3 text-left">File</th>
-                            <th class="px-5 py-3 text-right">Size</th>
-                            <th class="px-5 py-3 text-left">Generated</th>
-                            <th></th>
+                            <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">File</th>
+                            <th class="px-5 py-3 text-right text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Size</th>
+                            <th class="px-5 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Generated</th>
+                            <th class="px-5 py-3 text-right text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-outline-variant/30">
-                        <tr v-for="p in existing" :key="p.path" class="hover:bg-surface-container-low/60">
-                            <td class="px-5 py-3 font-mono text-xs">{{ p.name }}</td>
-                            <td class="px-5 py-3 text-right">{{ fmtSize(p.size) }}</td>
-                            <td class="px-5 py-3">{{ fmtDate(p.created) }}</td>
+                        <tr v-for="p in existing" :key="p.path" class="group transition-colors hover:bg-secondary/[0.04]">
+                            <td class="px-5 py-3 font-mono text-[12px] text-on-surface truncate">{{ p.name }}</td>
+                            <td class="px-5 py-3 text-right tabular-nums text-on-surface-variant">{{ fmtSize(p.size) }}</td>
+                            <td class="px-5 py-3 text-on-surface-variant tabular-nums">{{ fmtDate(p.created) }}</td>
                             <td class="px-5 py-3 text-right">
                                 <a :href="route('ag-reports.download', { filename: p.name })"
-                                   class="text-secondary hover:underline">Download</a>
+                                   class="inline-flex items-center gap-1 rounded-lg border border-transparent px-2.5 py-1 text-[12px] font-bold text-secondary hover:bg-secondary/10 hover:border-secondary/20 transition-all">
+                                    <span class="material-symbols-outlined text-[14px]">download</span>
+                                    Download
+                                </a>
                             </td>
                         </tr>
                     </tbody>

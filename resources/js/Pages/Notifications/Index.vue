@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -22,13 +22,17 @@ const visible = computed(() => {
 
 const unreadCount = computed(() => items.value.filter(n => !n.read_at).length);
 
+// Notification type palette — disciplined Sovereign Precision.
+// LeaveStatusUpdated: was cobalt color but violet hue tint (mismatch bug).
+// TicketCreated: was a generic cyan-blue; pulled to brand cyan #12d9e3.
+// PaymentMarkedPaid: switched amber -> green (semantic — payment success).
 const TYPE_META = {
-    LeaveRequested:       { color: '#0051d5', icon: 'event_note',         tag: 'Leave',      hue: '0,81,213'   },
-    LeaveStatusUpdated:   { color: '#7c3aed', icon: 'event_available',    tag: 'Leave',      hue: '124,58,237' },
-    TicketCreated:        { color: '#0891b2', icon: 'support_agent',      tag: 'Service',    hue: '8,145,178'  },
-    EmployeeCreated:      { color: '#059669', icon: 'person_add',         tag: 'Employee',   hue: '5,150,105'  },
-    PaymentMarkedPaid:    { color: '#d97706', icon: 'payments',           tag: 'Payroll',    hue: '217,119,6'  },
-    DatabaseNotification: { color: '#64748b', icon: 'notifications',      tag: 'System',     hue: '100,116,139'},
+    LeaveRequested:       { color: '#205295', icon: 'event_note',      tag: 'Leave',    hue: '32,82,149'   },
+    LeaveStatusUpdated:   { color: '#059669', icon: 'event_available', tag: 'Leave',    hue: '5,150,105'   },
+    TicketCreated:        { color: '#0e8a93', icon: 'support_agent',   tag: 'Service',  hue: '18,217,227'  },
+    EmployeeCreated:      { color: '#d912e3', icon: 'person_add',      tag: 'Employee', hue: '217,18,227'  },
+    PaymentMarkedPaid:    { color: '#059669', icon: 'payments',        tag: 'Payroll',  hue: '5,150,105'   },
+    DatabaseNotification: { color: '#64748b', icon: 'notifications',   tag: 'System',   hue: '100,116,139' },
 };
 
 function metaFor(type) {
@@ -57,7 +61,7 @@ const FILTERS = [
 </script>
 
 <template>
-    <Head title="Notifications — CIHRMS" />
+    <Head title="Notifications â€” CIHRMS" />
 
     <AuthenticatedLayout :activeModule="activeModule">
 
@@ -77,9 +81,9 @@ const FILTERS = [
                 <button
                     v-if="unreadCount"
                     @click="markAllRead"
-                    class="flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors"
+                    class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                 >
-                    <span class="material-symbols-outlined text-[17px]">done_all</span>
+                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">done_all</span>
                     Mark all read
                 </button>
             </div>
@@ -162,7 +166,7 @@ const FILTERS = [
                     </div>
 
                     <!-- Right arrow indicator on hover -->
-                    <span class="material-symbols-outlined self-center text-[18px] text-on-surface-variant/30 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span class="material-symbols-outlined self-center text-[18px] text-on-surface-variant/30 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-secondary/70" aria-hidden="true">
                         chevron_right
                     </span>
                 </li>
@@ -171,7 +175,7 @@ const FILTERS = [
             <EmptyState
                 v-else
                 title="No notifications"
-                :description="filterMode === 'unread' ? 'You\'re all caught up.' : 'Nothing here yet — you\'ll see new system activity as it happens.'"
+                :description="filterMode === 'unread' ? 'You\'re all caught up.' : 'Nothing here yet â€” you\'ll see new system activity as it happens.'"
                 icon="notifications_off"
             />
 

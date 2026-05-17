@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -21,23 +21,26 @@ const iconFor = {
     turnover:  'trending_down',
 };
 
+// Reports lives in the sidebar's flagship gold tier — Headcount is the
+// headline report (institutional census), so it gets the 5% gold accent.
+// Other reports keep their source-module semantic colors.
 const accentFor = {
-    headcount: '#0051d5',
-    leave:     '#059669',
-    payroll:   '#7c3aed',
-    tickets:   '#dc2626',
-    turnover:  '#d97706',
+    headcount: '#b88a08',      // gold-deep (readable on light bg) — flagship
+    leave:     '#059669',      // green (approved-leave semantic)
+    payroll:   '#205295',      // cobalt (payroll module)
+    tickets:   '#dc2626',      // red (service-desk alarm semantic)
+    turnover:  '#d97706',      // amber (warning semantic)
 };
 
 const gradientFor = (key) => {
     const map = {
-        headcount: 'linear-gradient(135deg,#0051d5,#316bf3)',
-        leave:     'linear-gradient(135deg,#059669,#34d399)',
-        payroll:   'linear-gradient(135deg,#7c3aed,#a78bfa)',
-        tickets:   'linear-gradient(135deg,#dc2626,#f87171)',
-        turnover:  'linear-gradient(135deg,#d97706,#fbbf24)',
+        headcount: 'linear-gradient(135deg,#b88a08,#ffd700)',  // gold deep → gold (flagship)
+        leave:     'linear-gradient(135deg,#059669,#10b981)',
+        payroll:   'linear-gradient(135deg,#0a2647,#205295)',  // navy → cobalt
+        tickets:   'linear-gradient(135deg,#dc2626,#ef4444)',
+        turnover:  'linear-gradient(135deg,#d97706,#f59e0b)',
     };
-    return map[key] ?? 'linear-gradient(135deg,#0051d5,#316bf3)';
+    return map[key] ?? 'linear-gradient(135deg,#0a2647,#205295)';
 };
 
 const exportUrl = computed(() => {
@@ -98,16 +101,20 @@ const selectedReport = computed(() => props.reportTypes?.find(r => r.key === sel
                         Live previews of HR datasets. Configure filters and export ready-to-share XLSX files.
                     </p>
                 </div>
-                <div class="inline-flex items-center gap-1.5 rounded-full bg-secondary/10 border border-secondary/20 px-3 py-1.5">
-                    <span class="material-symbols-outlined text-[16px] text-secondary">cloud_download</span>
-                    <span class="text-[11px] font-bold text-secondary">{{ reportTypes?.length ?? 0 }} exports available</span>
+                <!-- Header pill — gold (5% accent, Reports is the flagship gold module per sidebar palette) -->
+                <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
+                     style="background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.35)">
+                    <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">cloud_download</span>
+                    <span class="text-[11px] font-black uppercase tracking-[0.14em]" style="color:#7a5400">
+                        <span class="tabular-nums">{{ reportTypes?.length ?? 0 }}</span> exports available
+                    </span>
                 </div>
             </div>
         </template>
 
         <div class="space-y-6">
 
-            <!-- ── Report cards with live preview ──────────────────────────── -->
+            <!-- â”€â”€ Report cards with live preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <button
                     v-for="report in reportTypes"
@@ -183,7 +190,7 @@ const selectedReport = computed(() => props.reportTypes?.find(r => r.key === sel
                 </button>
             </div>
 
-            <!-- ── Detailed preview + export panel for selected report ───── -->
+            <!-- â”€â”€ Detailed preview + export panel for selected report â”€â”€â”€â”€â”€ -->
             <div v-if="selectedReport" class="grid gap-4 lg:grid-cols-3">
 
                 <!-- Visual preview -->
@@ -198,7 +205,7 @@ const selectedReport = computed(() => props.reportTypes?.find(r => r.key === sel
                             </div>
                             <div>
                                 <h3 class="text-[16px] font-bold text-on-surface">{{ selectedReport.label }}</h3>
-                                <p class="text-[11px] text-on-surface-variant">Preview · top breakdown</p>
+                                <p class="text-[11px] text-on-surface-variant">Preview Â· top breakdown</p>
                             </div>
                         </div>
                         <div class="text-right">

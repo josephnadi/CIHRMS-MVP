@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -32,13 +32,14 @@ const submit = () => {
 
 const totalActive = computed(() => list.value.reduce((sum, d) => sum + (d.active_employee_count ?? 0), 0));
 
+// Department card gradient pool — disciplined cool family (matches Employees avatar pool)
 const gradients = [
-    'linear-gradient(135deg,#0051d5,#316bf3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const cardGradient = (id) => gradients[id % gradients.length];
 
@@ -67,9 +68,9 @@ const goToEmployees = (deptId) => {
                 <button
                     @click="showCreatePanel = true"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px hover:shadow-glow transition-all"
-                    style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                 >
-                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">corporate_fare</span>
                     Add Department
                 </button>
             </div>
@@ -77,13 +78,14 @@ const goToEmployees = (deptId) => {
 
         <div class="space-y-6">
 
-            <!-- Stats -->
+            <!-- Stats — disciplined palette. Avg. Headcount = institutional
+                 average, so it gets the 5% gold. -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                <StatCard :value="list.length" label="Total Departments" icon="corporate_fare" color="#0051d5" />
-                <StatCard :value="totalActive" label="Active Staff" icon="people" color="#059669" />
+                <StatCard :value="list.length" label="Total Departments" icon="corporate_fare" color="navy" />
+                <StatCard :value="totalActive" label="Active Staff" icon="people" color="magenta" />
                 <StatCard
                     :value="list.length > 0 ? Math.round(totalActive / list.length) : 0"
-                    label="Avg. Headcount" icon="trending_up" color="#7c3aed"
+                    label="Avg. Headcount" icon="trending_up" color="gold"
                 />
             </div>
 
@@ -98,7 +100,7 @@ const goToEmployees = (deptId) => {
                         <button
                             @click="showCreatePanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Add Department
@@ -166,7 +168,7 @@ const goToEmployees = (deptId) => {
                 <div>
                     <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                         Department Code <span class="text-red-500">*</span>
-                        <span class="ml-1 font-normal text-on-surface-variant/60">(2–10 chars)</span>
+                        <span class="ml-1 font-normal text-on-surface-variant/60">(2â€“10 chars)</span>
                     </label>
                     <input
                         v-model="form.code"
@@ -185,7 +187,7 @@ const goToEmployees = (deptId) => {
                     <textarea
                         v-model="form.description"
                         rows="3"
-                        placeholder="Brief description of this department's purpose…"
+                        placeholder="Brief description of this department's purposeâ€¦"
                         class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                     />
                 </div>
@@ -204,7 +206,7 @@ const goToEmployees = (deptId) => {
                         @click="submit"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Save Department</span>

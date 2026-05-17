@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, reactive } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -18,8 +18,8 @@ const form = useForm({
 });
 
 const channels = reactive([
-    { key: 'email',    label: 'Email',         desc: 'Receive HR notifications in your inbox.',                  icon: 'mail',     color: '#0051d5' },
-    { key: 'in_app',   label: 'In-app',        desc: 'Show notifications inside CIHRMS.',                        icon: 'campaign', color: '#7c3aed' },
+    { key: 'email',    label: 'Email',         desc: 'Receive HR notifications in your inbox.',                  icon: 'mail',     color: '#205295' },
+    { key: 'in_app',   label: 'In-app',        desc: 'Show notifications inside CIHRMS.',                        icon: 'campaign', color: '#205295' },
     { key: 'whatsapp', label: 'WhatsApp',      desc: 'Get template messages on WhatsApp Business.',              icon: 'sms',      color: '#22c55e' },
     { key: 'slack',    label: 'Slack',         desc: 'Direct messages from the CIHRMS Slack bot.',               icon: 'chat',     color: '#4a154b' },
     { key: 'teams',    label: 'Microsoft Teams',desc: 'Adaptive cards posted to the configured HR channel.',     icon: 'forum',    color: '#5059c9' },
@@ -46,7 +46,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                 </div>
                 <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Notification Channels</h2>
                 <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                    Pick where CIHRMS contacts you. WhatsApp is opt-in only — Meta requires explicit consent before we can send template messages.
+                    Pick where CIHRMS contacts you. WhatsApp is opt-in only â€” Meta requires explicit consent before we can send template messages.
                 </p>
             </div>
         </template>
@@ -107,7 +107,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                         class="w-full max-w-xs rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px] font-mono"
                     />
                     <p v-if="form.whatsapp_phone && !phoneOk" class="mt-1 text-[11px] text-amber-600">
-                        Use international format with country code (8–15 digits, optional leading +).
+                        Use international format with country code (8â€“15 digits, optional leading +).
                     </p>
                 </div>
 
@@ -130,7 +130,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                     <div>
                         <h3 class="text-[14px] font-black text-on-surface">Slack workspace identity</h3>
                         <p class="text-[12px] text-on-surface-variant">
-                            Paste your Slack member id (starts with <code class="font-mono">U</code>). Find it in your Slack profile menu → "Copy member ID". Without it, Slack notifications fall back to the default HR channel.
+                            Paste your Slack member id (starts with <code class="font-mono">U</code>). Find it in your Slack profile menu â†’ "Copy member ID". Without it, Slack notifications fall back to the default HR channel.
                         </p>
                     </div>
                 </div>
@@ -145,10 +145,10 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                 <button
                     type="submit"
                     :disabled="form.processing"
-                    class="rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px transition-all disabled:opacity-60 flex items-center gap-1.5"
-                    style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                    class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px transition-all disabled:opacity-60"
+                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                 >
-                    <span class="material-symbols-outlined text-[16px]">save</span>
+                    <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">save</span>
                     {{ form.processing ? 'Saving…' : 'Save preferences' }}
                 </button>
             </div>
