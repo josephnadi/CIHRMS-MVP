@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -37,14 +37,17 @@ const capabilityIcon = (capability) => ({
     identity:    'verified_user',
 }[capability] ?? 'extension');
 
+// Capability color map — disciplined Sovereign Precision.
+// crm/messaging/calendar/esign keep semantic colors; files = brand cyan
+// (was generic cyan-blue #0891b2); identity = navy (was slate).
 const capabilityColor = (capability) => ({
-    crm:         '#0051d5',
-    files:       '#0891b2',
-    spreadsheet: '#059669',
-    messaging:   '#7c3aed',
-    calendar:    '#d97706',
-    esign:       '#dc2626',
-    identity:    '#475569',
+    crm:         '#205295',  // cobalt
+    files:       '#12d9e3',  // brand cyan
+    spreadsheet: '#059669',  // green
+    messaging:   '#205295',  // cobalt
+    calendar:    '#d97706',  // amber
+    esign:       '#dc2626',  // red
+    identity:    '#0a2647',  // navy (identity verification = institutional)
 }[capability] ?? '#6b7280');
 
 const connectForm = useForm({});
@@ -71,12 +74,12 @@ const filters = [
     { key: 'esign',       label: 'e-Sign' },
 ];
 
-const fmtDate = (s) => s ? new Date(s).toLocaleString() : '—';
+const fmtDate = (s) => s ? new Date(s).toLocaleString() : 'â€”';
 
 const statusPill = (status) => {
     const map = {
         sent:     { bg: 'rgba(5,150,105,0.10)',  fg: '#059669', label: 'Sent' },
-        received: { bg: 'rgba(0,81,213,0.10)',   fg: '#0051d5', label: 'Received' },
+        received: { bg: 'rgba(32,82,149,0.10)',   fg: '#205295', label: 'Received' },
         queued:   { bg: 'rgba(217,119,6,0.10)',  fg: '#d97706', label: 'Queued' },
         failed:   { bg: 'rgba(220,38,38,0.10)',  fg: '#dc2626', label: 'Failed' },
     };
@@ -110,8 +113,8 @@ const statusPill = (status) => {
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-4">
                     <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(0,81,213,0.10)">
-                            <span class="material-symbols-outlined text-[20px]" style="color:#0051d5">extension</span>
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(32,82,149,0.10)">
+                            <span class="material-symbols-outlined text-[20px]" style="color:#205295">extension</span>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant/60">Total</p>
@@ -261,7 +264,7 @@ const statusPill = (status) => {
                             </span>
                             <span class="text-[12px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70">{{ capability }}</span>
                         </div>
-                        <span class="text-[12px] font-mono text-on-surface">{{ provider ?? '—' }}</span>
+                        <span class="text-[12px] font-mono text-on-surface">{{ provider ?? 'â€”' }}</span>
                     </div>
                 </div>
             </section>
@@ -297,14 +300,14 @@ const statusPill = (status) => {
                     <div v-for="e in recentEvents" :key="e.id"
                          class="flex items-start gap-3 px-5 py-3 hover:bg-surface-container-low/40 transition-colors">
                         <span class="material-symbols-outlined text-[18px] mt-0.5"
-                              :style="`color:${e.direction === 'outbound' ? '#0051d5' : '#7c3aed'}`">
+                              :style="`color:${e.direction === 'outbound' ? '#205295' : '#205295'}`">
                             {{ e.direction === 'outbound' ? 'arrow_outward' : 'arrow_downward' }}
                         </span>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
                                 <span class="font-mono text-[12px] font-bold text-on-surface">{{ e.event_type }}</span>
-                                <span class="text-[11px] text-on-surface-variant/70">·</span>
-                                <span class="text-[11px] text-on-surface-variant">{{ e.integration?.display_name ?? '—' }}</span>
+                                <span class="text-[11px] text-on-surface-variant/70">Â·</span>
+                                <span class="text-[11px] text-on-surface-variant">{{ e.integration?.display_name ?? 'â€”' }}</span>
                             </div>
                             <p v-if="e.error" class="mt-0.5 text-[11px] text-red-600 line-clamp-1">{{ e.error }}</p>
                         </div>

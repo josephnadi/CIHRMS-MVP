@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -33,27 +33,35 @@ const tabs = [
 ];
 const activeTab = ref('profile');
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function fmt(d) {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 function fmtMoney(amt, ccy = 'GHS') {
-    if (amt == null) return '—';
+    if (amt == null) return 'â€”';
     return ccy + ' ' + Number(amt).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function initials(name) {
     if (!name) return '?';
     return name.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
+// Avatar gradient pool — disciplined cool family
+const AVATAR_GRADIENTS = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
+];
 function avatarColor(name) {
-    const colors = ['#0051d5','#7c3aed','#059669','#d97706','#dc2626','#0891b2'];
     let h = 0;
     for (let i = 0; i < (name?.length ?? 0); i++) h = name.charCodeAt(i) + ((h << 5) - h);
-    return colors[Math.abs(h) % colors.length];
+    return AVATAR_GRADIENTS[Math.abs(h) % AVATAR_GRADIENTS.length];
 }
 
-// ── Avatar upload ────────────────────────────────────────────────────────
+// â”€â”€ Avatar upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const avatarInput = ref(null);
 function pickAvatar() { avatarInput.value?.click(); }
 function uploadAvatar(e) {
@@ -67,7 +75,7 @@ function uploadAvatar(e) {
     });
 }
 
-// ── Personal info form ───────────────────────────────────────────────────
+// â”€â”€ Personal info form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const personalForm = useForm({
     phone:         emp.value?.phone         ?? '',
     gender:        emp.value?.gender        ?? '',
@@ -79,7 +87,7 @@ function savePersonal() {
     personalForm.patch(route('profile.personal'), { preserveScroll: true });
 }
 
-// ── Account (name + email) ───────────────────────────────────────────────
+// â”€â”€ Account (name + email) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const accountForm = useForm({
     name:  user.value?.name  ?? '',
     email: user.value?.email ?? '',
@@ -88,7 +96,7 @@ function saveAccount() {
     accountForm.patch(route('profile.update'), { preserveScroll: true });
 }
 
-// ── Emergency contact form ───────────────────────────────────────────────
+// â”€â”€ Emergency contact form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const emergencyForm = useForm({
     emergency_contact_name:         emp.value?.emergency_contact_name         ?? '',
     emergency_contact_phone:        emp.value?.emergency_contact_phone        ?? '',
@@ -98,7 +106,7 @@ function saveEmergency() {
     emergencyForm.patch(route('profile.emergency'), { preserveScroll: true });
 }
 
-// ── Bank form ────────────────────────────────────────────────────────────
+// â”€â”€ Bank form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const bankForm = useForm({
     bank_name:    emp.value?.bank_name    ?? '',
     bank_account: emp.value?.bank_account ?? '',
@@ -107,7 +115,7 @@ function saveBank() {
     bankForm.patch(route('profile.bank'), { preserveScroll: true });
 }
 
-// ── Password form ────────────────────────────────────────────────────────
+// â”€â”€ Password form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const passwordForm = useForm({
     current_password:      '',
     password:              '',
@@ -120,7 +128,7 @@ function savePassword() {
     });
 }
 
-// ── Skill add ────────────────────────────────────────────────────────────
+// â”€â”€ Skill add â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const skillForm = useForm({ name: '', level: 'intermediate', expires_at: '' });
 function addSkill() {
     if (!emp.value?.id) return;
@@ -135,11 +143,11 @@ function removeSkill(skill) {
     router.delete(route('employees.skills.destroy', [emp.value.id, skill.id]), { preserveScroll: true });
 }
 
-// ── Leave balance helpers ────────────────────────────────────────────────
+// â”€â”€ Leave balance helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TYPE_META = {
-    annual:    { color: '#0051d5', icon: 'beach_access' },
+    annual:    { color: '#205295', icon: 'beach_access' },
     sick:      { color: '#d97706', icon: 'medical_services' },
-    maternity: { color: '#7c3aed', icon: 'child_care' },
+    maternity: { color: '#205295', icon: 'child_care' },
     paternity: { color: '#0891b2', icon: 'family_restroom' },
     emergency: { color: '#dc2626', icon: 'emergency' },
     study:     { color: '#059669', icon: 'school' },
@@ -151,18 +159,21 @@ const balances = computed(() => props.leaveBalances?.data ?? props.leaveBalances
 const inputCls = 'w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all';
 const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1.5';
 
-// ── No employee record yet (legacy users) ────────────────────────────────
+// â”€â”€ No employee record yet (legacy users) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const hasEmployee = computed(() => !!emp.value);
 </script>
 
 <template>
-    <Head title="My Portal — CIHRMS" />
+    <Head title="My Portal â€” CIHRMS" />
 
     <AuthenticatedLayout activeModule="profile">
 
-        <!-- ─── Hero card ──────────────────────────────────────────────────── -->
+        <!-- â”€â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div class="mb-6 overflow-hidden rounded-3xl border border-outline-variant/50 bg-surface-container-lowest shadow-card">
-            <div class="h-24 w-full" style="background:linear-gradient(135deg,#0c0e14,#131620);"></div>
+            <div class="relative h-24 w-full overflow-hidden" style="background:linear-gradient(135deg,#06192f,#0a2647,#1c1f3a);">
+                <!-- 5% gold hairline (single accent moment on the page) -->
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.55),transparent)"></div>
+            </div>
             <div class="relative px-6 pb-6 pt-0">
                 <!-- Avatar -->
                 <div class="absolute -top-12 left-6">
@@ -178,7 +189,7 @@ const hasEmployee = computed(() => !!emp.value);
                                 title="Change photo">
                             <span class="material-symbols-outlined text-[15px]">photo_camera</span>
                         </button>
-                        <input ref="avatarInput" type="file" accept="image/*" @change="uploadAvatar" class="hidden" />
+                        <input ref="avatarInput" aria-label="Upload profile photo" type="file" accept="image/*" @change="uploadAvatar" class="hidden" />
                     </div>
                 </div>
 
@@ -188,7 +199,7 @@ const hasEmployee = computed(() => !!emp.value);
                         <h1 class="text-[24px] font-black tracking-tight text-on-surface leading-tight">{{ user?.name }}</h1>
                         <p class="mt-0.5 text-[13.5px] text-on-surface-variant">
                             {{ emp?.position ?? 'Account holder' }}
-                            <span v-if="emp?.department?.name" class="mx-1.5 text-on-surface-variant/40">·</span>
+                            <span v-if="emp?.department?.name" class="mx-1.5 text-on-surface-variant/40">Â·</span>
                             <span v-if="emp?.department?.name">{{ emp.department.name }}</span>
                         </p>
                         <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -212,7 +223,7 @@ const hasEmployee = computed(() => !!emp.value);
                         <div class="h-10 w-px bg-outline-variant/40"></div>
                         <div class="text-center">
                             <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/55 mb-0.5">Tenure</p>
-                            <p class="text-[13px] font-bold text-on-surface">{{ emp.tenure_years ? emp.tenure_years + 'y' : '—' }}</p>
+                            <p class="text-[13px] font-bold text-on-surface">{{ emp.tenure_years ? emp.tenure_years + 'y' : 'â€”' }}</p>
                         </div>
                         <div class="h-10 w-px bg-outline-variant/40"></div>
                         <div class="text-center">
@@ -224,7 +235,7 @@ const hasEmployee = computed(() => !!emp.value);
             </div>
         </div>
 
-        <!-- ─── Flash success ──────────────────────────────────────────────── -->
+        <!-- â”€â”€â”€ Flash success â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div v-if="$page.props.flash?.success" class="mb-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3">
             <p class="text-[12.5px] font-bold text-emerald-700 dark:text-emerald-400">
                 <span class="material-symbols-outlined text-[15px] align-middle mr-1" style="font-variation-settings:'FILL' 1">check_circle</span>
@@ -232,14 +243,14 @@ const hasEmployee = computed(() => !!emp.value);
             </p>
         </div>
 
-        <!-- ─── Tabs ───────────────────────────────────────────────────────── -->
+        <!-- â”€â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div class="mb-5">
             <TabBar :tabs="tabs" v-model="activeTab" />
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              PROFILE TAB
-        ════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <div v-if="activeTab === 'profile'" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
             <!-- Account (name + email) -->
@@ -256,18 +267,18 @@ const hasEmployee = computed(() => !!emp.value);
                 <form @submit.prevent="saveAccount" class="space-y-4">
                     <div>
                         <label :class="labelCls">Full Name</label>
-                        <input v-model="accountForm.name" :class="inputCls" required />
+                        <input v-model="accountForm.name" aria-label="Full name" :class="inputCls" required />
                         <p v-if="accountForm.errors.name" class="mt-1 text-[11px] text-red-500">{{ accountForm.errors.name }}</p>
                     </div>
                     <div>
                         <label :class="labelCls">Email Address</label>
-                        <input v-model="accountForm.email" type="email" :class="inputCls" required />
+                        <input v-model="accountForm.email" aria-label="Email address" type="email" :class="inputCls" required />
                         <p v-if="accountForm.errors.email" class="mt-1 text-[11px] text-red-500">{{ accountForm.errors.email }}</p>
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" :disabled="accountForm.processing"
                                 class="btn-shimmer rounded-xl px-5 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                style="background:linear-gradient(135deg,#0a2647,#205295)">
                             Save changes
                         </button>
                     </div>
@@ -284,11 +295,11 @@ const hasEmployee = computed(() => !!emp.value);
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label :class="labelCls">Phone</label>
-                            <input v-model="personalForm.phone" type="tel" :class="inputCls" placeholder="+233 …" />
+                            <input v-model="personalForm.phone" aria-label="Phone number" type="tel" :class="inputCls" placeholder="+233 â€¦" />
                         </div>
                         <div>
                             <label :class="labelCls">Gender</label>
-                            <select v-model="personalForm.gender" :class="inputCls">
+                            <select v-model="personalForm.gender" aria-label="Gender" :class="inputCls">
                                 <option value="">Prefer not to say</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
@@ -299,21 +310,21 @@ const hasEmployee = computed(() => !!emp.value);
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label :class="labelCls">Date of Birth</label>
-                            <input v-model="personalForm.date_of_birth" type="date" :class="inputCls" />
+                            <input v-model="personalForm.date_of_birth" aria-label="Date of birth" type="date" :class="inputCls" />
                         </div>
                         <div>
                             <label :class="labelCls">National ID</label>
-                            <input v-model="personalForm.national_id" :class="inputCls" placeholder="GHA-…" />
+                            <input v-model="personalForm.national_id" aria-label="National ID (Ghana Card)" :class="inputCls" placeholder="GHA-â€¦" />
                         </div>
                     </div>
                     <div>
                         <label :class="labelCls">Address</label>
-                        <input v-model="personalForm.address" :class="inputCls" placeholder="Street, City" />
+                        <input v-model="personalForm.address" aria-label="Address" :class="inputCls" placeholder="Street, City" />
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" :disabled="personalForm.processing"
                                 class="btn-shimmer rounded-xl px-5 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                style="background:linear-gradient(135deg,#0a2647,#205295)">
                             Save personal info
                         </button>
                     </div>
@@ -329,16 +340,16 @@ const hasEmployee = computed(() => !!emp.value);
                 <form @submit.prevent="saveEmergency" class="space-y-4">
                     <div>
                         <label :class="labelCls">Contact Name</label>
-                        <input v-model="emergencyForm.emergency_contact_name" :class="inputCls" placeholder="Full name" />
+                        <input v-model="emergencyForm.emergency_contact_name" aria-label="Emergency contact name" :class="inputCls" placeholder="Full name" />
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label :class="labelCls">Phone</label>
-                            <input v-model="emergencyForm.emergency_contact_phone" type="tel" :class="inputCls" placeholder="+233 …" />
+                            <input v-model="emergencyForm.emergency_contact_phone" aria-label="Emergency contact phone" type="tel" :class="inputCls" placeholder="+233 â€¦" />
                         </div>
                         <div>
                             <label :class="labelCls">Relationship</label>
-                            <input v-model="emergencyForm.emergency_contact_relationship" :class="inputCls" placeholder="e.g. Spouse" />
+                            <input v-model="emergencyForm.emergency_contact_relationship" aria-label="Emergency contact relationship" :class="inputCls" placeholder="e.g. Spouse" />
                         </div>
                     </div>
                     <div class="flex justify-end">
@@ -360,11 +371,11 @@ const hasEmployee = computed(() => !!emp.value);
                 <form @submit.prevent="saveBank" class="space-y-4">
                     <div>
                         <label :class="labelCls">Bank Name</label>
-                        <input v-model="bankForm.bank_name" :class="inputCls" placeholder="e.g. Ecobank Ghana" />
+                        <input v-model="bankForm.bank_name" aria-label="Bank name" :class="inputCls" placeholder="e.g. Ecobank Ghana" />
                     </div>
                     <div>
                         <label :class="labelCls">Account Number</label>
-                        <input v-model="bankForm.bank_account" :class="inputCls" placeholder="0000000000" />
+                        <input v-model="bankForm.bank_account" aria-label="Bank account number" :class="inputCls" placeholder="0000000000" />
                     </div>
                     <p class="text-[11px] text-on-surface-variant/55 italic">Used for direct deposits. Visible only to you and Finance.</p>
                     <div class="flex justify-end">
@@ -381,7 +392,7 @@ const hasEmployee = computed(() => !!emp.value);
             <div v-if="hasEmployee" class="lg:col-span-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-card">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-[14px] font-bold text-on-surface flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px] text-violet-600">workspace_premium</span>
+                        <span class="material-symbols-outlined text-[18px] text-blue-600">workspace_premium</span>
                         Skills &amp; Certifications
                     </h3>
                     <span class="text-[11px] font-bold text-on-surface-variant/45">{{ emp?.skills?.length ?? 0 }} on file</span>
@@ -390,10 +401,10 @@ const hasEmployee = computed(() => !!emp.value);
                 <!-- Existing chips -->
                 <div v-if="emp?.skills?.length" class="mb-5 flex flex-wrap gap-2">
                     <span v-for="s in emp.skills" :key="s.id"
-                          class="group inline-flex items-center gap-2 rounded-full border border-violet-300/40 bg-violet-50 dark:bg-violet-950/30 px-3 py-1.5">
-                        <span class="text-[12.5px] font-bold text-violet-800 dark:text-violet-200">{{ s.name }}</span>
-                        <span v-if="s.level" class="text-[10px] font-bold uppercase tracking-wider text-violet-600/70 dark:text-violet-300/70">{{ s.level }}</span>
-                        <span v-if="s.expires_at" class="text-[10px] text-violet-500/70">exp {{ fmt(s.expires_at) }}</span>
+                          class="group inline-flex items-center gap-2 rounded-full border border-blue-300/40 bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5">
+                        <span class="text-[12.5px] font-bold text-blue-800 dark:text-blue-200">{{ s.name }}</span>
+                        <span v-if="s.level" class="text-[10px] font-bold uppercase tracking-wider text-blue-600/70 dark:text-blue-300/70">{{ s.level }}</span>
+                        <span v-if="s.expires_at" class="text-[10px] text-blue-500/70">exp {{ fmt(s.expires_at) }}</span>
                         <button @click="removeSkill(s)" class="opacity-40 hover:opacity-100 hover:text-red-500 transition-all">
                             <span class="material-symbols-outlined text-[13px]">close</span>
                         </button>
@@ -402,14 +413,14 @@ const hasEmployee = computed(() => !!emp.value);
 
                 <!-- Add form -->
                 <form @submit.prevent="addSkill" class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_140px_140px_auto]">
-                    <input v-model="skillForm.name" :class="inputCls" placeholder="Skill or certification" required />
-                    <select v-model="skillForm.level" :class="inputCls">
+                    <input v-model="skillForm.name" aria-label="Skill or certification name" :class="inputCls" placeholder="Skill or certification" required />
+                    <select v-model="skillForm.level" aria-label="Skill proficiency level" :class="inputCls">
                         <option v-for="l in skillLevels" :key="l" :value="l">{{ l.charAt(0).toUpperCase() + l.slice(1) }}</option>
                     </select>
-                    <input v-model="skillForm.expires_at" type="date" :class="inputCls" />
+                    <input v-model="skillForm.expires_at" aria-label="Skill expiry date" type="date" :class="inputCls" />
                     <button type="submit" :disabled="skillForm.processing"
                             class="rounded-xl px-4 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                            style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">
+                            style="background:linear-gradient(135deg,#205295,#7cb6e8)">
                         + Add
                     </button>
                 </form>
@@ -417,9 +428,9 @@ const hasEmployee = computed(() => !!emp.value);
             </div>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              LEAVE TAB
-        ════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <div v-if="activeTab === 'leave'" class="space-y-6">
             <!-- Balance grid -->
             <div v-if="balances.length" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -448,7 +459,7 @@ const hasEmployee = computed(() => !!emp.value);
             <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
                 <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
                     <h3 class="text-[14px] font-bold text-on-surface">Recent Requests</h3>
-                    <Link :href="route('leave.index')" class="text-[12px] font-bold text-secondary hover:underline">All requests →</Link>
+                    <Link :href="route('leave.index')" class="text-[12px] font-bold text-secondary hover:underline">All requests â†’</Link>
                 </div>
                 <ul v-if="recentLeave?.length" class="divide-y divide-outline-variant/30">
                     <li v-for="lr in recentLeave" :key="lr.id"
@@ -461,7 +472,7 @@ const hasEmployee = computed(() => !!emp.value);
                             </div>
                             <div>
                                 <p class="text-[13.5px] font-bold text-on-surface">{{ lr.type_label ?? lr.type }}</p>
-                                <p class="text-[11.5px] text-on-surface-variant/65">{{ fmt(lr.start_date) }} → {{ fmt(lr.end_date) }}</p>
+                                <p class="text-[11.5px] text-on-surface-variant/65">{{ fmt(lr.start_date) }} â†’ {{ fmt(lr.end_date) }}</p>
                             </div>
                         </div>
                         <StatusBadge :status="lr.status" type="leave" />
@@ -471,9 +482,9 @@ const hasEmployee = computed(() => !!emp.value);
             </div>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              PAY TAB
-        ════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <div v-if="activeTab === 'pay'" class="space-y-6">
             <div v-if="emp?.salary !== undefined && emp?.salary !== null" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-card">
                 <div class="flex items-center justify-between">
@@ -510,9 +521,9 @@ const hasEmployee = computed(() => !!emp.value);
             </div>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              DOCUMENTS TAB
-        ════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <div v-if="activeTab === 'documents'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
             <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
                 <h3 class="text-[14px] font-bold text-on-surface">My Documents</h3>
@@ -527,7 +538,7 @@ const hasEmployee = computed(() => !!emp.value);
                         </div>
                         <div class="min-w-0">
                             <p class="text-[13.5px] font-bold text-on-surface truncate">{{ d.title }}</p>
-                            <p class="text-[11px] text-on-surface-variant/55">{{ fmt(d.created_at) }} · {{ d.mime_type }}</p>
+                            <p class="text-[11px] text-on-surface-variant/55">{{ fmt(d.created_at) }} Â· {{ d.mime_type }}</p>
                         </div>
                     </div>
                     <a :href="`/storage/${d.file_path}`" target="_blank"
@@ -539,13 +550,13 @@ const hasEmployee = computed(() => !!emp.value);
             <EmptyState v-else title="No documents yet" description="Documents uploaded by HR will appear here." icon="folder" />
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              TICKETS TAB
-        ════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <div v-if="activeTab === 'tickets'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
             <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
                 <h3 class="text-[14px] font-bold text-on-surface">My Service Tickets</h3>
-                <Link :href="route('tickets.index')" class="text-[12px] font-bold text-secondary hover:underline">All tickets →</Link>
+                <Link :href="route('tickets.index')" class="text-[12px] font-bold text-secondary hover:underline">All tickets â†’</Link>
             </div>
             <ul v-if="recentTickets?.length" class="divide-y divide-outline-variant/30">
                 <li v-for="t in recentTickets" :key="t.id"
@@ -563,9 +574,9 @@ const hasEmployee = computed(() => !!emp.value);
             <EmptyState v-else title="No tickets" description="Open a ticket from the Service Desk module if you need help." icon="support_agent" />
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
              SECURITY TAB
-        ════════════════════════════════════════════════════════════════ -->
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <div v-if="activeTab === 'security'" class="space-y-6 max-w-2xl">
 
             <!-- Change password -->
@@ -577,24 +588,24 @@ const hasEmployee = computed(() => !!emp.value);
                 <form @submit.prevent="savePassword" class="space-y-4">
                     <div>
                         <label :class="labelCls">Current Password</label>
-                        <input v-model="passwordForm.current_password" type="password" autocomplete="current-password" :class="inputCls" required />
+                        <input v-model="passwordForm.current_password" aria-label="Current password" type="password" autocomplete="current-password" :class="inputCls" required />
                         <p v-if="passwordForm.errors.current_password" class="mt-1 text-[11px] text-red-500">{{ passwordForm.errors.current_password }}</p>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label :class="labelCls">New Password</label>
-                            <input v-model="passwordForm.password" type="password" autocomplete="new-password" :class="inputCls" required />
+                            <input v-model="passwordForm.password" aria-label="New password" type="password" autocomplete="new-password" :class="inputCls" required />
                             <p v-if="passwordForm.errors.password" class="mt-1 text-[11px] text-red-500">{{ passwordForm.errors.password }}</p>
                         </div>
                         <div>
                             <label :class="labelCls">Confirm New Password</label>
-                            <input v-model="passwordForm.password_confirmation" type="password" autocomplete="new-password" :class="inputCls" required />
+                            <input v-model="passwordForm.password_confirmation" aria-label="Confirm new password" type="password" autocomplete="new-password" :class="inputCls" required />
                         </div>
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" :disabled="passwordForm.processing"
                                 class="btn-shimmer rounded-xl px-5 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)">
+                                style="background:linear-gradient(135deg,#0a2647,#205295)">
                             Update password
                         </button>
                     </div>
@@ -608,12 +619,12 @@ const hasEmployee = computed(() => !!emp.value);
                     Danger Zone
                 </h3>
                 <p class="text-[12.5px] text-on-surface-variant/70 leading-relaxed mb-4">
-                    Deleting your account is permanent. All your records — leave history, documents, ticket trail — will be removed. Contact HR before proceeding.
+                    Deleting your account is permanent. All your records â€” leave history, documents, ticket trail â€” will be removed. Contact HR before proceeding.
                 </p>
                 <form @submit.prevent="router.delete(route('profile.destroy'), { data: { password: $event.target.password.value } })" class="flex items-end gap-3">
                     <div class="flex-1 max-w-xs">
                         <label :class="labelCls">Confirm with current password</label>
-                        <input name="password" type="password" autocomplete="current-password" :class="inputCls" required />
+                        <input name="password" aria-label="Current password (account deletion confirmation)" type="password" autocomplete="current-password" :class="inputCls" required />
                     </div>
                     <button type="submit"
                             class="rounded-xl border border-red-300 dark:border-red-700/50 bg-red-100 dark:bg-red-900/40 px-4 py-2 text-[12px] font-bold text-red-700 dark:text-red-400 hover:bg-red-200 transition-colors">

@@ -1,0 +1,200 @@
+<script setup>
+import { router } from '@inertiajs/vue3';
+import Sparkline from '@/Components/charts/Sparkline.vue';
+
+const props = defineProps({
+    spark:     { type: Object,  required: true },    // deptSparkData.hr slice
+    employees: { type: Array,   default: () => [] },
+    stats:     { type: Object,  default: () => ({}) },
+});
+</script>
+
+<template>
+    <div class="space-y-6 animate-reveal-up">
+
+        <!-- Hero Banner -->
+        <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
+             style="background:linear-gradient(135deg,#0c0e14,#111827);border:1px solid rgba(255,255,255,0.06)">
+            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(5,150,105,0.2),transparent 70%)"></div>
+            <div class="relative flex flex-wrap items-center justify-between gap-6">
+                <div class="flex items-center gap-5">
+                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(5,150,105,0.2);border:1px solid rgba(5,150,105,0.3)">
+                        <span class="material-symbols-outlined text-3xl text-green-400" style="font-variation-settings:'FILL' 1">people</span>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
+                        <h2 class="text-2xl font-black leading-tight">Human Resources</h2>
+                        <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Talent · Culture · Compliance · Payroll</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-10 flex-shrink-0">
+                    <div v-for="m in [
+                        { label: 'HR Staff',        val: '28' },
+                        { label: 'Total Headcount', val: Math.round(spark.headcount[spark.headcount.length-1]).toLocaleString() },
+                        { label: 'Turnover Rate',   val: spark.turnover[spark.turnover.length-1].toFixed(1) + '%' },
+                    ]" :key="m.label" class="text-center">
+                        <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
+                        <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div v-for="(card, i) in [
+                { label: 'Total Headcount',     display: Math.round(spark.headcount[spark.headcount.length-1]).toLocaleString(), trend: '+2 this week', color: '#ffd700', rgb: '255,215,0',   icon: 'badge',         up: true,  spark: spark.headcount     },
+                { label: 'Turnover Rate',       display: spark.turnover[spark.turnover.length-1].toFixed(1) + '%',                trend: 'vs 5% target', color: '#d912e3', rgb: '217,18,227',  icon: 'person_remove', up: true,  spark: spark.turnover      },
+                { label: 'Open Positions',      display: Math.round(spark.openPositions[spark.openPositions.length-1]),           trend: '6 in pipeline',color: '#7cb6e8', rgb: '124,182,232', icon: 'work_outline',  up: false, spark: spark.openPositions },
+                { label: 'Training Completion', display: spark.training[spark.training.length-1].toFixed(0) + '%',                trend: 'Annual goal',  color: '#12d9e3', rgb: '18,217,227',  icon: 'school',        up: true,  spark: spark.training      },
+            ]" :key="i"
+                 class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
+                 :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
+                <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
+                </div>
+                <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
+                    <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
+                </div>
+                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
+                <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
+                <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
+                <div class="-mx-1 mt-3">
+                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="28"
+                               :stroke-width="1.5" :label="card.label" class="!block w-full"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid gap-6 lg:grid-cols-12">
+
+            <div class="lg:col-span-8 space-y-6">
+
+                <!-- Recruitment Pipeline -->
+                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
+                        <h3 class="text-[15px] font-black text-primary">Recruitment Pipeline</h3>
+                        <button @click="router.visit(route('jobs.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            <span class="material-symbols-outlined text-[15px]">add</span> Post Job
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div v-for="stage in [
+                            { name: 'Applications Received', count: 245, total: 245, color: 'bg-blue-500',  pct: 100 },
+                            { name: 'Shortlisted',           count: 82,  total: 245, color: 'bg-secondary', pct: 33  },
+                            { name: 'First Interview',       count: 34,  total: 245, color: 'bg-blue-500',  pct: 14  },
+                            { name: 'Second Interview',      count: 12,  total: 245, color: 'bg-amber-500', pct: 5   },
+                            { name: 'Offer Extended',        count: 4,   total: 245, color: 'bg-green-500', pct: 1.6 },
+                        ]" :key="stage.name"
+                             class="flex items-center gap-4">
+                            <span class="w-44 text-[12px] font-bold text-on-surface-variant flex-shrink-0">{{ stage.name }}</span>
+                            <div class="flex-1 h-6 rounded-full bg-surface-container-low overflow-hidden relative">
+                                <div class="h-full rounded-full transition-all duration-700 flex items-center justify-end pr-3" :class="stage.color" :style="`width:${stage.pct}%`">
+                                    <span class="text-[9px] font-black text-white">{{ stage.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Hires Table -->
+                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden flex flex-col">
+                    <div class="px-6 py-4 border-b border-outline-variant/50 flex-shrink-0">
+                        <h3 class="text-[15px] font-black text-primary">Recent Hires</h3>
+                    </div>
+                    <div class="canvas-scroll max-h-[340px] overflow-auto">
+                    <table class="w-full text-left">
+                        <thead class="sticky top-0 z-10 bg-surface-container-low text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 border-b border-outline-variant/50">
+                            <tr>
+                                <th class="px-6 py-3">Employee</th>
+                                <th class="px-6 py-3">Department</th>
+                                <th class="px-6 py-3">Start Date</th>
+                                <th class="px-6 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/40">
+                            <tr v-for="emp in employees" :key="emp.id" class="hover:bg-surface-container-low/30 transition-colors">
+                                <td class="px-6 py-3.5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-[11px] font-black text-secondary flex-shrink-0">{{ (emp.employee_no || 'E').charAt(0) }}</div>
+                                        <div>
+                                            <p class="text-[12.5px] font-bold text-primary">{{ emp.user?.name || emp.name || 'New Employee' }}</p>
+                                            <p class="text-[10px] text-on-surface-variant">{{ emp.position }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-3.5 text-[12.5px] font-bold text-on-surface-variant">{{ emp.department?.name || 'General' }}</td>
+                                <td class="px-6 py-3.5 text-[12px] font-medium text-on-surface-variant">{{ emp.hire_date || 'May 2026' }}</td>
+                                <td class="px-6 py-3.5"><span class="rounded-full px-2.5 py-1 text-[9px] font-black uppercase bg-green-50 text-green-700 border border-green-100">Active</span></td>
+                            </tr>
+                            <tr v-if="!employees.length"><td colspan="4" class="px-6 py-8 text-center text-sm italic text-on-surface-variant">No recent hires recorded.</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="lg:col-span-4 space-y-6">
+
+                <!-- Dept Breakdown -->
+                <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-5" style="color:rgba(255,255,255,0.3)">Workforce by Department</p>
+                    <div class="space-y-3">
+                        <div v-for="dept in [
+                            { name: 'Technology', count: 285, pct: 22, color: '#2c74b3' },
+                            { name: 'Operations', count: 412, pct: 32, color: '#059669' },
+                            { name: 'Finance',    count: 156, pct: 12, color: '#d97706' },
+                            { name: 'Marketing',  count: 98,  pct: 8,  color: '#205295' },
+                            { name: 'HR & Admin', count: 72,  pct: 6,  color: '#0891b2' },
+                            { name: 'Other',      count: 261, pct: 20, color: '#6b7280' },
+                        ]" :key="dept.name" class="space-y-1">
+                            <div class="flex items-center justify-between text-[11px] font-bold">
+                                <span style="color:rgba(255,255,255,0.7)">{{ dept.name }}</span>
+                                <span style="color:rgba(255,255,255,0.4)">{{ dept.count }} ({{ dept.pct }}%)</span>
+                            </div>
+                            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06)">
+                                <div class="h-full rounded-full transition-all duration-700" :style="`width:${dept.pct}%;background:${dept.color}`"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave Summary -->
+                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+                    <h4 class="text-[13px] font-black text-primary mb-4">Leave Overview · This Month</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div v-for="ls in [
+                            { label: 'On Leave',    val: Math.round(spark.openPositions[11] * 3.4), color: 'text-amber-600', bg: 'bg-amber-50' },
+                            { label: 'Pending',     val: stats.pendingLeave ?? 0,                    color: 'text-blue-600',  bg: 'bg-blue-50' },
+                            { label: 'Approved',    val: 38,                                         color: 'text-green-600', bg: 'bg-green-50' },
+                            { label: 'Annual Left', val: '12d',                                      color: 'text-secondary', bg: 'bg-secondary/10' },
+                        ]" :key="ls.label"
+                             class="rounded-xl p-3 text-center" :class="ls.bg">
+                            <p class="text-xl font-black" :class="ls.color">{{ ls.val }}</p>
+                            <p class="text-[9px] font-black uppercase mt-0.5 text-on-surface-variant">{{ ls.label }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance -->
+                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+                    <h4 class="text-[13px] font-black text-primary mb-4">HR Compliance</h4>
+                    <div class="space-y-3">
+                        <div v-for="item in [
+                            { label: 'Labor Act 2003',   pct: 100, pass: true  },
+                            { label: 'Data Protection',  pct: 97,  pass: true  },
+                            { label: 'Policy Review',    pct: 82,  pass: false },
+                            { label: 'Anti-Harassment',  pct: 100, pass: true  },
+                        ]" :key="item.label" class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[18px]" :class="item.pass ? 'text-green-500' : 'text-amber-500'">{{ item.pass ? 'check_circle' : 'warning' }}</span>
+                            <span class="flex-1 text-[12px] font-bold text-on-surface-variant">{{ item.label }}</span>
+                            <span class="text-[11px] font-black" :class="item.pass ? 'text-green-600' : 'text-amber-600'">{{ item.pct }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

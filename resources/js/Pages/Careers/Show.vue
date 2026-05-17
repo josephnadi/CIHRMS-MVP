@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import StatusBadge from '@/Components/StatusBadge.vue';
@@ -39,7 +39,7 @@ const formatDate = (d) => {
 </script>
 
 <template>
-    <Head :title="`${j.title} · Careers · CIHRM Ghana`" />
+    <Head :title="`${j.title} Â· Careers Â· CIHRM Ghana`" />
 
     <div class="min-h-screen bg-background">
 
@@ -49,7 +49,7 @@ const formatDate = (d) => {
                 <Link href="/" class="group flex items-center gap-3">
                     <div
                         class="flex h-9 w-9 items-center justify-center rounded-xl shadow-glow-sm transition-transform group-hover:rotate-6"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[20px] text-white" style="font-variation-settings:'FILL' 1">account_balance</span>
                     </div>
@@ -96,7 +96,7 @@ const formatDate = (d) => {
                         v-if="j.status === 'open' && !submitted"
                         @click="showForm = !showForm"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-3 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px hover:shadow-glow transition-all"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">send</span>
                         Apply Now
@@ -157,7 +157,7 @@ const formatDate = (d) => {
                             </div>
 
                             <div>
-                                <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">CV / Resume <span class="text-on-surface-variant/60 font-normal">(PDF, DOC, DOCX · max 5MB)</span></label>
+                                <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">CV / Resume <span class="text-on-surface-variant/60 font-normal">(PDF, DOC, DOCX Â· max 5MB)</span></label>
                                 <input
                                     type="file"
                                     accept=".pdf,.doc,.docx"
@@ -172,7 +172,7 @@ const formatDate = (d) => {
                                 type="submit"
                                 :disabled="form.processing"
                                 class="btn-shimmer mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
                                 <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                                 <span>Submit Application</span>
@@ -200,7 +200,7 @@ const formatDate = (d) => {
         </main>
 
         <footer class="border-t border-outline-variant/40 mt-12 py-8">
-            <p class="text-center text-[11px] text-on-surface-variant/60">© 2026 CIHRM Ghana · Enterprise HR Management</p>
+            <p class="text-center text-[11px] text-on-surface-variant/60">Â© 2026 CIHRM Ghana Â· Enterprise HR Management</p>
         </footer>
     </div>
 </template>

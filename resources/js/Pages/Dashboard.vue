@@ -1,8 +1,18 @@
 ﻿<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useToast } from '@/composables/useToast';
+import Sparkline from '@/Components/charts/Sparkline.vue';
+import LiveBars  from '@/Components/charts/LiveBars.vue';
+
+// Department dashboards are heavy (200 lines each, lots of decorative SVG/CSS)
+// and only one is visible at a time — load them on demand so a typical
+// dashboard visit ships ~600 fewer template lines in the initial bundle.
+const DeptIt        = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptIt.vue'));
+const DeptHr        = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptHr.vue'));
+const DeptMarketing = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptMarketing.vue'));
+const DeptFinance   = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptFinance.vue'));
 
 const { success } = useToast();
 
@@ -82,10 +92,12 @@ const kpiCards = computed(() => {
     const c = sparkData.value.compliance;
     const s = props.stats ?? {};
     return [
-        { label: 'Active Staff',    display: (s.employees ?? 0).toLocaleString(),                                       trend: s.openJobs ? `${s.openJobs} open roles` : 'Workforce',     icon: 'badge',          color: '#316bf3', rgb: '49,107,243', spark: e, up: true  },
-        { label: 'Open Tickets',    display: s.openTickets ?? 0,                                                        trend: 'Service desk',                                            icon: 'support_agent',  color: '#dc2626', rgb: '220,38,38',  spark: t, up: false },
-        { label: 'Pending Leave',   display: s.pendingLeave ?? 0,                                                       trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#d97706', rgb: '217,119,6',  spark: l, up: false },
-        { label: 'Pending Payroll', display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : 'â€”', icon: 'payments',       color: '#059669', rgb: '5,150,105',  spark: c, up: true  },
+        // Card icon colours follow the institutional palette:
+        //   magenta = people, cyan = tech/service, gold = flagship (5%), blue = financial
+        { label: 'Active Staff',    display: (s.employees ?? 0).toLocaleString(),                                       trend: s.openJobs ? `${s.openJobs} open roles` : 'Workforce',     icon: 'badge',          color: '#d912e3', rgb: '217,18,227', spark: e, up: true  },
+        { label: 'Open Tickets',    display: s.openTickets ?? 0,                                                        trend: 'Service desk',                                            icon: 'support_agent',  color: '#12d9e3', rgb: '18,217,227', spark: t, up: false },
+        { label: 'Pending Leave',   display: s.pendingLeave ?? 0,                                                       trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#7cb6e8', rgb: '124,182,232', spark: l, up: false },
+        { label: 'Pending Payroll', display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : '—', icon: 'payments',       color: '#ffd700', rgb: '255,215,0',  spark: c, up: true  },
     ];
 });
 
@@ -287,15 +299,17 @@ const getStatusColor = (status) => {
                     </div>
                 </div>
                 <div class="flex items-center gap-2.5">
-                    <!-- Live sync indicator: pulses while reloading, otherwise shows seconds since last refresh -->
-                    <div class="flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
-                         :class="isSyncing
-                            ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800/40 dark:text-blue-300'
-                            : 'bg-green-50 border-green-100 text-green-700 dark:bg-green-950/40 dark:border-green-800/40 dark:text-green-300'">
+                    <!-- Live sync indicator: cyan pulse while syncing, gold ring when idle (institutional 5% accent) -->
+                    <div class="flex items-center gap-1.5 rounded-full px-3 py-1.5 border live-pill"
+                         :style="isSyncing
+                            ? 'background:rgba(18,217,227,0.10);border-color:rgba(18,217,227,0.40);color:#0a2647;'
+                            : 'background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.45);color:#b88a08;'">
                         <span class="h-1.5 w-1.5 rounded-full"
-                              :class="isSyncing ? 'bg-blue-500 animate-pulse' : 'bg-green-500 live-dot'"></span>
+                              :style="isSyncing
+                                ? 'background:#12d9e3;box-shadow:0 0 8px rgba(18,217,227,0.75);'
+                                : 'background:#ffd700;box-shadow:0 0 8px rgba(255,215,0,0.70);'"></span>
                         <span class="text-[10px] font-black uppercase tracking-widest">
-                            {{ isSyncing ? 'Syncingâ€¦' : `Live Â· ${syncAgoLabel}` }}
+                            {{ isSyncing ? 'Syncing' : `Live · ${syncAgoLabel}` }}
                         </span>
                     </div>
                     <Link :href="route('reports.index')" class="flex items-center gap-2 rounded-xl border border-outline-variant/70 bg-surface-container-lowest px-4 py-2.5 text-[13px] font-bold text-on-surface shadow-sm transition-all duration-150 hover:bg-surface-container-low hover:border-outline-variant hover:-translate-y-px active:scale-[0.97]">
@@ -331,7 +345,7 @@ const getStatusColor = (status) => {
                                 </Link>
                                 <button @click="router.visit(route('employees.index', { new: 1 }))"
                                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-95"
-                                        style="background:linear-gradient(135deg,#0051d5,#316bf3);">
+                                        style="background:linear-gradient(135deg,#0a2647,#205295);">
                                     <span class="material-symbols-outlined text-[18px]">add</span>
                                     Add Employee
                                 </button>
@@ -462,7 +476,7 @@ const getStatusColor = (status) => {
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-4 rounded-2xl bg-surface-container-low/50 p-4 border border-outline-variant/30">
-                                    <div class="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                                    <div class="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
                                         <span class="material-symbols-outlined">groups</span>
                                     </div>
                                     <div>
@@ -525,10 +539,10 @@ const getStatusColor = (status) => {
                 <!-- Stats Grid with Sparklines -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div v-for="(stat, si) in [
-                        { label: 'Open Tickets',    val: Math.round(sparkData.tickets[sparkData.tickets.length-1]), badge: '12 critical',  badgeColor: 'bg-red-50 text-red-700',    icon: 'confirmation_number', color: '#dc2626', rgb: '220,38,38',   spark: sparkData.tickets    },
-                        { label: 'Avg Resolution',  val: '4.2h',                                                    badge: 'â†‘ improving',  badgeColor: 'bg-green-50 text-green-700', icon: 'timer',               color: '#059669', rgb: '5,150,105',   spark: sparkData.compliance },
-                        { label: 'SLA Compliance',  val: sparkData.compliance[sparkData.compliance.length-1].toFixed(1)+'%', badge: 'Target 95%', badgeColor: 'bg-green-50 text-green-700', icon: 'verified', color: '#059669', rgb: '5,150,105', spark: sparkData.compliance },
-                        { label: 'Pending Review',  val: '8',                                                       badge: '3 escalated',  badgeColor: 'bg-amber-50 text-amber-700', icon: 'inbox',               color: '#d97706', rgb: '217,119,6',   spark: sparkData.leave      },
+                        { label: 'Open Tickets',    val: Math.round(sparkData.tickets[sparkData.tickets.length-1]), badge: '12 critical',  badgeColor: 'bg-red-50 text-red-700',    icon: 'confirmation_number', color: '#12d9e3', rgb: '18,217,227',  spark: sparkData.tickets    },
+                        { label: 'Avg Resolution',  val: '4.2h',                                                    badge: '↑ improving',  badgeColor: 'bg-green-50 text-green-700', icon: 'timer',               color: '#ffd700', rgb: '255,215,0',   spark: sparkData.compliance },
+                        { label: 'SLA Compliance',  val: sparkData.compliance[sparkData.compliance.length-1].toFixed(1)+'%', badge: 'Target 95%', badgeColor: 'bg-green-50 text-green-700', icon: 'verified', color: '#205295', rgb: '32,82,149', spark: sparkData.compliance },
+                        { label: 'Pending Review',  val: '8',                                                       badge: '3 escalated',  badgeColor: 'bg-amber-50 text-amber-700', icon: 'inbox',               color: '#d912e3', rgb: '217,18,227',  spark: sparkData.leave      },
                     ]" :key="si"
                          class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
                          :style="`animation:slideUpFade 0.4s ease both;animation-delay:${si*0.06}s`">
@@ -544,16 +558,8 @@ const getStatusColor = (status) => {
                         <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ stat.label }}</p>
                         <p class="mt-1.5 text-2xl font-black text-primary kpi-val">{{ stat.val }}</p>
                         <div class="-mx-1 mt-3">
-                            <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
-                                <defs>
-                                    <linearGradient :id="`tsg${si}`" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" :stop-color="stat.color" stop-opacity="0.18"/>
-                                        <stop offset="100%" :stop-color="stat.color" stop-opacity="0.01"/>
-                                    </linearGradient>
-                                </defs>
-                                <path :d="sparkArea(stat.spark, 96, 24)" :fill="`url(#tsg${si})`"/>
-                                <polyline :points="sparkLine(stat.spark, 96, 24)" fill="none" :stroke="stat.color" stroke-width="1.4" stroke-linecap="round"/>
-                            </svg>
+                            <Sparkline :data="stat.spark" :color="stat.color" :width="96" :height="28"
+                                       :stroke-width="1.5" :label="stat.label" class="!block w-full"/>
                         </div>
                     </div>
                 </div>
@@ -608,7 +614,7 @@ const getStatusColor = (status) => {
 
                     <!-- In Progress Column -->
                     <div class="flex flex-col gap-4 rounded-2xl p-4"
-                         style="background:rgba(0,81,213,0.03);border:1px solid rgba(0,81,213,0.1);">
+                         style="background:rgba(32,82,149,0.03);border:1px solid rgba(32,82,149,0.1);">
                         <div class="flex items-center justify-between px-1">
                             <div class="flex items-center gap-2">
                                 <div class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
@@ -671,8 +677,8 @@ const getStatusColor = (status) => {
                 <button @click="router.visit(route('tickets.index', { new: 1 }))"
                         type="button"
                         title="Create new ticket"
-                        class="btn-shimmer fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-glow-lg transition-all hover:scale-110 hover:shadow-[0_0_48px_rgba(0,81,213,0.5)] active:scale-95 z-50"
-                        style="background:linear-gradient(135deg,#0051d5,#316bf3);">
+                        class="btn-shimmer fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-glow-lg transition-all hover:scale-110 hover:shadow-[0_0_48px_rgba(32,82,149,0.5)] active:scale-95 z-50"
+                        style="background:linear-gradient(135deg,#0a2647,#205295);">
                     <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">add_task</span>
                 </button>
             </div>
@@ -701,18 +707,16 @@ const getStatusColor = (status) => {
                             </div>
                             <span class="text-[10px] font-bold text-on-surface-variant">{{ new Date().getFullYear() }}</span>
                         </div>
-                        <div class="flex h-52 items-end justify-between gap-1.5 px-1">
-                            <div v-for="(h, i) in perfBarData" :key="i"
-                                 class="group relative flex flex-1 flex-col items-center gap-2">
-                                <div class="w-full rounded-t relative overflow-hidden cursor-default"
-                                     :style="`height:${h}%;transition:height 0.9s cubic-bezier(0.22,1,0.36,1);`">
-                                    <div class="absolute inset-0 rounded-t" style="background:linear-gradient(to top,#0051d5,rgba(99,131,255,0.6))"></div>
-                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-t" style="background:rgba(49,107,243,0.9)"></div>
-                                    <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap rounded-lg px-2 py-1 text-[8px] font-black text-white" style="background:#0c0e14">{{ Math.round(h) }}%</div>
-                                </div>
-                                <span class="text-[8px] font-black text-on-surface-variant/40 uppercase">{{ ['J','F','M','A','M','J','J','A','S','O','N','D'][i] }}</span>
-                            </div>
-                        </div>
+                        <LiveBars
+                            :data="perfBarData.map((v,i) => ({ label: ['J','F','M','A','M','J','J','A','S','O','N','D'][i], value: v }))"
+                            :height="208"
+                            :format-value="v => `${Math.round(v)}%`"
+                            color="#205295"
+                            accent-color="#ffd700"
+                            second-color="#12d9e3"
+                            :show-median="true"
+                            :rounded="6"
+                        />
                     </div>
 
                     <!-- Strategic OKRs -->
@@ -753,7 +757,7 @@ const getStatusColor = (status) => {
                         <button @click="router.visit(route('performance.goals.index'))"
                                 type="button"
                                 class="btn-shimmer mt-10 w-full rounded-xl py-3 text-[13px] font-black text-white border transition-all hover:bg-white/20"
-                                style="background:rgba(0,81,213,0.25);border-color:rgba(49,107,243,0.3);">
+                                style="background:rgba(32,82,149,0.25);border-color:rgba(44,116,179,0.3);">
                             View Strategic Roadmap
                         </button>
                     </div>
@@ -1285,829 +1289,22 @@ const getStatusColor = (status) => {
             <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  IT & TECHNOLOGY DEPARTMENT
                  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-            <div v-if="activeModule === 'dept-it'" class="space-y-6 animate-reveal-up">
-
-                <!-- Hero Banner -->
-                <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-                     style="background:linear-gradient(135deg,#0c0e14 0%,#111827 100%);border:1px solid rgba(255,255,255,0.06);">
-                    <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(0,81,213,0.25),transparent 70%)"></div>
-                    <div class="relative flex flex-wrap items-center justify-between gap-6">
-                        <div class="flex items-center gap-5">
-                            <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(49,107,243,0.2);border:1px solid rgba(49,107,243,0.3)">
-                                <span class="material-symbols-outlined text-3xl text-blue-400" style="font-variation-settings:'FILL' 1">computer</span>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                                <h2 class="text-2xl font-black leading-tight">IT &amp; Technology</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Infrastructure Â· Support Â· Security Â· Development</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-10 flex-shrink-0">
-                            <div v-for="m in [
-                                { label: 'Team Members', val: '42' },
-                                { label: 'Servers Online', val: Math.round(deptSparkData.it.servers[deptSparkData.it.servers.length-1]) },
-                                { label: 'Uptime SLA',    val: deptSparkData.it.uptime[deptSparkData.it.uptime.length-1].toFixed(2) + '%' },
-                            ]" :key="m.label" class="text-center">
-                                <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                                <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <div v-for="(card, i) in [
-                        { label: 'Servers Online',  display: Math.round(deptSparkData.it.servers[deptSparkData.it.servers.length-1]) + ' / 24', trend: '100% capacity', color: '#316bf3', rgb: '49,107,243',  icon: 'dns',            up: true,  spark: deptSparkData.it.servers  },
-                        { label: 'Open IT Tickets', display: Math.round(deptSparkData.it.tickets[deptSparkData.it.tickets.length-1]), trend: '3 critical',      color: '#dc2626',  rgb: '220,38,38',   icon: 'bug_report',     up: false, spark: deptSparkData.it.tickets  },
-                        { label: 'Security Alerts', display: Math.round(deptSparkData.it.alerts[deptSparkData.it.alerts.length-1]),  trend: 'Low severity',    color: '#d97706',  rgb: '217,119,6',   icon: 'security',       up: false, spark: deptSparkData.it.alerts   },
-                        { label: 'Uptime SLA',      display: deptSparkData.it.uptime[deptSparkData.it.uptime.length-1].toFixed(2) + '%', trend: 'Target: 99.9%', color: '#059669', rgb: '5,150,105',  icon: 'electric_bolt',  up: true,  spark: deptSparkData.it.uptime   },
-                    ]" :key="i"
-                         class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                         :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                        <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                            <span class="text-[7.5px] font-black uppercase tracking-widest" :style="`color:${card.color};opacity:0.65`">live</span>
-                        </div>
-                        <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                            <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                        </div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                        <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
-                        <div class="-mx-1 mt-3">
-                            <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
-                                <defs><linearGradient :id="`itg${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
-                                <path :d="sparkArea(card.spark, 96, 24)" :fill="`url(#itg${i})`"/>
-                                <polyline :points="sparkLine(card.spark, 96, 24)" fill="none" :stroke="card.color" stroke-width="1.4" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Grid -->
-                <div class="grid gap-6 lg:grid-cols-12">
-
-                    <!-- Infrastructure Status + Incidents -->
-                    <div class="lg:col-span-8 space-y-6">
-
-                        <!-- Infrastructure Status -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
-                            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
-                                <h3 class="text-[15px] font-black text-primary">Infrastructure Status</h3>
-                                <div class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-green-400 live-dot"></span><span class="text-[9px] font-black text-green-600 uppercase tracking-widest">All Systems</span></div>
-                            </div>
-                            <div class="divide-y divide-outline-variant/40">
-                                <div v-for="sys in [
-                                    { name: 'CIHRM Production API',        status: 'Operational',  latency: '42ms',  uptime: '99.98%', icon: 'api',            color: 'text-green-600 bg-green-50' },
-                                    { name: 'PostgreSQL Database Cluster',  status: 'Operational',  latency: '8ms',   uptime: '99.99%', icon: 'storage',        color: 'text-green-600 bg-green-50' },
-                                    { name: 'Redis Cache Layer',            status: 'Operational',  latency: '1ms',   uptime: '100%',   icon: 'memory',         color: 'text-green-600 bg-green-50' },
-                                    { name: 'Mail & Notification Service',  status: 'Degraded',     latency: '320ms', uptime: '98.2%',  icon: 'mail',           color: 'text-amber-600 bg-amber-50' },
-                                    { name: 'Document Storage (S3)',        status: 'Operational',  latency: '85ms',  uptime: '99.95%', icon: 'folder_open',    color: 'text-green-600 bg-green-50' },
-                                    { name: 'VPN Gateway (Accra HQ)',       status: 'Operational',  latency: '12ms',  uptime: '99.97%', icon: 'vpn_lock',       color: 'text-green-600 bg-green-50' },
-                                ]" :key="sys.name"
-                                     class="flex items-center justify-between px-6 py-3.5 hover:bg-surface-container-low/30 transition-colors">
-                                    <div class="flex items-center gap-4">
-                                        <div class="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0" :class="sys.color.split(' ')[1]">
-                                            <span class="material-symbols-outlined text-[16px]" :class="sys.color.split(' ')[0]">{{ sys.icon }}</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-[13px] font-bold text-primary">{{ sys.name }}</p>
-                                            <p class="text-[10px] font-medium text-on-surface-variant">Latency: {{ sys.latency }} Â· Uptime: {{ sys.uptime }}</p>
-                                        </div>
-                                    </div>
-                                    <span class="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider" :class="sys.status === 'Operational' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'">{{ sys.status }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Open Incidents -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
-                            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
-                                <h3 class="text-[15px] font-black text-primary">Active Incidents &amp; Tickets</h3>
-                                <button @click="router.visit(route('tickets.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0051d5,#316bf3)">
-                                    <span class="material-symbols-outlined text-[15px]">add</span> New Ticket
-                                </button>
-                            </div>
-                            <div class="divide-y divide-outline-variant/40">
-                                <div v-for="ticket in tickets.slice(0, 5)" :key="ticket.id"
-                                     class="flex items-center justify-between px-6 py-3.5 hover:bg-surface-container-low/30 transition-colors group cursor-pointer">
-                                    <div class="flex items-center gap-4">
-                                        <span class="text-[10px] font-mono font-bold text-on-surface-variant/50">#SD-{{ 1000 + ticket.id }}</span>
-                                        <p class="text-[13px] font-bold text-primary group-hover:text-secondary transition-colors">{{ ticket.title || 'IT Support Request' }}</p>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <span class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase"
-                                              :class="(ticket.priority||'medium') === 'high' ? 'bg-red-50 text-red-700 border border-red-100' : (ticket.priority||'medium') === 'medium' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-surface-container-low text-on-surface-variant border border-outline-variant'">
-                                            {{ ticket.priority || 'Medium' }}
-                                        </span>
-                                        <span class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-100">{{ ticket.status || 'Open' }}</span>
-                                    </div>
-                                </div>
-                                <div v-if="!tickets.length" class="px-6 py-8 text-center text-sm font-bold text-on-surface-variant italic">No open tickets â€” all clear.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Team + On-Call -->
-                    <div class="lg:col-span-4 space-y-6">
-
-                        <!-- On-Call Roster -->
-                        <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
-                            <div class="absolute -right-4 -top-4 opacity-10"><span class="material-symbols-outlined text-9xl">phonelink_ring</span></div>
-                            <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-4" style="color:rgba(255,255,255,0.35)">On-Call Roster Â· Today</p>
-                            <div class="space-y-3">
-                                <div v-for="oncall in [
-                                    { name: 'Kwame Asiedu',   role: 'Senior DevOps',     shift: '08:00â€“16:00', primary: true },
-                                    { name: 'Efua Boateng',   role: 'Network Engineer',  shift: '16:00â€“00:00', primary: false },
-                                    { name: 'Isaac Mensah',   role: 'Security Analyst',  shift: '00:00â€“08:00', primary: false },
-                                ]" :key="oncall.name"
-                                     class="flex items-center gap-3 rounded-xl p-3"
-                                     :style="oncall.primary ? 'background:rgba(49,107,243,0.18);border:1px solid rgba(49,107,243,0.25)' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.05)'">
-                                    <div class="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-black text-white flex-shrink-0" style="background:linear-gradient(135deg,#0051d5,#316bf3)">{{ oncall.name.charAt(0) }}</div>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-[12px] font-black text-white truncate">{{ oncall.name }}</p>
-                                        <p class="text-[9.5px] font-medium" style="color:rgba(255,255,255,0.4)">{{ oncall.role }}</p>
-                                    </div>
-                                    <span class="text-[8.5px] font-bold flex-shrink-0" style="color:rgba(255,255,255,0.3)">{{ oncall.shift }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- IT Team Directory -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-[13px] font-black text-primary">IT Team (42)</h4>
-                                <span class="text-[10px] font-black text-secondary">View All</span>
-                            </div>
-                            <div class="space-y-2.5">
-                                <div v-for="member in [
-                                    { name: 'Ama Asante',    role: 'Lead Engineer',    status: 'online' },
-                                    { name: 'Kofi Darko',    role: 'Backend Dev',      status: 'online' },
-                                    { name: 'Yaa Osei',      role: 'QA Engineer',      status: 'away' },
-                                    { name: 'Nana Adjei',    role: 'Sys Admin',        status: 'online' },
-                                    { name: 'Abena Mensah',  role: 'Data Engineer',    status: 'offline' },
-                                ]" :key="member.name"
-                                     class="flex items-center gap-3">
-                                    <div class="relative flex-shrink-0">
-                                        <div class="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-[11px] font-black text-secondary">{{ member.name.charAt(0) }}</div>
-                                        <div class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white"
-                                             :class="member.status === 'online' ? 'bg-green-400' : member.status === 'away' ? 'bg-amber-400' : 'bg-slate-300'"></div>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-[12px] font-bold text-primary truncate">{{ member.name }}</p>
-                                        <p class="text-[10px] font-medium text-on-surface-variant">{{ member.role }}</p>
-                                    </div>
-                                    <span class="text-[9px] font-bold capitalize" :class="member.status === 'online' ? 'text-green-600' : member.status === 'away' ? 'text-amber-600' : 'text-on-surface-variant/40'">{{ member.status }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tech Stack -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">Tech Stack Health</h4>
-                            <div class="space-y-3">
-                                <div v-for="tech in [
-                                    { name: 'Laravel API',     pct: 99, color: 'bg-red-500' },
-                                    { name: 'Vue.js Frontend', pct: 100, color: 'bg-green-500' },
-                                    { name: 'PostgreSQL',      pct: 99, color: 'bg-blue-500' },
-                                    { name: 'Redis Cache',     pct: 100, color: 'bg-purple-500' },
-                                    { name: 'Nginx Proxy',     pct: 98, color: 'bg-amber-500' },
-                                ]" :key="tech.name" class="space-y-1">
-                                    <div class="flex items-center justify-between text-[11px] font-bold">
-                                        <span class="text-on-surface-variant">{{ tech.name }}</span>
-                                        <span :class="tech.pct >= 99 ? 'text-green-600' : 'text-amber-600'">{{ tech.pct }}%</span>
-                                    </div>
-                                    <div class="h-1.5 w-full rounded-full bg-surface-container-low overflow-hidden">
-                                        <div class="h-full rounded-full transition-all duration-700" :class="tech.color" :style="`width:${tech.pct}%`"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DeptIt v-if="activeModule === 'dept-it'" :spark="deptSparkData.it" :tickets="tickets" />
 
             <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  HUMAN RESOURCES DEPARTMENT
                  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-            <div v-if="activeModule === 'dept-hr'" class="space-y-6 animate-reveal-up">
-
-                <!-- Hero Banner -->
-                <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-                     style="background:linear-gradient(135deg,#0c0e14,#111827);border:1px solid rgba(255,255,255,0.06)">
-                    <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(5,150,105,0.2),transparent 70%)"></div>
-                    <div class="relative flex flex-wrap items-center justify-between gap-6">
-                        <div class="flex items-center gap-5">
-                            <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(5,150,105,0.2);border:1px solid rgba(5,150,105,0.3)">
-                                <span class="material-symbols-outlined text-3xl text-green-400" style="font-variation-settings:'FILL' 1">people</span>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                                <h2 class="text-2xl font-black leading-tight">Human Resources</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Talent Â· Culture Â· Compliance Â· Payroll</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-10 flex-shrink-0">
-                            <div v-for="m in [
-                                { label: 'HR Staff',      val: '28' },
-                                { label: 'Total Headcount', val: Math.round(deptSparkData.hr.headcount[deptSparkData.hr.headcount.length-1]).toLocaleString() },
-                                { label: 'Turnover Rate',   val: deptSparkData.hr.turnover[deptSparkData.hr.turnover.length-1].toFixed(1) + '%' },
-                            ]" :key="m.label" class="text-center">
-                                <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                                <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <div v-for="(card, i) in [
-                        { label: 'Total Headcount',  display: Math.round(deptSparkData.hr.headcount[deptSparkData.hr.headcount.length-1]).toLocaleString(), trend: '+2 this week',  color: '#059669', rgb: '5,150,105',   icon: 'badge',            up: true,  spark: deptSparkData.hr.headcount    },
-                        { label: 'Turnover Rate',     display: deptSparkData.hr.turnover[deptSparkData.hr.turnover.length-1].toFixed(1) + '%',               trend: 'vs 5% target', color: '#316bf3',  rgb: '49,107,243',  icon: 'person_remove',    up: true,  spark: deptSparkData.hr.turnover     },
-                        { label: 'Open Positions',    display: Math.round(deptSparkData.hr.openPositions[deptSparkData.hr.openPositions.length-1]),           trend: '6 in pipeline', color: '#d97706', rgb: '217,119,6',   icon: 'work_outline',     up: false, spark: deptSparkData.hr.openPositions},
-                        { label: 'Training Completion', display: deptSparkData.hr.training[deptSparkData.hr.training.length-1].toFixed(0) + '%',              trend: 'Annual goal',  color: '#7c5cff',  rgb: '124,92,255',  icon: 'school',           up: true,  spark: deptSparkData.hr.training     },
-                    ]" :key="i"
-                         class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                         :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                        <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                        </div>
-                        <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                            <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                        </div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                        <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
-                        <div class="-mx-1 mt-3">
-                            <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
-                                <defs><linearGradient :id="`hrg${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
-                                <path :d="sparkArea(card.spark, 96, 24)" :fill="`url(#hrg${i})`"/>
-                                <polyline :points="sparkLine(card.spark, 96, 24)" fill="none" :stroke="card.color" stroke-width="1.4" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Grid -->
-                <div class="grid gap-6 lg:grid-cols-12">
-
-                    <div class="lg:col-span-8 space-y-6">
-
-                        <!-- Recruitment Pipeline -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
-                            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
-                                <h3 class="text-[15px] font-black text-primary">Recruitment Pipeline</h3>
-                                <button @click="router.visit(route('jobs.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0051d5,#316bf3)">
-                                    <span class="material-symbols-outlined text-[15px]">add</span> Post Job
-                                </button>
-                            </div>
-                            <div class="p-6 space-y-4">
-                                <div v-for="stage in [
-                                    { name: 'Applications Received', count: 245, total: 245, color: 'bg-blue-500',   pct: 100 },
-                                    { name: 'Shortlisted',           count: 82,  total: 245, color: 'bg-secondary',  pct: 33  },
-                                    { name: 'First Interview',       count: 34,  total: 245, color: 'bg-purple-500', pct: 14  },
-                                    { name: 'Second Interview',      count: 12,  total: 245, color: 'bg-amber-500',  pct: 5   },
-                                    { name: 'Offer Extended',        count: 4,   total: 245, color: 'bg-green-500',  pct: 1.6 },
-                                ]" :key="stage.name"
-                                     class="flex items-center gap-4">
-                                    <span class="w-44 text-[12px] font-bold text-on-surface-variant flex-shrink-0">{{ stage.name }}</span>
-                                    <div class="flex-1 h-6 rounded-full bg-surface-container-low overflow-hidden relative">
-                                        <div class="h-full rounded-full transition-all duration-700 flex items-center justify-end pr-3" :class="stage.color" :style="`width:${stage.pct}%`">
-                                            <span class="text-[9px] font-black text-white">{{ stage.count }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Hires Table -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden flex flex-col">
-                            <div class="px-6 py-4 border-b border-outline-variant/50 flex-shrink-0">
-                                <h3 class="text-[15px] font-black text-primary">Recent Hires</h3>
-                            </div>
-                            <div class="canvas-scroll max-h-[340px] overflow-auto">
-                            <table class="w-full text-left">
-                                <thead class="sticky top-0 z-10 bg-surface-container-low text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 border-b border-outline-variant/50">
-                                    <tr>
-                                        <th class="px-6 py-3">Employee</th>
-                                        <th class="px-6 py-3">Department</th>
-                                        <th class="px-6 py-3">Start Date</th>
-                                        <th class="px-6 py-3">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-outline-variant/40">
-                                    <tr v-for="emp in employees" :key="emp.id" class="hover:bg-surface-container-low/30 transition-colors">
-                                        <td class="px-6 py-3.5">
-                                            <div class="flex items-center gap-3">
-                                                <div class="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-[11px] font-black text-secondary flex-shrink-0">{{ (emp.employee_no || 'E').charAt(0) }}</div>
-                                                <div>
-                                                    <p class="text-[12.5px] font-bold text-primary">{{ emp.user?.name || emp.name || 'New Employee' }}</p>
-                                                    <p class="text-[10px] text-on-surface-variant">{{ emp.position }}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-3.5 text-[12.5px] font-bold text-on-surface-variant">{{ emp.department?.name || 'General' }}</td>
-                                        <td class="px-6 py-3.5 text-[12px] font-medium text-on-surface-variant">{{ emp.hire_date || 'May 2026' }}</td>
-                                        <td class="px-6 py-3.5"><span class="rounded-full px-2.5 py-1 text-[9px] font-black uppercase bg-green-50 text-green-700 border border-green-100">Active</span></td>
-                                    </tr>
-                                    <tr v-if="!employees.length"><td colspan="4" class="px-6 py-8 text-center text-sm italic text-on-surface-variant">No recent hires recorded.</td></tr>
-                                </tbody>
-                            </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="lg:col-span-4 space-y-6">
-
-                        <!-- Dept Breakdown -->
-                        <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
-                            <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-5" style="color:rgba(255,255,255,0.3)">Workforce by Department</p>
-                            <div class="space-y-3">
-                                <div v-for="dept in [
-                                    { name: 'Technology',  count: 285, pct: 22, color: '#316bf3' },
-                                    { name: 'Operations',  count: 412, pct: 32, color: '#059669' },
-                                    { name: 'Finance',     count: 156, pct: 12, color: '#d97706' },
-                                    { name: 'Marketing',   count: 98,  pct: 8,  color: '#7c5cff' },
-                                    { name: 'HR & Admin',  count: 72,  pct: 6,  color: '#0891b2' },
-                                    { name: 'Other',       count: 261, pct: 20, color: '#6b7280' },
-                                ]" :key="dept.name" class="space-y-1">
-                                    <div class="flex items-center justify-between text-[11px] font-bold">
-                                        <span style="color:rgba(255,255,255,0.7)">{{ dept.name }}</span>
-                                        <span style="color:rgba(255,255,255,0.4)">{{ dept.count }} ({{ dept.pct }}%)</span>
-                                    </div>
-                                    <div class="h-1.5 w-full rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06)">
-                                        <div class="h-full rounded-full transition-all duration-700" :style="`width:${dept.pct}%;background:${dept.color}`"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Leave Summary -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">Leave Overview Â· This Month</h4>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div v-for="ls in [
-                                    { label: 'On Leave',     val: Math.round(deptSparkData.hr.openPositions[11] * 3.4), color: 'text-amber-600', bg: 'bg-amber-50' },
-                                    { label: 'Pending',      val: stats.pendingLeave ?? 0,                               color: 'text-blue-600',  bg: 'bg-blue-50' },
-                                    { label: 'Approved',     val: 38,                                                   color: 'text-green-600', bg: 'bg-green-50' },
-                                    { label: 'Annual Left',  val: '12d',                                                color: 'text-secondary', bg: 'bg-secondary/10' },
-                                ]" :key="ls.label"
-                                     class="rounded-xl p-3 text-center" :class="ls.bg">
-                                    <p class="text-xl font-black" :class="ls.color">{{ ls.val }}</p>
-                                    <p class="text-[9px] font-black uppercase mt-0.5 text-on-surface-variant">{{ ls.label }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Compliance -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">HR Compliance</h4>
-                            <div class="space-y-3">
-                                <div v-for="item in [
-                                    { label: 'Labor Act 2003',      pct: 100, pass: true  },
-                                    { label: 'Data Protection',     pct: 97,  pass: true  },
-                                    { label: 'Policy Review',       pct: 82,  pass: false },
-                                    { label: 'Anti-Harassment',     pct: 100, pass: true  },
-                                ]" :key="item.label" class="flex items-center gap-3">
-                                    <span class="material-symbols-outlined text-[18px]" :class="item.pass ? 'text-green-500' : 'text-amber-500'">{{ item.pass ? 'check_circle' : 'warning' }}</span>
-                                    <span class="flex-1 text-[12px] font-bold text-on-surface-variant">{{ item.label }}</span>
-                                    <span class="text-[11px] font-black" :class="item.pass ? 'text-green-600' : 'text-amber-600'">{{ item.pct }}%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DeptHr v-if="activeModule === 'dept-hr'" :spark="deptSparkData.hr" :employees="employees" :stats="stats" />
 
             <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  MARKETING DEPARTMENT
                  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-            <div v-if="activeModule === 'dept-marketing'" class="space-y-6 animate-reveal-up">
-
-                <!-- Hero Banner -->
-                <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-                     style="background:linear-gradient(135deg,#0c0e14,#111827);border:1px solid rgba(255,255,255,0.06)">
-                    <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(124,92,255,0.22),transparent 70%)"></div>
-                    <div class="relative flex flex-wrap items-center justify-between gap-6">
-                        <div class="flex items-center gap-5">
-                            <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,92,255,0.2);border:1px solid rgba(124,92,255,0.3)">
-                                <span class="material-symbols-outlined text-3xl text-purple-400" style="font-variation-settings:'FILL' 1">campaign</span>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                                <h2 class="text-2xl font-black leading-tight">Marketing</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Campaigns Â· Brand Â· Digital Â· Content</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-10 flex-shrink-0">
-                            <div v-for="m in [
-                                { label: 'Team Members', val: '35' },
-                                { label: 'Campaign ROI',   val: deptSparkData.marketing.roi[deptSparkData.marketing.roi.length-1].toFixed(0) + '%' },
-                                { label: 'Budget Used',    val: deptSparkData.marketing.budget[deptSparkData.marketing.budget.length-1].toFixed(0) + '%' },
-                            ]" :key="m.label" class="text-center">
-                                <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                                <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <div v-for="(card, i) in [
-                        { label: 'Campaign ROI',     display: deptSparkData.marketing.roi[deptSparkData.marketing.roi.length-1].toFixed(0) + '%',         trend: 'vs 200% target', color: '#7c5cff', rgb: '124,92,255', icon: 'trending_up',    up: true,  spark: deptSparkData.marketing.roi        },
-                        { label: 'Budget Utilised',  display: deptSparkData.marketing.budget[deptSparkData.marketing.budget.length-1].toFixed(0) + '%',   trend: 'of GHS 420K',    color: '#0891b2', rgb: '8,145,178',  icon: 'account_balance_wallet', up: false, spark: deptSparkData.marketing.budget  },
-                        { label: 'Leads Generated',  display: Math.round(deptSparkData.marketing.leads[deptSparkData.marketing.leads.length-1]).toLocaleString(), trend: '+8% this week', color: '#316bf3', rgb: '49,107,243', icon: 'group_add',  up: true,  spark: deptSparkData.marketing.leads     },
-                        { label: 'Conversion Rate',  display: deptSparkData.marketing.conversion[deptSparkData.marketing.conversion.length-1].toFixed(1) + '%', trend: 'Target: 4%',  color: '#d97706', rgb: '217,119,6',  icon: 'swap_horiz',   up: true,  spark: deptSparkData.marketing.conversion},
-                    ]" :key="i"
-                         class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                         :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                        <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                        </div>
-                        <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                            <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                        </div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                        <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
-                        <div class="-mx-1 mt-3">
-                            <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
-                                <defs><linearGradient :id="`mkg${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
-                                <path :d="sparkArea(card.spark, 96, 24)" :fill="`url(#mkg${i})`"/>
-                                <polyline :points="sparkLine(card.spark, 96, 24)" fill="none" :stroke="card.color" stroke-width="1.4" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Grid -->
-                <div class="grid gap-6 lg:grid-cols-12">
-                    <div class="lg:col-span-8 space-y-6">
-
-                        <!-- Active Campaigns -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
-                            <div class="px-6 py-4 border-b border-outline-variant/50 flex items-center justify-between">
-                                <h3 class="text-[15px] font-black text-primary">Active Campaigns</h3>
-                                <span class="rounded-full px-3 py-1 bg-purple-50 text-purple-700 border border-purple-100 text-[9.5px] font-black uppercase">6 Running</span>
-                            </div>
-                            <div class="divide-y divide-outline-variant/40">
-                                <div v-for="campaign in [
-                                    { name: 'Q2 Institutional Awareness Drive',   channel: 'Digital + OOH',    spend: 'GHS 45,000', roi: '342%', status: 'Active',  progress: 72 },
-                                    { name: 'CIHRM Graduate Recruitment 2026',    channel: 'Social + Print',   spend: 'GHS 28,000', roi: '218%', status: 'Active',  progress: 45 },
-                                    { name: 'Annual HR Summit Sponsorship',       channel: 'Events',           spend: 'GHS 12,500', roi: '185%', status: 'Active',  progress: 88 },
-                                    { name: 'Staff Wellness Brand Initiative',    channel: 'Internal Media',   spend: 'GHS 8,200',  roi: '290%', status: 'Active',  progress: 30 },
-                                ]" :key="campaign.name"
-                                     class="px-6 py-4 hover:bg-surface-container-low/30 transition-colors">
-                                    <div class="flex items-start justify-between mb-2">
-                                        <div>
-                                            <p class="text-[13px] font-bold text-primary">{{ campaign.name }}</p>
-                                            <p class="text-[10px] text-on-surface-variant mt-0.5">{{ campaign.channel }} Â· Spend: {{ campaign.spend }}</p>
-                                        </div>
-                                        <div class="text-right flex-shrink-0 ml-4">
-                                            <p class="text-sm font-black text-green-600">{{ campaign.roi }}</p>
-                                            <p class="text-[9px] text-on-surface-variant">ROI</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3 mt-2">
-                                        <div class="flex-1 h-1.5 rounded-full bg-surface-container-low overflow-hidden">
-                                            <div class="h-full bg-purple-500 rounded-full transition-all duration-700" :style="`width:${campaign.progress}%`"></div>
-                                        </div>
-                                        <span class="text-[10px] font-black text-on-surface-variant flex-shrink-0">{{ campaign.progress }}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Content Pipeline Kanban -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
-                            <div class="px-6 py-4 border-b border-outline-variant/50">
-                                <h3 class="text-[15px] font-black text-primary">Content Pipeline</h3>
-                            </div>
-                            <div class="grid grid-cols-3 gap-px bg-outline-variant/20 overflow-hidden">
-                                <div v-for="col in [
-                                    { title: 'In Production', count: 8, color: 'bg-blue-400', items: ['Q3 Annual Report Design', 'Social Media Calendar', 'Brand Refresh Deck'] },
-                                    { title: 'In Review',     count: 5, color: 'bg-amber-400', items: ['CIHRM Brand Guidelines', 'Video Script â€” Recruitment'] },
-                                    { title: 'Published',     count: 12, color: 'bg-green-400', items: ['May Newsletter', 'LinkedIn Campaign Posts', 'Staff Magazine Issue 4'] },
-                                ]" :key="col.title" class="p-4 bg-surface-container-lowest">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="h-2 w-2 rounded-full" :class="col.color"></span>
-                                        <h4 class="text-[11px] font-black text-primary">{{ col.title }}</h4>
-                                        <span class="ml-auto h-5 w-5 rounded-full bg-surface-container-low flex items-center justify-center text-[9px] font-black text-on-surface-variant">{{ col.count }}</span>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div v-for="item in col.items" :key="item"
-                                             class="rounded-lg bg-surface-container-low/60 border border-outline-variant/40 px-3 py-2 text-[11px] font-medium text-on-surface cursor-default hover:border-secondary/20 transition-colors">
-                                            {{ item }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="lg:col-span-4 space-y-6">
-
-                        <!-- Social Media Metrics -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-[13px] font-black text-primary">Social Media</h4>
-                                <div class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full live-dot bg-green-400"></span><span class="text-[9px] font-black text-green-600">Live</span></div>
-                            </div>
-                            <div class="space-y-3">
-                                <div v-for="social in [
-                                    { platform: 'LinkedIn',   followers: '12.4K', growth: '+8.2%', icon: 'group',        color: '#0077b5' },
-                                    { platform: 'Twitter/X',  followers: '8.1K',  growth: '+3.4%', icon: 'alternate_email', color: '#1da1f2' },
-                                    { platform: 'Facebook',   followers: '22.8K', growth: '+1.9%', icon: 'thumb_up',     color: '#1877f2' },
-                                    { platform: 'Instagram',  followers: '5.2K',  growth: '+12.1%',icon: 'camera_alt',   color: '#e1306c' },
-                                ]" :key="social.platform"
-                                     class="flex items-center gap-3 rounded-xl p-3 bg-surface-container-low/40 border border-outline-variant/30">
-                                    <div class="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background:${social.color}15`">
-                                        <span class="material-symbols-outlined text-[16px]" :style="`color:${social.color}`">{{ social.icon }}</span>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-[12px] font-bold text-primary">{{ social.platform }}</p>
-                                        <p class="text-[10px] text-on-surface-variant">{{ social.followers }} followers</p>
-                                    </div>
-                                    <span class="text-[11px] font-black text-green-600">{{ social.growth }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Budget Tracker -->
-                        <div class="rounded-2xl p-5 text-white" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
-                            <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-1" style="color:rgba(255,255,255,0.35)">Annual Marketing Budget</p>
-                            <p class="text-3xl font-black mb-4">GHS 420,000</p>
-                            <div class="space-y-3">
-                                <div v-for="line in [
-                                    { label: 'Digital Advertising', spent: 145000, total: 200000 },
-                                    { label: 'Events & PR',         spent: 62000,  total: 100000 },
-                                    { label: 'Content Production',  spent: 38000,  total: 80000  },
-                                    { label: 'Brand & Design',      spent: 27000,  total: 40000  },
-                                ]" :key="line.label" class="space-y-1">
-                                    <div class="flex items-center justify-between text-[10px] font-bold">
-                                        <span style="color:rgba(255,255,255,0.6)">{{ line.label }}</span>
-                                        <span style="color:rgba(255,255,255,0.35)">GHS {{ (line.spent/1000).toFixed(0) }}K / {{ (line.total/1000).toFixed(0) }}K</span>
-                                    </div>
-                                    <div class="h-1.5 w-full rounded-full overflow-hidden" style="background:rgba(255,255,255,0.08)">
-                                        <div class="h-full rounded-full transition-all duration-700" style="background:linear-gradient(90deg,#7c5cff,#a78bfa)" :style="`width:${Math.round(line.spent/line.total*100)}%`"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Team -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">Marketing Team (35)</h4>
-                            <div class="flex flex-wrap gap-2">
-                                <div v-for="m in ['Content', 'Design', 'Digital', 'Events', 'Brand', 'PR', 'Analytics', 'SEO']" :key="m"
-                                     class="rounded-full px-3 py-1 text-[10px] font-black border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-default">
-                                    {{ m }}
-                                </div>
-                            </div>
-                            <div class="mt-4 flex -space-x-2">
-                                <div v-for="i in 8" :key="i"
-                                     class="h-8 w-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white"
-                                     :style="`background:linear-gradient(135deg,${['#0051d5','#7c5cff','#059669','#d97706','#dc2626','#0891b2','#316bf3','#6d28d9'][i-1]},${['#316bf3','#a78bfa','#34d399','#fbbf24','#f87171','#22d3ee','#60a5fa','#7c3aed'][i-1]})`">
-                                    {{ 'ABCDEFGH'[i-1] }}
-                                </div>
-                                <div class="h-8 w-8 rounded-full border-2 border-white bg-surface-container-low flex items-center justify-center text-[9px] font-black text-on-surface-variant">+27</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DeptMarketing v-if="activeModule === 'dept-marketing'" :spark="deptSparkData.marketing" />
 
             <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  FINANCE DEPARTMENT
                  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-            <div v-if="activeModule === 'dept-finance'" class="space-y-6 animate-reveal-up">
-
-                <!-- Hero Banner -->
-                <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-                     style="background:linear-gradient(135deg,#0c0e14,#111827);border:1px solid rgba(255,255,255,0.06)">
-                    <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(217,119,6,0.2),transparent 70%)"></div>
-                    <div class="relative flex flex-wrap items-center justify-between gap-6">
-                        <div class="flex items-center gap-5">
-                            <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(217,119,6,0.2);border:1px solid rgba(217,119,6,0.3)">
-                                <span class="material-symbols-outlined text-3xl text-amber-400" style="font-variation-settings:'FILL' 1">account_balance_wallet</span>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                                <h2 class="text-2xl font-black leading-tight">Finance</h2>
-                                <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Payroll Â· Audit Â· Compliance Â· Reporting</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-10 flex-shrink-0">
-                            <div v-for="m in [
-                                { label: 'Finance Staff', val: '22' },
-                                { label: 'Monthly Revenue', val: 'GHS ' + deptSparkData.finance.revenue[deptSparkData.finance.revenue.length-1].toFixed(1) + 'M' },
-                                { label: 'Cost Efficiency', val: deptSparkData.finance.efficiency[deptSparkData.finance.efficiency.length-1].toFixed(0) + '%' },
-                            ]" :key="m.label" class="text-center">
-                                <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                                <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <div v-for="(card, i) in [
-                        { label: 'Monthly Revenue',   display: 'GHS ' + deptSparkData.finance.revenue[deptSparkData.finance.revenue.length-1].toFixed(1) + 'M',    trend: '+12% YoY',     color: '#059669', rgb: '5,150,105',  icon: 'trending_up',    up: true,  spark: deptSparkData.finance.revenue   },
-                        { label: 'Budget Variance',   display: deptSparkData.finance.variance[deptSparkData.finance.variance.length-1].toFixed(1) + '%',            trend: 'Under target',  color: '#d97706',  rgb: '217,119,6',  icon: 'show_chart',     up: false, spark: deptSparkData.finance.variance  },
-                        { label: 'Pending Payments',  display: 'GHS ' + deptSparkData.finance.pending[deptSparkData.finance.pending.length-1].toFixed(0) + 'K',    trend: '18 invoices',   color: '#dc2626',  rgb: '220,38,38',  icon: 'receipt_long',   up: false, spark: deptSparkData.finance.pending   },
-                        { label: 'Cost Efficiency',   display: deptSparkData.finance.efficiency[deptSparkData.finance.efficiency.length-1].toFixed(0) + '%',        trend: 'Target: 90%',   color: '#316bf3',  rgb: '49,107,243', icon: 'savings',        up: true,  spark: deptSparkData.finance.efficiency},
-                    ]" :key="i"
-                         class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                         :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                        <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                        </div>
-                        <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                            <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                        </div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                        <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                        <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}</p>
-                        <div class="-mx-1 mt-3">
-                            <svg viewBox="0 0 96 24" class="w-full" style="height:24px;overflow:visible">
-                                <defs><linearGradient :id="`fig${i}`" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" :stop-color="card.color" stop-opacity="0.2"/><stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/></linearGradient></defs>
-                                <path :d="sparkArea(card.spark, 96, 24)" :fill="`url(#fig${i})`"/>
-                                <polyline :points="sparkLine(card.spark, 96, 24)" fill="none" :stroke="card.color" stroke-width="1.4" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Grid -->
-                <div class="grid gap-6 lg:grid-cols-12">
-                    <div class="lg:col-span-8 space-y-6">
-
-                        <!-- Budget vs Actuals Live Chart -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-6 overflow-hidden">
-                            <div class="flex items-center justify-between mb-5">
-                                <div>
-                                    <h3 class="text-[15px] font-black text-primary">Budget vs Actuals Â· 2026</h3>
-                                    <p class="text-[10px] text-on-surface-variant mt-0.5">Monthly financial performance tracking</p>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="flex items-center gap-1.5"><span class="h-2 w-4 rounded-full" style="background:linear-gradient(90deg,#0051d5,#316bf3)"></span><span class="text-[9.5px] font-bold text-on-surface-variant">Actual</span></div>
-                                    <div class="flex items-center gap-1.5"><span class="h-2 w-4 rounded-full bg-outline-variant"></span><span class="text-[9.5px] font-bold text-on-surface-variant">Budget</span></div>
-                                </div>
-                            </div>
-                            <div class="flex items-end gap-2" style="height:120px;">
-                                <div v-for="(month, mi) in ['J','F','M','A','M','J','J','A','S','O','N','D']" :key="month"
-                                     class="flex-1 flex flex-col items-center gap-0.5 group">
-                                    <!-- Budget bar (background) -->
-                                    <div class="relative w-full" style="height:100px">
-                                        <div class="absolute bottom-0 w-full rounded-t bg-outline-variant/30 transition-all duration-700"
-                                             :style="`height:${[65,68,70,72,74,76,78,80,82,84,86,88][mi]}%;`"></div>
-                                        <!-- Actual bar (foreground) -->
-                                        <div class="absolute bottom-0 w-3/4 left-1/2 -translate-x-1/2 rounded-t transition-all duration-700"
-                                             style="background:linear-gradient(to top,#0051d5,rgba(99,131,255,0.6));"
-                                             :style="`height:${[60,65,62,70,74,71,76,78,80,84,85,88][mi]}%;`"></div>
-                                        <!-- Tooltip -->
-                                        <div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap rounded-lg px-2 py-1 text-[8px] font-black text-white" style="background:#0c0e14">GHS {{ [8.1,8.3,8.2,8.6,8.8,8.7,8.9,9.0,9.1,9.2,9.3,9.4][mi] }}M</div>
-                                    </div>
-                                    <span class="text-[8px] font-bold text-on-surface-variant/40">{{ month }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Expense Breakdown + Pending Approvals -->
-                        <div class="grid gap-6 sm:grid-cols-2">
-
-                            <!-- Expense Breakdown -->
-                            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                                <h4 class="text-[13px] font-black text-primary mb-4">Expense Breakdown</h4>
-                                <div class="space-y-3">
-                                    <div v-for="exp in [
-                                        { label: 'Staff Payroll',    pct: 68, amount: 'GHS 1.67M', color: '#316bf3' },
-                                        { label: 'Operations',       pct: 14, amount: 'GHS 344K',  color: '#059669' },
-                                        { label: 'IT & Technology',  pct: 8,  amount: 'GHS 197K',  color: '#7c5cff' },
-                                        { label: 'Marketing',        pct: 6,  amount: 'GHS 148K',  color: '#d97706' },
-                                        { label: 'Other',            pct: 4,  amount: 'GHS 98K',   color: '#6b7280' },
-                                    ]" :key="exp.label" class="space-y-1">
-                                        <div class="flex items-center justify-between text-[11px] font-bold">
-                                            <span class="text-on-surface-variant">{{ exp.label }}</span>
-                                            <span class="text-primary">{{ exp.pct }}%</span>
-                                        </div>
-                                        <div class="h-2 w-full rounded-full bg-surface-container-low overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-700" :style="`width:${exp.pct}%;background:${exp.color}`"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Pending Approvals -->
-                            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                                <h4 class="text-[13px] font-black text-primary mb-4">Pending Approvals</h4>
-                                <div class="space-y-2.5">
-                                    <div v-for="approval in [
-                                        { ref: 'PAY-2026-048', amount: 'GHS 12,400', type: 'Payroll Supplementary', urgency: 'High' },
-                                        { ref: 'EXP-2026-112', amount: 'GHS 4,850',  type: 'Travel & Conference',   urgency: 'Medium' },
-                                        { ref: 'INV-2026-089', amount: 'GHS 28,000', type: 'Vendor Invoice',         urgency: 'High' },
-                                        { ref: 'REF-2026-031', amount: 'GHS 1,200',  type: 'Staff Reimbursement',   urgency: 'Low' },
-                                    ]" :key="approval.ref"
-                                         class="rounded-xl border border-outline-variant/50 p-3 hover:border-secondary/20 transition-colors cursor-pointer group">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-[9px] font-mono font-bold text-on-surface-variant/50">{{ approval.ref }}</span>
-                                            <span class="text-[9px] font-black" :class="approval.urgency === 'High' ? 'text-red-600' : approval.urgency === 'Medium' ? 'text-amber-600' : 'text-green-600'">{{ approval.urgency }}</span>
-                                        </div>
-                                        <p class="text-[12px] font-bold text-primary mt-1 group-hover:text-secondary transition-colors">{{ approval.type }}</p>
-                                        <p class="text-[13px] font-black text-primary mt-0.5">{{ approval.amount }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="lg:col-span-4 space-y-6">
-
-                        <!-- Payroll Summary -->
-                        <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
-                            <div class="absolute -right-4 -top-4 opacity-10"><span class="material-symbols-outlined text-9xl">payments</span></div>
-                            <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style="color:rgba(255,255,255,0.3)">Monthly Payroll</p>
-                            <p class="text-3xl font-black mb-1">GHS 2.45M</p>
-                            <p class="text-[10px] mb-5" style="color:rgba(255,255,255,0.4)">Next cycle ends in 4 days Â· 1,284 staff</p>
-                            <div class="space-y-2.5">
-                                <div class="flex items-center justify-between text-[11px] font-bold">
-                                    <span style="color:rgba(255,255,255,0.55)">Processing Status</span>
-                                    <span style="color:#34d399">85% Complete</span>
-                                </div>
-                                <div class="h-2 w-full rounded-full overflow-hidden" style="background:rgba(255,255,255,0.08)">
-                                    <div class="h-full rounded-full transition-all duration-1000" style="width:85%;background:linear-gradient(90deg,#059669,#34d399)"></div>
-                                </div>
-                            </div>
-                            <div class="mt-5 pt-5 border-t space-y-2" style="border-color:rgba(255,255,255,0.08)">
-                                <div v-for="row in [
-                                    { label: 'Basic Salary',       val: 'GHS 1.80M' },
-                                    { label: 'Allowances',         val: 'GHS 450K'  },
-                                    { label: 'SSNIT Deductions',   val: 'GHS 200K'  },
-                                ]" :key="row.label" class="flex items-center justify-between text-[11px]">
-                                    <span style="color:rgba(255,255,255,0.45)">{{ row.label }}</span>
-                                    <span class="font-black text-white">{{ row.val }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Compliance Status -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">Statutory Compliance</h4>
-                            <div class="space-y-3">
-                                <div v-for="item in [
-                                    { label: 'SSNIT Filing â€” May 2026',    status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
-                                    { label: 'Income Tax (PAYE)',           status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
-                                    { label: 'Provident Fund Contribution', status: 'Pending',   color: 'text-amber-600 bg-amber-50 border-amber-100' },
-                                    { label: 'Annual Returns',              status: 'Filed',     color: 'text-green-600 bg-green-50 border-green-100' },
-                                    { label: 'VAT Declaration',             status: 'Due Jun 15',color: 'text-blue-600 bg-blue-50 border-blue-100' },
-                                ]" :key="item.label"
-                                     class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5 flex-1 min-w-0 mr-3">
-                                        <span class="material-symbols-outlined text-[16px] flex-shrink-0"
-                                              :class="item.status === 'Filed' ? 'text-green-500' : item.status === 'Pending' ? 'text-amber-500' : 'text-blue-500'">
-                                            {{ item.status === 'Filed' ? 'check_circle' : item.status === 'Pending' ? 'schedule' : 'event' }}
-                                        </span>
-                                        <p class="text-[11.5px] font-bold text-on-surface-variant truncate">{{ item.label }}</p>
-                                    </div>
-                                    <span class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase border flex-shrink-0" :class="item.color">{{ item.status }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Finance Team -->
-                        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                            <h4 class="text-[13px] font-black text-primary mb-4">Finance Team (22)</h4>
-                            <div class="space-y-2.5">
-                                <div v-for="member in [
-                                    { name: 'Esi Amponsah',   role: 'CFO',                  status: 'online' },
-                                    { name: 'Yaw Mensah',     role: 'Senior Accountant',    status: 'online' },
-                                    { name: 'Akua Owusu',     role: 'Payroll Specialist',   status: 'online' },
-                                    { name: 'Kwesi Acheampong', role: 'Financial Analyst',  status: 'away'   },
-                                    { name: 'Abena Darko',    role: 'Tax Compliance',       status: 'online' },
-                                ]" :key="member.name"
-                                     class="flex items-center gap-3">
-                                    <div class="relative flex-shrink-0">
-                                        <div class="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center text-[11px] font-black text-amber-600">{{ member.name.charAt(0) }}</div>
-                                        <div class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white"
-                                             :class="member.status === 'online' ? 'bg-green-400' : 'bg-amber-400'"></div>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-[12px] font-bold text-primary truncate">{{ member.name }}</p>
-                                        <p class="text-[10px] font-medium text-on-surface-variant">{{ member.role }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DeptFinance v-if="activeModule === 'dept-finance'" :spark="deptSparkData.finance" />
 
             <!-- Dashboard Overview -->
             <div v-if="activeModule === 'overview'" class="space-y-8">
@@ -2308,7 +1505,7 @@ const getStatusColor = (status) => {
                                 <div class="mt-6 flex items-center gap-3">
                                     <button @click="router.visit(route('employees.index', { new: 1 }))"
                                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                                            style="background:linear-gradient(135deg,#0051d5,#316bf3);">
+                                            style="background:linear-gradient(135deg,#0a2647,#205295);">
                                         <span class="material-symbols-outlined text-[17px]">person_add</span>
                                         Add Employee
                                     </button>
@@ -2359,22 +1556,10 @@ const getStatusColor = (status) => {
                             <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">
                                 {{ card.up ? 'â†‘' : 'â†“' }} {{ card.trend }}
                             </p>
-                            <!-- Inline sparkline -->
+                            <!-- Live sparkline (animated draw-in + hover crosshair + glow dot) -->
                             <div class="-mx-1 mt-3">
-                                <svg viewBox="0 0 96 30" class="w-full" style="height:30px;overflow:visible">
-                                    <defs>
-                                        <linearGradient :id="`sg${i}`" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" :stop-color="card.color" stop-opacity="0.22"/>
-                                            <stop offset="100%" :stop-color="card.color" stop-opacity="0.01"/>
-                                        </linearGradient>
-                                        <clipPath :id="`sc${i}`"><rect x="0" y="0" width="96" height="30"/></clipPath>
-                                    </defs>
-                                    <g :clip-path="`url(#sc${i})`">
-                                        <path :d="sparkArea(card.spark)" :fill="`url(#sg${i})`" style="transition:d 0.8s ease"/>
-                                        <polyline :points="sparkLine(card.spark)" fill="none" :stroke="card.color" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transition:points 0.8s ease"/>
-                                        <circle :cx="96" :cy="sparkLine(card.spark).split(' ').at(-1).split(',')[1]" r="2.5" :fill="card.color"/>
-                                    </g>
-                                </svg>
+                                <Sparkline :data="card.spark" :color="card.color" :width="96" :height="32"
+                                           :stroke-width="1.6" :label="card.label" class="!block w-full"/>
                             </div>
                         </div>
                     </div>
@@ -2391,27 +1576,24 @@ const getStatusColor = (status) => {
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="h-2 w-4 rounded-full" style="background:linear-gradient(90deg,#0051d5,#316bf3)"></span>
+                                        <span class="h-2 w-4 rounded-full" style="background:linear-gradient(90deg,#205295,#2c74b3)"></span>
                                         <span class="text-[9.5px] font-bold text-on-surface-variant">Leave requests</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Bars â€” grow to fill remaining card height with sensible bounds -->
-                            <div class="flex items-end gap-1.5 flex-1 min-h-[140px] max-h-[280px]">
-                                <div v-for="(h, i) in perfBarData" :key="i"
-                                     class="flex-1 rounded-t relative overflow-hidden group cursor-default"
-                                     :style="`height:${h}%;transition:height 0.6s cubic-bezier(0.22,1,0.36,1);`">
-                                    <div class="absolute inset-0 rounded-t" style="background:linear-gradient(to top,#0051d5,rgba(99,131,255,0.65))"></div>
-                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 rounded-t transition-opacity" style="background:linear-gradient(to top,#7c5cff,rgba(124,92,255,0.7))"></div>
-                                    <!-- Tooltip -->
-                                    <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap rounded-lg px-2 py-1 text-[8px] font-black text-white shadow-lg" style="background:#0c0e14">{{ chartLeaveByMonth[i] ?? 0 }} requests</div>
-                                </div>
-                            </div>
-                            <!-- Month labels -->
-                            <div class="flex justify-between mt-2 flex-shrink-0">
-                                <span v-for="m in ['J','F','M','A','M','J','J','A','S','O','N','D']" :key="m"
-                                      class="flex-1 text-center text-[8.5px] font-bold text-on-surface-variant/40">{{ m }}</span>
+                            <!-- LiveBars: analytical animation + live shimmer + hover crosshair + gold peak accent -->
+                            <div class="flex-1 min-h-[160px] max-h-[300px]">
+                                <LiveBars
+                                    :data="chartLeaveByMonth.map((v,i) => ({ label: ['J','F','M','A','M','J','J','A','S','O','N','D'][i], value: v }))"
+                                    :height="260"
+                                    :format-value="v => `${v} requests`"
+                                    color="#205295"
+                                    accent-color="#ffd700"
+                                    second-color="#12d9e3"
+                                    :show-median="true"
+                                    :rounded="6"
+                                />
                             </div>
                         </div>
 
@@ -2460,7 +1642,7 @@ const getStatusColor = (status) => {
                                     <div class="flex items-center gap-3">
                                         <button @click="router.visit(route('employees.index', { new: 1 }))"
                                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px active:scale-[0.97]"
-                                                style="background:linear-gradient(135deg,#0051d5,#316bf3);">
+                                                style="background:linear-gradient(135deg,#0a2647,#205295);">
                                             <span class="material-symbols-outlined text-[16px]">add</span>
                                             New Employee
                                         </button>
@@ -2601,8 +1783,8 @@ const getStatusColor = (status) => {
                                         <span class="text-[11px] font-black text-primary leading-snug">New Ticket</span>
                                     </button>
                                     <button @click="router.visit(route('jobs.index', { new: 1 }))"
-                                            class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-purple-300 hover:bg-purple-50/40 hover:-translate-y-0.5 hover:shadow-md">
-                                        <div class="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 transition-transform group-hover:scale-110">
+                                            class="group flex flex-col items-center gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 text-center transition-all hover:border-blue-300 hover:bg-blue-50/40 hover:-translate-y-0.5 hover:shadow-md">
+                                        <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 transition-transform group-hover:scale-110">
                                             <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">work</span>
                                         </div>
                                         <span class="text-[11px] font-black text-primary leading-snug">Post Job</span>
@@ -2653,7 +1835,7 @@ const getStatusColor = (status) => {
 
                             <!-- AI Workforce Insight -->
                             <div class="overflow-hidden rounded-2xl text-white relative"
-                                 style="background:linear-gradient(135deg,#0051d5,#316bf3);border:1px solid rgba(255,255,255,0.1);">
+                                 style="background:linear-gradient(135deg,#0a2647,#205295);border:1px solid rgba(255,255,255,0.1);">
                                 <div class="absolute -right-4 -top-4 opacity-10">
                                     <span class="material-symbols-outlined text-8xl">auto_awesome</span>
                                 </div>
