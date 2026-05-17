@@ -141,41 +141,150 @@ const formatDate = (d) => {
 };
 
 const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) < new Date() && !['succeeded', 'failed_demoted', 'failed_terminated', 'cancelled'].includes(pip.status);
+
+// ── Editorial Sovereign · masthead helpers ──────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+// ── Editorial sub-metrics derived from the loaded page ──────────────
+const closingThisMonth = computed(() => {
+    const now = new Date();
+    const m = now.getMonth();
+    const y = now.getFullYear();
+    return pipList.value.filter(p => {
+        if (!p.target_end_date) return false;
+        const d = new Date(p.target_end_date);
+        return d.getMonth() === m && d.getFullYear() === y
+            && !['succeeded', 'failed_demoted', 'failed_terminated', 'cancelled'].includes(p.status);
+    }).length;
+});
+
+const extensionsUsed = computed(() =>
+    pipList.value.reduce((sum, p) => sum + (p.extensions_used ?? 0), 0)
+);
+
+const outcomeMix = computed(() => {
+    const succ = props.stats?.succeeded_ytd ?? 0;
+    const term = props.stats?.terminated_ytd ?? 0;
+    const total = succ + term;
+    if (!total) return '—';
+    const pct = Math.round((succ / total) * 100);
+    return `${pct}%`;
+});
 </script>
 
 <template>
     <Head title="Performance Improvement Plans" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Editorial Sovereign header ───────────────────────────── -->
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70">
-                        <Link :href="route('modules.performance')" class="hover:text-secondary">Performance</Link>
-                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                        <span>PIPs</span>
+            <section class="space-y-8">
+
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PERFORMANCE — PIP REGISTER</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Register · Live
+                    </span>
+                </div>
+
+                <!-- Broadsheet hero -->
+                <div class="es-broadsheet rounded-none">
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Workforce remediation</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Improvement plans,
+                            <span class="es-display-italic block">on the record.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Formal 60–90 day plans opened under Labour Act §63 — tracked from
+                            opening conversation through mentored check-ins, extensions, and
+                            outcome closure. Every step is dated, signed, and admissible.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link :href="route('modules.performance')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                                Performance
+                            </Link>
+                            <span class="es-chip-divider">·</span>
+                            <button
+                                v-if="canManage"
+                                @click="showAddPanel = true"
+                                class="es-chip"
+                            >
+                                <span class="material-symbols-outlined text-[15px]">add</span>
+                                Open PIP
+                            </button>
+                        </div>
                     </div>
-                    <h2 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Performance Improvement Plans</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Formal 60â€“90 day plans for underperforming employees.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
-                            {{ props.stats?.open_total ?? 0 }} open
-                        </span>
-                    </p>
+
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Active register</p>
+                            <p class="es-stat-hero-value">{{ props.stats?.open_total ?? 0 }}</p>
+                            <p class="es-stat-hero-caption">
+                                Plans open · {{ inProgress }} in progress
+                            </p>
+                            <span
+                                class="es-stat-hero-delta"
+                                :class="{ 'is-down': (props.stats?.terminated_ytd ?? 0) > (props.stats?.succeeded_ytd ?? 0) }"
+                            >
+                                <span class="material-symbols-outlined text-[13px]">
+                                    {{ (props.stats?.succeeded_ytd ?? 0) >= (props.stats?.terminated_ytd ?? 0) ? 'trending_up' : 'trending_down' }}
+                                </span>
+                                {{ outcomeMix }} succeed-rate · YTD
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button
-                        v-if="canManage"
-                        @click="showAddPanel = true"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Open PIP
-                    </button>
+
+                <!-- Sub-metric strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Active PIPs</p>
+                        <p class="es-stat-cell-value">{{ props.stats?.open_total ?? 0 }}</p>
+                        <p class="es-stat-cell-caption">On the register</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Extensions used</p>
+                        <p class="es-stat-cell-value">{{ extensionsUsed }}</p>
+                        <p class="es-stat-cell-caption">Across visible cases</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Closing this month</p>
+                        <p class="es-stat-cell-value">{{ closingThisMonth }}</p>
+                        <p class="es-stat-cell-caption">Target end nearing</p>
+                    </div>
+                    <div class="es-stat-cell" :class="{ 'es-stat-cell--down': (props.stats?.terminated_ytd ?? 0) > (props.stats?.succeeded_ytd ?? 0) }">
+                        <p class="es-stat-cell-label">Outcome · YTD</p>
+                        <p class="es-stat-cell-value">
+                            {{ props.stats?.succeeded_ytd ?? 0 }}<span class="es-stat-unit">/{{ (props.stats?.succeeded_ytd ?? 0) + (props.stats?.terminated_ytd ?? 0) }}</span>
+                        </p>
+                        <p class="es-stat-cell-caption">Succeeded · terminated</p>
+                    </div>
                 </div>
-            </div>
+            </section>
         </template>
 
         <div class="space-y-6">

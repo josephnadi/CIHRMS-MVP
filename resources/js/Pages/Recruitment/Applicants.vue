@@ -40,8 +40,28 @@ const stats = computed(() => {
     return {
         total:       all.length,
         active:      all.filter(a => !['hired','rejected'].includes(a.status)).length,
+        shortlisted: all.filter(a => a.status === 'shortlisted').length,
+        interviewed: all.filter(a => a.status === 'interviewed').length,
+        offered:     all.filter(a => a.status === 'offered').length,
         hired:       all.filter(a => a.status === 'hired').length,
         rejected:    all.filter(a => a.status === 'rejected').length,
+    };
+});
+
+// ── Editorial Sovereign edition label — broadsheet masthead ──
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
     };
 });
 
@@ -129,58 +149,103 @@ const filteredList = computed(() => {
 
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- Breadcrumbs -->
-        <nav class="mb-3 flex items-center gap-1.5 text-[12px] font-semibold text-on-surface-variant/60">
-            <Link :href="route('jobs.index')" class="hover:text-secondary transition-colors">Recruitment</Link>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <Link :href="route('jobs.show', job?.id)" class="hover:text-secondary transition-colors truncate max-w-[280px]">{{ job?.title }}</Link>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span class="text-on-surface">Applicants</span>
-        </nav>
+        <template #header>
+            <div class="space-y-6">
+                <!-- Breadcrumbs -->
+                <nav class="flex items-center gap-1.5 text-[12px] font-semibold text-on-surface-variant/60" aria-label="Breadcrumb">
+                    <Link :href="route('jobs.index')" class="hover:text-secondary transition-colors">Recruitment</Link>
+                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">chevron_right</span>
+                    <Link :href="route('jobs.show', job?.id)" class="hover:text-secondary transition-colors truncate max-w-[280px]">{{ job?.title }}</Link>
+                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">chevron_right</span>
+                    <span class="text-on-surface" aria-current="page">Applicants</span>
+                </nav>
 
-        <!-- Header -->
-        <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-[22px] font-black tracking-tight text-on-surface">{{ job?.title ?? 'Job' }}</h1>
-                    <StatusBadge :status="job?.status" type="recruitment" />
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">RECRUITMENT — APPLICANT PIPELINE</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · {{ stats.active }} in flight
+                    </span>
                 </div>
-                <p class="mt-0.5 text-[13px] text-on-surface-variant">
-                    {{ stats.total }} applicants in the pipeline
-                    <span v-if="job?.closes_at" class="ml-2 text-on-surface-variant/50">Â· closes {{ fmtDate(job.closes_at) }}</span>
-                </p>
-            </div>
-            <Link
-                :href="route('jobs.show', job?.id)"
-                class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
-            >
-                <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">work</span>
-                Job details
-            </Link>
-        </div>
 
-        <!-- Stats -->
-        <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="(s, i) in [
-                { label: 'Total Applicants', val: stats.total,           rgb: '13, 20, 82',   icon: 'group',        sub: 'all stages' },
-                { label: 'In Pipeline',      val: stats.active,          rgb: '217,18,227', icon: 'autorenew',    sub: 'active' },
-                { label: 'Hired',            val: stats.hired,           rgb: '5,150,105',  icon: 'check_circle', sub: 'completed' },
-                { label: 'Conversion Rate',  val: conversionRate + '%',  rgb: '255,215,0',  icon: 'trending_up',  sub: 'hire ratio' },
-            ]" :key="i"
-                class="card-lift relative overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card"
-            >
-                <div class="flex items-start justify-between">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl"
-                         :style="`background:rgba(${s.rgb},0.12);border:1px solid rgba(${s.rgb},0.2)`">
-                        <span class="material-symbols-outlined text-[18px]"
-                              :style="`color:rgb(${s.rgb});font-variation-settings:'FILL' 1`">{{ s.icon }}</span>
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Applicant pipeline · {{ job?.title ?? 'Open role' }}</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Candidates,
+                            <span class="es-display-italic block">in review.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Every applicant for <em class="not-italic font-semibold text-primary">{{ job?.title ?? 'this role' }}</em> moves through one
+                            disciplined pipeline — applied to shortlist, interview to offer, offer to appointment under the Registrar's seal.
+                            <span v-if="job?.closes_at" class="block mt-1 text-on-surface-variant/70">Bulletin closes {{ fmtDate(job.closes_at) }}.</span>
+                        </p>
+
+                        <!-- Quick-action chips -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link :href="route('jobs.show', job?.id)" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">work</span>
+                                Job details
+                            </Link>
+                            <span class="es-chip-divider">·</span>
+                            <Link :href="route('jobs.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                                All postings
+                            </Link>
+                        </div>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/40">{{ s.sub }}</span>
+
+                    <!-- SIDEBAR column: headline KPI -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Total applicants</p>
+                            <p class="es-stat-hero-value">{{ stats.total.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                {{ stats.active.toLocaleString() }} in flight ·
+                                {{ stats.hired.toLocaleString() }} appointed ·
+                                {{ conversionRate }}% conversion
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">groups</span>
+                                Pipeline under review
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <p class="mt-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">{{ s.label }}</p>
-                <p class="mt-0.5 text-[26px] font-black tracking-tight text-on-surface">{{ s.val }}</p>
+
+                <!-- ─── Supporting metrics strip ─────────────────────────── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Total applicants</p>
+                        <p class="es-stat-cell-value">{{ stats.total.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">All stages on record</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Interviewed</p>
+                        <p class="es-stat-cell-value">{{ stats.interviewed.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Panel reviewed</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Offers extended</p>
+                        <p class="es-stat-cell-value">{{ stats.offered.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Letters under seal</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Accepted</p>
+                        <p class="es-stat-cell-value">{{ stats.hired.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Appointments confirmed</p>
+                    </div>
+                </div>
             </div>
-        </div>
+        </template>
 
         <!-- View switcher -->
         <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">

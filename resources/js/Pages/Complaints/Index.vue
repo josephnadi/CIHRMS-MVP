@@ -94,6 +94,24 @@ const stats = computed(() => {
         open:        data.filter(c => c.status === 'open').length,
         underReview: data.filter(c => c.status === 'under_review').length,
         resolved:    data.filter(c => c.status === 'resolved').length,
+        withdrawn:   data.filter(c => c.status === 'withdrawn' || c.status === 'closed').length,
+    };
+});
+
+// ── Editorial-Sovereign masthead label ───────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
     };
 });
 
@@ -108,12 +126,78 @@ const formatDate = (d) => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div>
-                <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Governance & Complaints</h2>
-                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                    Submit anonymous complaints and manage the resolution workflow.
-                </p>
-            </div>
+            <section class="space-y-8">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">COMPLAINTS GAZETTE · ACT 715</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Whistleblower Act, 2006
+                    </span>
+                </div>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Governance · Confidential resolution workflow</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Complaints,
+                            <span class="es-display-italic block">on register.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Submitted under the Whistleblower Act, 2006 (Act&nbsp;715). Every grievance is logged
+                            against a reference, routed to an investigator under confidentiality, and stands
+                            in the resolution register until the case is closed.
+                        </p>
+                    </div>
+
+                    <!-- SIDEBAR column: total complaints hero -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Complaints on file</p>
+                            <p class="es-stat-hero-value">{{ stats.total.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                <span class="font-mono">{{ stats.resolved.toLocaleString() }}</span> resolved · <span class="font-mono">{{ stats.open.toLocaleString() }}</span> awaiting review
+                            </p>
+                            <span class="es-stat-hero-delta" :class="{ 'is-down': stats.open > stats.resolved }">
+                                <span class="material-symbols-outlined text-[13px]">gavel</span>
+                                {{ stats.total > 0 ? Math.round(stats.resolved * 100 / stats.total) : 0 }}% closed-out rate
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Sub-metric strip ────────────────────────────────── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Open</p>
+                        <p class="es-stat-cell-value">{{ stats.open.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Awaiting assignment</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Under review</p>
+                        <p class="es-stat-cell-value">{{ stats.underReview.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Investigator on case</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Resolved</p>
+                        <p class="es-stat-cell-value">{{ stats.resolved.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Closed with finding</p>
+                    </div>
+                    <div class="es-stat-cell es-stat-cell--down">
+                        <p class="es-stat-cell-label">Withdrawn</p>
+                        <p class="es-stat-cell-value">{{ stats.withdrawn.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Closed / rescinded</p>
+                    </div>
+                </div>
+            </section>
         </template>
 
         <div class="space-y-6">

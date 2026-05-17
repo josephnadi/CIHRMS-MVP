@@ -1,68 +1,107 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Sparkline from '@/Components/charts/Sparkline.vue';
 
 const props = defineProps({
     spark:   { type: Object,  required: true },   // deptSparkData.it slice
     tickets: { type: Array,   default: () => [] },
 });
+
+const editionDate = computed(() => new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+}));
+const serversOnline = computed(() => Math.round(props.spark.servers[props.spark.servers.length - 1]));
+const openTicketsNow = computed(() => Math.round(props.spark.tickets[props.spark.tickets.length - 1]));
+const securityAlertsNow = computed(() => Math.round(props.spark.alerts[props.spark.alerts.length - 1]));
+const uptimePct = computed(() => props.spark.uptime[props.spark.uptime.length - 1].toFixed(2));
 </script>
 
 <template>
-    <div class="space-y-6 animate-reveal-up">
+    <div class="space-y-8 animate-reveal-up">
 
-        <!-- Hero Banner -->
-        <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-             style="background:linear-gradient(135deg,#1a237e 0%,#3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
-            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(26, 35, 126,0.25),transparent 70%)"></div>
-            <div class="relative flex flex-wrap items-center justify-between gap-6">
-                <div class="flex items-center gap-5">
-                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(57, 73, 171,0.2);border:1px solid rgba(57, 73, 171,0.3)">
-                        <span class="material-symbols-outlined text-3xl text-blue-400" style="font-variation-settings:'FILL' 1">computer</span>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                        <h2 class="text-2xl font-black leading-tight">IT &amp; Technology</h2>
-                        <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Infrastructure · Support · Security · Development</p>
-                    </div>
+        <!-- ─── Masthead strip ────────────────────────────────────── -->
+        <div class="es-masthead">
+            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">IT GOVERNANCE EDITION</span></span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionDate }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span>Bulletin · Infrastructure Desk</span>
+            <span class="es-masthead-spacer"></span>
+            <span class="es-masthead-live">
+                <span class="es-dot" aria-hidden="true"></span>
+                Live · {{ uptimePct }}% SLA
+            </span>
+        </div>
+
+        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+        <div class="es-broadsheet rounded-none">
+            <!-- LEAD column -->
+            <div class="es-broadsheet-lead">
+                <p class="es-eyebrow mb-6">From the IT &amp; Technology desk</p>
+                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                    Systems holding the line.
+                    <span class="es-display-italic block">All green, all clear.</span>
+                </h2>
+                <p class="es-display-sub">
+                    A standing watch on infrastructure, service-desk velocity, and the security perimeter —
+                    every host, queue, and gateway accounted for as of this morning's roll-call.
+                </p>
+
+                <!-- Quick-action chips — typographic, not gradient buttons -->
+                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                    <button @click="router.visit(route('tickets.index', { new: 1 }))" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">bug_report</span>
+                        New Ticket
+                    </button>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <button @click="router.visit(route('tickets.index'))" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">list_alt</span>
+                        Service Desk
+                    </button>
                 </div>
-                <div class="flex items-center gap-10 flex-shrink-0">
-                    <div v-for="m in [
-                        { label: 'Team Members',   val: '42' },
-                        { label: 'Servers Online', val: Math.round(spark.servers[spark.servers.length-1]) },
-                        { label: 'Uptime SLA',     val: spark.uptime[spark.uptime.length-1].toFixed(2) + '%' },
-                    ]" :key="m.label" class="text-center">
-                        <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                        <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
+            </div>
+
+            <!-- SIDEBAR column: feature KPI as magazine drop-cap stat -->
+            <div class="es-broadsheet-sidebar">
+                <div class="es-stat-hero">
+                    <p class="es-stat-hero-label">Uptime SLA</p>
+                    <p class="es-stat-hero-value">{{ uptimePct }}<span style="font-size:0.45em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                    <p class="es-stat-hero-caption">
+                        Rolling 30-day availability · target 99.9%
+                    </p>
+                    <span class="es-stat-hero-delta">
+                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                        Within tolerance · sparkline below
+                    </span>
+                    <div class="mt-4 -mx-1">
+                        <Sparkline :data="spark.uptime" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Uptime SLA" class="!block w-full"/>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="(card, i) in [
-                { label: 'Servers Online',  display: Math.round(spark.servers[spark.servers.length-1]) + ' / 24', trend: '100% capacity', color: '#12d9e3', rgb: '18,217,227',  icon: 'dns',           up: true,  spark: spark.servers },
-                { label: 'Open IT Tickets', display: Math.round(spark.tickets[spark.tickets.length-1]),            trend: '3 critical',    color: '#dc2626', rgb: '220,38,38',   icon: 'bug_report',    up: false, spark: spark.tickets },
-                { label: 'Security Alerts', display: Math.round(spark.alerts[spark.alerts.length-1]),              trend: 'Low severity',  color: '#d97706', rgb: '217,119,6',   icon: 'security',      up: false, spark: spark.alerts  },
-                { label: 'Uptime SLA',      display: spark.uptime[spark.uptime.length-1].toFixed(2) + '%',         trend: 'Target: 99.9%', color: '#ffd700', rgb: '255,215,0',   icon: 'electric_bolt', up: true,  spark: spark.uptime  },
-            ]" :key="i"
-                 class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                 :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                    <span class="text-[7.5px] font-black uppercase tracking-widest" :style="`color:${card.color};opacity:0.65`">live</span>
-                </div>
-                <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                    <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                </div>
-                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
-                <div class="-mx-1 mt-3">
-                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="28"
-                               :stroke-width="1.5" :label="card.label" class="!block w-full"/>
-                </div>
+        <!-- ─── Supporting metrics strip ───────────────────────────── -->
+        <div class="es-stat-strip rounded-none">
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Servers Online</p>
+                <p class="es-stat-cell-value">{{ serversOnline }}<span style="font-size:0.5em;color:rgb(var(--ct-on-surface-variant)/0.5)"> / 24</span></p>
+                <p class="es-stat-cell-caption">Production fleet · live</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Open Tickets</p>
+                <p class="es-stat-cell-value">{{ openTicketsNow }}</p>
+                <p class="es-stat-cell-caption">Service desk in flight</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Security Alerts</p>
+                <p class="es-stat-cell-value">{{ securityAlertsNow }}</p>
+                <p class="es-stat-cell-caption">Low severity · monitored</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Team Strength</p>
+                <p class="es-stat-cell-value">42</p>
+                <p class="es-stat-cell-caption">Engineers on roster</p>
             </div>
         </div>
 

@@ -1,65 +1,107 @@
 <script setup>
+import { computed } from 'vue';
 import Sparkline from '@/Components/charts/Sparkline.vue';
 
 const props = defineProps({
     spark: { type: Object, required: true },   // deptSparkData.finance slice
 });
+
+const editionDate = computed(() => new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+}));
+const revenueNow = computed(() => props.spark.revenue[props.spark.revenue.length - 1].toFixed(1));
+const varianceNow = computed(() => props.spark.variance[props.spark.variance.length - 1].toFixed(1));
+const pendingNow = computed(() => props.spark.pending[props.spark.pending.length - 1].toFixed(0));
+const efficiencyNow = computed(() => props.spark.efficiency[props.spark.efficiency.length - 1].toFixed(0));
 </script>
 
 <template>
-    <div class="space-y-6 animate-reveal-up">
+    <div class="space-y-8 animate-reveal-up">
 
-        <!-- Hero Banner -->
-        <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
-            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(217,119,6,0.2),transparent 70%)"></div>
-            <div class="relative flex flex-wrap items-center justify-between gap-6">
-                <div class="flex items-center gap-5">
-                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(217,119,6,0.2);border:1px solid rgba(217,119,6,0.3)">
-                        <span class="material-symbols-outlined text-3xl text-amber-400" style="font-variation-settings:'FILL' 1">account_balance_wallet</span>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                        <h2 class="text-2xl font-black leading-tight">Finance</h2>
-                        <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Payroll · Audit · Compliance · Reporting</p>
-                    </div>
+        <!-- ─── Masthead strip ────────────────────────────────────── -->
+        <div class="es-masthead">
+            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">TREASURY EDITION</span></span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionDate }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span>Bulletin · Office of the CFO</span>
+            <span class="es-masthead-spacer"></span>
+            <span class="es-masthead-live">
+                <span class="es-dot" aria-hidden="true"></span>
+                Live · {{ efficiencyNow }}% efficiency
+            </span>
+        </div>
+
+        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+        <div class="es-broadsheet rounded-none">
+            <!-- LEAD column -->
+            <div class="es-broadsheet-lead">
+                <p class="es-eyebrow mb-6">From the Office of the CFO</p>
+                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                    The books, balanced.
+                    <span class="es-display-italic block">The position, posted.</span>
+                </h2>
+                <p class="es-display-sub">
+                    Treasury, payroll, audit and statutory compliance — the institute's financial posture
+                    set in a single morning ledger. Revenue tracking +12% year-on-year, variance within tolerance.
+                </p>
+
+                <!-- Quick-action chips -->
+                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                    <span class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">receipt_long</span>
+                        Approvals Queue
+                    </span>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <span class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">payments</span>
+                        Payroll Cycle
+                    </span>
                 </div>
-                <div class="flex items-center gap-10 flex-shrink-0">
-                    <div v-for="m in [
-                        { label: 'Finance Staff',   val: '22' },
-                        { label: 'Monthly Revenue', val: 'GHS ' + spark.revenue[spark.revenue.length-1].toFixed(1) + 'M' },
-                        { label: 'Cost Efficiency', val: spark.efficiency[spark.efficiency.length-1].toFixed(0) + '%' },
-                    ]" :key="m.label" class="text-center">
-                        <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                        <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
+            </div>
+
+            <!-- SIDEBAR column: flagship KPI — monthly revenue -->
+            <div class="es-broadsheet-sidebar">
+                <div class="es-stat-hero">
+                    <p class="es-stat-hero-label">Monthly Revenue</p>
+                    <p class="es-stat-hero-value">
+                        <span style="font-size:0.4em;color:rgb(var(--ct-on-surface-variant)/0.6);letter-spacing:0.05em;">GHS&nbsp;</span>{{ revenueNow }}<span style="font-size:0.5em;color:rgb(var(--ct-on-surface-variant)/0.55)">M</span>
+                    </p>
+                    <p class="es-stat-hero-caption">
+                        Recurring + project income · variance {{ varianceNow }}%
+                    </p>
+                    <span class="es-stat-hero-delta">
+                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                        +12% YoY · sparkline below
+                    </span>
+                    <div class="mt-4 -mx-1">
+                        <Sparkline :data="spark.revenue" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Monthly Revenue" class="!block w-full"/>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="(card, i) in [
-                { label: 'Monthly Revenue',  display: 'GHS ' + spark.revenue[spark.revenue.length-1].toFixed(1) + 'M',  trend: '+12% YoY',     color: '#ffd700', rgb: '255,215,0',  icon: 'trending_up',  up: true,  spark: spark.revenue    },
-                { label: 'Budget Variance',  display: spark.variance[spark.variance.length-1].toFixed(1) + '%',          trend: 'Under target', color: '#d97706', rgb: '217,119,6',  icon: 'show_chart',   up: false, spark: spark.variance   },
-                { label: 'Pending Payments', display: 'GHS ' + spark.pending[spark.pending.length-1].toFixed(0) + 'K',  trend: '18 invoices',  color: '#dc2626', rgb: '220,38,38',  icon: 'receipt_long', up: false, spark: spark.pending    },
-                { label: 'Cost Efficiency',  display: spark.efficiency[spark.efficiency.length-1].toFixed(0) + '%',      trend: 'Target: 90%',  color: '#3949ab', rgb: '57, 73, 171', icon: 'savings',      up: true,  spark: spark.efficiency },
-            ]" :key="i"
-                 class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                 :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                </div>
-                <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                    <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                </div>
-                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
-                <div class="-mx-1 mt-3">
-                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="28"
-                               :stroke-width="1.5" :label="card.label" class="!block w-full"/>
-                </div>
+        <!-- ─── Supporting metrics strip ───────────────────────────── -->
+        <div class="es-stat-strip rounded-none">
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Budget Variance</p>
+                <p class="es-stat-cell-value">{{ varianceNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                <p class="es-stat-cell-caption">Under target · favourable</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Pending Payments</p>
+                <p class="es-stat-cell-value"><span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.5);letter-spacing:0.05em;">GHS&nbsp;</span>{{ pendingNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">K</span></p>
+                <p class="es-stat-cell-caption">18 invoices in queue</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Cost Efficiency</p>
+                <p class="es-stat-cell-value">{{ efficiencyNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                <p class="es-stat-cell-caption">vs 90% target</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Finance Staff</p>
+                <p class="es-stat-cell-value">22</p>
+                <p class="es-stat-cell-caption">Treasury &amp; audit team</p>
             </div>
         </div>
 

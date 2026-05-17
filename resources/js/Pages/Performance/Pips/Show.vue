@@ -31,23 +31,141 @@ const submitClose = () => closeForm.post(route('performance.pips.close', P.value
 });
 
 const isClosed = computed(() => ['succeeded', 'failed_demoted', 'failed_terminated', 'cancelled'].includes(P.value.status));
+
+// ── Editorial Sovereign · masthead helpers ──────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+const formatDateLong = (d) => {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const daysRemaining = computed(() => {
+    if (!P.value.target_end_date) return null;
+    const ms = new Date(P.value.target_end_date).getTime() - Date.now();
+    return Math.ceil(ms / 86_400_000);
+});
+
+const stageLabel = computed(() => {
+    const s = P.value.status;
+    if (s === 'open')              return 'Opened';
+    if (s === 'in_progress')       return 'In progress';
+    if (s === 'extended')          return 'Extended';
+    if (s === 'succeeded')         return 'Succeeded';
+    if (s === 'failed_demoted')    return 'Demoted';
+    if (s === 'failed_terminated') return 'Terminated';
+    if (s === 'cancelled')         return 'Cancelled';
+    return P.value.status_label ?? s ?? '—';
+});
 </script>
 
 <template>
     <Head :title="`PIP — ${P.employee?.name}`" />
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <Link :href="route('performance.pips.index')" class="text-xs text-on-surface-variant/60 hover:underline">← All PIPs</Link>
-                    <h1 class="text-2xl font-semibold tracking-tight">{{ P.employee?.name }}</h1>
-                    <p class="text-sm text-on-surface-variant/70">
-                        Opened {{ P.opened_on }} · Target end {{ P.target_end_date }} ·
-                        Mentor: {{ P.mentor?.name ?? '—' }}
-                    </p>
+            <section class="space-y-8">
+
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PERFORMANCE — PIP CASE FILE</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Case file · Live
+                    </span>
                 </div>
-                <StatusBadge :status="P.status" :label="P.status_label" class="text-base" />
-            </div>
+
+                <!-- Broadsheet hero · dossier cover -->
+                <div class="es-broadsheet rounded-none">
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Improvement plan dossier</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            {{ P.employee?.name ?? 'Case' }},
+                            <span class="es-display-italic block">on review.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            {{ P.employee?.employee_no ?? '—' }}
+                            <span v-if="P.employee?.department"> · {{ P.employee.department }}</span>
+                            · Opened {{ formatDateLong(P.opened_on) }} · Target end {{ formatDateLong(P.target_end_date) }}.
+                            Mentored by {{ P.mentor?.name ?? '—' }}.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link :href="route('performance.pips.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                                Register
+                            </Link>
+                            <span class="es-chip-divider">·</span>
+                            <span class="es-chip" aria-hidden="true">
+                                <span class="material-symbols-outlined text-[15px]">flag</span>
+                                <StatusBadge :status="P.status" :label="P.status_label" />
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Days remaining</p>
+                            <p class="es-stat-hero-value">
+                                {{ daysRemaining === null ? '—' : Math.max(0, daysRemaining) }}
+                            </p>
+                            <p class="es-stat-hero-caption">
+                                Until target end · {{ formatDateLong(P.target_end_date) }}
+                            </p>
+                            <span class="es-stat-hero-delta" :class="{ 'is-down': daysRemaining !== null && daysRemaining < 0 }">
+                                <span class="material-symbols-outlined text-[13px]">
+                                    {{ daysRemaining !== null && daysRemaining < 0 ? 'schedule' : 'event' }}
+                                </span>
+                                {{ daysRemaining !== null && daysRemaining < 0 ? 'Past due' : 'On schedule' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-metric strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Stage</p>
+                        <p class="es-stat-cell-value-sm">{{ stageLabel }}</p>
+                        <p class="es-stat-cell-caption">Current status</p>
+                    </div>
+                    <div class="es-stat-cell" :class="{ 'es-stat-cell--down': daysRemaining !== null && daysRemaining < 0 }">
+                        <p class="es-stat-cell-label">Days remaining</p>
+                        <p class="es-stat-cell-value">{{ daysRemaining === null ? '—' : Math.max(0, daysRemaining) }}</p>
+                        <p class="es-stat-cell-caption">{{ daysRemaining !== null && daysRemaining < 0 ? 'Past target end' : 'Until target end' }}</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Extensions used</p>
+                        <p class="es-stat-cell-value">
+                            {{ P.extensions_used ?? 0 }}<span class="es-stat-unit">/{{ P.max_extensions ?? 2 }}</span>
+                        </p>
+                        <p class="es-stat-cell-caption">Of allotment</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Mentor</p>
+                        <p class="es-stat-cell-value-sm">{{ P.mentor?.name ?? '—' }}</p>
+                        <p class="es-stat-cell-caption">HR partner</p>
+                    </div>
+                </div>
+            </section>
         </template>
 
         <div class="py-6 space-y-6">

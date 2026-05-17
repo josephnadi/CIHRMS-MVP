@@ -96,6 +96,24 @@ const statusMeta = (s) => ({
     rejected:         { label: 'Rejected',  bg: 'bg-red-50 text-red-700 border-red-200',        dot: '#dc2626' },
 }[s] ?? { label: s, bg: 'bg-slate-100 text-slate-600 border-slate-200', dot: '#64748b' });
 
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Volume = years since CIHRM-GH platform inception (2023). Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // ── Composition donut data ──
 const totalLoans = computed(() => Object.values(props.statusBreakdown ?? {}).reduce((s, v) => s + Number(v), 0));
 const donutSegs  = computed(() => {
@@ -225,64 +243,99 @@ const repayPct = (loan) => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Loans &amp; Advances</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Staff loan applications, approvals, disbursements and repayment schedules
-                    </p>
-                </div>
-                <div class="flex items-center gap-2.5">
-                    <div class="flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-200 px-3 py-1.5 dark:bg-cyan-900/20 dark:border-cyan-800/40">
-                        <span class="h-1.5 w-1.5 rounded-full bg-cyan-500 live-dot"></span>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">{{ stats?.active_count ?? 0 }} active</span>
-                    </div>
-                    <button v-if="canManageProducts"
-                            @click="showProducts = true"
-                            class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all">
-                        <span class="material-symbols-outlined text-[17px]">tune</span>
-                        Manage products
-                    </button>
-                    <button @click="showApply = true"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Apply for loan
-                    </button>
-                </div>
+            <div class="es-masthead">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">STAFF LOANS &amp; ADVANCES</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Live · {{ stats?.active_count ?? 0 }} active
+                </span>
             </div>
         </template>
 
         <div class="space-y-8">
 
-            <!-- ── Hero banner ── -->
-            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
-                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
-                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.06)"></div>
+            <!-- ── Broadsheet hero ─────────────────────────────────────── -->
+            <div class="es-broadsheet rounded-none animate-reveal-up">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <p class="es-eyebrow mb-6">Phase 2 · Credit register</p>
+                    <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                        Credit,
+                        <span class="es-display-italic block">underwritten.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        Staff lending governed by dual-control approval — applications reviewed by HR,
+                        countersigned by Finance, then amortised on reducing-balance or flat schedules.
+                        Disbursements deduct under Labour Act §70 limits; SSNIT-adjacent compliance
+                        upheld across the Ghana cedi book.
+                    </p>
 
-                <div class="relative flex flex-wrap items-center justify-between gap-8">
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(18,217,227,0.7)">Lending portfolio · {{ new Date().getFullYear() }}</p>
-                        <h2 class="text-3xl font-black leading-tight">
-                            <em class="not-italic" style="color:#ffd700">{{ cediShort(stats?.total_outstanding ?? 0) }}</em> outstanding
-                            <span class="text-base font-bold opacity-50">across {{ stats?.active_count ?? 0 }} active loan<span v-if="(stats?.active_count ?? 0) !== 1">s</span></span>
-                        </h2>
-                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
-                            <span style="color:#12d9e3">{{ cediShort(stats?.disbursed_this_year ?? 0) }}</span> disbursed this year ·
-                            <span style="color:#ffd700">{{ stats?.pending_approval ?? 0 }}</span> awaiting approval
+                    <!-- Quick-action chips -->
+                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                        <button @click="showApply = true" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">add</span>
+                            Apply for loan
+                        </button>
+                        <template v-if="canManageProducts">
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button @click="showProducts = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">tune</span>
+                                Manage products
+                            </button>
+                        </template>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button v-if="(stats?.pending_approval ?? 0) > 0"
+                                @click="localFilters.status = 'pending_approval'; applyFilters()"
+                                class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">pending_actions</span>
+                            {{ stats?.pending_approval ?? 0 }} pending review
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR column: feature KPI -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Outstanding · GHS</p>
+                        <p class="es-stat-hero-value">{{ cediShort(stats?.total_outstanding ?? 0) }}</p>
+                        <p class="es-stat-hero-caption">
+                            Aggregate principal at risk across {{ stats?.active_count ?? 0 }}
+                            active loan{{ (stats?.active_count ?? 0) === 1 ? '' : 's' }}
                         </p>
+                        <span class="es-stat-hero-delta">
+                            <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                            {{ cediShort(stats?.disbursed_this_year ?? 0) }} disbursed YTD
+                        </span>
                     </div>
-                    <div class="flex items-center gap-8 flex-shrink-0">
-                        <div v-for="kpi in [
-                            { label: 'Active',     val: stats?.active_count ?? 0,                       color: '#12d9e3' },
-                            { label: 'Pending',    val: stats?.pending_approval ?? 0,                   color: '#ffd700' },
-                            { label: 'Outstanding',val: cediShort(stats?.total_outstanding ?? 0),       color: '#7986cb' },
-                        ]" :key="kpi.label" class="text-center">
-                            <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
-                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
-                        </div>
-                    </div>
+                </div>
+            </div>
+
+            <!-- ── Supporting metrics strip ────────────────────────────── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Active book</p>
+                    <p class="es-stat-cell-value">{{ (stats?.active_count ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Disbursed &amp; repaying</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Pending decision</p>
+                    <p class="es-stat-cell-value">{{ (stats?.pending_approval ?? statusBreakdown?.pending_approval ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Awaiting dual-control</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Repaid in full</p>
+                    <p class="es-stat-cell-value">{{ (((statusBreakdown?.paid_off ?? 0) + (statusBreakdown?.fully_repaid ?? 0))).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Cleared since inception</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Disbursed YTD</p>
+                    <p class="es-stat-cell-value">{{ cediShort(stats?.disbursed_this_year ?? 0) }}</p>
+                    <p class="es-stat-cell-caption">Cedi principal placed</p>
                 </div>
             </div>
 

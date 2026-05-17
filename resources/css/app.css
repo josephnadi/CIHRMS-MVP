@@ -1287,7 +1287,91 @@ html[data-theme="high-contrast"].dark {
     }
 }
 
-/* ── Reduced motion: kill the live-dot pulse ─────────────────────── */
+/* ── Editorial chip — typographic quick action, no gradient ──────── */
+.es-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    color: rgb(var(--ct-primary));
+    background: transparent;
+    border: 0;
+    padding: 0.15rem 0;
+    cursor: pointer;
+    border-bottom: 1px solid rgb(var(--ct-outline-variant));
+    transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.es-chip:hover {
+    color: #205295;
+    border-bottom-color: #205295;
+    transform: translateY(-1px);
+}
+.es-chip:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 4px;
+    border-bottom-color: #205295;
+}
+
+/* ── Editorial Sovereign · v2 utilities (agent-requested) ────────── */
+
+/* Chip separator — replaces the `<span class="text-on-surface-variant/30">·</span>`
+   inline that was being duplicated by every consumer of `.es-chip`. */
+.es-chip-divider {
+    color: rgb(var(--ct-on-surface-variant) / 0.3);
+    font-weight: 700;
+    user-select: none;
+}
+
+/* Text-style stat cell value (when the value is a string like "May 2026"
+   or "Acknowledged" rather than a number — the default 2rem Fraunces
+   numeral overscales those). */
+.es-stat-cell-value-sm {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.018em;
+    color: rgb(var(--ct-primary));
+}
+
+/* Negative-tone variant for cells representing bad/decreasing metrics
+   (absences, turnover, overdue). Sub-cell-only — there's already
+   `.es-stat-hero-delta.is-down` for hero KPI deltas. */
+.es-stat-cell--down .es-stat-cell-value,
+.es-stat-cell--down .es-stat-cell-value-sm {
+    color: #dc2626;
+}
+.es-stat-cell--down .es-stat-cell-label {
+    color: rgba(220, 38, 38, 0.75);
+}
+
+/* Unit/suffix decoration (%, M, K, GHS, etc.) — pairs with .es-stat-cell-value
+   AND .es-stat-hero-value. Sized down + tonally muted so the integer stays
+   visually dominant. */
+.es-stat-unit {
+    font-size: 0.55em;
+    margin-left: 0.15em;
+    font-weight: 600;
+    color: rgb(var(--ct-on-surface-variant) / 0.55);
+    letter-spacing: 0.04em;
+}
+
+/* Currency / category prefix — placed before the value (e.g., "GHS 2.4M"). */
+.es-stat-prefix {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.45em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgb(var(--ct-on-surface-variant) / 0.65);
+    margin-right: 0.3em;
+    vertical-align: 0.45em;
+}
+
+/* ── Reduced motion: kill the live-dot pulse + chip lift ─────────── */
 @media (prefers-reduced-motion: reduce) {
     .es-masthead-live .es-dot { animation: none; }
+    .es-chip:hover { transform: none; }
 }

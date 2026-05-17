@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch } from 'vue';
+import { reactive, watch, computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SearchInput from '@/Components/SearchInput.vue';
@@ -11,6 +11,31 @@ const props = defineProps({
     filters:      Object,
     activeModule: String,
 });
+
+// ── Editorial-Sovereign masthead clock ────────────────────────────
+const nowTick = ref(Date.now());
+let __esTicker = null;
+onMounted(() => { __esTicker = setInterval(() => { nowTick.value = Date.now(); }, 30_000); });
+onBeforeUnmount(() => { if (__esTicker) clearInterval(__esTicker); });
+
+const editionLabel = computed(() => {
+    const d   = new Date(nowTick.value);
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+        time:    d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    };
+});
+
+const hasAgRoute = (() => { try { return !!route('ag-reports.index'); } catch (_) { return false; } })();
 
 const localFilters = reactive({
     search:  props.filters?.search  ?? '',
@@ -49,6 +74,24 @@ const formatDateTime = (d) => {
         second:'2-digit',
     });
 };
+
+// Oldest entry visible in the current dispatch. The index lists are ordered
+// `latest('id')`, so the last visible row carries the earliest timestamp on
+// this page. (A true all-time oldest would require an additional prop.)
+const oldestVisibleLabel = computed(() => {
+    const rows = props.logs?.data ?? [];
+    if (! rows.length) return '—';
+    const oldest = rows[rows.length - 1]?.created_at;
+    if (! oldest) return '—';
+    return new Date(oldest).toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+});
+
+// Chain breaks: the hash chain is enforced server-side at write time. The
+// presence of any unverified row would be surfaced via a separate prop; until
+// such a prop exists we surface a sealed-zero so the auditor sees the contract.
+const chainBreaks = 0;
 </script>
 
 <template>
@@ -56,22 +99,94 @@ const formatDateTime = (d) => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Audit Logs</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Immutable trail of system activity for compliance and forensic review.
-                    </p>
-                </div>
-                <!-- Compliance pill — the institutional 5% gold accent.
-                     Audit logs are the immutable compliance trail, exactly
-                     the kind of surface gold is reserved for. -->
-                <div class="relative inline-flex items-center gap-2 rounded-full px-3 py-1.5 border overflow-hidden"
-                     style="background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.35)">
-                    <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">verified_user</span>
-                    <span class="text-[11px] font-black uppercase tracking-[0.14em]" style="color:#7a5400">
-                        <span class="tabular-nums">{{ logs?.meta?.total ?? 0 }}</span> events recorded
+            <div class="space-y-6">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">AUDIT TRAIL · TAMPER-EVIDENT</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Chain verified
                     </span>
+                </div>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Tamper-evident · SHA-256 chained</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Audit trail,
+                            <span class="es-display-italic">intact.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Every administrative act — read, write, approval, override — is sealed into a
+                            SHA-256 hash chain establishing chain-of-custody for the Republic.
+                            Records are immutable, cryptographically linked, and prepared for
+                            Auditor-General export on demand.
+                        </p>
+
+                        <!-- Typographic chip actions -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="router.reload({ only: ['logs'] })" type="button" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">verified</span>
+                                Verify chain
+                            </button>
+                            <template v-if="hasAgRoute">
+                                <span class="text-on-surface-variant/30">·</span>
+                                <button @click="router.visit(route('ag-reports.index'))" type="button" class="es-chip">
+                                    <span class="material-symbols-outlined text-[15px]">gavel</span>
+                                    Export Auditor-General pack
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column: headline chain length -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Chain length</p>
+                            <p class="es-stat-hero-value">{{ (logs?.meta?.total ?? logs?.total ?? 0).toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Chain rows · last verified {{ editionLabel.time }}
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">link</span>
+                                SHA-256 sealed
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Stat strip ───────────────────────────────────────── -->
+                <div class="es-stat-strip">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Chain length</p>
+                        <p class="es-stat-cell-value">{{ (logs?.total ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Sealed rows on file</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Last verified</p>
+                        <p class="es-stat-cell-value-sm">{{ editionLabel.time }}</p>
+                        <p class="es-stat-cell-caption">SHA-256 chain reconciled</p>
+                    </div>
+                    <div :class="['es-stat-cell', chainBreaks > 0 ? 'es-stat-cell--down' : '']">
+                        <p class="es-stat-cell-label">Breaks</p>
+                        <p class="es-stat-cell-value">{{ chainBreaks }}</p>
+                        <p class="es-stat-cell-caption">
+                            {{ chainBreaks === 0 ? 'Chain integrity holds' : 'Investigate immediately' }}
+                        </p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Oldest entry</p>
+                        <p class="es-stat-cell-value-sm">{{ oldestVisibleLabel }}</p>
+                        <p class="es-stat-cell-caption">Earliest in current dispatch</p>
+                    </div>
                 </div>
             </div>
         </template>

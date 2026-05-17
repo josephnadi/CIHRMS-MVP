@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import StatCard from '@/Components/StatCard.vue';
 import LiveBars from '@/Components/charts/LiveBars.vue';
 
 const props = defineProps({
@@ -139,6 +138,24 @@ const efficiencyColor = (score) => {
 const barMax = (data, key = 'value') => Math.max(...(data ?? []).map(d => d[key] ?? 0), 1);
 
 const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
+
+// ── Editorial-Sovereign masthead ────────────────────────────────
+// Volume = year offset from CIHRM-GH platform inception (2023). Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 </script>
 
 <template>
@@ -146,72 +163,101 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Performance Analytics</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Workforce health, productivity signals and institutional metrics â€” auto-refreshed every 15â€“20 seconds.
-                    </p>
+            <section class="space-y-8">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PERFORMANCE &amp; GROWTH</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        {{ isSyncing ? 'Syncing' : `Live · ${syncAgoLabel}` }}
+                    </span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <!-- Live sync pill â€” pulses while reloading, otherwise shows seconds since last refresh -->
-                    <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
-                         :class="isSyncing
-                            ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/40 text-blue-700 dark:text-blue-300'
-                            : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/40 text-green-700 dark:text-green-400'">
-                        <span class="h-1.5 w-1.5 rounded-full"
-                              :class="isSyncing ? 'bg-blue-500 animate-pulse' : 'bg-green-500 live-dot'"></span>
-                        <span class="text-[10px] font-bold uppercase tracking-wider">
-                            {{ isSyncing ? 'Syncingâ€¦' : `Live Â· ${syncAgoLabel}` }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </template>
 
-        <div class="space-y-6">
-
-            <!-- ── Hero banner ── -->
-            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
-                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
-                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.10)"></div>
-
-                <div class="relative flex flex-wrap items-center justify-between gap-8">
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(18,217,227,0.85)">Workforce pulse · live</p>
-                        <h2 class="text-3xl font-black leading-tight">
-                            <em class="not-italic" style="color:#12d9e3">{{ formatNum(kpis.active) }}</em> active staff · <em class="not-italic" style="color:#ffd700">{{ kpis.retention_pct ?? 0 }}%</em> retention
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Calibration · 9-Box · PIPs</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Performance,
+                            <span class="es-display-italic block">measured.</span>
                         </h2>
-                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
-                            <span style="color:#16a34a">{{ formatNum(kpis.new_hires_90d) }}</span> hired in last 90 days ·
-                            <span style="color:#dc2626">{{ formatNum(kpis.terminated_90d) }}</span> exits ·
-                            <span style="color:#d912e3">{{ kpis.turnover_pct ?? 0 }}%</span> turnover rate
+                        <p class="es-display-sub">
+                            The institutional cadence of performance contracts, mid-cycle check-ins, and
+                            calibration sessions — where OKRs, ratings, and improvement plans are
+                            evidenced, moderated, and made public to the service.
                         </p>
+
+                        <!-- Quick-action chips — typographic, not gradient buttons -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link :href="route('performance.reviews.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">rate_review</span>
+                                Reviews
+                            </Link>
+                            <span v-if="$page.props.auth.permissions?.includes('performance.manage')" class="text-on-surface-variant/30">·</span>
+                            <Link v-if="$page.props.auth.permissions?.includes('performance.manage')"
+                                  :href="route('performance.nine-box')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">grid_view</span>
+                                Calibration
+                            </Link>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <Link :href="route('performance.goals.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">flag</span>
+                                Goals
+                            </Link>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-8 flex-shrink-0">
-                        <div v-for="kpi in [
-                            { label: 'On leave',  val: formatNum(kpis.on_leave),     color: '#7986cb' },
-                            { label: 'Retention', val: `${kpis.retention_pct ?? 0}%`, color: '#ffd700' },
-                            { label: 'Turnover',  val: `${kpis.turnover_pct ?? 0}%`,  color: '#d912e3' },
-                        ]" :key="kpi.label" class="text-center">
-                            <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
-                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
+
+                    <!-- SIDEBAR column: headline KPI as broadsheet drop-cap stat -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Staff under review</p>
+                            <p class="es-stat-hero-value">{{ formatNum(kpis.active) }}</p>
+                            <p class="es-stat-hero-caption">
+                                On the performance register ·
+                                {{ kpis.retention_pct ?? 0 }}% retained
+                            </p>
+                            <span class="es-stat-hero-delta" :class="{ 'is-down': (kpis.turnover_pct ?? 0) > (kpis.retention_pct ?? 0) / 10 }">
+                                <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                                {{ kpis.turnover_pct ?? 0 }}% attrition · trailing 12 months
+                            </span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- KPI strip — disciplined palette. Retention is the institutional
-                 health metric the page exists for, so it gets the 5% gold. -->
-            <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                <StatCard :value="formatNum(kpis.active)"        label="Active Staff"     icon="badge"          color="navy" />
-                <StatCard :value="formatNum(kpis.on_leave)"      label="On Leave"         icon="beach_access"   color="cyan" />
-                <StatCard :value="formatNum(kpis.new_hires_90d)" label="New Hires (90d)"  icon="person_add"     color="green" />
-                <StatCard :value="formatNum(kpis.terminated_90d)"label="Terminated (90d)" icon="trending_down"  color="red" />
-                <StatCard :value="`${kpis.retention_pct ?? 0}%`" label="Retention"        icon="check_circle"   color="gold" />
-                <StatCard :value="`${kpis.turnover_pct ?? 0}%`"  label="Turnover"         icon="rotate_right"   color="magenta" />
-            </div>
+                <!-- ─── Supporting metrics strip (broadsheet sub-numbers) ── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">In Cycle</p>
+                        <p class="es-stat-cell-value">{{ formatNum(kpis.active) }}</p>
+                        <p class="es-stat-cell-caption">Active on contracts</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Away · Today</p>
+                        <p class="es-stat-cell-value">{{ formatNum(kpis.on_leave) }}</p>
+                        <p class="es-stat-cell-caption">Check-ins on hold</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">New · 90d</p>
+                        <p class="es-stat-cell-value">{{ formatNum(kpis.new_hires_90d) }}</p>
+                        <p class="es-stat-cell-caption">Onboarding cohort</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Retention</p>
+                        <p class="es-stat-cell-value">{{ kpis.retention_pct ?? 0 }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                        <p class="es-stat-cell-caption">Institutional health</p>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <div class="space-y-6">
 
             <!-- â”€â”€ Row 1: Hires trend + Department efficiency â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid gap-6 lg:grid-cols-3">

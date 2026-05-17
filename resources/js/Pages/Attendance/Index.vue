@@ -46,6 +46,24 @@ const monthLabel = computed(() => {
     return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 });
 
+// ── Editorial-Sovereign masthead ────────────────────────────────
+// Volume = year offset from CIHRM-GH platform inception (2023). Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // LiveBars data: daily total presence (present + late) — gives a single
 // "showed up" series with the absent days standing out as low bars.
 const trendBars = computed(() =>
@@ -92,26 +110,99 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
     <Head title="Attendance — Org-wide" />
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Attendance · Org-wide</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Real-time presence telemetry · {{ monthLabel }}
-                    </p>
+            <section class="space-y-8">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">ATTENDANCE REGISTER</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Biometric · Live
+                    </span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-200 px-3 py-1.5 dark:bg-cyan-900/20 dark:border-cyan-800/40">
-                        <span class="h-1.5 w-1.5 rounded-full bg-cyan-500 live-dot"></span>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">Biometric live</span>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Phase 2 · Biometric + manual ingestion</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Time,
+                            <span class="es-display-italic block">recorded.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            The institutional attendance register for {{ monthLabel }} — clock-ins arriving from terminal biometrics
+                            and manual lodgements, exceptions surfaced for review, and shift compliance measured against
+                            Ghana Labour Act §35 overtime thresholds.
+                        </p>
+
+                        <!-- Quick-action chips -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="showManual = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">how_to_reg</span>
+                                Mark clock-in / out
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <Link v-if="$page.props.auth.permissions?.includes('attendance.shift_manage')"
+                                  :href="route('attendance.shifts.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">schedule</span>
+                                Shifts &amp; rosters
+                            </Link>
+                            <span v-if="$page.props.auth.permissions?.includes('attendance.shift_manage') && $page.props.auth.permissions?.includes('attendance.approve')" class="text-on-surface-variant/30">·</span>
+                            <Link v-if="$page.props.auth.permissions?.includes('attendance.approve')"
+                                  :href="route('attendance.corrections.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">fact_check</span>
+                                Corrections desk
+                            </Link>
+                        </div>
                     </div>
-                    <button @click="showManual = true"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px active:scale-[0.97]"
-                            style="background:linear-gradient(135deg,#1a237e,#3949ab)">
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Manual entry
-                    </button>
+
+                    <!-- SIDEBAR column: headline KPI as broadsheet drop-cap stat -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Present today</p>
+                            <p class="es-stat-hero-value">{{ ((stats?.present_today ?? 0) + (stats?.late_today ?? 0)).toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Of {{ (stats?.workforce_size ?? 0).toLocaleString() }} on the register ·
+                                {{ presentPct }}% month-to-date
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">fingerprint</span>
+                                Biometric &amp; manual ingestion · {{ editionLabel.date.split(',')[0] }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- ─── Supporting metrics strip (broadsheet sub-numbers) ── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Clocked-in · Today</p>
+                        <p class="es-stat-cell-value">{{ ((stats?.present_today ?? 0) + (stats?.late_today ?? 0)).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Biometric &amp; manual combined</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Present · Today</p>
+                        <p class="es-stat-cell-value">{{ (stats?.present_today ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">On time</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Late · Today</p>
+                        <p class="es-stat-cell-value">{{ (stats?.late_today ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">After grace period</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Absent · Today</p>
+                        <p class="es-stat-cell-value">{{ (stats?.absent_today ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">No record lodged</p>
+                    </div>
+                </div>
+            </section>
         </template>
 
         <div class="space-y-8">
@@ -132,62 +223,6 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                       class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant px-3.5 py-2 text-[11.5px] font-black uppercase tracking-wide text-on-surface-variant hover:border-secondary/40 hover:text-secondary transition-colors">
                     <span class="material-symbols-outlined text-[15px]">schedule</span> Shifts
                 </Link>
-            </div>
-
-            <!-- ── Hero banner ─────────────────────────────────────────── -->
-            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
-                <!-- Atmospheric blobs -->
-                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
-                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.06)"></div>
-
-                <div class="relative flex flex-wrap items-center justify-between gap-8">
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(18,217,227,0.7)">Telemetry · {{ monthLabel }}</p>
-                        <h2 class="text-3xl font-black leading-tight">
-                            Today's pulse · <em class="not-italic" style="color:#12d9e3">{{ stats.present_today + stats.late_today }}</em>
-                            <span class="text-base font-bold opacity-50">of {{ stats.workforce_size ?? '—' }} staff clocked in</span>
-                        </h2>
-                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
-                            {{ presentPct }}% attendance rate for {{ monthLabel }} ·
-                            <span style="color:#ffd700">{{ fmtHours(stats.month_avg_hours) }}h</span> daily average.
-                        </p>
-                    </div>
-                    <!-- Hero inline KPIs -->
-                    <div class="flex items-center gap-8 flex-shrink-0">
-                        <div v-for="kpi in [
-                            { label: 'Present',  val: stats.present_today,  color: '#12d9e3' },
-                            { label: 'Late',     val: stats.late_today,     color: '#ffd700' },
-                            { label: 'Absent',   val: stats.absent_today,   color: '#dc2626' },
-                            { label: 'On leave', val: stats.on_leave_today ?? 0, color: '#7986cb' },
-                        ]" :key="kpi.label" class="text-center">
-                            <p class="text-3xl font-black leading-none" :style="`color:${kpi.color}`">{{ kpi.val ?? 0 }}</p>
-                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Stat tiles ──────────────────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <div v-for="(card, i) in [
-                    { label: 'Present today', val: stats.present_today, sub: 'Clocked in',           cls: 'icon-cyan',    accent: '#12d9e3', icon: 'how_to_reg' },
-                    { label: 'Late today',    val: stats.late_today,    sub: 'After grace',          cls: 'icon-gold',    accent: '#ffd700', icon: 'schedule' },
-                    { label: 'Absent today',  val: stats.absent_today,  sub: 'No record',            cls: 'icon-danger',  accent: '#dc2626', icon: 'block' },
-                    { label: 'Avg hrs / day', val: fmtHours(stats.month_avg_hours), sub: monthLabel, cls: 'icon-magenta', accent: '#d912e3', icon: 'timer' },
-                ]" :key="card.label"
-                     class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                     :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.06}s`">
-                    <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                        <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.accent}`"></span>
-                    </div>
-                    <div class="icon-tile" :class="card.cls">
-                        <span class="material-symbols-outlined">{{ card.icon }}</span>
-                    </div>
-                    <p class="mt-3 text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                    <p class="mt-1 text-[28px] font-black tabular-nums text-primary leading-none">{{ card.val ?? 0 }}</p>
-                    <p class="mt-1 text-[10px] font-semibold text-on-surface-variant">{{ card.sub }}</p>
-                </div>
             </div>
 
             <!-- ── Visual band: trend bars + composition donut ─────────── -->

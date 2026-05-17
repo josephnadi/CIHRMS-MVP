@@ -61,6 +61,25 @@ const syncAgoLabel = computed(() => {
     if (s < 3600) return Math.floor(s / 60) + 'm';
     return Math.floor(s / 3600) + 'h';
 });
+
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Treats the dashboard like the front page of an institutional broadsheet.
+// Volume = year offset from CIHRM founding (kept stable). Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date(nowTick.value);
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;       // CIHRM-GH platform inception year
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 const sparkData = computed(() => {
     const toValues = (s) => Array.isArray(s) ? s.map(p => Number(p.value ?? 0)) : [];
     const compliance = [96, 97, 97.5, 98, 97.8, 98.2, 98, 98.4, 98.2, 98.6, 98.4, 98.2]; // no event type yet; kept literal
@@ -1320,7 +1339,7 @@ const getStatusColor = (status) => {
                                 <span class="material-symbols-outlined text-2xl">wb_sunny</span>
                             </div>
                             <div>
-                                <p class="text-xs font-black text-primary">28Â°C Accra</p>
+                                <p class="text-xs font-black text-primary">28°C Accra</p>
                                 <p class="text-[10px] font-bold text-on-surface-variant uppercase">Mostly Sunny</p>
                             </div>
                         </div>
@@ -1497,11 +1516,11 @@ const getStatusColor = (status) => {
                         <div class="pointer-events-none absolute bottom-0 left-1/3 h-48 w-48 rounded-full blur-2xl" style="background:rgba(124,92,255,0.07);"></div>
                         <div class="relative flex flex-wrap items-center justify-between gap-8">
                             <div>
-                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(255,255,255,0.35)">CIHRM Ghana Â· Executive Console</p>
+                                <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(255,255,255,0.35)">CIHRM Ghana · Executive Console</p>
                                 <h2 class="text-3xl font-black leading-tight">
                                     Good Morning, {{ $page.props.auth.user.name.split(' ')[0] }}.
                                 </h2>
-                                <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">All systems are operational â€” here's your institutional snapshot.</p>
+                                <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">All systems are operational — here's your institutional snapshot.</p>
                                 <div class="mt-6 flex items-center gap-3">
                                     <button @click="router.visit(route('employees.index', { new: 1 }))"
                                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"

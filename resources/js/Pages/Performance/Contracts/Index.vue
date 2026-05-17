@@ -145,41 +145,129 @@ const signedDots = (contract) => [
     { label: 'Employee signed',   done: !!contract.employee_signed_at },
     { label: 'Supervisor signed', done: !!contract.supervisor_signed_at },
 ];
+
+// ── Editorial Sovereign · masthead helpers ──────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+// ── Editorial sub-metrics ───────────────────────────────────────────
+const editorialMetrics = computed(() => {
+    const data = contractList.value;
+    return {
+        active:  data.filter(c => c.status === 'active').length,
+        pending: data.filter(c => c.status === 'pending_signature').length,
+        achieved:data.filter(c => c.status === 'achieved').length,
+        missed:  data.filter(c => c.status === 'missed').length,
+    };
+});
 </script>
 
 <template>
     <Head title="Performance Contracts" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header ───────────────────────────────────────────────────────── -->
+        <!-- ── Editorial Sovereign header ───────────────────────────── -->
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70">
-                        <Link :href="route('modules.performance')" class="hover:text-secondary">Performance</Link>
-                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                        <span>Contracts</span>
+            <section class="space-y-8">
+
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PERFORMANCE — CONTRACTS LEDGER</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Ledger · Live
+                    </span>
+                </div>
+
+                <!-- Broadsheet hero -->
+                <div class="es-broadsheet rounded-none">
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Annual performance contracts</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Goals,
+                            <span class="es-display-italic block">agreed and signed.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            The institutional ledger of annual performance contracts —
+                            from draft through dual signature, mid-cycle evaluation,
+                            and weighted-achievement close. Every KPI is weighted, dated,
+                            and counter-signed.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link :href="route('modules.performance')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                                Performance
+                            </Link>
+                            <span class="es-chip-divider">·</span>
+                            <button
+                                v-if="canManage"
+                                @click="showAddPanel = true"
+                                class="es-chip"
+                            >
+                                <span class="material-symbols-outlined text-[15px]">description</span>
+                                Draft contract
+                            </button>
+                        </div>
                     </div>
-                    <h2 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Performance Contracts</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Annual goal-setting agreements between manager and employee.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                            {{ stats.total }} total
-                        </span>
-                    </p>
+
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Contracts on file</p>
+                            <p class="es-stat-hero-value">{{ stats.total }}</p>
+                            <p class="es-stat-hero-caption">
+                                Across all cycles · {{ stats.avgRating ? `${stats.avgRating}% avg achievement` : 'pending evaluation' }}
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">rate_review</span>
+                                {{ stats.inEval }} under evaluation
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button
-                        v-if="canManage"
-                        @click="showAddPanel = true"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        New Contract
-                    </button>
+
+                <!-- Sub-metric strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Active</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.active }}</p>
+                        <p class="es-stat-cell-caption">In-cycle, signed</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Pending signature</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.pending }}</p>
+                        <p class="es-stat-cell-caption">Awaiting counter-sign</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Achieved</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.achieved }}</p>
+                        <p class="es-stat-cell-caption">Closed at target</p>
+                    </div>
+                    <div class="es-stat-cell" :class="{ 'es-stat-cell--down': editorialMetrics.missed > 0 }">
+                        <p class="es-stat-cell-label">Missed</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.missed }}</p>
+                        <p class="es-stat-cell-caption">Below threshold</p>
+                    </div>
                 </div>
-            </div>
+            </section>
         </template>
 
         <div class="space-y-6">

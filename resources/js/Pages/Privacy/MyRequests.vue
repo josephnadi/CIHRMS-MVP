@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
@@ -38,6 +38,38 @@ const typeLabel = (v) => ({
     objection:     'Right to Object',
     information:   'Right to be Informed',
 }[v] ?? v);
+
+// ── Sub-metric tallies derived from `requests` ────────────────────
+const isFulfilled = (s) => s === 'fulfilled' || s === 'partially_fulfilled';
+const isWithdrawn = (s) => s === 'withdrawn';
+const isTerminal  = (s) => isFulfilled(s) || isWithdrawn(s) || s === 'rejected';
+
+const tally = computed(() => {
+    const rows = props.requests ?? [];
+    return {
+        total:     rows.length,
+        fulfilled: rows.filter(r => isFulfilled(r.status)).length,
+        withdrawn: rows.filter(r => isWithdrawn(r.status)).length,
+        open:      rows.filter(r => !isTerminal(r.status)).length,
+    };
+});
+
+// ── Editorial Sovereign masthead label ────────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 </script>
 
 <template>
@@ -45,32 +77,107 @@ const typeLabel = (v) => ({
 
     <AuthenticatedLayout active-module="privacy">
         <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-on-surface-variant/60">Data Protection Act 2012 (Act 843) · Your rights as a data subject</p>
-                    <h1 class="text-2xl font-semibold tracking-tight">My Data Privacy Requests</h1>
-                </div>
-                <PrimaryButton @click="showPanel = true">+ New request</PrimaryButton>
+            <div class="es-masthead">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">DATA SUBJECT REQUESTS · ACT 843</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Personal record · Private
+                </span>
             </div>
         </template>
 
-        <div class="py-6 space-y-6">
+        <div class="space-y-8">
+
+            <!-- ─── Broadsheet hero ──────────────────────────────────── -->
+            <div class="es-broadsheet rounded-none">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <p class="es-eyebrow mb-6">Data subject rights · Act 843</p>
+                    <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                        My data,
+                        <span class="es-display-italic block">on record.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        The Data Protection Act 2012 (Act 843) guarantees you the right to access, rectify,
+                        erase, port, or object to processing of personal data held by the Institute. Requests
+                        are adjudicated by the Data Protection Officer within the 30-day statutory window.
+                    </p>
+
+                    <!-- Editorial chips — typographic actions -->
+                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                        <button @click="showPanel = true" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">post_add</span>
+                            File a new request
+                        </button>
+                        <span class="es-chip-divider">·</span>
+                        <a href="https://www.dataprotection.org.gh/" target="_blank" rel="noopener" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">gavel</span>
+                            Read Act 843
+                        </a>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR column: headline KPI -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Open Requests</p>
+                        <p class="es-stat-hero-value">{{ tally.open.toLocaleString() }}</p>
+                        <p class="es-stat-hero-caption">
+                            Awaiting DPO decision · 30-day statutory window per Act 843 §22
+                        </p>
+                        <span class="es-stat-hero-delta">
+                            <span class="material-symbols-outlined text-[13px]">shield_person</span>
+                            Confidential · Subject-only view
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Sub-metric strip ─────────────────────────────────── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Submitted</p>
+                    <p class="es-stat-cell-value">{{ tally.total.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">All requests on record</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Fulfilled</p>
+                    <p class="es-stat-cell-value">{{ tally.fulfilled.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Closed with disclosure</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Withdrawn</p>
+                    <p class="es-stat-cell-value">{{ tally.withdrawn.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Cancelled by you</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Open</p>
+                    <p class="es-stat-cell-value">{{ tally.open.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Under DPO review</p>
+                </div>
+            </div>
+
             <!-- Education panel -->
             <div class="rounded-2xl bg-brand-navy/[0.04] border border-brand-navy/15 p-6 space-y-3">
                 <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-navy/70">Your rights under Ghana law</p>
                 <div class="grid md:grid-cols-2 gap-3 text-sm">
                     <div class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">visibility</span>
-                        <div><strong>Access</strong> — receive a copy of all data we hold about you</div></div>
+                        <div><strong>Access</strong> &mdash; receive a copy of all data we hold about you</div></div>
                     <div class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">edit</span>
-                        <div><strong>Rectification</strong> — correct anything inaccurate</div></div>
+                        <div><strong>Rectification</strong> &mdash; correct anything inaccurate</div></div>
                     <div class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">delete</span>
-                        <div><strong>Erasure</strong> — delete your data (subject to statutory holds)</div></div>
+                        <div><strong>Erasure</strong> &mdash; delete your data (subject to statutory holds)</div></div>
                     <div class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">download</span>
-                        <div><strong>Portability</strong> — receive your data in machine-readable form</div></div>
+                        <div><strong>Portability</strong> &mdash; receive your data in machine-readable form</div></div>
                     <div class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">block</span>
-                        <div><strong>Object</strong> — stop us processing your data for a specific purpose</div></div>
+                        <div><strong>Object</strong> &mdash; stop us processing your data for a specific purpose</div></div>
                     <div class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">info</span>
-                        <div><strong>Information</strong> — see what we collect and why</div></div>
+                        <div><strong>Information</strong> &mdash; see what we collect and why</div></div>
                 </div>
                 <p class="text-xs text-on-surface-variant/60 pt-2">
                     We respond within 30 days. The first request in any 12-month period is free of charge.

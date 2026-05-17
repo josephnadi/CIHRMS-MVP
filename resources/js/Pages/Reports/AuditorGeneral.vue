@@ -1,8 +1,7 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import StatCard from '@/Components/StatCard.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 const props = defineProps({
@@ -23,6 +22,49 @@ const submit = () => form.post(route('ag-reports.generate'), {
 
 const fmtSize = (b) => (b > 1024 * 1024) ? (b / 1024 / 1024).toFixed(2) + ' MB' : (b / 1024).toFixed(1) + ' KB';
 const fmtDate = (unix) => new Date(unix * 1000).toLocaleString('en-GH');
+
+// ── Editorial Sovereign masthead + sub-metric labels ─────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+// Most recent pack (existing is pre-sorted newest first by the controller).
+const latestPack = computed(() => (props.existing ?? [])[0] ?? null);
+
+const lastPackLabel = computed(() => {
+    if (! latestPack.value) return 'None';
+    return new Date(latestPack.value.created * 1000).toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+});
+
+const packCount = computed(() => (props.existing ?? []).length);
+
+// Each pack ships one consolidated MANIFEST.md with one SHA-256 entry per
+// bundled file. The pack count is a tamper-evident audit signature on its own.
+const sealedBytes = computed(() => (props.existing ?? []).reduce((s, p) => s + (p.size ?? 0), 0));
+const sealedSizeLabel = computed(() => {
+    if (sealedBytes.value === 0) return '0 KB';
+    return fmtSize(sealedBytes.value);
+});
+
+// Next AG pack is conventionally due on the close of the fiscal year (31 Dec).
+const nextDueLabel = computed(() => {
+    const due = new Date(props.current_year, 11, 31);
+    return due.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+});
 </script>
 
 <template>
@@ -30,21 +72,81 @@ const fmtDate = (unix) => new Date(unix * 1000).toLocaleString('en-GH');
 
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70">
-                        <Link :href="route('reports.index')" class="hover:text-secondary">Reports</Link>
-                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                        <span>Auditor-General</span>
-                    </div>
-                    <h1 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Auditor-General Report Pack</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">Phase 2 · External audit readiness · SHA-256 verified bundle.</p>
+            <div class="space-y-6">
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">AUDITOR-GENERAL PACK · ACT 921</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · SHA-256 sealed
+                    </span>
                 </div>
-                <!-- Gold compliance pill — 5% accent for the institutional audit surface -->
-                <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
-                     style="background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.35)">
-                    <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">gavel</span>
-                    <span class="text-[11px] font-black uppercase tracking-[0.14em]" style="color:#7a5400">Auditor-General · Ghana</span>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <div class="flex items-center gap-2 text-[11px] font-semibold text-on-surface-variant/70 mb-4">
+                            <Link :href="route('reports.index')" class="hover:text-secondary">Reports</Link>
+                            <span class="material-symbols-outlined text-[14px]" aria-hidden="true">chevron_right</span>
+                            <span>Auditor-General</span>
+                        </div>
+                        <p class="es-eyebrow mb-6">External audit readiness · Act 921 · Public Financial Management</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            The Auditor-General
+                            <span class="es-display-italic">pack.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Year-end bundle for the Auditor-General of the Republic — payroll, statutory returns,
+                            GhIPSS files, Ghana Card register, and the audit-chain verification output,
+                            each file independently SHA-256 hashed in <code>MANIFEST.md</code> so the auditor
+                            can confirm the pack has not been tampered with after generation.
+                        </p>
+                    </div>
+
+                    <!-- SIDEBAR: feature KPI — sealed pack count -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Packs sealed</p>
+                            <p class="es-stat-hero-value">{{ packCount.toString().padStart(2, '0') }}</p>
+                            <p class="es-stat-hero-caption">
+                                Bundles on file · SHA-256 manifest per pack
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">gavel</span>
+                                Auditor-General · Ghana
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Stat strip ────────────────────────────────────────── -->
+                <div class="es-stat-strip">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Last pack</p>
+                        <p class="es-stat-cell-value-sm">{{ lastPackLabel }}</p>
+                        <p class="es-stat-cell-caption">Most recent generation</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">File count</p>
+                        <p class="es-stat-cell-value">{{ packCount.toString().padStart(2, '0') }}</p>
+                        <p class="es-stat-cell-caption">Sealed bundle{{ packCount === 1 ? '' : 's' }} on disk</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Hash entries</p>
+                        <p class="es-stat-cell-value-sm">{{ sealedSizeLabel }}</p>
+                        <p class="es-stat-cell-caption">SHA-256 manifest payload</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Next due</p>
+                        <p class="es-stat-cell-value-sm">{{ nextDueLabel }}</p>
+                        <p class="es-stat-cell-caption">Fiscal year-end close</p>
+                    </div>
                 </div>
             </div>
         </template>

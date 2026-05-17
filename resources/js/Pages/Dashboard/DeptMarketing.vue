@@ -1,65 +1,105 @@
 <script setup>
+import { computed } from 'vue';
 import Sparkline from '@/Components/charts/Sparkline.vue';
 
 const props = defineProps({
     spark: { type: Object, required: true },   // deptSparkData.marketing slice
 });
+
+const editionDate = computed(() => new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+}));
+const roiNow = computed(() => props.spark.roi[props.spark.roi.length - 1].toFixed(0));
+const budgetNow = computed(() => props.spark.budget[props.spark.budget.length - 1].toFixed(0));
+const leadsNow = computed(() => Math.round(props.spark.leads[props.spark.leads.length - 1]));
+const conversionNow = computed(() => props.spark.conversion[props.spark.conversion.length - 1].toFixed(1));
 </script>
 
 <template>
-    <div class="space-y-6 animate-reveal-up">
+    <div class="space-y-8 animate-reveal-up">
 
-        <!-- Hero Banner -->
-        <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
-            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(124,92,255,0.22),transparent 70%)"></div>
-            <div class="relative flex flex-wrap items-center justify-between gap-6">
-                <div class="flex items-center gap-5">
-                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,92,255,0.2);border:1px solid rgba(124,92,255,0.3)">
-                        <span class="material-symbols-outlined text-3xl text-blue-400" style="font-variation-settings:'FILL' 1">campaign</span>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                        <h2 class="text-2xl font-black leading-tight">Marketing</h2>
-                        <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Campaigns · Brand · Digital · Content</p>
-                    </div>
+        <!-- ─── Masthead strip ────────────────────────────────────── -->
+        <div class="es-masthead">
+            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">BRAND &amp; COMMS EDITION</span></span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionDate }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span>Bulletin · Marketing Desk</span>
+            <span class="es-masthead-spacer"></span>
+            <span class="es-masthead-live">
+                <span class="es-dot" aria-hidden="true"></span>
+                Live · 6 campaigns running
+            </span>
+        </div>
+
+        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+        <div class="es-broadsheet rounded-none">
+            <!-- LEAD column -->
+            <div class="es-broadsheet-lead">
+                <p class="es-eyebrow mb-6">From the Brand &amp; Communications desk</p>
+                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                    Stories that compound,
+                    <span class="es-display-italic block">audiences that endure.</span>
+                </h2>
+                <p class="es-display-sub">
+                    The state of brand, channel and conversion — every cedi spent and every lead earned,
+                    accounted for in a single editorial frame. {{ leadsNow.toLocaleString() }} leads this cycle.
+                </p>
+
+                <!-- Quick-action chips -->
+                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                    <span class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">campaign</span>
+                        New Campaign
+                    </span>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <span class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                        Content Brief
+                    </span>
                 </div>
-                <div class="flex items-center gap-10 flex-shrink-0">
-                    <div v-for="m in [
-                        { label: 'Team Members', val: '35' },
-                        { label: 'Campaign ROI', val: spark.roi[spark.roi.length-1].toFixed(0) + '%' },
-                        { label: 'Budget Used',  val: spark.budget[spark.budget.length-1].toFixed(0) + '%' },
-                    ]" :key="m.label" class="text-center">
-                        <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                        <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
+            </div>
+
+            <!-- SIDEBAR column: flagship KPI — campaign ROI -->
+            <div class="es-broadsheet-sidebar">
+                <div class="es-stat-hero">
+                    <p class="es-stat-hero-label">Campaign ROI</p>
+                    <p class="es-stat-hero-value">{{ roiNow }}<span style="font-size:0.45em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                    <p class="es-stat-hero-caption">
+                        Weighted across active campaigns · target 200%
+                    </p>
+                    <span class="es-stat-hero-delta">
+                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                        Above benchmark · sparkline below
+                    </span>
+                    <div class="mt-4 -mx-1">
+                        <Sparkline :data="spark.roi" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Campaign ROI" class="!block w-full"/>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="(card, i) in [
-                { label: 'Campaign ROI',    display: spark.roi[spark.roi.length-1].toFixed(0) + '%',                  trend: 'vs 200% target', color: '#ffd700', rgb: '255,215,0',  icon: 'trending_up',          up: true,  spark: spark.roi        },
-                { label: 'Budget Utilised', display: spark.budget[spark.budget.length-1].toFixed(0) + '%',            trend: 'of GHS 420K',    color: '#0891b2', rgb: '8,145,178',  icon: 'account_balance_wallet', up: false, spark: spark.budget   },
-                { label: 'Leads Generated', display: Math.round(spark.leads[spark.leads.length-1]).toLocaleString(),  trend: '+8% this week',  color: '#3949ab', rgb: '57, 73, 171', icon: 'group_add',            up: true,  spark: spark.leads      },
-                { label: 'Conversion Rate', display: spark.conversion[spark.conversion.length-1].toFixed(1) + '%',     trend: 'Target: 4%',     color: '#d97706', rgb: '217,119,6',  icon: 'swap_horiz',           up: true,  spark: spark.conversion },
-            ]" :key="i"
-                 class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                 :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                </div>
-                <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                    <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                </div>
-                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
-                <div class="-mx-1 mt-3">
-                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="28"
-                               :stroke-width="1.5" :label="card.label" class="!block w-full"/>
-                </div>
+        <!-- ─── Supporting metrics strip ───────────────────────────── -->
+        <div class="es-stat-strip rounded-none">
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Budget Utilised</p>
+                <p class="es-stat-cell-value">{{ budgetNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                <p class="es-stat-cell-caption">of GHS 420K annual envelope</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Leads Generated</p>
+                <p class="es-stat-cell-value">{{ leadsNow.toLocaleString() }}</p>
+                <p class="es-stat-cell-caption">+8% week-on-week</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Conversion Rate</p>
+                <p class="es-stat-cell-value">{{ conversionNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                <p class="es-stat-cell-caption">vs 4% target</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Team Strength</p>
+                <p class="es-stat-cell-value">35</p>
+                <p class="es-stat-cell-caption">Brand, digital, content, PR</p>
             </div>
         </div>
 

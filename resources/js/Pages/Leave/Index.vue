@@ -258,6 +258,54 @@ const onLeaveNow = computed(() => {
     ).length ?? 0;
 });
 
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Volume = year offset from CIHRM founding (2023). Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+// Headline pending — prefer prop; fall back to derived for employee view
+const headlinePending = computed(() => {
+    if (typeof props.pendingCount === 'number') return props.pendingCount;
+    return (props.leaves?.data ?? []).filter(l => l.status === 'pending').length;
+});
+
+// Approved / rejected this month (derived from current leaves page) — only
+// surfaced as strip metrics when the underlying collection actually contains
+// matching rows; otherwise the cell is omitted (no invented numbers).
+const monthKey = computed(() => new Date().toISOString().slice(0, 7));
+const approvedThisMonth = computed(() =>
+    (props.leaves?.data ?? []).filter(r =>
+        r.status === 'approved' && (r.updated_at ?? r.start_date ?? '').startsWith(monthKey.value)
+    ).length
+);
+const rejectedThisMonth = computed(() =>
+    (props.leaves?.data ?? []).filter(r =>
+        r.status === 'rejected' && (r.updated_at ?? '').startsWith(monthKey.value)
+    ).length
+);
+
+// Employee-view remaining-days headline: sum of `remaining` across configured balances
+const remainingDaysTotal = computed(() =>
+    (props.balances ?? []).reduce((sum, b) => sum + (Number(b.remaining) || 0), 0)
+);
+const annualRemaining = computed(() => {
+    const a = (props.balances ?? []).find(b => b.type === 'annual');
+    return a ? Number(a.remaining) || 0 : null;
+});
+
 // Inline calendar for manager view
 const calMonth   = ref(new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0'));
 const calYear    = computed(() => parseInt(calMonth.value.split('-')[0]));
@@ -345,23 +393,94 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
         <!-- â”€â”€ EMPLOYEE / MANAGER VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template v-if="!isHR">
 
-            <!-- Header -->
-            <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-[22px] font-black tracking-tight text-on-surface">My Leave</h1>
-                    <p class="mt-0.5 text-[13px] text-on-surface-variant">
-                        Ghana Labour Act 651 â€” Manage your leave entitlements
-                    </p>
+            <!-- ─── Editorial-Sovereign page header ─────────────────────── -->
+            <section class="mb-8 space-y-6">
+
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">LEAVE POSTURE</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Register open
+                    </span>
                 </div>
-                <button
-                    class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px active:scale-[0.97] transition-all"
-                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    @click="showApplyPanel = true"
-                >
-                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">event_available</span>
-                    Apply for Leave
-                </button>
-            </div>
+
+                <!-- Broadsheet hero -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Leave Register · Act 651</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Leave
+                            <span class="es-display-italic">posture.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Your standing entitlements under the Ghana Labour Act, 2003 (Act 651) — annual, sick, maternity and statutory leave, on file with the Registrar.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="showApplyPanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">event_available</span>
+                                Request Leave
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <a :href="route('leave.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">calendar_month</span>
+                                Leave Calendar
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR: feature KPI -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Days Remaining</p>
+                            <p class="es-stat-hero-value">{{ remainingDaysTotal.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Statutory ledger · {{ (balances?.length ?? 0) }} entitlement{{ (balances?.length ?? 0) === 1 ? '' : 's' }} on record
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">beach_access</span>
+                                <template v-if="annualRemaining !== null">
+                                    Annual · {{ annualRemaining }} day{{ annualRemaining === 1 ? '' : 's' }} flight time
+                                </template>
+                                <template v-else>
+                                    Awaiting balance allocation
+                                </template>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supporting metrics strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Requests on File</p>
+                        <p class="es-stat-cell-value">{{ (requests?.total ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Lifetime ledger</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Awaiting Decision</p>
+                        <p class="es-stat-cell-value">{{ headlinePending.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Pending approval</p>
+                    </div>
+                    <div v-if="approvedThisMonth > 0" class="es-stat-cell">
+                        <p class="es-stat-cell-label">Approved · {{ MONTH_NAMES[new Date().getMonth()].slice(0,3) }}</p>
+                        <p class="es-stat-cell-value">{{ approvedThisMonth.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Issued this period</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Entitlement Types</p>
+                        <p class="es-stat-cell-value">{{ (balances?.length ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Statutory categories</p>
+                    </div>
+                </div>
+            </section>
 
             <!-- Balance Cards (horizontal scroll) -->
             <div class="mb-6 -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 scrollbar-none">
@@ -499,47 +618,99 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
         <!-- â”€â”€ HR / ADMIN VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template v-else>
 
-            <!-- Header -->
-            <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-[22px] font-black tracking-tight text-on-surface">Leave Management</h1>
-                    <p class="mt-0.5 text-[13px] text-on-surface-variant">Review and manage leave requests across the organisation</p>
+            <!-- ─── Editorial-Sovereign page header (HR) ─────────────────── -->
+            <section class="mb-8 space-y-6">
+
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">LEAVE POSTURE</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Approvals desk
+                    </span>
                 </div>
-                <!-- Stats row — Pending gets the 5% gold accent (the HR's most important number) -->
-                <div class="flex items-center gap-3 flex-wrap">
-                    <!-- Pending (gold accent moment) -->
-                    <div class="relative flex items-center gap-2.5 rounded-xl border bg-surface-container-lowest px-4 py-2 shadow-card overflow-hidden" style="border-color:rgba(255,215,0,0.35)">
-                        <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" style="background:rgba(255,215,0,0.14)">
-                            <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">pending_actions</span>
-                        </span>
-                        <span class="text-[13px] font-bold text-on-surface">
-                            <span class="tabular-nums">{{ pendingCount ?? 0 }}</span>
-                            <span class="ml-0.5 text-on-surface-variant/70 font-semibold">Pending</span>
-                        </span>
+
+                <!-- Broadsheet hero -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Leave Register · Act 651</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Leave
+                            <span class="es-display-italic">posture.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Institutional view of statutory leave across the establishment — pending approvals, current absences, and the calendar of officers off-station under the Ghana Labour Act, 2003.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="activeTab = 'pending'" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">pending_actions</span>
+                                Approvals
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button @click="activeTab = 'calendar'" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">calendar_month</span>
+                                Leave Calendar
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button @click="showApplyPanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">event_available</span>
+                                Request Leave
+                            </button>
+                        </div>
                     </div>
-                    <!-- Approved today (semantic green) -->
-                    <div class="flex items-center gap-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2 shadow-card">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/12">
-                            <span class="material-symbols-outlined text-[16px] text-green-600 dark:text-green-400" style="font-variation-settings:'FILL' 1">task_alt</span>
-                        </span>
-                        <span class="text-[13px] font-bold text-on-surface">
-                            <span class="tabular-nums">{{ approvedToday }}</span>
-                            <span class="ml-0.5 text-on-surface-variant/70 font-semibold">Approved today</span>
-                        </span>
-                    </div>
-                    <!-- On leave now (cobalt) -->
-                    <div class="flex items-center gap-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2 shadow-card">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" style="background:rgba(26, 35, 126,0.12)">
-                            <span class="material-symbols-outlined text-[16px]" style="color:#1a237e;font-variation-settings:'FILL' 1">beach_access</span>
-                        </span>
-                        <span class="text-[13px] font-bold text-on-surface">
-                            <span class="tabular-nums">{{ onLeaveNow }}</span>
-                            <span class="ml-0.5 text-on-surface-variant/70 font-semibold">On leave now</span>
-                        </span>
+
+                    <!-- SIDEBAR: feature KPI — Pending approvals -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Pending Approvals</p>
+                            <p class="es-stat-hero-value">{{ headlinePending.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Awaiting Registrar's decision · {{ headlinePending === 1 ? 'one file' : headlinePending + ' files' }} on desk
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">schedule</span>
+                                Approvals desk · open
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Supporting metrics strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Approved Today</p>
+                        <p class="es-stat-cell-value">{{ approvedToday.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Issued in last 24h</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">On Leave Now</p>
+                        <p class="es-stat-cell-value">{{ onLeaveNow.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Officers off-station</p>
+                    </div>
+                    <div v-if="approvedThisMonth > 0" class="es-stat-cell">
+                        <p class="es-stat-cell-label">Approved · {{ MONTH_NAMES[new Date().getMonth()].slice(0,3) }}</p>
+                        <p class="es-stat-cell-value">{{ approvedThisMonth.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Current period</p>
+                    </div>
+                    <div v-if="rejectedThisMonth > 0" class="es-stat-cell">
+                        <p class="es-stat-cell-label">Declined · {{ MONTH_NAMES[new Date().getMonth()].slice(0,3) }}</p>
+                        <p class="es-stat-cell-value">{{ rejectedThisMonth.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Returned to applicant</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Register Total</p>
+                        <p class="es-stat-cell-value">{{ (requests?.total ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">All filings on record</p>
+                    </div>
+                </div>
+            </section>
 
             <!-- Tab bar -->
             <div class="rounded-t-2xl bg-surface-container-lowest border border-outline-variant/50 border-b-0 shadow-card overflow-hidden">

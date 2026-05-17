@@ -16,6 +16,30 @@ const props = defineProps({
     activeModule: String,
 });
 
+// ── Editorial-Sovereign masthead label ───────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+const cediShort = (v) => {
+    const n = Number(v) || 0;
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toLocaleString('en-GH');
+};
+
 // â”€â”€ Analytics helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const A = computed(() => props.analytics ?? {});
 const totals = computed(() => A.value.totals ?? {});
@@ -291,31 +315,92 @@ const formatDate = (d) => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Payroll</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Ghana-compliant payslip processing â€” PAYE, SSNIT 3-Tier, and GRA remittance tracking.
-                    </p>
+            <section class="space-y-8">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PAYMENT RECORD</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        PAYE · SSNIT · GRA
+                    </span>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <button
-                        @click="showCreatePanel = true"
-                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
-                    >
-                        <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">payments</span>
-                        Quick Payment
-                    </button>
-                    <button
-                        @click="showPayslipPanel = true"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px hover:shadow-glow transition-all"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">receipt_long</span>
-                        Generate Payslip
-                    </button>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Payroll · PAYE · SSNIT 3-Tier · GRA</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Payments,
+                            <span class="es-display-italic block">settled.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Ghana-compliant payslip processing — every cedi paid stands on PAYE bands, SSNIT
+                            Tier-1/Tier-2 contributions, and GRA remittance evidence held in the institutional record.
+                        </p>
+
+                        <!-- Quick-action chips — typographic, not gradient buttons -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="showCreatePanel = true" type="button" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">payments</span>
+                                Quick Payment
+                            </button>
+                            <span class="es-chip-divider">·</span>
+                            <button @click="showPayslipPanel = true" type="button" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">receipt_long</span>
+                                Generate Payslip
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column: paid headline -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Paid · this month</p>
+                            <p class="es-stat-hero-value">{{ stats.paid.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                <span class="es-stat-prefix">GHS</span>{{ cediShort(stats.totalGhs) }} disbursed · {{ stats.total }} on record
+                            </p>
+                            <span class="es-stat-hero-delta" :class="{ 'is-down': stats.pending > stats.paid }">
+                                <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                                {{ stats.pending }} pending · {{ stats.paid + stats.pending > 0 ? Math.round(stats.paid * 100 / (stats.paid + stats.pending)) : 0 }}% paid
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- ─── Sub-metric strip ────────────────────────────────── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Paid · this month</p>
+                        <p class="es-stat-cell-value">{{ stats.paid.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Cleared with provider</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Pending</p>
+                        <p class="es-stat-cell-value">{{ stats.pending.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Awaiting release</p>
+                    </div>
+                    <div class="es-stat-cell es-stat-cell--down">
+                        <p class="es-stat-cell-label">Failed</p>
+                        <p class="es-stat-cell-value">{{ (data.filter(p => p.status === 'failed').length).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Returned · requires review</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Total</p>
+                        <p class="es-stat-cell-value">
+                            <span class="es-stat-prefix">GHS</span>{{ cediShort(stats.totalGhs) }}
+                        </p>
+                        <p class="es-stat-cell-caption">All records combined</p>
+                    </div>
+                </div>
+            </section>
         </template>
 
         <div class="space-y-6">

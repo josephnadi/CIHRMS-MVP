@@ -37,6 +37,33 @@ const submitMessage = () => messageForm.post(route('whistleblower.admin.messages
     preserveScroll: true,
     onSuccess: () => messageForm.reset('body'),
 });
+
+// ── Case age in days since received ───────────────────────────────
+const caseAgeDays = computed(() => {
+    const received = R.value?.received_at ?? R.value?.created_at;
+    if (!received) return 0;
+    return Math.max(0, Math.floor((Date.now() - new Date(received).getTime()) / 86_400_000));
+});
+
+// ── Severity → tone (for cell coloration) ─────────────────────────
+const isSevereCase = computed(() => ['critical', 'high'].includes(R.value?.severity));
+
+// ── Editorial Sovereign masthead label ────────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 </script>
 
 <template>
@@ -44,22 +71,86 @@ const submitMessage = () => messageForm.post(route('whistleblower.admin.messages
 
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <Link :href="route('whistleblower.admin.index')" class="text-xs text-on-surface-variant/60 hover:underline">← All cases</Link>
-                    <h1 class="text-2xl font-semibold tracking-tight">{{ R.case_number }}</h1>
-                    <p class="text-sm text-on-surface-variant/70">
-                        {{ R.category_label }} · {{ R.severity_label || 'Severity TBD' }} ·
-                        {{ R.is_anonymous ? 'Anonymous' : `Submitter contactable` }}
-                    </p>
-                </div>
-                <span class="px-3 py-1.5 rounded-full text-xs font-bold uppercase bg-brand-navy/10 text-brand-navy">
-                    {{ R.status_label }}
+            <div class="es-masthead" style="border-top-color:#dc2626">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">INVESTIGATION CASE FILE · ACT 720</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Confidential · Restricted
                 </span>
             </div>
         </template>
 
-        <div class="py-6 space-y-6">
+        <div class="space-y-8">
+
+            <!-- ─── Broadsheet hero ──────────────────────────────────── -->
+            <div class="es-broadsheet rounded-none">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <div class="flex items-center justify-between mb-6 gap-3">
+                        <p class="es-eyebrow">Segregated investigation · Act 720</p>
+                        <Link :href="route('whistleblower.admin.index')" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                            All cases
+                        </Link>
+                    </div>
+                    <h2 class="es-display text-[clamp(2rem,4.6vw,3.6rem)]">
+                        Case dossier
+                        <span class="es-display-italic block">{{ R.case_number }}.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        {{ R.category_label }} &middot; {{ R.severity_label || 'Severity to be determined' }} &middot;
+                        {{ R.is_anonymous ? 'Anonymous filing — reporter identity sealed' : 'Submitter contactable via secure thread' }}.
+                        Reporter identity, evidence, and case body are protected under the Whistleblower Protection Act 2006 (Act 720).
+                        Every action is audit-logged.
+                    </p>
+                </div>
+
+                <!-- SIDEBAR column: case age -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Case Age</p>
+                        <p class="es-stat-hero-value">{{ caseAgeDays.toLocaleString() }}<span class="es-stat-unit">d</span></p>
+                        <p class="es-stat-hero-caption">
+                            Since received &middot;
+                            {{ R.is_anonymous ? 'anonymous channel' : 'identified submitter' }}
+                        </p>
+                        <span class="es-stat-hero-delta" :class="isSevereCase ? 'is-down' : ''">
+                            <span class="material-symbols-outlined text-[13px]">shield_lock</span>
+                            Sealed · Act 720 chain of custody
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Sub-metric strip ─────────────────────────────────── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Stage</p>
+                    <p class="es-stat-cell-value-sm">{{ R.status_label ?? '—' }}</p>
+                    <p class="es-stat-cell-caption">Investigation workflow</p>
+                </div>
+                <div class="es-stat-cell" :class="isSevereCase ? 'es-stat-cell--down' : ''">
+                    <p class="es-stat-cell-label">Severity</p>
+                    <p class="es-stat-cell-value-sm">{{ R.severity_label || 'Untriaged' }}</p>
+                    <p class="es-stat-cell-caption">Investigator assessment</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Age</p>
+                    <p class="es-stat-cell-value">{{ caseAgeDays.toLocaleString() }}<span class="es-stat-unit">d</span></p>
+                    <p class="es-stat-cell-caption">Since received</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Category</p>
+                    <p class="es-stat-cell-value-sm">{{ R.category_label ?? '—' }}</p>
+                    <p class="es-stat-cell-caption">Disclosure type</p>
+                </div>
+            </div>
+
             <!-- Triage panel — only visible while case is still in 'submitted' -->
             <div v-if="R.status === 'submitted'" class="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 space-y-3">
                 <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-800">Awaiting triage (2FA required)</p>

@@ -90,6 +90,23 @@ const daysRemaining = (target) => {
     const d = Math.floor((new Date(target).getTime() - Date.now()) / 86400000);
     return d;
 };
+
+// ── Editorial-Sovereign masthead label ──
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 </script>
 
 <template>
@@ -97,65 +114,93 @@ const daysRemaining = (target) => {
     <AuthenticatedLayout active-module="privacy-admin">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="material-symbols-outlined text-[16px] text-cyan-600" style="font-variation-settings:'FILL' 1">privacy_tip</span>
-                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">Data Protection Officer · Act 843 · 30-day SLA</p>
-                    </div>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Data-Subject Request Queue</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Statutory data-subject requests under Ghana's DPA 2012 · audit-logged decisions
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-200 px-3 py-1.5 dark:bg-cyan-900/20 dark:border-cyan-800/40">
-                        <span class="h-1.5 w-1.5 rounded-full bg-cyan-500 live-dot"></span>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">{{ stats?.open ?? 0 }} open</span>
-                    </div>
-                </div>
+            <div class="es-masthead">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">DPO QUEUE · ACT 843</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Confidential · Restricted
+                </span>
             </div>
         </template>
 
         <div class="space-y-8">
 
-            <!-- ── Hero banner ── -->
-            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
-                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
-                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.06)"></div>
+            <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+            <div class="es-broadsheet rounded-none animate-reveal-up">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <p class="es-eyebrow mb-6">DPO desk · Act 843</p>
+                    <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                        Subject requests,
+                        <span class="es-display-italic block">under DPO review.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        Statutory data-subject requests under Ghana's Data Protection Act 2012 (Act 843) —
+                        access, rectification, erasure, withdrawal of consent and objection — adjudicated within
+                        the 30-day response window. Fulfilment exports are encrypted and sealed with SHA-256.
+                    </p>
 
-                <div class="relative flex flex-wrap items-center justify-between gap-8">
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(18,217,227,0.7)">DPO inbox · this period</p>
-                        <h2 class="text-3xl font-black leading-tight">
-                            <template v-if="stats?.overdue > 0">
-                                <em class="not-italic" style="color:#f87171">{{ stats.overdue }}</em> overdue request<span v-if="stats.overdue !== 1">s</span>
-                            </template>
-                            <template v-else-if="stats?.open > 0">
-                                <em class="not-italic" style="color:#ffd700">{{ stats.open }}</em> open request<span v-if="stats.open !== 1">s</span>
-                            </template>
-                            <template v-else>
-                                <em class="not-italic" style="color:#12d9e3">Queue clear</em>
-                            </template>
-                            <span class="text-base font-bold opacity-50">· {{ stats?.within_sla_pct ?? 100 }}% within 30-day SLA</span>
-                        </h2>
-                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
-                            <span style="color:#7986cb">{{ stats?.this_month ?? 0 }}</span> submitted this month ·
-                            <span style="color:#12d9e3">{{ stats?.fulfilled_ytd ?? 0 }}</span> fulfilled YTD ·
-                            avg age <span style="color:#ffd700">{{ stats?.avg_age_days ?? 0 }}d</span>
+                    <!-- Editorial chips — typographic actions -->
+                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                        <button @click="localFilters.status = 'overdue'; applyFilters()" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">priority_high</span>
+                            Review overdue
+                        </button>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button @click="localFilters.status = 'submitted'; applyFilters()" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">inbox</span>
+                            Triage new submissions
+                        </button>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button @click="clearFilters" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">filter_alt_off</span>
+                            Reset register
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR column: headline stat — open requests -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Open Requests</p>
+                        <p class="es-stat-hero-value">{{ (stats?.open ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-hero-caption">
+                            Awaiting decision · 30-day statutory window per Act 843 §22
                         </p>
+                        <span class="es-stat-hero-delta">
+                            <span class="material-symbols-outlined text-[13px]">schedule</span>
+                            Avg age {{ stats?.avg_age_days ?? 0 }}d · {{ stats?.within_sla_pct ?? 100 }}% within SLA
+                        </span>
                     </div>
-                    <div class="flex items-center gap-8 flex-shrink-0">
-                        <div v-for="kpi in [
-                            { label: 'Open',    val: stats?.open ?? 0,    color: '#12d9e3' },
-                            { label: 'Overdue', val: stats?.overdue ?? 0, color: '#f87171' },
-                            { label: 'SLA',     val: (stats?.within_sla_pct ?? 100) + '%', color: '#ffd700' },
-                        ]" :key="kpi.label" class="text-center">
-                            <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
-                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
-                        </div>
-                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Supporting metrics strip (broadsheet sub-numbers) ── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Open</p>
+                    <p class="es-stat-cell-value">{{ (stats?.open ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Awaiting DPO decision</p>
+                </div>
+                <div class="es-stat-cell" :class="(stats?.overdue ?? 0) > 0 ? 'es-stat-cell--down' : ''">
+                    <p class="es-stat-cell-label">Overdue</p>
+                    <p class="es-stat-cell-value">{{ (stats?.overdue ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Past 30-day window</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Fulfilled YTD</p>
+                    <p class="es-stat-cell-value">{{ (stats?.fulfilled_ytd ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Encrypted SHA-256 export</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Rejected YTD</p>
+                    <p class="es-stat-cell-value">{{ (stats?.rejected_ytd ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Statutory basis on record</p>
                 </div>
             </div>
 
@@ -177,25 +222,6 @@ const daysRemaining = (target) => {
                         class="rounded-xl bg-white dark:bg-rose-900/30 border border-rose-300 dark:border-rose-700/50 px-4 py-2 text-[12px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors flex-shrink-0">
                     Show overdue
                 </button>
-            </div>
-
-            <!-- ── KPI tiles ── -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <div v-for="(card, i) in [
-                    { label: 'Open',          val: stats?.open ?? 0,          sub: 'Awaiting decision',     cls: 'icon-cyan',    icon: 'inbox' },
-                    { label: 'Overdue',       val: stats?.overdue ?? 0,       sub: 'Past 30-day SLA',       cls: 'icon-danger',  icon: 'priority_high' },
-                    { label: 'Fulfilled YTD', val: stats?.fulfilled_ytd ?? 0, sub: new Date().getFullYear(), cls: 'icon-brand',   icon: 'verified' },
-                    { label: 'Rejected YTD',  val: stats?.rejected_ytd ?? 0,  sub: 'With statutory basis',  cls: 'icon-magenta', icon: 'gavel' },
-                ]" :key="card.label"
-                     class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                     :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.06}s`">
-                    <div class="icon-tile" :class="card.cls">
-                        <span class="material-symbols-outlined">{{ card.icon }}</span>
-                    </div>
-                    <p class="mt-3 text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                    <p class="mt-1 text-[28px] font-black tabular-nums text-primary leading-none">{{ card.val }}</p>
-                    <p class="mt-1 text-[10px] font-semibold text-on-surface-variant">{{ card.sub }}</p>
-                </div>
             </div>
 
             <!-- ── Visual band: SLA ring + type composition ── -->

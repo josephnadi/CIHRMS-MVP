@@ -22,6 +22,27 @@ const visible = computed(() => {
 
 const unreadCount = computed(() => items.value.filter(n => !n.read_at).length);
 
+const thisWeekCount = computed(() => {
+    const weekAgo = Date.now() - 7 * 86_400_000;
+    return items.value.filter(n => n.created_at && new Date(n.created_at).getTime() >= weekAgo).length;
+});
+
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // Notification type palette — disciplined Sovereign Precision.
 // LeaveStatusUpdated: was cobalt color but violet hue tint (mismatch bug).
 // TicketCreated: was a generic cyan-blue; pulled to brand cyan #12d9e3.
@@ -65,27 +86,80 @@ const FILTERS = [
 
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- Header -->
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h1 class="text-[22px] font-black tracking-tight text-on-surface">Notifications</h1>
-                <p class="mt-0.5 text-[13px] text-on-surface-variant">
-                    System events, mentions and approval activity directed to you.
+        <!-- Editorial Sovereign · Masthead -->
+        <div class="es-masthead">
+            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">NOTICES</span></span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionLabel.date }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionLabel.edition }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span class="es-masthead-live">
+                <span class="es-dot" aria-hidden="true"></span>
+                {{ unreadCount ? `Live · ${unreadCount} unread` : 'Live · Inbox clear' }}
+            </span>
+        </div>
+
+        <!-- Broadsheet hero -->
+        <div class="es-broadsheet rounded-none">
+            <!-- LEAD column -->
+            <div class="es-broadsheet-lead">
+                <p class="es-eyebrow mb-6">Inbound institutional notices</p>
+                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                    Notices,
+                    <span class="es-display-italic">delivered.</span>
+                </h2>
+                <p class="es-display-sub">
+                    System events, approval activity and mentions routed to your desk by the Registrar's office —
+                    leave dispositions, service-desk dispatches, payroll confirmations and personnel actions, in
+                    order of arrival.
                 </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <div v-if="unreadCount" class="flex items-center gap-2 rounded-xl border border-secondary/30 bg-secondary/5 px-4 py-2">
-                    <span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings:'FILL' 1">mark_email_unread</span>
-                    <span class="text-[13px] font-bold text-secondary">{{ unreadCount }} unread</span>
+
+                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                    <button v-if="unreadCount" @click="markAllRead" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">done_all</span>
+                        Mark all read
+                    </button>
+                    <span v-if="unreadCount" class="text-on-surface-variant/30">·</span>
+                    <button @click="router.visit(route('notifications.channels'))" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">tune</span>
+                        Channel preferences
+                    </button>
                 </div>
-                <button
-                    v-if="unreadCount"
-                    @click="markAllRead"
-                    class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
-                >
-                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">done_all</span>
-                    Mark all read
-                </button>
+            </div>
+
+            <!-- SIDEBAR column: feature KPI -->
+            <div class="es-broadsheet-sidebar">
+                <div class="es-stat-hero">
+                    <p class="es-stat-hero-label">Unread Notices</p>
+                    <p class="es-stat-hero-value">{{ unreadCount.toLocaleString() }}</p>
+                    <p class="es-stat-hero-caption">
+                        Awaiting your attention · of {{ items.length.toLocaleString() }} on file
+                    </p>
+                    <span class="es-stat-hero-delta">
+                        <span class="material-symbols-outlined text-[13px]">{{ unreadCount ? 'mark_email_unread' : 'mark_email_read' }}</span>
+                        {{ unreadCount ? 'Outstanding correspondence' : 'Desk is clear' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supporting metrics strip -->
+        <div class="es-stat-strip rounded-none mb-6">
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">On File</p>
+                <p class="es-stat-cell-value">{{ items.length.toLocaleString() }}</p>
+                <p class="es-stat-cell-caption">Notices in this dispatch</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Unread</p>
+                <p class="es-stat-cell-value">{{ unreadCount.toLocaleString() }}</p>
+                <p class="es-stat-cell-caption">Pending acknowledgement</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">This Week</p>
+                <p class="es-stat-cell-value">{{ thisWeekCount.toLocaleString() }}</p>
+                <p class="es-stat-cell-caption">Filed in last 7 days</p>
             </div>
         </div>
 

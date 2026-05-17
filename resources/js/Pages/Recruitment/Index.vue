@@ -20,6 +20,7 @@ const canManage = computed(() => {
 const stats = computed(() => {
     const data = props.jobs?.data ?? [];
     const open      = data.filter(j => j.status === 'open');
+    const filled    = data.filter(j => j.status === 'filled');
     const closed    = data.filter(j => j.status === 'closed' || j.status === 'filled');
     const totalApps = data.reduce((s, j) => s + (j.applicants_count ?? 0), 0);
     const openApps  = open.reduce((s, j) => s + (j.applicants_count ?? 0), 0);
@@ -28,14 +29,26 @@ const stats = computed(() => {
         const d = Math.ceil((new Date(j.closes_at).getTime() - Date.now()) / 86400000);
         return d >= 0 && d <= 7;
     });
+
+    // Hires this month — count jobs marked "filled" whose updated_at lands in current month.
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const hiresThisMonth = filled.filter(j => {
+        const stamp = j.updated_at ?? j.filled_at ?? j.closes_at;
+        if (!stamp) return false;
+        return String(stamp).slice(0, 7) === monthKey;
+    }).length;
+
     return {
         total:         data.length,
         open:          open.length,
         closed:        closed.length,
+        filled:        filled.length,
         applicants:    totalApps,
         openApps,
         urgentCount:   urgent.length,
         avgPerJob:     open.length > 0 ? Math.round(openApps / open.length) : 0,
+        hiresThisMonth,
     };
 });
 
@@ -100,6 +113,23 @@ const toneCls = (tone) => ({
     neutral: 'text-on-surface-variant',
 }[tone] ?? 'text-on-surface-variant');
 
+// ── Editorial Sovereign edition label — broadsheet masthead ──
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023; // CIHRM-GH platform inception year
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // Pipeline funnel — synthetic conversion rates from total applicants
 const pipeline = computed(() => {
     const total = stats.value.applicants || 0;
@@ -118,62 +148,98 @@ const pipeline = computed(() => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Recruitment</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Active job postings, applicant pipelines, and hiring throughput
-                    </p>
+            <div class="space-y-6">
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">RECRUITMENT GAZETTE</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · {{ stats.open }} open requisition{{ stats.open === 1 ? '' : 's' }}
+                    </span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-200 px-3 py-1.5 dark:bg-cyan-900/20 dark:border-cyan-800/40">
-                        <span class="h-1.5 w-1.5 rounded-full bg-cyan-500 live-dot"></span>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">{{ stats.open }} open roles</span>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Talent acquisition · Open requisitions</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Hiring,
+                            <span class="es-display-italic block">gazetted.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Civil-service vacancies are gazetted to the public careers bulletin, applicants flow into a single
+                            institutional pipeline, and offer letters are issued under the Registrar's seal. One ledger, from
+                            posting to appointment.
+                        </p>
+
+                        <!-- Quick-action chips -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button v-if="canManage" @click="showCreatePanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">work</span>
+                                Post new job
+                            </button>
+                            <span v-if="canManage" class="es-chip-divider">·</span>
+                            <Link :href="route('jobs.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">groups</span>
+                                Applicants
+                            </Link>
+                            <span class="es-chip-divider">·</span>
+                            <a :href="route('careers.index')" target="_blank" rel="noopener" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">campaign</span>
+                                Public bulletin
+                            </a>
+                        </div>
                     </div>
-                    <button v-if="canManage" @click="showCreatePanel = true"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                            style="background:linear-gradient(135deg,#1a237e,#3949ab)">
-                        <span class="material-symbols-outlined text-[18px]">work</span>
-                        New posting
-                    </button>
+
+                    <!-- SIDEBAR column: headline KPI -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Open Requisitions</p>
+                            <p class="es-stat-hero-value">{{ stats.open.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                On the bulletin · {{ stats.applicants.toLocaleString() }} applicant{{ stats.applicants === 1 ? '' : 's' }} on file
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">campaign</span>
+                                Gazetted to /careers
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Supporting metrics strip ─────────────────────────── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Open requisitions</p>
+                        <p class="es-stat-cell-value">{{ stats.open.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Accepting applications</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Total applicants</p>
+                        <p class="es-stat-cell-value">{{ stats.applicants.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Across all roles on record</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Hires this month</p>
+                        <p class="es-stat-cell-value">{{ stats.hiresThisMonth.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Filled &amp; under seal</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Avg applicants / role</p>
+                        <p class="es-stat-cell-value">{{ stats.avgPerJob.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Across active postings</p>
+                    </div>
                 </div>
             </div>
         </template>
 
         <div class="space-y-8">
-
-            <!-- ── Hero banner ── -->
-            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
-                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(217,18,227,0.18),transparent 70%)"></div>
-                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.08)"></div>
-
-                <div class="relative flex flex-wrap items-center justify-between gap-8">
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(217,18,227,0.8)">Talent pipeline · live</p>
-                        <h2 class="text-3xl font-black leading-tight">
-                            <em class="not-italic" style="color:#d912e3">{{ stats.applicants }}</em> applicant<span v-if="stats.applicants !== 1">s</span> across <em class="not-italic" style="color:#12d9e3">{{ stats.open }}</em> open role<span v-if="stats.open !== 1">s</span>
-                        </h2>
-                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
-                            <span style="color:#ffd700">{{ stats.avgPerJob }}</span> average applicants per open role ·
-                            <template v-if="stats.urgentCount">
-                                <span style="color:#fbbf24">{{ stats.urgentCount }}</span> closing within 7 days ·
-                            </template>
-                            <span style="color:#7986cb">{{ stats.closed }}</span> closed / filled
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-8 flex-shrink-0">
-                        <div v-for="kpi in [
-                            { label: 'Open',       val: stats.open,       color: '#12d9e3' },
-                            { label: 'Applicants', val: stats.applicants, color: '#d912e3' },
-                            { label: 'Avg / role', val: stats.avgPerJob,  color: '#ffd700' },
-                        ]" :key="kpi.label" class="text-center">
-                            <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
-                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- ── KPI tiles ── -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">

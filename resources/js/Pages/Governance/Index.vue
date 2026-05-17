@@ -83,6 +83,24 @@ const formatDate = (d) => {
 
 const hasActiveFilters = computed(() => search.value || categoryFilter.value || onlyPendingMine.value);
 const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyPendingMine.value = false; };
+
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Volume = year offset from CIHRM founding. Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 </script>
 
 <template>
@@ -90,26 +108,103 @@ const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyP
     <AuthenticatedLayout active-module="governance">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Governance</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Policies you must read and acknowledge · compliance certifications under tracking
-                    </p>
+            <div class="space-y-6">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">GOVERNANCE &amp; POLICY</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Register synced
+                    </span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <Link :href="route('governance.certifications.index')"
-                          class="inline-flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2.5 text-[13px] font-bold text-on-surface hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-[17px] text-cyan-600">workspace_premium</span>
-                        Certifications
-                    </Link>
-                    <Link v-if="$page.props.auth.permissions?.includes('governance.manage')"
-                          :href="route('governance.manage')"
-                          class="btn-shimmer inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px active:scale-[0.97]"
-                          style="background:linear-gradient(135deg,#0d1452,#1a237e)">
-                        <span class="material-symbols-outlined text-[18px]">edit_note</span>
-                        Manage policies
-                    </Link>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Policy register · Compliance gazette</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4rem)]">
+                            Policy,
+                            <span class="es-display-italic">acknowledged.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            The institutional governance ledger — published policies under register, professional certifications under attestation,
+                            and staff acknowledgements on file. Held to Bank of Ghana conduct standards and CHRAJ-adjacent oversight.
+                        </p>
+
+                        <!-- Quick-action chips -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link v-if="$page.props.auth.permissions?.includes('governance.manage')"
+                                  :href="route('governance.manage')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                                Manage policies
+                            </Link>
+                            <span v-if="$page.props.auth.permissions?.includes('governance.manage')" class="text-on-surface-variant/30">·</span>
+                            <Link :href="route('governance.certifications.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">workspace_premium</span>
+                                Certifications
+                            </Link>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button type="button" @click="onlyPendingMine = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">task_alt</span>
+                                Acknowledge pending
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">
+                                {{ (stats?.pending_for_me ?? 0) > 0 ? 'Pending Acknowledgements' : 'Policies on Register' }}
+                            </p>
+                            <p class="es-stat-hero-value">
+                                {{ ((stats?.pending_for_me ?? 0) > 0 ? stats.pending_for_me : (stats?.published_count ?? 0)).toLocaleString() }}
+                            </p>
+                            <p class="es-stat-hero-caption">
+                                <template v-if="(stats?.pending_for_me ?? 0) > 0">
+                                    Awaiting your attestation · {{ stats?.published_count ?? 0 }} published instrument{{ (stats?.published_count ?? 0) === 1 ? '' : 's' }}
+                                </template>
+                                <template v-else>
+                                    Currently in force · {{ stats?.total_policies ?? 0 }} total on file
+                                </template>
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">verified</span>
+                                {{ stats?.my_ack_rate ?? 100 }}% compliance posture
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Supporting metrics strip ───────────────────────────── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Total Policies</p>
+                        <p class="es-stat-cell-value">{{ (stats?.total_policies ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Instruments on register</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Published</p>
+                        <p class="es-stat-cell-value">{{ (stats?.published_count ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Currently in force</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Certifications</p>
+                        <p class="es-stat-cell-value">{{ (cert_stats?.total ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">{{ cert_stats?.expiring_30d ?? 0 }} expiring within 30 days</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">My Ack Rate</p>
+                        <p class="es-stat-cell-value">{{ stats?.my_ack_rate ?? 100 }}<span class="text-[0.55em] align-top">%</span></p>
+                        <p class="es-stat-cell-caption">Personal attestation posture</p>
+                    </div>
                 </div>
             </div>
         </template>

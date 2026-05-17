@@ -23,6 +23,25 @@ const statCards = computed(() => [
     { label: 'Available',    val: props.stats?.in_stock ?? 0,    rgb: '26, 35, 126',  icon: 'archive' },
 ]);
 
+// Editorial Sovereign masthead — date, volume, and issue number for the
+// asset-register broadsheet. Volume counts from CIHRM-GH inception (2023),
+// issue is the ordinal day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 const localFilters = ref({
     category: props.filters?.category ?? '',
     status:   props.filters?.status ?? '',
@@ -130,28 +149,81 @@ const categoryLabel = {
 <Head title="Assets" />
 <AuthenticatedLayout :active-module="'assets'">
     <div class="p-6 space-y-6 animate-reveal-up">
-        <header class="flex items-center justify-between">
-            <div>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary">Asset Registry</h1>
-                <p class="text-sm text-on-surface-variant">Institutional inventory â€” workstations, mobile, vehicles, furniture.</p>
-            </div>
-            <div class="flex gap-2">
-                <Link :href="route('assets.my')" class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-primary hover:bg-surface-container-low">My Assets</Link>
-                <button v-if="$page.props.auth.permissions?.includes('assets.manage')" @click="showCreate = true" type="button" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white shadow-glow-sm btn-shimmer">+ Register Asset</button>
-            </div>
-        </header>
+        <!-- ─── Editorial Sovereign · Asset Register masthead ──────── -->
+        <div class="es-masthead">
+            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">ASSET REGISTER</span></span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionLabel.date }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionLabel.edition }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span class="es-masthead-live">
+                <span class="es-dot" aria-hidden="true"></span>
+                Live · ledger synced
+            </span>
+        </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div v-for="(c, i) in statCards" :key="c.label"
-                class="rounded-2xl border bg-surface-container-lowest p-4 card-lift animate-slide-up-fade"
-                :style="{ borderColor: `rgba(${c.rgb},0.20)`, animationDelay: `${i*0.06}s` }">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">{{ c.label }}</p>
-                        <p class="mt-1 text-2xl font-black text-primary">{{ c.val.toLocaleString() }}</p>
-                    </div>
-                    <span class="material-symbols-outlined text-2xl" :style="{ color: `rgb(${c.rgb})` }">{{ c.icon }}</span>
+        <!-- ─── Broadsheet hero ────────────────────────────────────── -->
+        <div class="es-broadsheet rounded-none">
+            <!-- LEAD column -->
+            <div class="es-broadsheet-lead">
+                <p class="es-eyebrow mb-6">Phase 3 · Inventory &amp; lifecycle</p>
+                <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                    The asset
+                    <span class="es-display-italic block">register.</span>
+                </h2>
+                <p class="es-display-sub">
+                    Institutional inventory of record — laptops, monitors, vehicles, and furniture tracked from
+                    procurement through assignment, depreciation snapshots, and end-of-life. Every movement
+                    is filed for the Auditor-General lifecycle pack.
+                </p>
+
+                <!-- Quick-action chips — typographic, not gradient buttons -->
+                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                    <button v-if="$page.props.auth.permissions?.includes('assets.manage')" @click="showCreate = true" type="button" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">add_box</span>
+                        Register asset
+                    </button>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <Link :href="route('assets.my')" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">badge</span>
+                        My assets
+                    </Link>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <button @click="localFilters.status = 'maintenance'; applyFilters()" type="button" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">fact_check</span>
+                        Lifecycle audit
+                    </button>
                 </div>
+            </div>
+
+            <!-- SIDEBAR column: feature KPI as magazine drop-cap stat -->
+            <div class="es-broadsheet-sidebar">
+                <div class="es-stat-hero">
+                    <p class="es-stat-hero-label">Assets on Register</p>
+                    <p class="es-stat-hero-value">{{ (props.stats?.total ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-hero-caption">
+                        Institutional inventory · {{ (props.stats?.assigned ?? 0).toLocaleString() }} in active custody
+                    </p>
+                    <span class="es-stat-hero-delta">
+                        <span class="material-symbols-outlined text-[13px]">history_edu</span>
+                        Depreciation snapshot · Auditor-General pack
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Supporting metrics strip (broadsheet sub-numbers) ─── -->
+        <div class="es-stat-strip rounded-none">
+            <div v-for="c in statCards" :key="c.label" class="es-stat-cell">
+                <p class="es-stat-cell-label">{{ c.label }}</p>
+                <p class="es-stat-cell-value">{{ c.val.toLocaleString() }}</p>
+                <p class="es-stat-cell-caption">
+                    <span v-if="c.label === 'Total Assets'">Across all categories</span>
+                    <span v-else-if="c.label === 'Assigned'">In employee custody</span>
+                    <span v-else-if="c.label === 'Maintenance'">Out for service</span>
+                    <span v-else>Ready to deploy</span>
+                </p>
             </div>
         </div>
 

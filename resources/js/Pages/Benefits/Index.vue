@@ -157,6 +157,23 @@ const submitClaim = () => claimForm.post(route('benefits.claims.store'), {
 // ── Helpers ──
 const fmtGhs = (n) => `GHS ${Number(n ?? 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+// ── Editorial Sovereign masthead label ──
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 </script>
 
 <template>
@@ -164,32 +181,93 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
 <AuthenticatedLayout active-module="benefits">
 
     <template #header>
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">My Benefits</h1>
-                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                    Enrolments · Dependants · Claims · Provident fund
-                </p>
+        <div class="space-y-6">
+            <!-- ─── Masthead strip ────────────────────────────────────── -->
+            <div class="es-masthead">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">WELFARE &amp; BENEFITS</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Live · {{ stats.active }} on roll
+                </span>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 dark:bg-emerald-900/20 dark:border-emerald-800/40">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 live-dot"></span>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">{{ stats.active }} active</span>
+
+            <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+            <div class="es-broadsheet rounded-none">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <p class="es-eyebrow mb-6">Benefits · Welfare register</p>
+                    <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                        Welfare,
+                        <span class="es-display-italic block">committed.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        Your institutional cover of record — health schemes, Tier-2 provident accruals under NPRA stewardship,
+                        and life assurance alongside the SSNIT Tier-1 mandate. Enrol, declare dependants and reconcile claims
+                        on a single ledger.
+                    </p>
+
+                    <!-- Quick-action chips -->
+                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                        <button v-if="canEnrol" @click="showEnrol = true" type="button" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">add_card</span>
+                            Enrol in plan
+                        </button>
+                        <span v-if="canEnrol && canManage" class="text-on-surface-variant/30">·</span>
+                        <Link v-if="canManage" :href="route('benefits.plans.index')" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">menu_book</span>
+                            Plans catalogue
+                        </Link>
+                        <span v-if="canManage" class="text-on-surface-variant/30">·</span>
+                        <Link v-if="canManage" :href="route('benefits.claims.index')" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">receipt_long</span>
+                            Claims queue
+                        </Link>
+                    </div>
                 </div>
-                <button v-if="canEnrol" @click="showEnrol = true" type="button"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#1a237e,#3949ab)">
-                    <span class="material-symbols-outlined text-[18px]">add_card</span>
-                    Enrol in plan
-                </button>
-                <Link v-if="canManage" :href="route('benefits.plans.index')"
-                      class="rounded-xl border border-outline-variant px-4 py-2.5 text-[13px] font-black text-primary hover:bg-surface-container-low transition-colors">
-                    Manage plans
-                </Link>
-                <Link v-if="canManage" :href="route('benefits.claims.index')"
-                      class="rounded-xl border border-outline-variant px-4 py-2.5 text-[13px] font-black text-primary hover:bg-surface-container-low transition-colors">
-                    Claims queue
-                </Link>
+
+                <!-- SIDEBAR column: feature KPI -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Active enrolments</p>
+                        <p class="es-stat-hero-value">{{ stats.active.toLocaleString() }}</p>
+                        <p class="es-stat-hero-caption">
+                            On roll · {{ stats.total }} lifetime · {{ stats.plansAvailable }} plan{{ stats.plansAvailable === 1 ? '' : 's' }} on offer
+                        </p>
+                        <span class="es-stat-hero-delta">
+                            <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                            {{ fmtGhs(stats.monthly) }} settling monthly
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Supporting metrics strip ─────────────────────────── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Dependants on cover</p>
+                    <p class="es-stat-cell-value">{{ stats.coveredDeps.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">of {{ stats.dependants }} declared kin</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Claims pending</p>
+                    <p class="es-stat-cell-value">{{ stats.claimsPending.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">{{ stats.claimsApproved }} approved to date</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Provident accrued</p>
+                    <p class="es-stat-cell-value">{{ fmtGhs(stats.provident) }}</p>
+                    <p class="es-stat-cell-caption">Tier-2 stewardship</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Lifetime claimed</p>
+                    <p class="es-stat-cell-value">{{ fmtGhs(stats.claimed) }}</p>
+                    <p class="es-stat-cell-caption">Across {{ stats.claimsTotal }} submission{{ stats.claimsTotal === 1 ? '' : 's' }}</p>
+                </div>
             </div>
         </div>
     </template>

@@ -1,5 +1,6 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Sparkline from '@/Components/charts/Sparkline.vue';
 
 const props = defineProps({
@@ -7,62 +8,106 @@ const props = defineProps({
     employees: { type: Array,   default: () => [] },
     stats:     { type: Object,  default: () => ({}) },
 });
+
+const editionDate = computed(() => new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+}));
+const headcountNow = computed(() => Math.round(props.spark.headcount[props.spark.headcount.length - 1]));
+const turnoverNow = computed(() => props.spark.turnover[props.spark.turnover.length - 1].toFixed(1));
+const openPositionsNow = computed(() => Math.round(props.spark.openPositions[props.spark.openPositions.length - 1]));
+const trainingNow = computed(() => props.spark.training[props.spark.training.length - 1].toFixed(0));
 </script>
 
 <template>
-    <div class="space-y-6 animate-reveal-up">
+    <div class="space-y-8 animate-reveal-up">
 
-        <!-- Hero Banner -->
-        <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
-            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(5,150,105,0.2),transparent 70%)"></div>
-            <div class="relative flex flex-wrap items-center justify-between gap-6">
-                <div class="flex items-center gap-5">
-                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(5,150,105,0.2);border:1px solid rgba(5,150,105,0.3)">
-                        <span class="material-symbols-outlined text-3xl text-green-400" style="font-variation-settings:'FILL' 1">people</span>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style="color:rgba(255,255,255,0.3)">Department</p>
-                        <h2 class="text-2xl font-black leading-tight">Human Resources</h2>
-                        <p class="text-sm font-medium mt-0.5" style="color:rgba(255,255,255,0.45)">Talent · Culture · Compliance · Payroll</p>
-                    </div>
+        <!-- ─── Masthead strip ────────────────────────────────────── -->
+        <div class="es-masthead">
+            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PEOPLE DESK EDITION</span></span>
+            <span class="es-masthead-spacer"></span>
+            <span>{{ editionDate }}</span>
+            <span class="es-masthead-spacer"></span>
+            <span>Bulletin · Talent &amp; Culture</span>
+            <span class="es-masthead-spacer"></span>
+            <span class="es-masthead-live">
+                <span class="es-dot" aria-hidden="true"></span>
+                Live · {{ headcountNow.toLocaleString() }} on payroll
+            </span>
+        </div>
+
+        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+        <div class="es-broadsheet rounded-none">
+            <!-- LEAD column -->
+            <div class="es-broadsheet-lead">
+                <p class="es-eyebrow mb-6">From the Human Resources desk</p>
+                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                    A workforce in motion,
+                    <span class="es-display-italic block">measured in lives, not lines.</span>
+                </h2>
+                <p class="es-display-sub">
+                    Talent acquisition, retention, learning and compliance — a daily ledger of the people
+                    who make the institute. {{ openPositionsNow }} roles open, {{ trainingNow }}% trained to plan.
+                </p>
+
+                <!-- Quick-action chips -->
+                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                    <button @click="router.visit(route('employees.index', { new: 1 }))" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">person_add</span>
+                        Add Employee
+                    </button>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <button @click="router.visit(route('jobs.index', { new: 1 }))" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">work</span>
+                        Post Job
+                    </button>
+                    <span class="text-on-surface-variant/30">·</span>
+                    <button @click="router.visit(route('leave.index'))" class="es-chip">
+                        <span class="material-symbols-outlined text-[15px]">calendar_month</span>
+                        Leave Queue
+                    </button>
                 </div>
-                <div class="flex items-center gap-10 flex-shrink-0">
-                    <div v-for="m in [
-                        { label: 'HR Staff',        val: '28' },
-                        { label: 'Total Headcount', val: Math.round(spark.headcount[spark.headcount.length-1]).toLocaleString() },
-                        { label: 'Turnover Rate',   val: spark.turnover[spark.turnover.length-1].toFixed(1) + '%' },
-                    ]" :key="m.label" class="text-center">
-                        <p class="text-3xl font-black leading-none kpi-val">{{ m.val }}</p>
-                        <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.3)">{{ m.label }}</p>
+            </div>
+
+            <!-- SIDEBAR column: flagship KPI — total headcount -->
+            <div class="es-broadsheet-sidebar">
+                <div class="es-stat-hero">
+                    <p class="es-stat-hero-label">Total Headcount</p>
+                    <p class="es-stat-hero-value">{{ headcountNow.toLocaleString() }}</p>
+                    <p class="es-stat-hero-caption">
+                        Active staff on record · {{ openPositionsNow }} role{{ openPositionsNow === 1 ? '' : 's' }} open
+                    </p>
+                    <span class="es-stat-hero-delta">
+                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
+                        +2 this week · 12-month sparkline below
+                    </span>
+                    <div class="mt-4 -mx-1">
+                        <Sparkline :data="spark.headcount" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Headcount" class="!block w-full"/>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="(card, i) in [
-                { label: 'Total Headcount',     display: Math.round(spark.headcount[spark.headcount.length-1]).toLocaleString(), trend: '+2 this week', color: '#ffd700', rgb: '255,215,0',   icon: 'badge',         up: true,  spark: spark.headcount     },
-                { label: 'Turnover Rate',       display: spark.turnover[spark.turnover.length-1].toFixed(1) + '%',                trend: 'vs 5% target', color: '#d912e3', rgb: '217,18,227',  icon: 'person_remove', up: true,  spark: spark.turnover      },
-                { label: 'Open Positions',      display: Math.round(spark.openPositions[spark.openPositions.length-1]),           trend: '6 in pipeline',color: '#7986cb', rgb: '121, 134, 203', icon: 'work_outline',  up: false, spark: spark.openPositions },
-                { label: 'Training Completion', display: spark.training[spark.training.length-1].toFixed(0) + '%',                trend: 'Annual goal',  color: '#12d9e3', rgb: '18,217,227',  icon: 'school',        up: true,  spark: spark.training      },
-            ]" :key="i"
-                 class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
-                 :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.07}s`">
-                <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
-                </div>
-                <div class="mb-3 h-9 w-9 rounded-xl flex items-center justify-center" :style="`background:rgba(${card.rgb},0.1)`">
-                    <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
-                </div>
-                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">{{ card.up ? '↑' : '↓' }} {{ card.trend }}</p>
-                <div class="-mx-1 mt-3">
-                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="28"
-                               :stroke-width="1.5" :label="card.label" class="!block w-full"/>
-                </div>
+        <!-- ─── Supporting metrics strip ───────────────────────────── -->
+        <div class="es-stat-strip rounded-none">
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Turnover Rate</p>
+                <p class="es-stat-cell-value">{{ turnoverNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                <p class="es-stat-cell-caption">vs 5% institutional target</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Open Positions</p>
+                <p class="es-stat-cell-value">{{ openPositionsNow }}</p>
+                <p class="es-stat-cell-caption">6 in interview pipeline</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Training Completion</p>
+                <p class="es-stat-cell-value">{{ trainingNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
+                <p class="es-stat-cell-caption">Annual learning goal</p>
+            </div>
+            <div class="es-stat-cell">
+                <p class="es-stat-cell-label">Pending Leave</p>
+                <p class="es-stat-cell-value">{{ (stats.pendingLeave ?? 0).toLocaleString() }}</p>
+                <p class="es-stat-cell-caption">Awaiting approval</p>
             </div>
         </div>
 

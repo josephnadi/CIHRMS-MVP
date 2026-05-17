@@ -65,6 +65,25 @@ const confirmDelete = (dept) => {
 
 const totalActive = computed(() => list.value.reduce((sum, d) => sum + (d.active_employee_count ?? 0), 0));
 
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Volume = year offset from CIHRM-GH platform inception (2023).
+// Issue  = day-of-year. Mirrors Dashboard.vue masthead convention.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // Department card gradient pool — disciplined cool family (matches Employees avatar pool)
 const gradients = [
     'linear-gradient(135deg,#0d1452,#1a237e)',
@@ -86,40 +105,86 @@ const goToEmployees = (deptId) => {
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70 mb-1">
-                        <Link :href="route('employees.index')" class="hover:text-secondary">Employees</Link>
-                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                        <span>Departments</span>
-                    </div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Departments</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Organize your workforce into operational units.
-                    </p>
+            <div class="space-y-8">
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">DEPARTMENTAL STRUCTURE</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Establishment
+                    </span>
                 </div>
-                <button
-                    @click="openCreate"
-                    class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px hover:shadow-glow transition-all"
-                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                >
-                    <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">corporate_fare</span>
-                    Add Department
-                </button>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Establishment · Departmental ledger</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            The departmental
+                            <span class="es-display-italic block">register.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Institutional organogram of record — the units through which the Institute discharges its mandate,
+                            with headcount distribution observed across the establishment.
+                        </p>
+
+                        <!-- Typographic quick-actions, not gradient buttons -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="openCreate" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">corporate_fare</span>
+                                Add Department
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <Link :href="route('employees.index')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">groups</span>
+                                Employee directory
+                            </Link>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column: feature KPI as magazine drop-cap stat -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Departments on register</p>
+                            <p class="es-stat-hero-value">{{ list.length.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Operating unit{{ list.length === 1 ? '' : 's' }} of record · establishment chart
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">account_tree</span>
+                                Institutional organogram
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </template>
 
         <div class="space-y-6">
 
-            <!-- Stats — disciplined palette. Avg. Headcount = institutional
-                 average, so it gets the 5% gold. -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                <StatCard :value="list.length" label="Total Departments" icon="corporate_fare" color="navy" />
-                <StatCard :value="totalActive" label="Active Staff" icon="people" color="magenta" />
-                <StatCard
-                    :value="list.length > 0 ? Math.round(totalActive / list.length) : 0"
-                    label="Avg. Headcount" icon="trending_up" color="gold"
-                />
+            <!-- ─── Supporting metrics strip (broadsheet sub-numbers) ── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Total Departments</p>
+                    <p class="es-stat-cell-value">{{ list.length.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Units on the establishment</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Active Staff</p>
+                    <p class="es-stat-cell-value">{{ totalActive.toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Distributed across the register</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Avg. Headcount</p>
+                    <p class="es-stat-cell-value">{{ list.length > 0 ? Math.round(totalActive / list.length).toLocaleString() : 0 }}</p>
+                    <p class="es-stat-cell-caption">Mean staff per unit</p>
+                </div>
             </div>
 
             <!-- Department cards -->

@@ -97,41 +97,128 @@ const formatDate = (d) => {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
+
+// ── Editorial Sovereign · masthead helpers ──────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+// ── Editorial sub-metrics ───────────────────────────────────────────
+const editorialMetrics = computed(() => {
+    const data = sessionList.value;
+    return {
+        inProgress: data.filter(s => s.status === 'open').length,
+        locked:     data.filter(s => s.status === 'locked' || s.status === 'closed').length,
+        applied:    data.filter(s => s.status === 'applied').length,
+        cycles:     (props.cycles ?? []).length,
+    };
+});
 </script>
 
 <template>
     <Head title="Calibration Sessions" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header ───────────────────────────────────────────────────────── -->
+        <!-- ── Editorial Sovereign header ───────────────────────────── -->
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70">
-                        <Link :href="route('modules.performance')" class="hover:text-secondary">Performance</Link>
-                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                        <span>Calibration</span>
+            <section class="space-y-8">
+
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PERFORMANCE — CALIBRATION ROOM</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Calibration · Live
+                    </span>
+                </div>
+
+                <!-- Broadsheet hero -->
+                <div class="es-broadsheet rounded-none">
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Distribution calibration session</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            Ratings,
+                            <span class="es-display-italic block">normalised.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            HR-led moderation sessions that compare manager ratings against
+                            the institutional 20 / 65 / 15 force-distribution, surface outliers,
+                            and lock the cycle for adjustment before applying decisions to record.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <Link :href="route('modules.performance')" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                                Performance
+                            </Link>
+                            <span class="es-chip-divider">·</span>
+                            <button
+                                v-if="canFacilitate"
+                                @click="showAddPanel = true"
+                                class="es-chip"
+                            >
+                                <span class="material-symbols-outlined text-[15px]">event_available</span>
+                                Start session
+                            </button>
+                        </div>
                     </div>
-                    <h2 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Calibration Sessions</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        HR-led sessions to normalise ratings across the organisation.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
-                            {{ stats.open }} open
-                        </span>
-                    </p>
+
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Sessions in room</p>
+                            <p class="es-stat-hero-value">{{ stats.open }}</p>
+                            <p class="es-stat-hero-caption">
+                                Open · {{ stats.adjustments }} adjustments tabled
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">tune</span>
+                                {{ editorialMetrics.cycles }} cycle{{ editorialMetrics.cycles === 1 ? '' : 's' }} configured
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button
-                        v-if="canFacilitate"
-                        @click="showAddPanel = true"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Start Calibration
-                    </button>
+
+                <!-- Sub-metric strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">In progress</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.inProgress }}</p>
+                        <p class="es-stat-cell-caption">Active rooms</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Locked</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.locked }}</p>
+                        <p class="es-stat-cell-caption">Closed for adjustment</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Applied</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.applied }}</p>
+                        <p class="es-stat-cell-caption">On record</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Cycles</p>
+                        <p class="es-stat-cell-value">{{ editorialMetrics.cycles }}</p>
+                        <p class="es-stat-cell-caption">Available to calibrate</p>
+                    </div>
                 </div>
-            </div>
+            </section>
         </template>
 
         <div class="space-y-6">

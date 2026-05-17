@@ -1,5 +1,5 @@
 ﻿<script setup>
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
@@ -13,6 +13,30 @@ const props = defineProps({
     filters:       Object,
     activeModule:  String,
 });
+
+// ── Editorial-Sovereign masthead label ───────────────────────────
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
+const cediShort = (v) => {
+    const n = Number(v) || 0;
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toLocaleString('en-GH');
+};
 
 const localFilters = reactive({
     run_id:  props.filters?.run_id  ?? '',
@@ -43,16 +67,91 @@ const channelClass = (c) => ({
 
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">payments</span>
-                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Phase 3 · Salary disbursement</p>
+            <section class="space-y-8">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">DISBURSEMENT LEDGER</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · GhIPSS &amp; MoMo rails
+                    </span>
                 </div>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Disbursements</h1>
-                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                    Outbound MoMo / GhIPSS payments, settlement reconciliation, and statutory E-Levy tracking.
-                </p>
-            </div>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Phase 3 · Mobile money &amp; GhIPSS</p>
+                        <h2 class="es-display text-[clamp(2.2rem,4.8vw,3.8rem)]">
+                            Salary disbursement,
+                            <span class="es-display-italic block">posted.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Outbound payroll across MTN&nbsp;MoMo, VodaCash and AirtelTigo&nbsp;Money, with GhIPSS&nbsp;ACH bank rails
+                            for institutional accounts. Settlement reconciles against provider receipts inside the same-day window;
+                            E-Levy is withheld at source and remitted to GRA on every taxable instruction.
+                        </p>
+
+                        <!-- Typographic action chips -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button type="button" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">send_money</span>
+                                Dispatch run
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button type="button" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">fact_check</span>
+                                Reconcile settlement
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column: pending dispatch headline -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Pending dispatch</p>
+                            <p class="es-stat-hero-value">{{ (Number(stats?.pending) || 0).toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Awaiting send · <span class="font-mono">{{ (Number(stats?.sent) || 0).toLocaleString() }}</span> in flight to providers
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">schedule_send</span>
+                                Same-day MoMo settlement window
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Sub-metric strip ────────────────────────────────── -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Pending</p>
+                        <p class="es-stat-cell-value">{{ (Number(stats?.pending) || 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Queued for dispatch</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Sent</p>
+                        <p class="es-stat-cell-value">{{ (Number(stats?.sent) || 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Awaiting provider settlement</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Settled</p>
+                        <p class="es-stat-cell-value">{{ (Number(stats?.settled) || 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Receipts reconciled</p>
+                    </div>
+                    <div class="es-stat-cell es-stat-cell--down">
+                        <p class="es-stat-cell-label">Failed</p>
+                        <p class="es-stat-cell-value">{{ (Number(stats?.failed) || 0).toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Reversed · requires review</p>
+                    </div>
+                </div>
+            </section>
         </template>
 
         <div class="py-6 space-y-6">

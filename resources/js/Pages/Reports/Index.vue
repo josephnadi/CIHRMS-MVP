@@ -87,6 +87,30 @@ const formatMetric = (key, value) => {
 
 const selectedPreview = computed(() => selected.value ? previewFor(selected.value) : null);
 const selectedReport = computed(() => props.reportTypes?.find(r => r.key === selected.value));
+
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+        month:   d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+        time:    d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    };
+});
+
+// Distinct report categories — the source-module families surfaced as exports.
+const reportCategories = computed(() => {
+    const cats = new Set((props.reportTypes ?? []).map(r => r.key));
+    return cats.size;
+});
 </script>
 
 <template>
@@ -94,20 +118,89 @@ const selectedReport = computed(() => props.reportTypes?.find(r => r.key === sel
     <AuthenticatedLayout :activeModule="activeModule">
 
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Reports & Analytics</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Live previews of HR datasets. Configure filters and export ready-to-share XLSX files.
-                    </p>
-                </div>
-                <!-- Header pill — gold (5% accent, Reports is the flagship gold module per sidebar palette) -->
-                <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
-                     style="background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.35)">
-                    <span class="material-symbols-outlined text-[16px]" style="color:#b88a08;font-variation-settings:'FILL' 1">cloud_download</span>
-                    <span class="text-[11px] font-black uppercase tracking-[0.14em]" style="color:#7a5400">
-                        <span class="tabular-nums">{{ reportTypes?.length ?? 0 }}</span> exports available
+            <div class="space-y-6">
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">REPORTS LEDGER</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Filed on demand
                     </span>
+                </div>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Statutory &amp; operational reporting</p>
+                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Institutional reports,
+                            <span class="es-display-italic block">filed.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            The institutional reporting cadence — statutory returns lodged to the Public Services Commission,
+                            the Auditor-General's annual pack, and ministerial briefing dashboards — compiled from live HR data
+                            and exported as audit-trail XLSX on request.
+                        </p>
+
+                        <!-- Quick-action chips — most-used statutory exports -->
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button
+                                v-for="(r, i) in (reportTypes ?? []).slice(0, 3)"
+                                :key="r.key"
+                                @click="selected = r.key"
+                                class="es-chip"
+                            >
+                                <span class="material-symbols-outlined text-[15px]">{{ iconFor[r.key] ?? 'description' }}</span>
+                                {{ r.label }}
+                                <span v-if="i < Math.min(2, (reportTypes?.length ?? 0) - 1)" class="text-on-surface-variant/30 ml-4">·</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column: feature KPI as magazine drop-cap stat -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Exports Available</p>
+                            <p class="es-stat-hero-value">{{ (reportTypes?.length ?? 0).toString().padStart(2, '0') }}</p>
+                            <p class="es-stat-hero-caption">
+                                Statutory &amp; operational return{{ (reportTypes?.length ?? 0) === 1 ? '' : 's' }} on the gazette
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">verified</span>
+                                Auditor-General pack ready
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Stat strip ────────────────────────────────────────── -->
+                <div class="es-stat-strip" v-if="(reportTypes?.length ?? 0) > 0">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Total reports</p>
+                        <p class="es-stat-cell-value">{{ (reportTypes?.length ?? 0).toString().padStart(2, '0') }}</p>
+                        <p class="es-stat-cell-caption">Returns on file</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Categories</p>
+                        <p class="es-stat-cell-value">{{ reportCategories.toString().padStart(2, '0') }}</p>
+                        <p class="es-stat-cell-caption">Source-module families</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Filing window</p>
+                        <p class="es-stat-cell-value-sm">{{ editionLabel.month }}</p>
+                        <p class="es-stat-cell-caption">Live data · generated on demand</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Last refresh</p>
+                        <p class="es-stat-cell-value-sm">{{ editionLabel.time }}</p>
+                        <p class="es-stat-cell-caption">Server-compiled this session</p>
+                    </div>
                 </div>
             </div>
         </template>

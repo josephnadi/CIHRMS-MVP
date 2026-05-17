@@ -161,6 +161,26 @@ const stats = computed(() => ({
     departments: props.employees?.meta?.departments_count ?? props.departments?.length ?? 0,
 }));
 
+// ── Editorial-Sovereign masthead label ───────────────────────────
+// Mirrors Dashboard.vue: long-form date + Vol. (Roman, years since 2023
+// platform inception) + No. (day-of-year). Recomputed on render — the
+// roster page does not need a live ticker, but the format stays consistent.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 // Avatar gradients — disciplined cool family aligned with "Sovereign Precision".
 // People module = navy/cobalt dominant + one magenta variant (5% accent for people)
 // and one cyan variant (tech/young). No warm reds or ambers — they pollute the
@@ -194,72 +214,98 @@ const formatDate = (d) => {
     <Head title="Employees" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- â”€â”€ Header slot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Header slot · Editorial Sovereign masthead ─────────────── -->
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Employees</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Manage workforce records, positions and employment details.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                            {{ stats.total }} total
-                        </span>
-                    </p>
+            <div class="space-y-6">
+                <!-- Masthead strip -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">WORKFORCE ROSTER</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · updated
+                    </span>
                 </div>
-                <div class="flex items-center gap-2.5">
-                    <button
-                        @click="showDeptPanel = true"
-                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container hover:border-secondary/30 hover:text-secondary transition-all"
-                    >
-                        <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">corporate_fare</span>
-                        Add Department
-                    </button>
-                    <button
-                        @click="showAddPanel = true"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">person_add</span>
-                        Add Employee
-                    </button>
+
+                <!-- Broadsheet hero -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Personnel · Establishment register</p>
+                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                            The active
+                            <span class="es-display-italic">roster.</span>
+                        </h2>
+                        <p class="es-display-sub">
+                            Every name on record — positions, postings, and employment standing across the institute.
+                            Filter, audit, and amend the establishment from this directory.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="showAddPanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">person_add</span>
+                                Add Employee
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button @click="showDeptPanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
+                                Add Department
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button @click="router.visit(route('departments.index'))" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">account_tree</span>
+                                Departments
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column · feature KPI -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Workforce on record</p>
+                            <p class="es-stat-hero-value">{{ stats.total.toLocaleString() }}</p>
+                            <p class="es-stat-hero-caption">
+                                Across {{ stats.departments }} department{{ stats.departments === 1 ? '' : 's' }} · {{ stats.active.toLocaleString() }} active
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">badge</span>
+                                Establishment of the Institute
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supporting metrics strip -->
+                <div class="es-stat-strip rounded-none">
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Total</p>
+                        <p class="es-stat-cell-value">{{ stats.total.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Names on the register</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Active</p>
+                        <p class="es-stat-cell-value">{{ stats.active.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Currently in post</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">On Leave</p>
+                        <p class="es-stat-cell-value">{{ stats.onLeave.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Sanctioned absence</p>
+                    </div>
+                    <div class="es-stat-cell">
+                        <p class="es-stat-cell-label">Departments</p>
+                        <p class="es-stat-cell-value">{{ stats.departments.toLocaleString() }}</p>
+                        <p class="es-stat-cell-caption">Organisational units</p>
+                    </div>
                 </div>
             </div>
         </template>
 
         <div class="space-y-6">
-
-            <!-- Stats row — disciplined Sovereign Precision palette.
-                 magenta = people (module identity), blue = action, cyan = rest,
-                 navy = institutional structure. Gold deliberately absent here
-                 to keep its 5% reservation for the hairline below. -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard
-                    :value="stats.total"
-                    label="Total Employees"
-                    icon="groups"
-                    color="magenta"
-                    :href="route('employees.index')"
-                />
-                <StatCard
-                    :value="stats.active"
-                    label="Active"
-                    icon="check_circle"
-                    color="blue"
-                />
-                <StatCard
-                    :value="stats.onLeave"
-                    label="On Leave"
-                    icon="beach_access"
-                    color="cyan"
-                />
-                <StatCard
-                    :value="stats.departments"
-                    label="Departments"
-                    icon="corporate_fare"
-                    color="navy"
-                    :href="route('departments.index')"
-                />
-            </div>
 
             <!-- 5% gold hairline — the single institutional accent moment on this page -->
             <div class="h-px w-full" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.45),transparent)"></div>

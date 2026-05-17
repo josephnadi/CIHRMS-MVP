@@ -108,6 +108,24 @@ watch(() => localFilters.q, () => {
 });
 
 const hasFilters = computed(() => localFilters.status || localFilters.exit_type || localFilters.q);
+
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Volume = year offset from CIHRM founding (kept stable). Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date:    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
 const clearFilters = () => {
     localFilters.status = '';
     localFilters.exit_type = '';
@@ -141,58 +159,96 @@ const submitCase = () => form.post(route('offboarding.store'), {
     <Head title="Off-boarding &amp; Settlement" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Header ────────────────────────────────────────────── -->
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Off-boarding &amp; Settlement</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Manage employee exit processes, clearance and final settlements.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                            {{ cases?.meta?.total ?? 0 }} total
-                        </span>
-                    </p>
-                </div>
-                <button
-                    @click="showPanel = true"
-                    class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                >
-                    <span class="material-symbols-outlined text-[18px]">add</span>
-                    Open Case
-                </button>
+            <div class="es-masthead">
+                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">OFF-BOARDING DOSSIER</span></span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.date }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span>{{ editionLabel.edition }}</span>
+                <span class="es-masthead-spacer"></span>
+                <span class="es-masthead-live">
+                    <span class="es-dot" aria-hidden="true"></span>
+                    Register live · audit chain sealed
+                </span>
             </div>
         </template>
 
-        <div class="space-y-6">
+        <div class="space-y-8">
 
-            <!-- â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-            <!-- Settlements Paid YTD gets the gold accent (institutional financial outcome) -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard
-                    :value="stats?.in_progress ?? 0"
-                    label="Open Cases"
-                    icon="folder_open"
-                    color="blue"
-                />
-                <StatCard
-                    :value="stats?.awaiting_settle ?? 0"
-                    label="Awaiting Settlement"
-                    icon="pending_actions"
-                    color="amber"
-                />
-                <StatCard
-                    :value="stats?.completed_ytd ?? 0"
-                    label="Closed This Year"
-                    icon="task_alt"
-                    color="green"
-                />
-                <StatCard
-                    :value="cedi(stats?.settlement_total ?? 0)"
-                    label="Settlements Paid YTD"
-                    icon="payments"
-                    color="gold"
-                />
+            <!-- ── Broadsheet hero ─────────────────────────────────── -->
+            <div class="es-broadsheet rounded-none">
+                <!-- LEAD column -->
+                <div class="es-broadsheet-lead">
+                    <p class="es-eyebrow mb-6">Departures · Clearance &amp; final settlement</p>
+                    <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
+                        Off-boarding,
+                        <span class="es-display-italic block">cleared.</span>
+                    </h2>
+                    <p class="es-display-sub">
+                        Every separation is logged against Ghana Labour Act, 2003 (Act 651) §17 termination-notice requirements.
+                        Clearance is convened across IT, Finance, HR, and the Reports-To line; final settlement is released only on
+                        dual-control sign-off and stands under audit until the case is closed in the register.
+                    </p>
+
+                    <!-- Typographic action chips -->
+                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                        <button @click="showPanel = true" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                            Initiate case
+                        </button>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button @click="() => { localFilters.status = 'in_progress'; applyFilters(); }" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">fact_check</span>
+                            Pending clearances
+                        </button>
+                        <span class="text-on-surface-variant/30">·</span>
+                        <button @click="() => { localFilters.status = 'awaiting_settlement'; applyFilters(); }" class="es-chip">
+                            <span class="material-symbols-outlined text-[15px]">account_balance_wallet</span>
+                            Awaiting final settlement
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR column: headline KPI -->
+                <div class="es-broadsheet-sidebar">
+                    <div class="es-stat-hero">
+                        <p class="es-stat-hero-label">Open Cases</p>
+                        <p class="es-stat-hero-value">{{ (stats?.in_progress ?? 0).toLocaleString() }}</p>
+                        <p class="es-stat-hero-caption">
+                            Active separations on the register · {{ (stats?.awaiting_settle ?? 0).toLocaleString() }} awaiting settlement
+                        </p>
+                        <span class="es-stat-hero-delta">
+                            <span class="material-symbols-outlined text-[13px]">verified</span>
+                            Act 651 §17 notice tracked
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Supporting metrics strip ────────────────────────── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Open Cases</p>
+                    <p class="es-stat-cell-value">{{ (stats?.in_progress ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Separations on register</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Clearing</p>
+                    <p class="es-stat-cell-value">{{ (stats?.awaiting_settle ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Awaiting dual-control release</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Settled · YTD</p>
+                    <p class="es-stat-cell-value">{{ (stats?.completed_ytd ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">{{ cedi(stats?.settlement_total ?? 0) }} paid out</p>
+                </div>
+                <div class="es-stat-cell es-stat-cell--down">
+                    <p class="es-stat-cell-label">Cancelled</p>
+                    <p class="es-stat-cell-value">{{ (stats?.cancelled ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Withdrawn / rescinded</p>
+                </div>
             </div>
 
             <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->

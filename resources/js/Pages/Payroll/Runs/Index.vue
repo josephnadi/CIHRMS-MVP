@@ -37,6 +37,24 @@ const totals = computed(() => {
 
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+// ── Editorial-Sovereign masthead ──────────────────────────────────
+// Volume = year offset from CIHRM-GH platform inception. Issue = day-of-year.
+const editionLabel = computed(() => {
+    const d   = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86_400_000);
+    const vol = d.getFullYear() - 2023;
+    const roman = (n) => {
+        const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+        let s = '';
+        for (const [r, v] of map) while (n >= v) { s += r; n -= v; }
+        return s;
+    };
+    return {
+        date: d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        edition: `Vol. ${roman(vol)} · No. ${day}`,
+    };
+});
+
 const showPanel = ref(false);
 const form = useForm({
     period_year:  new Date().getFullYear(),
@@ -56,27 +74,90 @@ const submit = () => form.post(route('payroll-runs.store'), {
 
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">request_quote</span>
-                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Phase 1 · PAYE · SSNIT · Tier-2 · NHIA</p>
-                    </div>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Statutory Payroll Runs</h1>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Calculated, approved (dual-control), and statutorily-reported payroll cycles — all rates seeded from Ghana law.
-                    </p>
+            <div class="space-y-8">
+
+                <!-- ─── Masthead strip ────────────────────────────────────── -->
+                <div class="es-masthead">
+                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">STATUTORY PAYROLL</span></span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.date }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span>{{ editionLabel.edition }}</span>
+                    <span class="es-masthead-spacer"></span>
+                    <span class="es-masthead-live">
+                        <span class="es-dot" aria-hidden="true"></span>
+                        Live · Treasury desk
+                    </span>
                 </div>
-                <PrimaryButton @click="showPanel = true">Create run</PrimaryButton>
+
+                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
+                <div class="es-broadsheet rounded-none">
+                    <!-- LEAD column -->
+                    <div class="es-broadsheet-lead">
+                        <p class="es-eyebrow mb-6">Phase 1 · PAYE · SSNIT · Tier-2 · NHIA</p>
+                        <h1 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
+                            Statutory
+                            <span class="es-display-italic block">runs.</span>
+                        </h1>
+                        <p class="es-display-sub">
+                            Calculated under Act 896, dual-control approved, and remitted to SSNIT, NPRA Tier-2 and NHIA —
+                            every cycle ships with an auditor-ready Ghana Audit Service pack.
+                        </p>
+
+                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            <button @click="showPanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">edit_document</span>
+                                Create run
+                            </button>
+                            <span class="text-on-surface-variant/30">·</span>
+                            <button @click="showPanel = true" class="es-chip">
+                                <span class="material-symbols-outlined text-[15px]">verified</span>
+                                Export AG pack
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR column: headline gross as drop-cap stat -->
+                    <div class="es-broadsheet-sidebar">
+                        <div class="es-stat-hero">
+                            <p class="es-stat-hero-label">Gross on the table</p>
+                            <p class="es-stat-hero-value">{{ cedi(totals.gross) }}</p>
+                            <p class="es-stat-hero-caption">
+                                Last {{ totals.runs }} run{{ totals.runs === 1 ? '' : 's' }} · cedi-denominated
+                            </p>
+                            <span class="es-stat-hero-delta">
+                                <span class="material-symbols-outlined text-[13px]">shield_lock</span>
+                                Dual-control · Act 896 compliant
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </template>
 
         <div class="space-y-6 py-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <StatCard label="Total runs" :value="totals.runs" />
-                <StatCard label="Gross (all runs)" :value="cedi(totals.gross)" />
-                <StatCard label="Net (all runs)"   :value="cedi(totals.net)" />
-                <StatCard label="PAYE remitted"    :value="cedi(totals.paye)" />
+            <!-- ─── Supporting metrics strip (broadsheet sub-numbers) ── -->
+            <div class="es-stat-strip rounded-none">
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Total runs</p>
+                    <p class="es-stat-cell-value">{{ (totals.runs ?? 0).toLocaleString() }}</p>
+                    <p class="es-stat-cell-caption">Cycles on the ledger</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Gross · all runs</p>
+                    <p class="es-stat-cell-value">{{ cedi(totals.gross) }}</p>
+                    <p class="es-stat-cell-caption">Before statutory deductions</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">Net · all runs</p>
+                    <p class="es-stat-cell-value">{{ cedi(totals.net) }}</p>
+                    <p class="es-stat-cell-caption">Take-home disbursed</p>
+                </div>
+                <div class="es-stat-cell">
+                    <p class="es-stat-cell-label">PAYE remitted</p>
+                    <p class="es-stat-cell-value">{{ cedi(totals.paye) }}</p>
+                    <p class="es-stat-cell-caption">GRA · Act 896 schedules</p>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
