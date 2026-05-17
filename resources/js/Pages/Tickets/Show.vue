@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -52,7 +52,7 @@ const priorityIcon = {
 };
 
 const formatDateTime = (d) => {
-    if (!d) return '—';
+    if (!d) return 'â€”';
     return new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
@@ -83,17 +83,17 @@ const daysSince = (d) => {
                 <div class="flex items-center gap-2">
                     <Link
                         :href="route('tickets.index')"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-2"
+                        class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span class="material-symbols-outlined text-[17px]">arrow_back</span>
                         Back
                     </Link>
                     <button
                         v-if="canManage"
                         @click="showDelete = true"
-                        class="rounded-xl border border-red-200 dark:border-red-900/40 px-4 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                        class="flex items-center gap-2 rounded-xl border border-red-200/60 dark:border-red-900/40 px-4 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-500/10 hover:border-red-400/60 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                        <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">delete</span>
                         Delete
                     </button>
                 </div>
@@ -105,15 +105,26 @@ const daysSince = (d) => {
             <!-- Main column -->
             <div class="lg:col-span-2 space-y-6">
 
-                <!-- Description -->
-                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-3">Description</h3>
+                <!-- Description — single 5% gold hairline accent on top edge -->
+                <div class="relative rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 overflow-hidden">
+                    <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.45),transparent)"></div>
+                    <h3 class="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 mb-3">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-secondary/10">
+                            <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings:'FILL' 1">description</span>
+                        </span>
+                        Description
+                    </h3>
                     <p class="text-[14px] text-on-surface whitespace-pre-line leading-relaxed">{{ t.description }}</p>
                 </div>
 
                 <!-- Status update (manager only) -->
                 <div v-if="canManage" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-4">Update Ticket</h3>
+                    <h3 class="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 mb-4">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-secondary/10">
+                            <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings:'FILL' 1">tune</span>
+                        </span>
+                        Update Ticket
+                    </h3>
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Status</label>
@@ -141,89 +152,97 @@ const daysSince = (d) => {
                     <div class="mt-5 flex justify-end">
                         <button
                             @click="submitUpdate"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0051d5,#316bf3)"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
-                            <span class="material-symbols-outlined text-[16px]">save</span>
+                            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">save</span>
                             Save Changes
                         </button>
                     </div>
                 </div>
 
-                <!-- Timeline -->
+                <!-- Timeline — vertical rail with connecting line -->
                 <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-4">Timeline</h3>
-                    <div class="space-y-4">
-                        <div class="flex gap-3">
-                            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-blue-600">
-                                <span class="material-symbols-outlined text-[16px]">add_circle</span>
-                            </div>
-                            <div>
-                                <p class="text-[13px] font-semibold text-on-surface">Ticket opened</p>
-                                <p class="text-[11px] text-on-surface-variant">{{ formatDateTime(t.created_at) }}</p>
-                            </div>
-                        </div>
-                        <div v-if="t.assigned_to" class="flex gap-3">
-                            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-600">
-                                <span class="material-symbols-outlined text-[16px]">person_add</span>
-                            </div>
-                            <div>
-                                <p class="text-[13px] font-semibold text-on-surface">Assigned to {{ t.assigned_to.name }}</p>
-                            </div>
-                        </div>
-                        <div v-if="t.resolved_at" class="flex gap-3">
-                            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-green-500/15 text-green-600">
-                                <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                            </div>
-                            <div>
-                                <p class="text-[13px] font-semibold text-on-surface">Resolved</p>
-                                <p class="text-[11px] text-on-surface-variant">{{ formatDateTime(t.resolved_at) }}</p>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70 mb-4">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-secondary/10">
+                            <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings:'FILL' 1">timeline</span>
+                        </span>
+                        Activity
+                    </h3>
+                    <ol class="relative space-y-4 border-l-2 border-outline-variant/40 pl-5 ml-3">
+                        <li class="relative">
+                            <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-white shadow-glow-sm"
+                                  style="background:#205295">
+                                <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">add_circle</span>
+                            </span>
+                            <p class="text-[13px] font-bold text-on-surface leading-tight">Ticket opened</p>
+                            <p class="mt-0.5 text-[11px] text-on-surface-variant tabular-nums">{{ formatDateTime(t.created_at) }}</p>
+                        </li>
+                        <li v-if="t.assigned_to" class="relative">
+                            <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-white shadow-glow-sm"
+                                  style="background:#205295">
+                                <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">person_add</span>
+                            </span>
+                            <p class="text-[13px] font-bold text-on-surface leading-tight">Assigned to {{ t.assigned_to.name }}</p>
+                        </li>
+                        <li v-if="t.resolved_at" class="relative">
+                            <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-white"
+                                  style="background:#10b981;box-shadow:0 0 12px rgba(16,185,129,0.4)">
+                                <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">check_circle</span>
+                            </span>
+                            <p class="text-[13px] font-bold text-on-surface leading-tight">Resolved</p>
+                            <p class="mt-0.5 text-[11px] text-on-surface-variant tabular-nums">{{ formatDateTime(t.resolved_at) }}</p>
+                        </li>
+                    </ol>
                 </div>
             </div>
 
             <!-- Sidebar -->
             <div class="space-y-6">
-                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 space-y-4">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Status</p>
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 divide-y divide-outline-variant/30">
+                    <div class="pb-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Status</p>
                         <StatusBadge :status="t.status" type="ticket" />
                     </div>
 
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Priority</p>
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Priority</p>
                         <span
-                            :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider', priorityClasses[t.priority]]"
+                            :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-[0.08em]', priorityClasses[t.priority]]"
                         >
-                            <span class="material-symbols-outlined text-[14px]">{{ priorityIcon[t.priority] }}</span>
+                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">{{ priorityIcon[t.priority] }}</span>
                             {{ t.priority_label }}
                         </span>
                     </div>
 
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Requester</p>
-                        <p class="text-[13px] font-semibold text-on-surface">{{ t.employee?.name ?? '—' }}</p>
-                        <p class="text-[11px] text-on-surface-variant font-mono">{{ t.employee?.employee_no ?? '' }}</p>
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Requester</p>
+                        <p class="text-[13px] font-bold text-on-surface">{{ t.employee?.name ?? '—' }}</p>
+                        <p class="mt-0.5 text-[11px] text-on-surface-variant font-mono">{{ t.employee?.employee_no ?? '' }}</p>
                     </div>
 
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Assigned To</p>
-                        <p class="text-[13px] font-semibold text-on-surface">{{ t.assigned_to?.name ?? 'Unassigned' }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Due Date</p>
-                        <p :class="['text-[13px] font-semibold flex items-center gap-1', t.is_overdue ? 'text-red-600' : 'text-on-surface']">
-                            <span v-if="t.is_overdue" class="material-symbols-outlined text-[16px] text-red-500">schedule</span>
-                            {{ formatDateTime(t.due_at) }}
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Assigned To</p>
+                        <p class="text-[13px] font-bold text-on-surface flex items-center gap-1.5">
+                            <span v-if="t.assigned_to" class="flex h-5 w-5 items-center justify-center rounded-full" style="background:rgba(32,82,149,0.10)">
+                                <span class="material-symbols-outlined text-[12px]" style="color:#205295">person</span>
+                            </span>
+                            {{ t.assigned_to?.name ?? 'Unassigned' }}
                         </p>
                     </div>
 
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1.5">Created</p>
-                        <p class="text-[13px] text-on-surface">{{ formatDateTime(t.created_at) }}</p>
+                    <div class="py-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Due Date</p>
+                        <p :class="['text-[13px] font-bold flex items-center gap-1 tabular-nums', t.is_overdue ? 'text-red-600' : 'text-on-surface']">
+                            <span v-if="t.is_overdue" class="material-symbols-outlined text-[16px] text-red-500" style="font-variation-settings:'FILL' 1">schedule</span>
+                            {{ formatDateTime(t.due_at) }}
+                            <span v-if="t.is_overdue" class="ml-auto rounded-full bg-red-500/12 px-1.5 py-0 text-[9px] font-black uppercase tracking-[0.12em] text-red-600">Overdue</span>
+                        </p>
+                    </div>
+
+                    <div class="pt-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Created</p>
+                        <p class="text-[13px] text-on-surface tabular-nums">{{ formatDateTime(t.created_at) }}</p>
                     </div>
                 </div>
             </div>
