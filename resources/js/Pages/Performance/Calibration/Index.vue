@@ -31,10 +31,11 @@ const stats = computed(() => {
     return { total, open, closed, adjustments };
 });
 
+// Stat cards — Total Adjustments gets gold (institutional outcome the page produces)
 const statCards = computed(() => [
     { label: 'Open Sessions',       value: stats.value.open,        icon: 'event_available',  rgb: '217,119,6'  },
     { label: 'Closed This Cycle',   value: stats.value.closed,      icon: 'lock',             rgb: '5,150,105'  },
-    { label: 'Total Adjustments',   value: stats.value.adjustments, icon: 'tune',             rgb: '32,82,149'  },
+    { label: 'Total Adjustments',   value: stats.value.adjustments, icon: 'tune',             rgb: '255,215,0'  },
 ]);
 
 // ── Rating distribution (derived from current page sessions) ──────────────────
@@ -76,12 +77,14 @@ const statusTone = {
 };
 const statusClass = (s) => statusTone[s] ?? 'bg-surface-container text-on-surface-variant';
 
+// Avatar gradient pool — disciplined cool family
 const gradients = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
     'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -122,7 +125,7 @@ const formatDate = (d) => {
                         v-if="canFacilitate"
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Start Calibration
@@ -165,7 +168,7 @@ const formatDate = (d) => {
                         <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Rating Distribution</p>
                         <p class="text-[13px] font-semibold text-on-surface">Current cycle · calibration band indicator</p>
                     </div>
-                    <span class="inline-flex items-center gap-1 rounded-lg bg-violet-500/10 px-2.5 py-0.5 text-[11px] font-bold text-violet-700">
+                    <span class="inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-bold" style="background:rgba(217,18,227,0.10);color:#a30db0">
                         <span class="material-symbols-outlined text-[14px]">bar_chart</span>
                         Force distribution
                     </span>
@@ -206,7 +209,7 @@ const formatDate = (d) => {
                             v-if="canFacilitate"
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Start Calibration
@@ -349,7 +352,7 @@ const formatDate = (d) => {
                         @click="submitSession"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span v-else class="material-symbols-outlined text-[16px]">event_available</span>

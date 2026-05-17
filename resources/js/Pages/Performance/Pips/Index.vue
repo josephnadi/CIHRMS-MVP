@@ -35,11 +35,12 @@ const pipList = computed(() => props.pips?.data ?? []);
 
 const inProgress = computed(() => pipList.value.filter(p => p.status === 'in_progress').length);
 
+// Stat cards — Succeeded (YTD) gets gold (institutional improvement success metric)
 const statCards = computed(() => [
     { label: 'Open PIPs',             value: props.stats?.open_total     ?? 0, icon: 'warning',         rgb: '217,119,6'  },
     { label: 'In Progress',           value: inProgress.value,                 icon: 'hourglass_top',   rgb: '32,82,149'  },
-    { label: 'Succeeded (YTD)',        value: props.stats?.succeeded_ytd  ?? 0, icon: 'check_circle',    rgb: '5,150,105'  },
-    { label: 'Terminated (YTD)',       value: props.stats?.terminated_ytd ?? 0, icon: 'person_off',      rgb: '220,38,38'  },
+    { label: 'Succeeded (YTD)',       value: props.stats?.succeeded_ytd  ?? 0, icon: 'check_circle',    rgb: '255,215,0'  },
+    { label: 'Terminated (YTD)',      value: props.stats?.terminated_ytd ?? 0, icon: 'person_off',      rgb: '220,38,38'  },
 ]);
 
 // â”€â”€ New PIP panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -72,14 +73,16 @@ const submitPip = () => {
 };
 
 // â”€â”€ Status config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Status config — borders aligned with brand palette where appropriate.
+// in_progress = cobalt (action). extended = magenta (people-side process).
 const statusConfig = {
-    open:             { pill: 'bg-amber-400/15 text-amber-700',   border: '#f59e0b', label: 'Open'            },
-    in_progress:      { pill: 'bg-blue-500/15 text-blue-700',     border: '#2c74b3', label: 'In Progress'     },
-    extended:         { pill: 'bg-violet-500/15 text-violet-700', border: '#8b5cf6', label: 'Extended'        },
-    succeeded:        { pill: 'bg-emerald-500/15 text-emerald-700', border: '#10b981', label: 'Succeeded'     },
-    failed_demoted:   { pill: 'bg-orange-500/15 text-orange-700', border: '#f97316', label: 'Failed â€“ Demoted' },
-    failed_terminated:{ pill: 'bg-rose-500/15 text-rose-700',     border: '#f43f5e', label: 'Failed â€“ Terminated' },
-    cancelled:        { pill: 'bg-slate-400/15 text-slate-500',   border: '#94a3b8', label: 'Cancelled'      },
+    open:             { pill: 'bg-amber-400/15 text-amber-700',     border: '#f59e0b', label: 'Open'                  },
+    in_progress:      { pill: 'bg-blue-500/15 text-blue-700',       border: '#205295', label: 'In Progress'           },
+    extended:         { pill: 'bg-fuchsia-500/15 text-fuchsia-700', border: '#d912e3', label: 'Extended'              },
+    succeeded:        { pill: 'bg-emerald-500/15 text-emerald-700', border: '#10b981', label: 'Succeeded'             },
+    failed_demoted:   { pill: 'bg-orange-500/15 text-orange-700',   border: '#f97316', label: 'Failed – Demoted'      },
+    failed_terminated:{ pill: 'bg-rose-500/15 text-rose-700',       border: '#f43f5e', label: 'Failed – Terminated'   },
+    cancelled:        { pill: 'bg-slate-400/15 text-slate-500',     border: '#94a3b8', label: 'Cancelled'             },
 };
 
 const getStatusCfg = (status) => statusConfig[status] ?? { pill: 'bg-surface-container text-on-surface-variant', border: '#9ca3af', label: status };
@@ -114,12 +117,14 @@ const progressColor = (pip) => {
 };
 
 // â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Avatar gradient pool — disciplined cool family
 const gradients = [
+    'linear-gradient(135deg,#0a2647,#205295)',
+    'linear-gradient(135deg,#205295,#7cb6e8)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
     'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -162,7 +167,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                         v-if="canManage"
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Open PIP
@@ -237,7 +242,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                             v-if="canManage"
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Open PIP
@@ -453,7 +458,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                     <button
                         @click="submitPip"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[16px]">assignment</span>
                         Open PIP

@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -6,26 +6,26 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import TabBar from '@/Components/TabBar.vue';
 
 const props = defineProps({
-    loan:         Object, // LoanAccountResource (possibly wrapped in { data: … })
+    loan:         Object, // LoanAccountResource (possibly wrapped in { data: â€¦ })
     repayments:   Object, // LoanRepaymentResource collection
     activeModule: String,
 });
 
-// ── Unwrap resource wrappers ──────────────────────────────────────────────────
+// â”€â”€ Unwrap resource wrappers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const L = computed(() => props.loan?.data ?? props.loan ?? {});
 const repayList = computed(() => props.repayments?.data ?? props.repayments ?? []);
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct  = (v) => `${(Number(v || 0) * 100).toFixed(1)}%`;
 
 const formatDate = (d) => {
-    if (!d) return '–';
+    if (!d) return 'â€“';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatPeriod = (p) => {
-    if (!p) return '–';
+    if (!p) return 'â€“';
     const [yr, mo] = String(p).split('-');
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return `${months[parseInt(mo, 10) - 1]} ${yr}`;
@@ -36,7 +36,7 @@ const currentPeriod = (() => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 })();
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const activeTab = ref('schedule');
 const tabs = [
     { label: 'Schedule',    value: 'schedule'   },
@@ -44,7 +44,7 @@ const tabs = [
     { label: 'Audit',       value: 'audit'      },
 ];
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const monthsRemaining = computed(() => {
     const unpaid = repayList.value.filter(r => r.status !== 'paid').length;
     return unpaid;
@@ -56,7 +56,7 @@ const repayPct = computed(() => {
     return Math.min(100, Math.round((paid / L.value.total_repayable) * 100));
 });
 
-// ── Approve / Reject ──────────────────────────────────────────────────────────
+// â”€â”€ Approve / Reject â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const decideForm  = useForm({ decision: 'approve', reason: '' });
 const showReject  = ref(false);
 
@@ -69,11 +69,11 @@ const reject  = () => {
     });
 };
 
-// ── Disburse ──────────────────────────────────────────────────────────────────
+// â”€â”€ Disburse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const disburseForm = useForm({ first_repayment_period: '' });
 const disburse     = () => disburseForm.post(route('loans.disburse', L.value.id), { preserveScroll: true });
 
-// ── Repayment status row styling ──────────────────────────────────────────────
+// â”€â”€ Repayment status row styling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const rowClass = (r) => {
     if (r.status === 'paid')        return 'bg-emerald-50/30 dark:bg-emerald-950/10';
     if (r.due_period === currentPeriod) return 'bg-blue-50/40 dark:bg-blue-950/15';
@@ -85,7 +85,7 @@ const rowClass = (r) => {
     <Head :title="`Loan ${L.reference ?? ''}`" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header ─────────────────────────────────────────────────────────── -->
+        <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template #header>
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
@@ -99,8 +99,8 @@ const rowClass = (r) => {
                         <h2 class="text-[1.5rem] font-black tracking-tight text-on-surface leading-tight">Loan Detail</h2>
                         <p class="mt-0.5 text-[13px] text-on-surface-variant">
                             <span class="font-mono">{{ L.reference }}</span>
-                            <span class="mx-1.5 text-on-surface-variant/40">·</span>
-                            {{ L.employee?.name ?? '–' }}
+                            <span class="mx-1.5 text-on-surface-variant/40">Â·</span>
+                            {{ L.employee?.name ?? 'â€“' }}
                         </p>
                     </div>
                 </div>
@@ -110,7 +110,7 @@ const rowClass = (r) => {
 
         <div class="space-y-6">
 
-            <!-- ── Hero card ───────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-6 shadow-card">
                 <div class="flex flex-wrap items-start gap-6">
 
@@ -123,9 +123,9 @@ const rowClass = (r) => {
                             <div>
                                 <p class="font-mono text-[18px] font-black text-on-surface tracking-tight">{{ L.reference }}</p>
                                 <p class="text-[13px] text-on-surface-variant">
-                                    {{ L.product?.data?.name ?? L.product?.name ?? '–' }}
+                                    {{ L.product?.data?.name ?? L.product?.name ?? 'â€“' }}
                                     <span v-if="L.booked_interest_rate" class="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black tracking-wider"
-                                          style="background:rgba(0,81,213,0.1);color:#205295">
+                                          style="background:rgba(32,82,149,0.1);color:#205295">
                                         {{ (L.booked_interest_rate * 100).toFixed(1) }}% p.a.
                                     </span>
                                 </p>
@@ -134,11 +134,11 @@ const rowClass = (r) => {
                         <div class="flex flex-wrap gap-2 mt-3">
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1 text-[12px] font-semibold text-secondary">
                                 <span class="material-symbols-outlined text-[14px]">person</span>
-                                {{ L.employee?.name ?? '–' }}
+                                {{ L.employee?.name ?? 'â€“' }}
                             </span>
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1 text-[12px] font-semibold text-on-surface-variant border border-outline-variant/60">
                                 <span class="material-symbols-outlined text-[14px]">badge</span>
-                                {{ L.employee?.employee_no ?? '–' }}
+                                {{ L.employee?.employee_no ?? 'â€“' }}
                             </span>
                         </div>
                     </div>
@@ -171,18 +171,18 @@ const rowClass = (r) => {
                     <div class="h-2.5 w-full rounded-full bg-surface-container overflow-hidden">
                         <div
                             class="h-full rounded-full transition-all"
-                            style="background:linear-gradient(90deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(90deg,#0a2647,#205295)"
                             :style="`width:${repayPct}%`"
                         ></div>
                     </div>
-                    <p class="text-[11px] text-on-surface-variant">{{ L.installments_paid }} installments paid · {{ monthsRemaining }} remaining</p>
+                    <p class="text-[11px] text-on-surface-variant">{{ L.installments_paid }} installments paid Â· {{ monthsRemaining }} remaining</p>
                 </div>
             </div>
 
-            <!-- ── 4 Stat cards ────────────────────────────────────────────────── -->
+            <!-- â”€â”€ 4 Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
-                     style="border-left:3px solid rgba(0,81,213,0.5)">
+                     style="border-left:3px solid rgba(32,82,149,0.5)">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Principal</p>
                     <p class="font-mono text-[18px] font-black text-on-surface tabular-nums">{{ cedi(L.principal) }}</p>
                 </div>
@@ -196,14 +196,15 @@ const rowClass = (r) => {
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Outstanding</p>
                     <p class="font-mono text-[18px] font-black text-on-surface tabular-nums">{{ cedi(L.outstanding_balance) }}</p>
                 </div>
+                <!-- Months Remaining — magenta (people-side time accounting), was violet-rgb 124,92,255 (off-palette) -->
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
-                     style="border-left:3px solid rgba(124,92,255,0.5)">
+                     style="border-left:3px solid rgba(217,18,227,0.5)">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Months Remaining</p>
-                    <p class="text-[18px] font-black text-on-surface">{{ monthsRemaining }}</p>
+                    <p class="text-[18px] font-black text-on-surface tabular-nums">{{ monthsRemaining }}</p>
                 </div>
             </div>
 
-            <!-- ── HR / Finance action bar ────────────────────────────────────── -->
+            <!-- â”€â”€ HR / Finance action bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-if="L.can?.approve || L.can?.disburse" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-5 shadow-card space-y-4">
                 <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">HR / Finance Actions</p>
 
@@ -234,8 +235,8 @@ const rowClass = (r) => {
                         v-if="L.status === 'approved' && L.can?.disburse"
                         @click="disburse"
                         :disabled="disburseForm.processing"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[17px]">payments</span>
                         Disburse Loan
@@ -249,7 +250,7 @@ const rowClass = (r) => {
                     <textarea
                         v-model="decideForm.reason"
                         rows="3"
-                        placeholder="Provide a clear reason for rejection…"
+                        placeholder="Provide a clear reason for rejectionâ€¦"
                         class="w-full rounded-xl border border-red-300/60 bg-white dark:bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
                     ></textarea>
                     <div class="flex items-center gap-3">
@@ -278,10 +279,10 @@ const rowClass = (r) => {
                 </div>
             </div>
 
-            <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <TabBar :tabs="tabs" v-model="activeTab" />
 
-            <!-- ── SCHEDULE TAB ─────────────────────────────────────────────────── -->
+            <!-- â”€â”€ SCHEDULE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-show="activeTab === 'schedule'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
                 <div v-if="repayList.length === 0" class="p-12 text-center">
                     <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">schedule</span>
@@ -310,7 +311,7 @@ const rowClass = (r) => {
                                 <td class="px-4 py-2.5">
                                     <span class="text-[13px] font-semibold text-on-surface">{{ formatPeriod(r.due_period) }}</span>
                                     <span v-if="r.due_period === currentPeriod" class="ml-2 inline-flex items-center rounded-full text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5"
-                                          style="background:rgba(0,81,213,0.15);color:#205295">Current</span>
+                                          style="background:rgba(32,82,149,0.15);color:#205295">Current</span>
                                 </td>
                                 <td class="px-4 py-2.5 text-right font-mono text-[13px] font-bold text-on-surface tabular-nums">{{ cedi(r.scheduled_amount) }}</td>
                                 <td class="px-4 py-2.5 text-right font-mono text-[12px] text-on-surface-variant tabular-nums">{{ cedi(r.principal_portion) }}</td>
@@ -325,7 +326,7 @@ const rowClass = (r) => {
                 </div>
             </div>
 
-            <!-- ── REPAYMENTS TAB ──────────────────────────────────────────────── -->
+            <!-- â”€â”€ REPAYMENTS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-show="activeTab === 'repayments'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
                 <div v-if="repayList.filter(r => r.paid_amount > 0 || r.status === 'paid').length === 0" class="p-12 text-center">
                     <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">payments</span>
@@ -363,7 +364,7 @@ const rowClass = (r) => {
                 </div>
             </div>
 
-            <!-- ── AUDIT TAB ────────────────────────────────────────────────────── -->
+            <!-- â”€â”€ AUDIT TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-show="activeTab === 'audit'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
                 <!-- Metadata card -->
                 <div class="grid sm:grid-cols-2 gap-5">
@@ -371,7 +372,7 @@ const rowClass = (r) => {
                         <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-3">Application</p>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Applied by</span>
-                            <span class="font-semibold text-on-surface">{{ L.applicant?.name ?? '–' }}</span>
+                            <span class="font-semibold text-on-surface">{{ L.applicant?.name ?? 'â€“' }}</span>
                         </div>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Applied at</span>
@@ -379,14 +380,14 @@ const rowClass = (r) => {
                         </div>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Purpose</span>
-                            <span class="font-semibold text-on-surface text-right max-w-[200px]">{{ L.purpose || '–' }}</span>
+                            <span class="font-semibold text-on-surface text-right max-w-[200px]">{{ L.purpose || 'â€“' }}</span>
                         </div>
                     </div>
                     <div class="space-y-3">
                         <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-3">Approval / Disbursement</p>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Approved by</span>
-                            <span class="font-semibold text-on-surface">{{ L.approver?.name ?? '–' }}</span>
+                            <span class="font-semibold text-on-surface">{{ L.approver?.name ?? 'â€“' }}</span>
                         </div>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Approved at</span>

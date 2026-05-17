@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -6,13 +6,13 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import TabBar from '@/Components/TabBar.vue';
 
 const props = defineProps({
-    case:         Object, // OffboardingCaseResource (possibly wrapped in { data: … })
-    clearance:    Object, // keyed by area value → ClearanceItemResource collection
+    case:         Object, // OffboardingCaseResource (possibly wrapped in { data: â€¦ })
+    clearance:    Object, // keyed by area value â†’ ClearanceItemResource collection
     settlement:   Object, // FinalSettlementResource or null
     activeModule: String,
 });
 
-// ── Unwrap resource wrappers ──────────────────────────────────────────────────
+// â”€â”€ Unwrap resource wrappers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const C = computed(() => props.case?.data ?? props.case ?? {});
 const S = computed(() => props.settlement?.data ?? props.settlement ?? null);
 
@@ -36,18 +36,18 @@ const clearanceSigned = computed(() =>
 
 const clearanceTotal = computed(() => allClearanceItems.value.length);
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct  = (v) => Math.round((Number(v) || 0) * 100) + '%';
 
 const formatDate = (d) => {
-    if (!d) return '–';
+    if (!d) return 'â€“';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const lwdCountdown = computed(() => {
     const d = C.value.last_working_day;
-    if (!d) return { label: '–', urgent: false, past: false };
+    if (!d) return { label: 'â€“', urgent: false, past: false };
     const diff = Math.floor((new Date(d).getTime() - Date.now()) / 86400000);
     if (diff === 0)  return { label: 'Today',       urgent: true,  past: false };
     if (diff === 1)  return { label: 'Tomorrow',    urgent: true,  past: false };
@@ -67,7 +67,7 @@ const exitTypeIcon = (type) => ({
     abscondment:       'person_off',
 })[type] ?? 'logout';
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const activeTab = ref('clearance');
 const tabs = [
     { label: 'Clearance',   value: 'clearance'  },
@@ -75,7 +75,7 @@ const tabs = [
     { label: 'Audit',       value: 'audit'      },
 ];
 
-// ── Clearance actions ─────────────────────────────────────────────────────────
+// â”€â”€ Clearance actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const clearItem = (item) => {
     router.post(
         route('offboarding.clearance.update', { case: C.value.id, item: item.id }),
@@ -94,7 +94,7 @@ const submitWaive = () => waiveForm.post(
     },
 );
 
-// ── Settlement actions ────────────────────────────────────────────────────────
+// â”€â”€ Settlement actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const settleForm = useForm({
     gratuity_months_per_year:  1.0,
     severance_months_per_year: 1.5,
@@ -115,7 +115,7 @@ const submitCancel = () => cancelForm.post(route('offboarding.cancel', C.value.i
     onSuccess: () => { showCancel.value = false; cancelForm.reset(); },
 });
 
-// ── Area icon map ─────────────────────────────────────────────────────────────
+// â”€â”€ Area icon map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const areaIcon = (area) => ({
     it:       'computer',
     hr:       'badge',
@@ -133,7 +133,7 @@ const areaIcon = (area) => ({
     <Head :title="`Case ${C.reference ?? ''}`" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header ─────────────────────────────────────────────────────────── -->
+        <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template #header>
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
@@ -147,8 +147,8 @@ const areaIcon = (area) => ({
                         <h2 class="text-[1.5rem] font-black tracking-tight text-on-surface leading-tight">Off-boarding Case</h2>
                         <p class="mt-0.5 text-[13px] text-on-surface-variant">
                             <span class="font-mono">{{ C.reference }}</span>
-                            <span class="mx-1.5 text-on-surface-variant/40">·</span>
-                            {{ C.employee?.name ?? '–' }}
+                            <span class="mx-1.5 text-on-surface-variant/40">Â·</span>
+                            {{ C.employee?.name ?? 'â€“' }}
                         </p>
                     </div>
                 </div>
@@ -158,7 +158,7 @@ const areaIcon = (area) => ({
 
         <div class="space-y-6">
 
-            <!-- ── Hero card ───────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-6 shadow-card">
                 <div class="flex flex-wrap items-start gap-6">
 
@@ -169,10 +169,10 @@ const areaIcon = (area) => ({
                                 <span class="material-symbols-outlined text-[24px] text-amber-600">{{ exitTypeIcon(C.exit_type) }}</span>
                             </div>
                             <div>
-                                <p class="text-[20px] font-black text-on-surface leading-tight">{{ C.employee?.name ?? '–' }}</p>
+                                <p class="text-[20px] font-black text-on-surface leading-tight">{{ C.employee?.name ?? 'â€“' }}</p>
                                 <p class="text-[13px] text-on-surface-variant">
                                     {{ C.employee?.department ?? '' }}
-                                    <span v-if="C.employee?.employee_no" class="mx-1.5 text-on-surface-variant/40">·</span>
+                                    <span v-if="C.employee?.employee_no" class="mx-1.5 text-on-surface-variant/40">Â·</span>
                                     <span class="font-mono text-[12px]">{{ C.employee?.employee_no ?? '' }}</span>
                                 </p>
                             </div>
@@ -206,7 +206,7 @@ const areaIcon = (area) => ({
                         <div class="h-10 w-px bg-outline-variant/50"></div>
                         <div class="text-center">
                             <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Net Settlement</p>
-                            <p class="font-mono text-[15px] font-black text-on-surface tabular-nums">{{ S ? cedi(S.net_payable) : '–' }}</p>
+                            <p class="font-mono text-[15px] font-black text-on-surface tabular-nums">{{ S ? cedi(S.net_payable) : 'â€“' }}</p>
                         </div>
                     </div>
                 </div>
@@ -220,16 +220,16 @@ const areaIcon = (area) => ({
                     <div class="h-2.5 w-full rounded-full bg-surface-container overflow-hidden">
                         <div
                             class="h-full rounded-full transition-all"
-                            :style="`width:${pct(C.clearance_progress)};background:${Number(C.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#205295,#2c74b3)'}`"
+                            :style="`width:${pct(C.clearance_progress)};background:${Number(C.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#0a2647,#205295)'}`"
                         ></div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── 4 Stat cards ────────────────────────────────────────────────── -->
+            <!-- â”€â”€ 4 Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
-                     style="border-left:3px solid rgba(0,81,213,0.5)">
+                     style="border-left:3px solid rgba(32,82,149,0.5)">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Notice Received</p>
                     <p class="text-[14px] font-black text-on-surface">{{ formatDate(C.notice_received_on) }}</p>
                 </div>
@@ -248,11 +248,11 @@ const areaIcon = (area) => ({
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
                      style="border-left:3px solid rgba(124,92,255,0.5)">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Net Settlement</p>
-                    <p class="font-mono text-[15px] font-black text-on-surface tabular-nums">{{ S ? cedi(S.net_payable) : '–' }}</p>
+                    <p class="font-mono text-[15px] font-black text-on-surface tabular-nums">{{ S ? cedi(S.net_payable) : 'â€“' }}</p>
                 </div>
             </div>
 
-            <!-- ── HR Action bar ───────────────────────────────────────────────── -->
+            <!-- â”€â”€ HR Action bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-if="C.can?.complete || C.can?.approve_settle" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-5 shadow-card space-y-4">
                 <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">HR Actions</p>
                 <div class="flex flex-wrap gap-3">
@@ -282,7 +282,7 @@ const areaIcon = (area) => ({
                     <textarea
                         v-model="cancelForm.reason"
                         rows="2"
-                        placeholder="Provide a reason for cancellation…"
+                        placeholder="Provide a reason for cancellationâ€¦"
                         class="w-full rounded-xl border border-red-300/60 bg-white dark:bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
                     ></textarea>
                     <div class="flex items-center gap-3">
@@ -301,10 +301,10 @@ const areaIcon = (area) => ({
                 </div>
             </div>
 
-            <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <TabBar :tabs="tabs" v-model="activeTab" />
 
-            <!-- ── CLEARANCE TAB ───────────────────────────────────────────────── -->
+            <!-- â”€â”€ CLEARANCE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-show="activeTab === 'clearance'" class="space-y-4">
                 <div v-if="Object.keys(clearanceGroups).length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12 text-center">
                     <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">checklist</span>
@@ -361,13 +361,13 @@ const areaIcon = (area) => ({
                                     </div>
                                     <p v-if="item.department?.name || item.responsible_user?.name" class="text-[11px] text-on-surface-variant/60 mb-1">
                                         <span v-if="item.department?.name">Dept: {{ item.department.name }}</span>
-                                        <span v-if="item.department?.name && item.responsible_user?.name"> · </span>
+                                        <span v-if="item.department?.name && item.responsible_user?.name"> Â· </span>
                                         <span v-if="item.responsible_user?.name">Assigned: {{ item.responsible_user.name }}</span>
                                     </p>
                                     <p v-if="item.notes" class="text-[12px] text-on-surface-variant/70 italic mt-1">{{ item.notes }}</p>
                                     <p v-if="item.cleared_at" class="text-[11px] text-on-surface-variant/50 mt-1">
                                         {{ item.status === 'cleared' ? 'Cleared' : 'Waived' }} by
-                                        <span class="font-semibold">{{ item.cleared_by?.name ?? '–' }}</span>
+                                        <span class="font-semibold">{{ item.cleared_by?.name ?? 'â€“' }}</span>
                                         on {{ formatDate(item.cleared_at) }}
                                     </p>
                                 </div>
@@ -401,7 +401,7 @@ const areaIcon = (area) => ({
                                         <input
                                             v-model="waiveForm.notes"
                                             class="w-full rounded-xl border border-amber-300/60 bg-white dark:bg-surface-container-low px-4 py-2 text-[13px] text-on-surface focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
-                                            placeholder="Enter waive reason…"
+                                            placeholder="Enter waive reasonâ€¦"
                                             required
                                         />
                                     </div>
@@ -427,7 +427,7 @@ const areaIcon = (area) => ({
                 </div>
             </div>
 
-            <!-- ── SETTLEMENT TAB ──────────────────────────────────────────────── -->
+            <!-- â”€â”€ SETTLEMENT TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-show="activeTab === 'settlement'" class="space-y-5">
 
                 <!-- Calculation overrides panel -->
@@ -512,7 +512,7 @@ const areaIcon = (area) => ({
                         @click="calculate"
                         :disabled="settleForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="settleForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span class="material-symbols-outlined text-[17px]" v-else>calculate</span>
@@ -633,7 +633,7 @@ const areaIcon = (area) => ({
                             v-if="S.status === 'approved' && C.can?.complete"
                             @click="complete"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[17px]">task_alt</span>
                             Complete Case &amp; Terminate Employee
@@ -654,7 +654,7 @@ const areaIcon = (area) => ({
                 </div>
             </div>
 
-            <!-- ── AUDIT TAB ────────────────────────────────────────────────────── -->
+            <!-- â”€â”€ AUDIT TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-show="activeTab === 'audit'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6 space-y-5">
                 <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Case Timeline</p>
 
@@ -672,7 +672,7 @@ const areaIcon = (area) => ({
                             <p class="text-[13px] font-bold text-on-surface">Case Initiated</p>
                             <p class="text-[12px] text-on-surface-variant">
                                 By {{ C.initiator?.name ?? 'System' }}
-                                <span v-if="C.notice_received_on"> · Notice: {{ formatDate(C.notice_received_on) }}</span>
+                                <span v-if="C.notice_received_on"> Â· Notice: {{ formatDate(C.notice_received_on) }}</span>
                             </p>
                             <p class="text-[11px] text-on-surface-variant/55 mt-0.5">Exit type: {{ C.exit_type_label ?? C.exit_type }}</p>
                         </div>
@@ -708,7 +708,7 @@ const areaIcon = (area) => ({
                         </div>
                         <div>
                             <p class="text-[13px] font-bold text-on-surface">Case Completed</p>
-                            <p class="text-[12px] text-on-surface-variant">Employee terminated · {{ formatDate(C.completed_at) }}</p>
+                            <p class="text-[12px] text-on-surface-variant">Employee terminated Â· {{ formatDate(C.completed_at) }}</p>
                         </div>
                     </div>
                 </div>
@@ -722,7 +722,7 @@ const areaIcon = (area) => ({
                         </div>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Initiated by</span>
-                            <span class="font-semibold text-on-surface">{{ C.initiator?.name ?? '–' }}</span>
+                            <span class="font-semibold text-on-surface">{{ C.initiator?.name ?? 'â€“' }}</span>
                         </div>
                         <div class="flex justify-between text-[13px]">
                             <span class="text-on-surface-variant">Exit type</span>

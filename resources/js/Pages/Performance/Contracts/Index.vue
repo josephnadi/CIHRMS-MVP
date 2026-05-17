@@ -69,11 +69,12 @@ const stats = computed(() => {
     return { total, inEval, closed, avgRating };
 });
 
+// Stat cards — Avg Achievement gets the 5% gold accent (institutional performance metric)
 const statCards = computed(() => [
-    { label: 'Total Contracts',     value: stats.value.total,                       icon: 'description',      rgb: '32,82,149'  },
-    { label: 'In Evaluation',       value: stats.value.inEval,                      icon: 'rate_review',      rgb: '217,119,6'  },
-    { label: 'Closed This Cycle',   value: stats.value.closed,                      icon: 'check_circle',     rgb: '5,150,105'  },
-    { label: 'Avg Achievement',     value: stats.value.avgRating ? `${stats.value.avgRating}%` : '—', icon: 'star', rgb: '44,116,179' },
+    { label: 'Total Contracts',     value: stats.value.total,                       icon: 'description',      rgb: '10,38,71'   },  // navy
+    { label: 'In Evaluation',       value: stats.value.inEval,                      icon: 'rate_review',      rgb: '217,119,6'  },  // amber
+    { label: 'Closed This Cycle',   value: stats.value.closed,                      icon: 'check_circle',     rgb: '5,150,105'  },  // green
+    { label: 'Avg Achievement',     value: stats.value.avgRating ? `${stats.value.avgRating}%` : '—', icon: 'star', rgb: '255,215,0' },  // gold
 ]);
 
 // ── New Contract slide-panel ──────────────────────────────────────────────────
@@ -119,14 +120,14 @@ const statusTone = {
 
 const statusClass = (status) => statusTone[status] ?? 'bg-surface-container text-on-surface-variant';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Avatar gradient pool — disciplined cool family (matches all other modules)
 const gradients = [
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
+    'linear-gradient(135deg,#0a2647,#205295)',
     'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -172,7 +173,7 @@ const signedDots = (contract) => [
                         v-if="canManage"
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         New Contract
@@ -260,7 +261,7 @@ const signedDots = (contract) => [
                             v-if="canManage"
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             New Contract
@@ -462,7 +463,7 @@ const signedDots = (contract) => [
                     <button
                         @click="submitContract"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[16px]">description</span>
                         Draft Contract

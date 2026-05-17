@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -16,17 +16,17 @@ const props = defineProps({
     activeModule: String,
 });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct  = (v) => Math.round((Number(v) || 0) * 100) + '%';
 
 const formatDate = (d) => {
-    if (!d) return '–';
+    if (!d) return 'â€“';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const relativeLWD = (dateStr) => {
-    if (!dateStr) return '–';
+    if (!dateStr) return 'â€“';
     const diff = Math.floor((new Date(dateStr).getTime() - Date.now()) / 86400000);
     if (diff === 0)   return 'Today';
     if (diff === 1)   return 'Tomorrow';
@@ -44,13 +44,14 @@ const lwdUrgency = (dateStr) => {
     return 'text-on-surface-variant';
 };
 
+// Avatar gradient pool — disciplined cool family
 const gradients = [
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#059669,#34d399)',
-    'linear-gradient(135deg,#d97706,#fbbf24)',
+    'linear-gradient(135deg,#0a2647,#205295)',
     'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#dc2626,#f87171)',
-    'linear-gradient(135deg,#0891b2,#22d3ee)',
+    'linear-gradient(135deg,#06192f,#0a2647)',
+    'linear-gradient(135deg,#205295,#2c74b3)',
+    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
+    'linear-gradient(135deg,#205295,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -73,7 +74,7 @@ const exitTypeIcon = (type) => ({
 })[type] ?? 'logout';
 
 const exitTypeColor = (type) => ({
-    resignation:       'rgba(0,81,213,0.12)',
+    resignation:       'rgba(32,82,149,0.12)',
     retirement:        'rgba(5,150,105,0.12)',
     end_of_contract:   'rgba(217,119,6,0.12)',
     dismissal:         'rgba(220,38,38,0.12)',
@@ -83,7 +84,7 @@ const exitTypeColor = (type) => ({
     abscondment:       'rgba(220,38,38,0.12)',
 })[type] ?? 'rgba(100,116,139,0.12)';
 
-// ── Filters ───────────────────────────────────────────────────────────────────
+// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const localFilters = reactive({
     status:    props.filters?.status    ?? '',
     exit_type: props.filters?.exit_type ?? '',
@@ -114,7 +115,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-// ── Initiate panel ────────────────────────────────────────────────────────────
+// â”€â”€ Initiate panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const showPanel = ref(false);
 const form = useForm({
     employee_id:        '',
@@ -140,7 +141,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
     <Head title="Off-boarding &amp; Settlement" />
     <AuthenticatedLayout :activeModule="activeModule">
 
-        <!-- ── Header ─────────────────────────────────────────────────────────── -->
+        <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <template #header>
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -155,7 +156,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                 <button
                     @click="showPanel = true"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                    style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                 >
                     <span class="material-symbols-outlined text-[18px]">add</span>
                     Open Case
@@ -165,40 +166,41 @@ const submitCase = () => form.post(route('offboarding.store'), {
 
         <div class="space-y-6">
 
-            <!-- ── Stat cards ──────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- Settlements Paid YTD gets the gold accent (institutional financial outcome) -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <StatCard
                     :value="stats?.in_progress ?? 0"
                     label="Open Cases"
                     icon="folder_open"
-                    color="#205295"
+                    color="blue"
                 />
                 <StatCard
                     :value="stats?.awaiting_settle ?? 0"
                     label="Awaiting Settlement"
                     icon="pending_actions"
-                    color="#d97706"
+                    color="amber"
                 />
                 <StatCard
                     :value="stats?.completed_ytd ?? 0"
                     label="Closed This Year"
                     icon="task_alt"
-                    color="#059669"
+                    color="green"
                 />
                 <StatCard
                     :value="cedi(stats?.settlement_total ?? 0)"
                     label="Settlements Paid YTD"
                     icon="payments"
-                    color="#7c5cfc"
+                    color="gold"
                 />
             </div>
 
-            <!-- ── Filter strip ─────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="flex flex-wrap items-center gap-3">
                 <div class="flex-1 min-w-[200px] max-w-xs">
                     <SearchInput
                         v-model="localFilters.q"
-                        placeholder="Search reference or employee…"
+                        placeholder="Search reference or employeeâ€¦"
                     />
                 </div>
 
@@ -242,7 +244,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                 </button>
             </div>
 
-            <!-- ── Case card grid ────────────────────────────────────────────────── -->
+            <!-- â”€â”€ Case card grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div v-if="(cases?.data?.length ?? 0) === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                 <EmptyState
                     title="No off-boarding cases found"
@@ -253,7 +255,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <button
                             @click="showPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Open Case
@@ -279,10 +281,10 @@ const submitCase = () => form.post(route('offboarding.store'), {
                             {{ initials(c.employee?.name) }}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ c.employee?.name ?? '–' }}</p>
+                            <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ c.employee?.name ?? 'â€“' }}</p>
                             <p class="text-[11px] text-on-surface-variant/60 leading-tight truncate">
                                 {{ c.employee?.department ?? '' }}
-                                <span v-if="c.employee?.employee_no"> · {{ c.employee.employee_no }}</span>
+                                <span v-if="c.employee?.employee_no"> Â· {{ c.employee.employee_no }}</span>
                             </p>
                         </div>
                         <StatusBadge :status="c.status" :label="c.status_label" />
@@ -354,7 +356,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                 <p class="text-[12px] text-on-surface-variant">
                     Showing
                     <span class="font-semibold text-on-surface">{{ cases.meta?.from }}</span>
-                    –
+                    â€“
                     <span class="font-semibold text-on-surface">{{ cases.meta?.to }}</span>
                     of
                     <span class="font-semibold text-on-surface">{{ cases.meta?.total }}</span>
@@ -363,7 +365,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
             </div>
         </div>
 
-        <!-- ── Initiate Off-boarding SlidePanel ──────────────────────────────── -->
+        <!-- â”€â”€ Initiate Off-boarding SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <SlidePanel
             :open="showPanel"
             title="Initiate Off-boarding Case"
@@ -403,7 +405,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <option value="retirement">Retirement</option>
                         <option value="end_of_contract">End of Contract</option>
                         <option value="dismissal">Dismissal (with cause)</option>
-                        <option value="redundancy">Redundancy (Act 651 §31)</option>
+                        <option value="redundancy">Redundancy (Act 651 Â§31)</option>
                         <option value="mutual_separation">Mutual Separation</option>
                         <option value="death">Death</option>
                         <option value="abscondment">Abscondment</option>
@@ -447,7 +449,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                     <textarea
                         v-model="form.reason"
                         rows="3"
-                        placeholder="Briefly describe the circumstances…"
+                        placeholder="Briefly describe the circumstancesâ€¦"
                         class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                     ></textarea>
                 </div>
@@ -466,7 +468,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         @click="submitCase"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Initiate Case

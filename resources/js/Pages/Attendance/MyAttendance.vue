@@ -198,11 +198,12 @@ const attendancePct = computed(() => {
 
         <div class="p-6 space-y-6 animate-reveal-up">
 
-            <!-- ── Hero clock card ───────────────────────────────────────────── -->
+            <!-- Hero clock card — gold hairline (single 5% accent moment) + disciplined navy->cobalt->magenta gradient -->
             <div
                 class="relative overflow-hidden rounded-2xl p-6 text-white shadow-glow"
-                style="background: linear-gradient(135deg, #205295 0%, #2c74b3 60%, #7c5cff 100%)"
+                style="background: linear-gradient(135deg, #0a2647 0%, #205295 60%, #d912e3 100%)"
             >
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
                 <!-- subtle grid texture -->
                 <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.15) 24px,rgba(255,255,255,.15) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.15) 24px,rgba(255,255,255,.15) 25px)"></div>
 
@@ -272,31 +273,31 @@ const attendancePct = computed(() => {
                 </div>
             </div>
 
-            <!-- ── 4 Stat cards ──────────────────────────────────────────────── -->
+            <!-- Stat cards — Total Hours gets the gold accent (the institutional time-on-the-clock metric) -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <StatCard
                     :value="stats.daysWorked"
                     label="Days Worked"
                     icon="event_available"
-                    color="#059669"
+                    color="green"
                 />
                 <StatCard
                     :value="typeof stats.totalHours === 'number' ? stats.totalHours.toFixed(1) : stats.totalHours"
                     label="Total Hours"
                     icon="schedule"
-                    color="#205295"
+                    color="gold"
                 />
                 <StatCard
                     :value="stats.daysLate"
                     label="Late Arrivals"
                     icon="alarm"
-                    color="#d97706"
+                    color="amber"
                 />
                 <StatCard
                     :value="typeof stats.overtime === 'number' ? stats.overtime.toFixed(1) : stats.overtime"
                     label="Overtime Hrs"
                     icon="more_time"
-                    color="#7c5cff"
+                    color="magenta"
                 />
             </div>
 
@@ -512,8 +513,8 @@ const attendancePct = computed(() => {
                     <button
                         @click="submitCorrection"
                         :disabled="correctionForm.processing"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background: linear-gradient(135deg,#205295,#2c74b3)"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="correctionForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Submit Request</span>
