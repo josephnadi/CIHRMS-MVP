@@ -1,0 +1,353 @@
+openapi: 3.1.0
+info:
+  title: CIHRMS Public API
+  version: "1.0.0"
+  summary: Authenticated read-mostly API for Ghana government HR & payroll interoperability.
+  description: |
+    The CIHRMS Public API v1 exposes a stable, versioned surface for partner
+    systems — GIFMIS, IPPD, MDA dashboards, GhIPSS banking, and auditor
+    tooling. Authentication is via Laravel Sanctum personal access tokens
+    with per-route ability (scope) gating.
+
+    **Authentication:** `Authorization: Bearer <token>`
+
+    **Scopes (request only what you need):**
+    - `employees:read`     — directory access
+    - `payroll:read`       — payroll runs, lines, totals
+    - `statutory:export`   — download PAYE/SSNIT/Tier-2/NHIA returns
+    - `attendance:read`    — attendance summaries
+    - `*`                  — superuser (use sparingly)
+
+    All endpoints return JSON. Errors use RFC 7807 problem+json shape.
+  contact:
+    name: CIHRM Ghana — Integrations
+    email: integrations@cihrm.gov.gh
+  license:
+    name: Proprietary — government use
+servers:
+  - url: https://hrms.cihrm.gov.gh/api/v1
+    description: Production
+  - url: https://staging.hrms.cihrm.gov.gh/api/v1
+    description: Staging
+  - url: http://localhost/api/v1
+    description: Local development
+
+tags:
+  - name: System
+    description: Health and identity probes
+  - name: Employees
+    description: Directory data (non-sensitive)
+  - name: Payroll
+    description: Payroll runs, lines, statutory returns
+  - name: Attendance
+    description: Daily attendance summaries
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Service health probe
+      security: []   # public
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+        "503":
+          description: Degraded — database unreachable
+
+  /me:
+    get:
+      tags: [System]
+      summary: Identify the token holder and inspect granted scopes
+      responses:
+        "200":
+          description: Token introspection
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /employees:
+    get:
+      tags: [Employees]
+      summary: Paginated employee directory
+      parameters:
+        - { in: query, name: department_id, schema: { type: integer } }
+        - { in: query, name: status,        schema: { type: string, enum: [active, on_leave, suspended, terminated] } }
+        - { in: query, name: page,          schema: { type: integer, default: 1 } }
+        - { in: query, name: per_page,      schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200":
+          description: Page of employees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Employee' }
+                  meta:  { $ref: '#/components/schemas/PageMeta' }
+        "401": { $ref: '#/components/responses/Unauthorized' }
+        "403": { $ref: '#/components/responses/Forbidden' }
+
+  /employees/{id}:
+    get:
+      tags: [Employees]
+      summary: Single employee
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Employee' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /payroll/runs:
+    get:
+      tags: [Payroll]
+      summary: Paginated payroll runs with totals
+      parameters:
+        - { in: query, name: year,          schema: { type: integer } }
+        - { in: query, name: status,        schema: { type: string, enum: [draft, calculated, approved, paid, reversed] } }
+        - { in: query, name: department_id, schema: { type: integer } }
+        - { in: query, name: page,          schema: { type: integer } }
+        - { in: query, name: per_page,      schema: { type: integer, default: 25, maximum: 100 } }
+      responses:
+        "200":
+          description: Page of runs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/PayrollRun' }
+                  meta: { $ref: '#/components/schemas/PageMeta' }
+
+  /payroll/runs/{id}:
+    get:
+      tags: [Payroll]
+      summary: Single payroll run
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Payroll run
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PayrollRun' }
+
+  /payroll/runs/{id}/returns:
+    get:
+      tags: [Payroll]
+      summary: Statutory returns generated for a run
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: List of statutory return files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:           { type: integer }
+                        kind:         { type: string, enum: [paye, ssnit_tier1, tier2_trustee, nhia_split, bank_file] }
+                        kind_label:   { type: string }
+                        total_amount: { type: number }
+                        record_count: { type: integer }
+                        generated_at: { type: string, format: date-time }
+                        download_url: { type: string, format: uri }
+
+  /payroll/runs/{id}/returns/{return}/download:
+    get:
+      tags: [Payroll]
+      summary: Download a statutory return CSV
+      parameters:
+        - { in: path, name: id,     required: true, schema: { type: integer } }
+        - { in: path, name: return, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: CSV file stream
+          content:
+            text/csv: {}
+
+  /attendance/summaries:
+    get:
+      tags: [Attendance]
+      summary: Daily attendance summaries
+      parameters:
+        - { in: query, name: employee_id, schema: { type: integer } }
+        - { in: query, name: from,        schema: { type: string, format: date } }
+        - { in: query, name: to,          schema: { type: string, format: date } }
+        - { in: query, name: status,      schema: { type: string, enum: [present, late, half_day, absent, on_leave, holiday, weekend] } }
+        - { in: query, name: per_page,    schema: { type: integer, default: 100, maximum: 500 } }
+      responses:
+        "200":
+          description: Page of attendance summaries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AttendanceSummary' }
+                  meta: { $ref: '#/components/schemas/PageMeta' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Sanctum personal access token. Token holder must hold the required scope for each route.
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Token lacks the required scope
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:  { type: string, example: 'Insufficient token scope.' }
+        required: { type: string, nullable: true, example: 'payroll:read' }
+
+    Health:
+      type: object
+      properties:
+        service:  { type: string }
+        version:  { type: string }
+        env:      { type: string }
+        time:     { type: string, format: date-time }
+        database: { type: string, enum: [ok, unreachable] }
+        api:
+          type: object
+          properties:
+            version: { type: string, example: 'v1' }
+
+    Me:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:    { type: integer }
+            name:  { type: string }
+            email: { type: string }
+            role:  { type: string }
+        token:
+          type: object
+          properties:
+            id:        { type: integer }
+            name:      { type: string }
+            abilities: { type: array, items: { type: string } }
+            last_used: { type: string, format: date-time, nullable: true }
+
+    Employee:
+      type: object
+      properties:
+        id:          { type: integer }
+        employee_no: { type: string }
+        name:        { type: string, nullable: true }
+        email:       { type: string, nullable: true }
+        department:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: integer }
+            name: { type: string }
+            code: { type: string }
+        position:  { type: string, nullable: true }
+        grade:     { type: string, nullable: true }
+        step:      { type: integer, nullable: true }
+        hire_date: { type: string, format: date, nullable: true }
+        status:    { type: string }
+        phone:     { type: string, nullable: true }
+
+    PayrollRun:
+      type: object
+      properties:
+        id:           { type: integer }
+        reference:    { type: string }
+        period:       { type: string, example: '2026-05' }
+        period_start: { type: string, format: date }
+        period_end:   { type: string, format: date }
+        status:       { type: string }
+        department:
+          type: object
+          nullable: true
+          properties:
+            id:   { type: integer }
+            name: { type: string }
+        totals:
+          type: object
+          properties:
+            gross:           { type: number }
+            net:             { type: number }
+            paye:            { type: number }
+            ssnit_employee:  { type: number }
+            ssnit_employer:  { type: number }
+            nhia:            { type: number }
+            tier2:           { type: number }
+        lines_count:   { type: integer }
+        skipped_count: { type: integer }
+        approved_at:   { type: string, format: date-time, nullable: true }
+        paid_at:       { type: string, format: date-time, nullable: true }
+
+    AttendanceSummary:
+      type: object
+      properties:
+        id:             { type: integer }
+        employee_id:    { type: integer }
+        employee_no:    { type: string }
+        date:           { type: string, format: date }
+        status:         { type: string }
+        first_in:       { type: string, nullable: true }
+        last_out:       { type: string, nullable: true }
+        hours_worked:   { type: number }
+        overtime_hours: { type: number }
+        is_weekend:     { type: boolean }
+        is_holiday:     { type: boolean }
+
+    PageMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        last_page:    { type: integer }
+        per_page:     { type: integer }
+        total:        { type: integer }
