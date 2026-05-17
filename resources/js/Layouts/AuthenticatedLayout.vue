@@ -1,8 +1,9 @@
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import Dropdown            from '@/Components/Dropdown.vue';
 import DropdownLink        from '@/Components/DropdownLink.vue';
 import NotificationBell    from '@/Components/NotificationBell.vue';
+import SoundToggle         from '@/Components/SoundToggle.vue';
 import AnnouncementTicker  from '@/Components/AnnouncementTicker.vue';
 import Toast               from '@/Components/Toast.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
@@ -16,9 +17,41 @@ const user = computed(() => page.props.auth?.user);
 
 const { isDark, toggle, init } = useDark();
 
+// ── Sidebar scroll preservation ──────────────────────────────────────────────
+// The AuthenticatedLayout is rendered inline by each page, so navigation
+// destroys and recreates this component, losing the sidebar's scroll
+// position. Save scrollTop to sessionStorage on each Inertia 'before' event
+// and on unmount, then restore it after the nav element mounts.
+const saveSidebarScroll = () => {
+    if (typeof window === 'undefined') return;
+    const top = sidebarNavRef.value?.scrollTop;
+    if (typeof top !== 'number') return;
+    try { window.sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(top)); } catch (e) {}
+};
+
+const restoreSidebarScroll = () => {
+    if (typeof window === 'undefined') return;
+    try {
+        const raw = window.sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+        const top = raw ? parseInt(raw, 10) : 0;
+        if (sidebarNavRef.value && Number.isFinite(top)) {
+            sidebarNavRef.value.scrollTop = top;
+        }
+    } catch (e) {}
+};
+
+let removeInertiaBefore = null;
+
 onMounted(() => {
     init();
     setTimeout(() => { mounted.value = true; }, 50);
+    nextTick(restoreSidebarScroll);
+    removeInertiaBefore = router.on('before', saveSidebarScroll);
+});
+
+onBeforeUnmount(() => {
+    saveSidebarScroll();
+    if (typeof removeInertiaBefore === 'function') removeInertiaBefore();
 });
 
 const can = (permission) =>
@@ -86,7 +119,7 @@ const navSections = computed(() => {
             }
         ];
 
-        // Department portals — each child shows only when the user holds the matching `portal.*` permission.
+        // Department portals â€” each child shows only when the user holds the matching `portal.*` permission.
         // The whole Departments group hides if the user can see no portal at all.
         // Each portal renders its own dedicated Departments/Show.vue page (slug-driven).
         const portalChildren = [
@@ -111,17 +144,29 @@ const navSections = computed(() => {
                     { label: 'Notice Board',  route: 'announcements.index',       module: 'announcements', icon: 'campaign',  visible: true },
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: true },
                     { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
+                    { label: 'DPA Requests',  route: 'privacy.admin.index',       module: 'privacy-admin', icon: 'policy',    visible: can('privacy.fulfill') },
+                    { label: 'Messaging',     route: 'messaging.index',           module: 'messaging',     icon: 'sms',       visible: can('messaging.view') },
+                    { label: 'SSO Providers', route: 'sso-admin.index',           module: 'sso',           icon: 'key',       visible: can('sso.manage') },
+                    { label: 'API Tokens',    route: 'api-tokens.index',          module: 'api-tokens',    icon: 'vpn_key',   visible: can('api.token_manage') },
+                    { label: 'Webhooks',      route: 'webhooks.index',            module: 'webhooks',      icon: 'webhook',   visible: can('api.webhooks_manage') },
+                    { label: 'API Docs',      route: 'api.docs',                  module: 'api-docs',      icon: 'menu_book', visible: true },
                     { label: 'Settings',      route: 'profile.edit',              module: 'settings',      icon: 'settings',  visible: true },
                     { label: 'Audit Logs',    route: 'modules.audit-logs',        module: 'audit-logs',    icon: 'history',   visible: true },
                 ]
             });
-        } else if (can('announcements.manage') || can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all')) {
+        } else if (can('announcements.manage') || can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all') || can('privacy.fulfill') || can('api.token_manage') || can('api.webhooks_manage')) {
             sections.push({
                 title: 'System',
                 items: [
                     { label: 'Notice Board',  route: 'announcements.index',       module: 'announcements', icon: 'campaign',  visible: can('announcements.manage') },
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: can('integrations.manage') },
                     { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
+                    { label: 'DPA Requests',  route: 'privacy.admin.index',       module: 'privacy-admin', icon: 'policy',    visible: can('privacy.fulfill') },
+                    { label: 'Messaging',     route: 'messaging.index',           module: 'messaging',     icon: 'sms',       visible: can('messaging.view') },
+                    { label: 'SSO Providers', route: 'sso-admin.index',           module: 'sso',           icon: 'key',       visible: can('sso.manage') },
+                    { label: 'API Tokens',    route: 'api-tokens.index',          module: 'api-tokens',    icon: 'vpn_key',   visible: can('api.token_manage') },
+                    { label: 'Webhooks',      route: 'webhooks.index',            module: 'webhooks',      icon: 'webhook',   visible: can('api.webhooks_manage') },
+                    { label: 'API Docs',      route: 'api.docs',                  module: 'api-docs',      icon: 'menu_book', visible: true },
                     { label: 'Settings',      route: 'profile.edit',              module: 'settings',      icon: 'settings',  visible: true },
                 ]
             });
@@ -178,7 +223,7 @@ const isItemActive = (item) => {
         return route().current(item.route);
     }
 
-    // 2. Module-prop match — fallback for dashboard sub-modules and any item
+    // 2. Module-prop match â€” fallback for dashboard sub-modules and any item
     //    that doesn't declare a specific route.
     if (currentModule !== undefined && currentModule !== null) {
         return item.module === currentModule;
@@ -204,10 +249,35 @@ const resolveHref = (item) => {
     return item.routeParams ? route(item.route, item.routeParams) : route(item.route);
 };
 
-// ── Expandable sidebar groups ─────────────────────────────────────────────────
-// Default-expanded groups (initial state only — auto-expand on active child
+// â”€â”€ Expandable sidebar groups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Default-expanded groups (initial state only â€” auto-expand on active child
 // will keep things open when the user navigates into a child route).
-const expandedGroups = ref(new Set(['Departments', 'Performance', 'Learning', 'Attendance', 'Reports']));
+// Start collapsed; user-toggled state persists across navigations via
+// sessionStorage. The watcher below still auto-expands a group when one of
+// its children is the active route, so a deep-link into Performance/Goals
+// still opens the Performance group on first paint.
+const SIDEBAR_EXPANDED_KEY = 'cihrms.sidebar.expandedGroups';
+const SIDEBAR_SCROLL_KEY   = 'cihrms.sidebar.scrollTop';
+const sidebarNavRef = ref(null);
+
+const loadExpandedGroups = () => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+        const raw = window.sessionStorage.getItem(SIDEBAR_EXPANDED_KEY);
+        if (!raw) return new Set();
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? new Set(arr) : new Set();
+    } catch (e) { return new Set(); }
+};
+
+const expandedGroups = ref(loadExpandedGroups());
+
+const persistExpandedGroups = () => {
+    if (typeof window === 'undefined') return;
+    try {
+        window.sessionStorage.setItem(SIDEBAR_EXPANDED_KEY, JSON.stringify([...expandedGroups.value]));
+    } catch (e) { /* sessionStorage unavailable (private mode, quota) */ }
+};
 
 const isGroupExpanded = (label) => expandedGroups.value.has(label);
 
@@ -215,16 +285,18 @@ const toggleGroup = (label) => {
     const next = new Set(expandedGroups.value);
     if (next.has(label)) next.delete(label); else next.add(label);
     expandedGroups.value = next;
+    persistExpandedGroups();
 };
 
 // Auto-expand any group whose child is currently active. Watches the page's
-// active-module signal so navigating from Dashboard → Performance/Goals opens
+// active-module signal so navigating from Dashboard â†’ Performance/Goals opens
 // the Performance group automatically (and keeps it open) without disturbing
 // any manual expand/collapse the user has done on unrelated groups.
 watch(
     () => page.props.activeModule,
     () => {
-        const next = new Set(expandedGroups.value);
+        const before = expandedGroups.value;
+        const next = new Set(before);
         navSections.value.forEach(section => {
             section.items.forEach(item => {
                 if (item.expandable && isGroupActive(item)) {
@@ -232,7 +304,10 @@ watch(
                 }
             });
         });
-        expandedGroups.value = next;
+        if (next.size !== before.size) {
+            expandedGroups.value = next;
+            persistExpandedGroups();
+        }
     },
     { immediate: true },
 );
@@ -257,9 +332,9 @@ const roleLabel = computed(() => {
     return map[user.value?.role] ?? 'Staff';
 });
 
-// ── Theme-aware sidebar computed styles ──
+// â”€â”€ Theme-aware sidebar computed styles â”€â”€
 const sidebarStyle = computed(() => isDark.value
-    ? { background: '#0a1f5c', borderColor: 'rgba(255,255,255,0.06)' }
+    ? { background: '#0d1452', borderColor: 'rgba(255,255,255,0.06)' }
     : { background: '#ffffff', borderColor: 'rgba(198,198,205,0.5)' }
 );
 
@@ -285,20 +360,79 @@ const navItemClass = (item) => {
 const navItemStyle = (item) => {
     if (isItemActive(item)) {
         return isDark.value
-            ? 'background:rgba(29,78,216,0.22);border:1px solid rgba(59,130,246,0.25);box-shadow:0 0 16px rgba(29,78,216,0.12);'
-            : 'background:rgba(29,78,216,0.08);border:1px solid rgba(29,78,216,0.15);';
+            ? 'background:rgba(26, 35, 126,0.22);border:1px solid rgba(59,130,246,0.25);box-shadow:0 0 16px rgba(26, 35, 126,0.12);'
+            : 'background:rgba(26, 35, 126,0.08);border:1px solid rgba(26, 35, 126,0.15);';
     }
     return 'border:1px solid transparent;';
 };
 
-const navIconStyle = (item) => {
-    if (!isItemActive(item)) return '';
-    return isDark.value
-        ? "font-variation-settings:'FILL' 1;color:#5b9fd9;"
-        : "font-variation-settings:'FILL' 1;color:#0a1f5c;";
+// ── Sidebar icon palette ──────────────────────────────────────────
+// Every icon is colour-keyed by module. Gold is the 5% institutional accent
+// reserved for the two flagship surfaces (Dashboard + Reports group).
+// Cyan = tech/time/learning. Magenta = people-side. Blue family = operational.
+const SIDEBAR_ICON_COLORS = {
+    // Flagship — gold (5% rule)
+    'overview':                 '#ffd700',
+    'reports':                  '#ffd700',
+    'ag-reports':               '#b88a08',
+
+    // Cyan — technology, time, learning, IT department
+    'attendance':               '#12d9e3',
+    'attendance-me':            '#7986cb',
+    'attendance-shifts':        '#7986cb',
+    'attendance-corrections':   '#7986cb',
+    'learning':                 '#12d9e3',
+    'learning-my':              '#7986cb',
+    'learning-skills':          '#7986cb',
+    'dept-it':                  '#12d9e3',
+    'tickets':                  '#7986cb',
+
+    // Magenta — people, HR, performance
+    'employees':                '#d912e3',
+    'recruitment':              '#d912e3',
+    'performance':              '#d912e3',
+    'performance-goals':        '#d912e3',
+    'performance-reviews':      '#d912e3',
+    'performance-contracts':    '#d912e3',
+    'performance-calibration':  '#d912e3',
+    'performance-pips':         '#d912e3',
+    'performance-9box':         '#d912e3',
+    'dept-hr':                  '#d912e3',
+
+    // Blue family — operational, financial, governance
+    'leave':                    '#7986cb',
+    'payroll':                  '#3949ab',
+    'loans':                    '#3949ab',
+    'offboarding':              '#7986cb',
+    'governance':               '#3949ab',
+    'assets':                   '#7986cb',
+    'dept-finance':             '#3949ab',
+    'dept-marketing':           '#7986cb',
+};
+const SIDEBAR_ICON_DEFAULT = '#7986cb';
+
+// Expandable group labels (no module slug) → palette colour
+const SIDEBAR_GROUP_COLORS = {
+    'Attendance':  '#12d9e3',   // cyan
+    'Performance': '#d912e3',   // magenta
+    'Learning':    '#12d9e3',   // cyan
+    'Reports':     '#ffd700',   // gold (flagship)
 };
 
-const activeDotClass = computed(() => isDark.value ? 'bg-blue-400' : 'bg-secondary');
+const iconColor = (item) =>
+    SIDEBAR_ICON_COLORS[item.module]
+    ?? SIDEBAR_GROUP_COLORS[item.label]
+    ?? SIDEBAR_ICON_DEFAULT;
+
+const navIconStyle = (item) => {
+    const c = iconColor(item);
+    const active = isItemActive(item);
+    return `color:${c};font-variation-settings:'FILL' ${active ? 1 : 0};` +
+           `${active ? `filter:drop-shadow(0 0 6px ${c}80);` : ''}`;
+};
+
+// Active sidebar dot — gold institutional accent (5% of UI palette)
+const activeDotClass = computed(() => 'bg-brand-gold shadow-[0_0_8px_rgba(255,215,0,0.65)]');
 
 const userSectionBorderStyle = computed(() => isDark.value
     ? { borderColor: 'rgba(255,255,255,0.06)' }
@@ -307,7 +441,7 @@ const userSectionBorderStyle = computed(() => isDark.value
 
 const userCardStyle = computed(() => isDark.value
     ? { background: 'rgba(255,255,255,0.04)' }
-    : { background: 'rgba(29,78,216,0.04)' }
+    : { background: 'rgba(26, 35, 126,0.04)' }
 );
 
 const avatarBorderStyle = computed(() => isDark.value
@@ -316,7 +450,7 @@ const avatarBorderStyle = computed(() => isDark.value
 );
 
 const onlineDotBorderStyle = computed(() => isDark.value
-    ? { borderColor: '#0a1f5c' }
+    ? { borderColor: '#0d1452' }
     : { borderColor: '#ffffff' }
 );
 
@@ -331,14 +465,14 @@ const logoutClass = computed(() => isDark.value
     : 'text-on-surface-variant/60 hover:text-red-600 hover:bg-red-500/[0.08] hover:border-red-500/20'
 );
 
-// ── App switcher (apps grid) — permission-gated, links to dedicated module pages ──
+// â”€â”€ App switcher (apps grid) â€” permission-gated, links to dedicated module pages â”€â”€
 const appSwitcherItems = computed(() => [
-    { label: 'Overview',    icon: 'grid_view',      href: route('dashboard'),                  module: 'overview',    color: '#0a1f5c', rgb: '29,78,216',   visible: true },
-    { label: 'Employees',   icon: 'badge',          href: route('employees.index'),            module: 'employees',   color: '#1d4ed8', rgb: '59,130,246', visible: can('employees.view') || can('employees.manage') },
+    { label: 'Overview',    icon: 'grid_view',      href: route('dashboard'),                  module: 'overview',    color: '#0d1452', rgb: '26, 35, 126',   visible: true },
+    { label: 'Employees',   icon: 'badge',          href: route('employees.index'),            module: 'employees',   color: '#1a237e', rgb: '57, 73, 171', visible: can('employees.view') || can('employees.manage') },
     { label: 'Leave',       icon: 'calendar_month', href: route('leave.index'),                module: 'leave',       color: '#d97706', rgb: '217,119,6',  visible: can('leave.request') },
     { label: 'Tickets',     icon: 'support_agent',  href: route('tickets.index'),              module: 'tickets',     color: '#dc2626', rgb: '220,38,38',  visible: can('tickets.create') },
     { label: 'Payroll',     icon: 'payments',       href: route('payments.index'),             module: 'payroll',     color: '#059669', rgb: '5,150,105',  visible: can('payroll.manage') || can('payroll.view') },
-    { label: 'Performance', icon: 'monitoring',     href: route('modules.performance'),        module: 'performance', color: '#7c3aed', rgb: '124,58,237', visible: can('performance.view') },
+    { label: 'Performance', icon: 'monitoring',     href: route('modules.performance'),        module: 'performance', color: '#1a237e', rgb: '124,58,237', visible: can('performance.view') },
     { label: 'Recruit',     icon: 'person_add',     href: route('jobs.index'),                 module: 'recruitment', color: '#0891b2', rgb: '8,145,178',  visible: can('recruitment.apply') || can('recruitment.manage') },
     { label: 'Reports',     icon: 'assessment',     href: route('reports.index'),              module: 'reports',     color: '#475569', rgb: '71,85,105',  visible: can('reports.view') },
     { label: 'Audit',       icon: 'history',        href: route('audit-logs.index'),           module: 'audit-logs',  color: '#7c2d12', rgb: '124,45,18',  visible: can('audit.view') },
@@ -348,7 +482,7 @@ const appSwitcherItems = computed(() => [
 const isAppActive = (item) => page.props.activeModule === item.module
     || (item.module === 'overview' && (!page.props.activeModule || page.props.activeModule === 'overview'));
 
-// ── Quick Actions — items that land on a page with a creation flow ──
+// â”€â”€ Quick Actions â€” items that land on a page with a creation flow â”€â”€
 // Each href appends `?new=1` so the target page can auto-open its create slide-panel.
 const quickActions = computed(() => [
     { label: 'Request leave',  icon: 'event_available', href: route('leave.index')      + '?new=1', visible: can('leave.request') },
@@ -363,7 +497,13 @@ const quickActions = computed(() => [
 <template>
     <div class="h-screen overflow-hidden bg-background font-sans text-on-surface">
 
-        <!-- ── Sidebar ─────────────────────────────────────── -->
+        <!-- WCAG 2.4.1 Bypass Blocks — first focusable element on every page. -->
+        <SkipLink />
+
+        <!-- WCAG 4.1.3 Status Messages — global polite + assertive live regions. -->
+        <AriaLiveAnnouncer />
+
+        <!-- â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <aside
             class="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col border-r lg:flex"
             :style="sidebarStyle"
@@ -374,7 +514,7 @@ const quickActions = computed(() => [
             <!-- Logo -->
             <div class="relative flex items-center gap-3 px-5 py-5 border-b" :style="logoBorderStyle">
                 <div class="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-glow-sm"
-                     style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)">
+                     style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                     <span class="material-symbols-outlined text-xl text-white" style="font-variation-settings:'FILL' 1">account_balance</span>
                 </div>
                 <div class="min-w-0">
@@ -389,7 +529,7 @@ const quickActions = computed(() => [
             </div>
 
             <!-- Nav -->
-            <nav class="sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-5">
+            <nav ref="sidebarNavRef" class="sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-5">
                 <div v-for="section in navSections" :key="section.title">
                     <div v-if="section.title"
                          class="mb-2 px-3 text-[9.5px] font-black uppercase tracking-[0.18em]"
@@ -399,16 +539,16 @@ const quickActions = computed(() => [
                     <div class="space-y-0.5">
                         <template v-for="item in section.items.filter(n => n.visible)" :key="item.label">
 
-                            <!-- ── Expandable group (Performance, Learning, Departments) ── -->
+                            <!-- â”€â”€ Expandable group (Performance, Learning, Departments) â”€â”€ -->
                             <template v-if="item.expandable">
                                 <button
                                     @click="toggleGroup(item.label)"
                                     class="w-full flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-150 border"
                                     :class="isGroupActive(item) ? (isDark ? 'text-white' : 'text-secondary') : (isDark ? 'text-white/40 hover:text-white/80 hover:bg-white/[0.05]' : 'text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-container-low')"
-                                    :style="isGroupActive(item) ? (isDark ? 'background:rgba(29,78,216,0.16);border-color:rgba(59,130,246,0.22);' : 'background:rgba(29,78,216,0.07);border-color:rgba(29,78,216,0.14);') : 'border-color:transparent;'"
+                                    :style="isGroupActive(item) ? (isDark ? 'background:rgba(26, 35, 126,0.16);border-color:rgba(59,130,246,0.22);' : 'background:rgba(26, 35, 126,0.07);border-color:rgba(26, 35, 126,0.14);') : 'border-color:transparent;'"
                                 >
                                     <span class="material-symbols-outlined flex-shrink-0 text-[19px] transition-all duration-150"
-                                          :style="isGroupActive(item) ? (isDark ? 'font-variation-settings:\'FILL\' 1;color:#5b9fd9;' : 'font-variation-settings:\'FILL\' 1;color:#0a1f5c;') : ''">{{ item.icon }}</span>
+                                          :style="navIconStyle(item) || `color:${iconColor(item)};opacity:0.85;`">{{ item.icon }}</span>
                                     <span class="tracking-[-0.01em] flex-1 text-left">{{ item.label }}</span>
                                     <span class="material-symbols-outlined text-[16px] flex-shrink-0 transition-transform duration-200"
                                           :style="`transform:rotate(${isGroupExpanded(item.label) ? 90 : 0}deg);opacity:0.5`">chevron_right</span>
@@ -423,7 +563,7 @@ const quickActions = computed(() => [
                                 >
                                     <div v-if="isGroupExpanded(item.label)"
                                          class="mt-1 ml-3 space-y-0.5 border-l pl-2.5"
-                                         :style="isDark ? 'border-color:rgba(255,255,255,0.08)' : 'border-color:rgba(29,78,216,0.14)'">
+                                         :style="isDark ? 'border-color:rgba(255,255,255,0.08)' : 'border-color:rgba(26, 35, 126,0.14)'">
                                         <Link
                                             v-for="child in item.children.filter(c => c.visible)"
                                             :key="child.label"
@@ -440,7 +580,7 @@ const quickActions = computed(() => [
                                 </Transition>
                             </template>
 
-                            <!-- ── Regular nav link ── -->
+                            <!-- â”€â”€ Regular nav link â”€â”€ -->
                             <Link
                                 v-else
                                 :href="resolveHref(item)"
@@ -464,9 +604,9 @@ const quickActions = computed(() => [
                 <div class="mb-2 flex items-center gap-3 rounded-[10px] px-3 py-2.5" :style="userCardStyle">
                     <div class="relative flex-shrink-0">
                         <div class="h-8 w-8 rounded-full overflow-hidden border" :style="avatarBorderStyle">
-                            <img v-if="user?.avatar" :src="user.avatar" class="h-full w-full object-cover" />
+                            <img v-if="user?.avatar" :src="user.avatar" :alt="`${user.name} profile photo`" class="h-full w-full object-cover" />
                             <div v-else class="h-full w-full flex items-center justify-center text-[11px] font-black text-white"
-                                 style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)">
+                                 style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                                 {{ user?.name?.charAt(0) }}
                             </div>
                         </div>
@@ -493,10 +633,10 @@ const quickActions = computed(() => [
             </div>
         </aside>
 
-        <!-- ── Main Content ──────────────────────────────────── -->
+        <!-- â”€â”€ Main Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div class="flex h-screen flex-col lg:ml-[248px]">
 
-            <!-- Announcement ticker — runs across the very top of the page -->
+            <!-- Announcement ticker â€” runs across the very top of the page -->
             <AnnouncementTicker />
 
             <!-- Header -->
@@ -517,16 +657,19 @@ const quickActions = computed(() => [
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50 pointer-events-none">search</span>
                         <input
                             type="text"
-                            placeholder="Search employees, IDs, departments…"
+                            placeholder="Search employees, IDs, departmentsâ€¦"
                             class="w-full rounded-full border border-outline-variant/60 bg-surface-container-low/60 dark:bg-surface-container-low/80 py-2.5 pl-11 pr-5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 transition-all duration-200 focus:outline-none focus:border-secondary/40 focus:ring-4 focus:ring-secondary/8 focus:bg-surface-container-lowest"
                         />
                     </div>
 
                     <div class="ml-auto flex items-center gap-1.5">
+                        <!-- Sound effects toggle -->
+                        <SoundToggle />
+
                         <!-- Notifications -->
                         <NotificationBell />
 
-                        <!-- ── Dark / Light toggle ── -->
+                        <!-- â”€â”€ Dark / Light toggle â”€â”€ -->
                         <button
                             @click="toggle"
                             class="theme-toggle text-on-surface-variant"
@@ -571,7 +714,7 @@ const quickActions = computed(() => [
                             <template #content>
                                 <div class="p-3 bg-surface-container-lowest dark:bg-surface-container-low">
                                     <p class="px-1 pb-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant/60">
-                                        Apps · {{ appSwitcherItems.length }}
+                                        Apps Â· {{ appSwitcherItems.length }}
                                     </p>
                                     <div class="grid grid-cols-3 gap-1.5">
                                         <Link
@@ -606,7 +749,7 @@ const quickActions = computed(() => [
                             <template #trigger>
                                 <button type="button"
                                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white shadow-glow-sm transition-all duration-200 hover:shadow-glow hover:-translate-y-px active:scale-[0.97]"
-                                        style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)"
+                                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                                         aria-label="Quick action menu">
                                     <span class="material-symbols-outlined text-[17px]">add</span>
                                     Quick Action
@@ -638,9 +781,9 @@ const quickActions = computed(() => [
 
                         <!-- Avatar -->
                         <div class="ml-1 h-9 w-9 flex-shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-surface-container-lowest shadow-sm ring-1 ring-outline-variant/40 transition-all hover:ring-secondary/50">
-                            <img v-if="user?.avatar" :src="user.avatar" class="h-full w-full object-cover" />
+                            <img v-if="user?.avatar" :src="user.avatar" :alt="`${user.name} profile photo`" class="h-full w-full object-cover" />
                             <div v-else class="flex h-full w-full items-center justify-center text-[11px] font-black text-white"
-                                 style="background:linear-gradient(135deg,#0a1f5c,#1d4ed8)">
+                                 style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                                 {{ user?.name?.charAt(0) }}
                             </div>
                         </div>
@@ -682,8 +825,13 @@ const quickActions = computed(() => [
                 <slot name="header" />
             </div>
 
-            <!-- Main (independently scrollable) -->
-            <main class="main-scroll flex-1 overflow-y-auto p-5 sm:p-7 lg:p-8">
+            <!-- Main (independently scrollable). tabindex="-1" + id makes
+                 SkipLink's anchor target focusable. -->
+            <main
+                id="main-content"
+                tabindex="-1"
+                class="main-scroll flex-1 overflow-y-auto p-5 sm:p-7 lg:p-8"
+            >
                 <slot />
             </main>
         </div>
