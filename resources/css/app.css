@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design Token CSS Variables ─────────────────────────
+/* â”€â”€â”€ Design Token CSS Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    RGB triplet format so Tailwind opacity modifiers work:
-   bg-background/80  →  rgb(var(--ct-background) / 0.8)
-─────────────────────────────────────────────────────────── */
+   bg-background/80  â†’  rgb(var(--ct-background) / 0.8)
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 :root {
     /* Surface */
     --ct-background:      244 246 249;   /* #f4f6f9 */
-    --ct-surface-lowest:  255 255 255;   /* #ffffff  – cards */
-    --ct-surface-low:     242 244 246;   /* #f2f4f6  – table heads, inputs */
-    --ct-surface:         236 238 240;   /* #eceef0  – hover */
+    --ct-surface-lowest:  255 255 255;   /* #ffffff  â€“ cards */
+    --ct-surface-low:     242 244 246;   /* #f2f4f6  â€“ table heads, inputs */
+    --ct-surface:         236 238 240;   /* #eceef0  â€“ hover */
     --ct-surface-high:    230 232 234;   /* #e6e8ea */
     --ct-surface-highest: 224 227 229;   /* #e0e3e5 */
 
@@ -32,13 +32,13 @@
     --ct-on-primary: 255 255 255;        /* #ffffff */
 }
 
-/* ── Dark mode token overrides ── */
+/* â”€â”€ Dark mode token overrides â”€â”€ */
 .dark {
     /* Surface */
     --ct-background:      15 17 23;      /* #0f1117 */
-    --ct-surface-lowest:  20 24 36;      /* #141824 – cards */
-    --ct-surface-low:     28 32 48;      /* #1c2030 – table heads, inputs */
-    --ct-surface:         34 38 56;      /* #222638 – hover */
+    --ct-surface-lowest:  20 24 36;      /* #141824 â€“ cards */
+    --ct-surface-low:     28 32 48;      /* #1c2030 â€“ table heads, inputs */
+    --ct-surface:         34 38 56;      /* #222638 â€“ hover */
     --ct-surface-high:    40 44 62;      /* #282c3e */
     --ct-surface-highest: 46 50 68;      /* #2e3244 */
 
@@ -54,18 +54,454 @@
     --ct-inverse-surface:    226 229 235;  /* #e2e5eb */
     --ct-inverse-on-surface: 28 32 48;     /* #1c2030 */
 
-    /* Primary (heading text → near-white in dark) */
+    /* Primary (heading text â†’ near-white in dark) */
     --ct-primary:    226 229 235;          /* #e2e5eb */
     --ct-on-primary: 15 17 23;             /* #0f1117 */
 }
 
-/* ─── Base Resets & Global ────────────────────────────── */
+/* â”€â”€â”€ Base Resets & Global â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ────────────────────────────────────────────────────────────────────
+   WCAG 2.1 AA accessibility layer (WS22)
+   Lives OUTSIDE @layer base so the rules are not overridden by Tailwind
+   utilities; the auditor relies on them being load-bearing.
+──────────────────────────────────────────────────────────────────── */
+
+/* Screen-reader-only — hide visually but keep the text in the
+   accessibility tree. Used for icon-only buttons, status badges,
+   and visually-redundant landmarks. */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0,0,0,0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+/* Variant that becomes visible when focused (skip link pattern). */
+.sr-only.focus\:not-sr-only:focus,
+.sr-only-focusable:focus,
+.sr-only:focus-visible {
+    position: fixed !important;
+    top: 1rem !important; left: 1rem !important;
+    width: auto !important; height: auto !important;
+    padding: 0.6rem 1rem !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal !important;
+    background: #0d1452 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    z-index: 99999 !important;
+    box-shadow: 0 8px 24px rgba(10,31,92,0.30) !important;
+}
+
+/* High-contrast focus ring for keyboard users — 3:1 minimum vs background.
+   Only renders for keyboard focus (`:focus-visible`), so mouse clicks
+   don't get the ring; matches the modern Chrome/Firefox/Safari default. */
+:focus-visible {
+    outline: 2px solid #1a237e !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+}
+/* Buttons and links inside the brand-navy sidebar need a lighter ring
+   so it has 3:1 contrast against the dark surface. */
+.sidebar :focus-visible,
+[data-on-dark] :focus-visible {
+    outline-color: #ffffff !important;
+}
+
+/* Respect prefers-reduced-motion — gut every animation but keep transitions
+   short enough to still feel responsive. WCAG 2.3.3 (Animation from
+   Interactions) and 2.1 AA general guidance. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration:   0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration:  0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* High-contrast mode — opt-in via `data-theme="high-contrast"` on <html>.
+   Bumps every brand colour to maximum-contrast equivalents that satisfy
+   WCAG AAA 7:1 ratios. */
+html[data-theme="high-contrast"] {
+    --ct-on-surface:          0 0 0;
+    --ct-on-surface-variant:  0 0 0;
+    --ct-outline-variant:    51 51 51;
+    --ct-surface-lowest:     255 255 255;
+    --ct-surface-low:        245 245 245;
+}
+html[data-theme="high-contrast"].dark {
+    --ct-on-surface:         255 255 255;
+    --ct-on-surface-variant: 230 230 230;
+    --ct-outline-variant:    180 180 180;
+    --ct-surface-lowest:     0 0 0;
+    --ct-surface-low:        20 20 20;
+}
+
 @layer base {
+    /* ── CIHRM Ghana institutional type scale ─────────────────
+       Single canonical font (Open Sans) applied app-wide, with a
+       consistent sizing hierarchy. Override only when needed.   */
     html {
         scroll-behavior: smooth;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        font-family: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+    body {
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        color: rgb(var(--ct-on-surface));
+    }
+
+    /* Heading scale — typography only; color INHERITS so dark cards
+       (with their own white text-color) don't get clobbered by a
+       hardcoded near-black --ct-primary in light mode. The .typo-h*
+       opt-in classes still pin a default primary color for callers
+       that want it. */
+    h1 { font-family:'Open Sans',sans-serif; font-size:34px; line-height:1.15; font-weight:800; letter-spacing:-0.022em; color:inherit; }
+    h2 { font-family:'Open Sans',sans-serif; font-size:28px; line-height:1.2;  font-weight:800; letter-spacing:-0.02em;  color:inherit; }
+    h3 { font-family:'Open Sans',sans-serif; font-size:22px; line-height:1.25; font-weight:700; letter-spacing:-0.015em; color:inherit; }
+    h4 { font-family:'Open Sans',sans-serif; font-size:18px; line-height:1.3;  font-weight:700; letter-spacing:-0.01em;  color:inherit; }
+    h5 { font-family:'Open Sans',sans-serif; font-size:15px; line-height:1.3;  font-weight:700; letter-spacing:-0.01em;  color:inherit; }
+    h6 { font-family:'Open Sans',sans-serif; font-size:13px; line-height:1.3;  font-weight:700; letter-spacing:-0.005em; color:inherit; }
+    .typo-h1 { font-family:'Open Sans',sans-serif; font-size:34px; line-height:1.15; font-weight:800; letter-spacing:-0.022em; color:rgb(var(--ct-primary)); }
+    .typo-h2 { font-family:'Open Sans',sans-serif; font-size:28px; line-height:1.2;  font-weight:800; letter-spacing:-0.02em;  color:rgb(var(--ct-primary)); }
+    .typo-h3 { font-family:'Open Sans',sans-serif; font-size:22px; line-height:1.25; font-weight:700; letter-spacing:-0.015em; color:rgb(var(--ct-primary)); }
+    .typo-h4 { font-family:'Open Sans',sans-serif; font-size:18px; line-height:1.3;  font-weight:700; letter-spacing:-0.01em;  color:rgb(var(--ct-on-surface)); }
+    .typo-h5 { font-family:'Open Sans',sans-serif; font-size:15px; line-height:1.3;  font-weight:700; letter-spacing:-0.01em;  color:rgb(var(--ct-on-surface)); }
+    .typo-h6 { font-family:'Open Sans',sans-serif; font-size:13px; line-height:1.3;  font-weight:700; letter-spacing:-0.005em; color:rgb(var(--ct-on-surface)); }
+
+    /* Body paragraphs also inherit color; .typo-* classes pin to defaults. */
+    p { color:inherit; }
+    .typo-lead    { font-size:16px; line-height:1.55; font-weight:400; color:rgb(var(--ct-on-surface-variant)); letter-spacing:-0.005em; }
+    .typo-body    { font-size:14px; line-height:1.55; font-weight:400; color:rgb(var(--ct-on-surface)); }
+    .typo-caption { font-size:12px; line-height:1.45; font-weight:500; color:rgb(var(--ct-on-surface-variant)); }
+    .typo-tiny    { font-size:11px; line-height:1.35; font-weight:600; letter-spacing:0.02em; }
+    .typo-eyebrow { font-family:'Open Sans',sans-serif; font-size:10px; font-weight:800; line-height:1.25; text-transform:uppercase; letter-spacing:0.12em; color:rgb(var(--ct-on-surface-variant)); }
+
+    /* ── Dark-card text-color guard ──────────────────────────
+       Any element that opts in via .text-white (Tailwind utility) or
+       data-on-dark cascades a white text family to all descendants.
+       Belt-and-braces fix for elements that explicitly set text-primary
+       inside a dark hero card — they'd otherwise render near-black on
+       a near-black gradient in light mode. */
+    .text-white .text-primary,
+    [data-on-dark] .text-primary {
+        color: #ffffff !important;
+    }
+    .text-white .text-on-surface,
+    [data-on-dark] .text-on-surface {
+        color: rgba(255,255,255,0.92) !important;
+    }
+    .text-white .text-on-surface-variant,
+    [data-on-dark] .text-on-surface-variant {
+        color: rgba(255,255,255,0.55) !important;
+    }
+
+    /* Tabular numerics — KPI values, tables, ledgers */
+    .tabular-nums, table, .tabular { font-feature-settings:'tnum' 1, 'lnum' 1; }
+
+    /* Form controls inherit typography from body */
+    input, textarea, select, button { font-family:inherit; font-size:inherit; letter-spacing:inherit; }
+
+    /* ── Card icon role palette ────────────────────────────
+       Drop these on a `material-symbols-outlined` span (or its
+       container) to get institutionally-consistent tints across
+       every card icon in the app.
+
+       5% gold reserved for flagship/featured items only.
+    ─────────────────────────────────────────────────────────── */
+    .icon-tile {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        flex-shrink: 0;
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s ease, box-shadow 0.2s ease;
+    }
+    .icon-tile > .material-symbols-outlined { font-variation-settings: 'FILL' 1; font-size: 20px; line-height: 1; }
+    .group:hover .icon-tile,
+    .card-lift:hover .icon-tile { transform: scale(1.08) rotate(-2deg); }
+
+    /* Brand-blue family — operational, the default for most cards */
+    .icon-brand   { background: rgba(26, 35, 126, 0.10);  color: #1a237e; }
+    .icon-navy    { background: rgba(13, 20, 82, 0.10);   color: #0d1452; }
+    .icon-blue    { background: rgba(26, 35, 126, 0.10);  color: #1a237e; }
+    .icon-sky     { background: rgba(121, 134, 203, 0.18);color: #1a237e; }
+
+    /* Cyan — tech, time, learning */
+    .icon-cyan    { background: rgba(18, 217, 227, 0.14); color: #0e8a93; }
+
+    /* Magenta — people, HR, performance */
+    .icon-magenta { background: rgba(217, 18, 227, 0.10); color: #d912e3; }
+
+    /* Gold — flagship 5% accent */
+    .icon-gold    { background: rgba(255, 215, 0, 0.16);  color: #b88a08; }
+
+    /* Semantic — keep for status meanings */
+    .icon-success { background: rgba(5, 150, 105, 0.12);  color: #059669; }
+    .icon-warning { background: rgba(217, 119, 6, 0.12);  color: #d97706; }
+    .icon-danger  { background: rgba(220, 38, 38, 0.12);  color: #dc2626; }
+
+    /* Dark mode — lift bg opacity so tints still register */
+    .dark .icon-brand   { background: rgba(57, 73, 171, 0.20); color: #7986cb; }
+    .dark .icon-navy    { background: rgba(121, 134, 203, 0.16); color: #7986cb; }
+    .dark .icon-blue    { background: rgba(57, 73, 171, 0.20); color: #7986cb; }
+    .dark .icon-sky     { background: rgba(121, 134, 203, 0.18); color: #7986cb; }
+    .dark .icon-cyan    { background: rgba(18, 217, 227, 0.18); color: #12d9e3; }
+    .dark .icon-magenta { background: rgba(217, 18, 227, 0.18); color: #d912e3; }
+    .dark .icon-gold    { background: rgba(255, 215, 0, 0.20);  color: #ffd700; }
+    .dark .icon-success { background: rgba(5, 150, 105, 0.18);  color: #34d399; }
+    .dark .icon-warning { background: rgba(217, 119, 6, 0.18);  color: #fbbf24; }
+    .dark .icon-danger  { background: rgba(220, 38, 38, 0.18);  color: #f87171; }
+
+    /* ── Icon hover animations ────────────────────────────────────
+       Inspired by flaticon.com/animated-icons. Every material-symbol
+       icon in the app gets a baseline transition; interactive parents
+       (button, link, .group, .card-lift, .icon-tile) trigger movement
+       on hover. Palette tiles also each have a small personality
+       (cyan = wiggle, magenta = swing, gold = pulse, etc.).
+       All effects honour `prefers-reduced-motion`.
+    ─────────────────────────────────────────────────────────────── */
+
+    /* Baseline — every icon transitions smoothly. */
+    .material-symbols-outlined {
+        transition:
+            transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+            font-variation-settings 0.28s ease,
+            color 0.18s ease,
+            opacity 0.18s ease;
+        will-change: transform;
+        transform-origin: center;
+        display: inline-block;
+    }
+
+    /* Generic hover lift from any interactive parent — subtle scale +
+       FILL morph (icons "fill in" on hover, à la Material guidelines). */
+    button:hover                 > .material-symbols-outlined,
+    button:hover                   .material-symbols-outlined,
+    a:hover                      > .material-symbols-outlined,
+    a:hover                        .material-symbols-outlined,
+    [role="button"]:hover        > .material-symbols-outlined,
+    [role="button"]:hover          .material-symbols-outlined,
+    label:hover                  > .material-symbols-outlined,
+    .group:hover                   .material-symbols-outlined,
+    .card-lift:hover               .material-symbols-outlined,
+    summary:hover                  .material-symbols-outlined {
+        transform: scale(1.12);
+        font-variation-settings: 'FILL' 1;
+    }
+
+    /* Direct hover on the icon itself */
+    .material-symbols-outlined:hover {
+        transform: scale(1.14);
+        font-variation-settings: 'FILL' 1;
+    }
+
+    /* ── Named animation utilities — opt-in via class ───────────── */
+
+    .icon-anim-bounce:hover,
+    *:hover > .icon-anim-bounce,
+    .group:hover .icon-anim-bounce,
+    .card-lift:hover .icon-anim-bounce { animation: iconBounce 0.6s cubic-bezier(0.36, 0, 0.66, -0.56); }
+
+    .icon-anim-wiggle:hover,
+    *:hover > .icon-anim-wiggle,
+    .group:hover .icon-anim-wiggle,
+    .card-lift:hover .icon-anim-wiggle { animation: iconWiggle 0.6s ease-in-out; }
+
+    .icon-anim-spin:hover,
+    *:hover > .icon-anim-spin,
+    .group:hover .icon-anim-spin,
+    .card-lift:hover .icon-anim-spin { animation: iconSpin 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    .icon-anim-swing:hover,
+    *:hover > .icon-anim-swing,
+    .group:hover .icon-anim-swing,
+    .card-lift:hover .icon-anim-swing { animation: iconSwing 0.75s ease-in-out; transform-origin: top center; }
+
+    .icon-anim-pulse:hover,
+    *:hover > .icon-anim-pulse,
+    .group:hover .icon-anim-pulse,
+    .card-lift:hover .icon-anim-pulse { animation: iconPulse 0.9s ease-in-out infinite; }
+
+    .icon-anim-pop:hover,
+    *:hover > .icon-anim-pop,
+    .group:hover .icon-anim-pop,
+    .card-lift:hover .icon-anim-pop { animation: iconPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    .icon-anim-shake:hover,
+    *:hover > .icon-anim-shake,
+    .group:hover .icon-anim-shake,
+    .card-lift:hover .icon-anim-shake { animation: iconShake 0.5s ease-in-out; }
+
+    .icon-anim-tada:hover,
+    *:hover > .icon-anim-tada,
+    .group:hover .icon-anim-tada,
+    .card-lift:hover .icon-anim-tada { animation: iconTada 0.9s ease-in-out; }
+
+    .icon-anim-rubber:hover,
+    *:hover > .icon-anim-rubber,
+    .group:hover .icon-anim-rubber,
+    .card-lift:hover .icon-anim-rubber { animation: iconRubber 0.8s ease-out; }
+
+    .icon-anim-bob:hover,
+    *:hover > .icon-anim-bob,
+    .group:hover .icon-anim-bob,
+    .card-lift:hover .icon-anim-bob { animation: iconBob 0.7s ease-in-out infinite; }
+
+    .icon-anim-fill:hover,
+    *:hover > .icon-anim-fill,
+    .group:hover .icon-anim-fill,
+    .card-lift:hover .icon-anim-fill { font-variation-settings: 'FILL' 1, 'wght' 600; transform: scale(1.08); }
+
+    /* ── Palette-tile personality mappings ──────────────────────────
+       Each icon-tile family gets its own subtle hover behaviour so
+       the app feels alive without being noisy. Triggered when the
+       enclosing card/group/tile is hovered. */
+
+    /* Brand-blue / navy — operational, restrained: scale + tilt */
+    .group:hover .icon-brand > .material-symbols-outlined,
+    .group:hover .icon-navy  > .material-symbols-outlined,
+    .group:hover .icon-blue  > .material-symbols-outlined,
+    .group:hover .icon-sky   > .material-symbols-outlined,
+    .card-lift:hover .icon-brand > .material-symbols-outlined,
+    .card-lift:hover .icon-navy  > .material-symbols-outlined,
+    .card-lift:hover .icon-blue  > .material-symbols-outlined,
+    .card-lift:hover .icon-sky   > .material-symbols-outlined {
+        animation: iconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Cyan — techy, time-based: wiggle */
+    .group:hover .icon-cyan > .material-symbols-outlined,
+    .card-lift:hover .icon-cyan > .material-symbols-outlined {
+        animation: iconWiggle 0.6s ease-in-out;
+    }
+
+    /* Magenta — people, HR: friendly swing */
+    .group:hover .icon-magenta > .material-symbols-outlined,
+    .card-lift:hover .icon-magenta > .material-symbols-outlined {
+        animation: iconSwing 0.7s ease-in-out;
+        transform-origin: top center;
+    }
+
+    /* Gold — flagship 5%: premium pulse */
+    .group:hover .icon-gold > .material-symbols-outlined,
+    .card-lift:hover .icon-gold > .material-symbols-outlined {
+        animation: iconTada 0.9s ease-in-out;
+    }
+
+    /* Success — confirmation pop */
+    .group:hover .icon-success > .material-symbols-outlined,
+    .card-lift:hover .icon-success > .material-symbols-outlined {
+        animation: iconBounce 0.6s cubic-bezier(0.36, 0, 0.66, -0.56);
+    }
+
+    /* Warning — attention shake */
+    .group:hover .icon-warning > .material-symbols-outlined,
+    .card-lift:hover .icon-warning > .material-symbols-outlined {
+        animation: iconShake 0.5s ease-in-out;
+    }
+
+    /* Danger — urgent shake */
+    .group:hover .icon-danger > .material-symbols-outlined,
+    .card-lift:hover .icon-danger > .material-symbols-outlined {
+        animation: iconShake 0.45s ease-in-out;
+    }
+
+    /* ── Keyframes ──────────────────────────────────────────────── */
+    @keyframes iconBounce {
+        0%, 100% { transform: translateY(0) scale(1); }
+        25%      { transform: translateY(-4px) scale(1.08); }
+        50%      { transform: translateY(0) scale(1.04); }
+        75%      { transform: translateY(-2px) scale(1.06); }
+    }
+    @keyframes iconWiggle {
+        0%, 100% { transform: rotate(0); }
+        15%      { transform: rotate(-12deg); }
+        30%      { transform: rotate(10deg); }
+        45%      { transform: rotate(-8deg); }
+        60%      { transform: rotate(6deg); }
+        75%      { transform: rotate(-3deg); }
+    }
+    @keyframes iconSpin {
+        from { transform: rotate(0deg) scale(1); }
+        to   { transform: rotate(360deg) scale(1.08); }
+    }
+    @keyframes iconSwing {
+        0%, 100% { transform: rotate(0); }
+        20%      { transform: rotate(15deg); }
+        40%      { transform: rotate(-10deg); }
+        60%      { transform: rotate(7deg); }
+        80%      { transform: rotate(-4deg); }
+    }
+    @keyframes iconPulse {
+        0%, 100% { transform: scale(1);    opacity: 1;   }
+        50%      { transform: scale(1.18); opacity: 0.85; }
+    }
+    @keyframes iconPop {
+        0%   { transform: scale(1)    rotate(0); }
+        50%  { transform: scale(1.22) rotate(-6deg); }
+        100% { transform: scale(1.08) rotate(0); }
+    }
+    @keyframes iconShake {
+        0%, 100% { transform: translateX(0); }
+        15%      { transform: translateX(-4px); }
+        30%      { transform: translateX(4px); }
+        45%      { transform: translateX(-3px); }
+        60%      { transform: translateX(3px); }
+        75%      { transform: translateX(-1px); }
+    }
+    @keyframes iconTada {
+        0%, 100% { transform: scale(1) rotate(0); }
+        10%, 20% { transform: scale(0.92) rotate(-4deg); }
+        30%, 50%, 70%, 90% { transform: scale(1.15) rotate(4deg); }
+        40%, 60%, 80%      { transform: scale(1.15) rotate(-4deg); }
+    }
+    @keyframes iconRubber {
+        0%   { transform: scale(1); }
+        30%  { transform: scaleX(1.25) scaleY(0.78); }
+        40%  { transform: scaleX(0.78) scaleY(1.25); }
+        50%  { transform: scaleX(1.15) scaleY(0.88); }
+        65%  { transform: scaleX(0.95) scaleY(1.05); }
+        75%  { transform: scaleX(1.05) scaleY(0.96); }
+        100% { transform: scale(1); }
+    }
+    @keyframes iconBob {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-4px); }
+    }
+
+    /* Respect users who opt out of motion. */
+    @media (prefers-reduced-motion: reduce) {
+        .material-symbols-outlined,
+        .icon-tile,
+        button:hover .material-symbols-outlined,
+        a:hover .material-symbols-outlined,
+        .group:hover .material-symbols-outlined,
+        .card-lift:hover .material-symbols-outlined,
+        .group:hover .icon-tile,
+        .card-lift:hover .icon-tile {
+            animation: none !important;
+            transform: none !important;
+            transition: color 0.15s ease, font-variation-settings 0.15s ease !important;
+        }
     }
 
     /* Smooth theme transitions */
@@ -82,36 +518,36 @@
     }
 
     ::selection {
-        background-color: rgba(32, 82, 149, 0.15);
-        color: #0a2647;
+        background-color: rgba(26, 35, 126, 0.15);
+        color: #0d1452;
     }
     .dark ::selection {
-        background-color: rgba(44, 116, 179, 0.32);
-        color: #cfe3f9;
+        background-color: rgba(57, 73, 171, 0.32);
+        color: #c5cae9;
     }
 
     /* Custom scrollbar */
     ::-webkit-scrollbar        { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track  { background: transparent; }
     ::-webkit-scrollbar-thumb  { background: #c6c6cd; border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: #205295; }
+    ::-webkit-scrollbar-thumb:hover { background: #1a237e; }
     .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
-    /* Sidebar scrollbar – light mode */
+    /* Sidebar scrollbar â€“ light mode */
     .sidebar-scroll::-webkit-scrollbar       { width: 3px; }
     .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
-    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(32,82,149,0.3); }
-    /* Sidebar scrollbar – dark mode */
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(26, 35, 126,0.3); }
+    /* Sidebar scrollbar â€“ dark mode */
     .dark .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
     .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 }
 
-/* ─── Component Utilities ─────────────────────────────── */
+/* â”€â”€â”€ Component Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @layer components {
 
-    /* Gradient text — deep navy → action blue → bright blue */
+    /* Gradient text â€” deep navy â†’ action blue â†’ bright blue */
     .text-gradient {
-        background: linear-gradient(135deg, #0a2647 0%, #205295 55%, #2c74b3 100%);
+        background: linear-gradient(135deg, #0d1452 0%, #1a237e 55%, #3949ab 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -122,9 +558,9 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    /* Reserved high-energy accent gradient — use sparingly for one-off marks */
+    /* Reserved high-energy accent gradient â€” use sparingly for one-off marks */
     .text-gradient-spark {
-        background: linear-gradient(135deg, #12d9e3 0%, #205295 50%, #d912e3 100%);
+        background: linear-gradient(135deg, #12d9e3 0%, #1a237e 50%, #d912e3 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -227,12 +663,12 @@
         white-space: nowrap;
     }
     .sidebar-item:hover  { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.06); }
-    .sidebar-item.active { color: #ffffff; background: rgba(32,82,149,0.28); border: 1px solid rgba(44,116,179,0.35); box-shadow: 0 0 20px rgba(32,82,149,0.18); }
-    .sidebar-item.active .sidebar-icon { color: #7cb6e8; }
+    .sidebar-item.active { color: #ffffff; background: rgba(26, 35, 126,0.28); border: 1px solid rgba(57, 73, 171,0.35); box-shadow: 0 0 20px rgba(26, 35, 126,0.18); }
+    .sidebar-item.active .sidebar-icon { color: #7986cb; }
 
     /* Input focus ring */
     .input-focus { transition: all 0.2s ease; outline: none; }
-    .input-focus:focus { border-color: #205295; box-shadow: 0 0 0 3px rgba(32, 82, 149, 0.14); }
+    .input-focus:focus { border-color: #1a237e; box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.14); }
 
     /* Badge pill */
     .badge {
@@ -254,7 +690,7 @@
     .gradient-border::before {
         content: '';
         position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-        background: linear-gradient(135deg, rgba(32,82,149,0.45), transparent, rgba(44,116,179,0.22));
+        background: linear-gradient(135deg, rgba(26, 35, 126,0.45), transparent, rgba(57, 73, 171,0.22));
         -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
@@ -275,9 +711,9 @@
     }
 }
 
-/* ─── Dark mode: Colored surface overrides ───────────────
+/* â”€â”€â”€ Dark mode: Colored surface overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    These win over Tailwind utilities via specificity (.dark .*)
-─────────────────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .dark .bg-red-50    { background-color: rgba(127,29,29,0.25) !important; }
 .dark .bg-green-50  { background-color: rgba(20,83,45,0.25)  !important; }
 .dark .bg-blue-50   { background-color: rgba(23,37,84,0.25)  !important; }
@@ -293,7 +729,7 @@
 .dark .border-blue-100  { border-color: rgba(23,37,84,0.4)   !important; }
 .dark .border-amber-100 { border-color: rgba(120,53,15,0.4)  !important; }
 
-/* ─── Utility Overrides ───────────────────────────────── */
+/* â”€â”€â”€ Utility Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @layer utilities {
     /* Animation delays */
     .delay-75   { animation-delay: 75ms; }
@@ -311,21 +747,21 @@
     .opacity-initial { opacity: 0; }
 
     /* Gradient backgrounds */
-    .bg-gradient-cobalt  { background: linear-gradient(135deg, #0a2647 0%, #205295 60%, #2c74b3 100%); }
-    .bg-gradient-dark    { background: linear-gradient(135deg, #06192f 0%, #0a2647 60%, #102f4f 100%); }
+    .bg-gradient-cobalt  { background: linear-gradient(135deg, #0d1452 0%, #1a237e 60%, #3949ab 100%); }
+    .bg-gradient-dark    { background: linear-gradient(135deg, #1a237e 0%, #283593 55%, #3949ab 100%); }
     .bg-gradient-mesh {
         background:
-            radial-gradient(at 20% 30%, rgba(32,82,149,0.16) 0px, transparent 50%),
-            radial-gradient(at 80% 60%, rgba(44,116,179,0.12) 0px, transparent 50%),
-            radial-gradient(at 50% 80%, rgba(10,38,71,0.10) 0px, transparent 55%);
+            radial-gradient(at 20% 30%, rgba(26, 35, 126,0.16) 0px, transparent 50%),
+            radial-gradient(at 80% 60%, rgba(57, 73, 171,0.12) 0px, transparent 50%),
+            radial-gradient(at 50% 80%, rgba(13, 20, 82,0.10) 0px, transparent 55%);
     }
     /* Reserved blue-on-blue mesh for atmospheric panels (login left, etc.) */
     .bg-gradient-deep-mesh {
         background:
-            radial-gradient(at 15% 20%, rgba(44,116,179,0.32) 0px, transparent 55%),
+            radial-gradient(at 15% 20%, rgba(57, 73, 171,0.32) 0px, transparent 55%),
             radial-gradient(at 85% 75%, rgba(18,217,227,0.07) 0px, transparent 50%),
             radial-gradient(at 60% 110%, rgba(217,18,227,0.05) 0px, transparent 55%),
-            linear-gradient(180deg, #0a2647 0%, #06192f 100%);
+            linear-gradient(180deg, #0d1452 0%, #070b3a 100%);
     }
 
     /* Smooth underline link */
@@ -340,14 +776,53 @@
     .link-underline:hover::after { width: 100%; }
 
     /* Inset ring variant */
-    .ring-inset-secondary { box-shadow: inset 0 0 0 1.5px rgba(32,82,149,0.5); }
+    .ring-inset-secondary { box-shadow: inset 0 0 0 1.5px rgba(26, 35, 126,0.5); }
 }
 
-/* ────────────────────────────────────────────────────────────────────
-   CIHRMS · auth form treatment (shared by Login + Register)
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   CIHRMS Â· auth form treatment (shared by Login + Register)
    Blue-dominant. Gold reserved as a 5% accent (folio number + a
    single hairline). Cyan/magenta appear only as caret/error sparks.
-──────────────────────────────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+/* â”€â”€ SSO sign-in stack (Phase 4 / WS19) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.sso-stack {
+    display: flex; flex-direction: column; gap: 0.6rem;
+    margin: 0 0 1.8rem;
+}
+.sso-btn {
+    display: inline-flex; align-items: center; gap: 0.7rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border: 1px solid rgba(10,31,92,0.16);
+    border-radius: 8px;
+    color: #0d1452;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.12s ease;
+}
+.sso-btn:hover {
+    border-color: rgba(10,31,92,0.32);
+    background: rgba(10,31,92,0.03);
+    transform: translateY(-0.5px);
+}
+.sso-btn-icon { font-size: 18px; color: #1a237e; }
+.sso-divider {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 0.5rem 0 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(10,31,92,0.45);
+}
+.sso-divider::before, .sso-divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(10,31,92,0.12);
+}
 
 .auth-folio {
     display: flex; align-items: center; gap: 0.85rem;
@@ -357,28 +832,28 @@
     text-transform: uppercase; letter-spacing: 0.16em;
     color: #5a6b80;
 }
-.auth-folio-num   { color: #b88a08; font-weight: 700; }  /* gold — 5% accent */
-.auth-folio-rule  { flex: 1; height: 1px; background: rgba(10,38,71,0.16); }
-.auth-folio-label { color: #0a2647; }
+.auth-folio-num   { color: #b88a08; font-weight: 700; }  /* gold â€” 5% accent */
+.auth-folio-rule  { flex: 1; height: 1px; background: rgba(13, 20, 82,0.16); }
+.auth-folio-label { color: #0d1452; }
 
 .auth-title {
-    font-family: 'Fraunces', serif;
-    font-variation-settings: 'opsz' 144, 'SOFT' 20;
+    font-family: 'Open Sans', sans-serif;
+    
     font-weight: 400;
     font-size: clamp(2.2rem, 4vw, 2.9rem);
     line-height: 1.02;
     letter-spacing: -0.028em;
-    color: #0a2647;
+    color: #0d1452;
     margin: 0 0 0.6rem;
 }
 .auth-title em {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'SOFT' 40, 'WONK' 1;
-    color: #205295;
-    font-weight: 420;
+    
+    color: #1a237e;
+    font-weight: 500;
 }
 .auth-deck {
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 13.5px;
     line-height: 1.55;
     color: #5a6b80;
@@ -390,9 +865,9 @@
     display: inline-flex; align-items: center; gap: 0.55rem;
     margin: 0 0 1.4rem;
     padding: 0.5rem 0.85rem;
-    background: rgba(32,82,149,0.08);
-    border: 1px solid rgba(32,82,149,0.22);
-    color: #0a2647;
+    background: rgba(26, 35, 126,0.08);
+    border: 1px solid rgba(26, 35, 126,0.22);
+    color: #0d1452;
     border-radius: 4px;
     font-size: 12.5px;
     font-weight: 500;
@@ -406,14 +881,14 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.14em;
-    color: #0a2647;
+    color: #0d1452;
 }
 .field-hint {
     text-transform: none;
     letter-spacing: 0.02em;
     font-style: italic;
-    font-family: 'Fraunces', serif;
-    font-weight: 380;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
     font-size: 11.5px;
     color: #6585a8;
 }
@@ -423,32 +898,32 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1.5px solid rgba(10,38,71,0.28);
+    border-bottom: 1.5px solid rgba(13, 20, 82,0.28);
     border-radius: 0;
     padding: 0.7rem 0 0.5rem;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 16.5px;
     font-weight: 400;
-    color: #0a2647;
-    caret-color: #205295;
+    color: #0d1452;
+    caret-color: #1a237e;
     transition: border-color 0.25s ease, padding-left 0.25s ease;
     outline: none;
 }
 .field-input::placeholder {
-    color: rgba(10,38,71,0.30);
+    color: rgba(13, 20, 82,0.30);
     font-style: italic;
-    font-family: 'Fraunces', serif;
-    font-weight: 380;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
     font-size: 15.5px;
 }
-.field-input:focus       { border-bottom-color: #205295; }
-.field-input:focus::placeholder { color: rgba(10,38,71,0.18); }
+.field-input:focus       { border-bottom-color: #1a237e; }
+.field-input:focus::placeholder { color: rgba(13, 20, 82,0.18); }
 
 .field-mono-wrap   { position: relative; display: flex; align-items: center; }
 .field-mono-prefix {
     font-family: 'JetBrains Mono', monospace;
     font-size: 18px;
-    color: #205295;
+    color: #1a237e;
     margin-right: 8px;
     font-weight: 500;
     user-select: none;
@@ -472,7 +947,7 @@
     font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #d912e3;     /* magenta spark — reserved error signal */
+    color: #d912e3;     /* magenta spark â€” reserved error signal */
 }
 
 .field-row {
@@ -486,7 +961,7 @@
 .check input { position: absolute; opacity: 0; pointer-events: none; }
 .check-box {
     width: 16px; height: 16px;
-    border: 1.5px solid rgba(10,38,71,0.32);
+    border: 1.5px solid rgba(13, 20, 82,0.32);
     border-radius: 3px;
     display: grid; place-items: center;
     background: transparent;
@@ -495,20 +970,20 @@
 }
 .check-box svg { opacity: 0; transition: opacity 0.15s ease; }
 .check input:checked + .check-box {
-    background: #205295;
-    border-color: #205295;
+    background: #1a237e;
+    border-color: #1a237e;
 }
 .check input:checked + .check-box svg { opacity: 1; }
 .check input:focus-visible + .check-box {
-    box-shadow: 0 0 0 3px rgba(32,82,149,0.28);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126,0.28);
 }
 .check-label {
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 12.5px; font-weight: 500; color: #5a6b80;
 }
 
 .recover-link {
-    font-family: 'Fraunces', serif;
+    font-family: 'Open Sans', sans-serif;
     font-style: italic;
     font-size: 13px;
     font-weight: 400;
@@ -517,14 +992,14 @@
     border-bottom: 1px solid rgba(90,107,128,0.4);
     transition: color 0.18s ease, border-color 0.18s ease;
 }
-.recover-link:hover { color: #205295; border-bottom-color: #205295; }
+.recover-link:hover { color: #1a237e; border-bottom-color: #1a237e; }
 
 .auth-submit {
     position: relative;
     margin-top: 0.6rem;
     width: 100%;
     padding: 1.05rem 1.5rem;
-    background: #0a2647;
+    background: #0d1452;
     color: #ffffff;
     border: none;
     border-radius: 3px;
@@ -537,17 +1012,17 @@
     overflow: hidden;
     display: flex; align-items: center; justify-content: center; gap: 0.7rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.25s ease;
-    box-shadow: 0 1px 0 rgba(10,38,71,1), 0 12px 28px -8px rgba(10,38,71,0.45);
+    box-shadow: 0 1px 0 rgba(13, 20, 82,1), 0 12px 28px -8px rgba(13, 20, 82,0.45);
 }
 .auth-submit:hover:not(:disabled) {
     background: #143a6e;
     transform: translateY(-1px);
-    box-shadow: 0 1px 0 rgba(10,38,71,1), 0 18px 36px -8px rgba(10,38,71,0.55);
+    box-shadow: 0 1px 0 rgba(13, 20, 82,1), 0 18px 36px -8px rgba(13, 20, 82,0.55);
 }
 .auth-submit:active:not(:disabled) { transform: translateY(0); }
 .auth-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
-/* The shimmer is the ONE moment gold appears on the form — a thin
+/* The shimmer is the ONE moment gold appears on the form â€” a thin
    sweep across the CTA on hover. This is the 5% rule in action. */
 .auth-submit-shimmer {
     position: absolute; inset: 0;
@@ -564,19 +1039,255 @@
 .sister-link {
     margin: 1.4rem 0 0;
     text-align: center;
-    font-family: 'Fraunces', serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 14px;
-    font-weight: 380;
+    font-weight: 400;
     color: #5a6b80;
     letter-spacing: 0.005em;
 }
 .sister-link a {
-    color: #0a2647;
+    color: #0d1452;
     font-style: italic;
     text-decoration: none;
-    border-bottom: 1px solid rgba(10,38,71,0.3);
+    border-bottom: 1px solid rgba(13, 20, 82,0.3);
     margin-left: 0.3em;
     transition: color 0.18s ease, border-color 0.18s ease;
 }
-.sister-link a:hover { color: #205295; border-bottom-color: #205295; }
+.sister-link a:hover { color: #1a237e; border-bottom-color: #1a237e; }
 
+/* ════════════════════════════════════════════════════════════════════
+   EDITORIAL SOVEREIGN — institutional broadsheet design language
+   ────────────────────────────────────────────────────────────────────
+   A typographic system that turns CIHRMS pages from generic SaaS
+   surfaces into something that feels like the front page of a
+   state-grade institutional broadsheet. Used by Dashboard and
+   cascaded through every portal.
+
+     .es-masthead          — date / edition / sync strip at page top
+     .es-eyebrow           — small-caps slot above any title
+     .es-display           — Fraunces serif display headline
+     .es-display-italic    — same with italic for emphasis
+     .es-stat-hero         — oversized magazine-cover KPI
+     .es-stat-strip        — horizontal rule-divided micro-KPI strip
+     .es-rule-gold         — 1px gold institutional hairline
+     .es-rule-ink          — 1px deep-ink rule
+     .es-broadsheet        — section with multi-column editorial feel
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Masthead strip (top of every editorial page) ────────────────── */
+.es-masthead {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(255, 215, 0, 0.55);
+    border-bottom: 1px solid rgb(var(--ct-outline-variant) / 0.55);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--ct-on-surface-variant) / 0.75);
+}
+.es-masthead-edition  { color: #b88a08; font-weight: 800; }
+.es-masthead-spacer   { flex: 1; height: 1px; background: rgb(var(--ct-outline-variant) / 0.4); }
+.es-masthead-live {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: #1a237e;
+}
+.es-masthead-live .es-dot {
+    width: 6px; height: 6px; border-radius: 99px;
+    background: #12d9e3; box-shadow: 0 0 6px rgba(18, 217, 227, 0.75);
+    animation: es-live-pulse 1.6s ease-in-out infinite;
+}
+@keyframes es-live-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.55; transform: scale(0.85); }
+}
+
+/* ── Eyebrow slot (above headlines) ──────────────────────────────── */
+.es-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--ct-on-surface-variant) / 0.55);
+}
+.es-eyebrow::before {
+    content: '';
+    width: 18px; height: 1px;
+    background: #b88a08;
+}
+
+/* ── Display headline (Fraunces serif) ───────────────────────────── */
+.es-display {
+    font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+    font-weight: 400;            /* the weight a serif wants for display */
+    font-style: normal;
+    letter-spacing: -0.025em;
+    line-height: 0.92;
+    color: rgb(var(--ct-primary));
+}
+.es-display-italic {
+    font-style: italic;
+    font-weight: 350;
+    color: #205295;              /* cobalt accent */
+}
+.es-display-sub {
+    margin-top: 0.6rem;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: rgb(var(--ct-on-surface-variant));
+    max-width: 56ch;
+}
+
+/* ── Hero KPI (Bloomberg-Terminal-style stat card) ───────────────── */
+.es-stat-hero {
+    position: relative;
+    padding: 2rem 2rem 1.75rem;
+    background: rgb(var(--ct-surface-lowest));
+    border: 1px solid rgb(var(--ct-outline-variant) / 0.5);
+    overflow: hidden;
+}
+.es-stat-hero::before {
+    /* gold rule above the stat — institutional ornament */
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #ffd700 30%, #ffd700 70%, transparent);
+}
+.es-stat-hero-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 350;
+    font-size: clamp(3.2rem, 7vw, 5.2rem);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: rgb(var(--ct-primary));
+    font-variant-numeric: tabular-nums;
+}
+.es-stat-hero-label {
+    margin-top: 0.6rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(var(--ct-on-surface-variant) / 0.75);
+}
+.es-stat-hero-caption {
+    margin-top: 0.35rem;
+    font-size: 12px;
+    color: rgb(var(--ct-on-surface-variant) / 0.65);
+}
+.es-stat-hero-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 1rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(5, 150, 105, 0.08);
+    border: 1px solid rgba(5, 150, 105, 0.18);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #059669;
+}
+.es-stat-hero-delta.is-down {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.18);
+    color: #dc2626;
+}
+
+/* ── Stat strip (sub-metrics next to the hero) ───────────────────── */
+.es-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    border: 1px solid rgb(var(--ct-outline-variant) / 0.5);
+    background: rgb(var(--ct-surface-lowest));
+    overflow: hidden;
+}
+.es-stat-strip > .es-stat-cell {
+    padding: 1.5rem 1.5rem;
+    border-right: 1px solid rgb(var(--ct-outline-variant) / 0.4);
+    position: relative;
+}
+.es-stat-strip > .es-stat-cell:last-child { border-right: 0; }
+.es-stat-cell-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(var(--ct-on-surface-variant) / 0.65);
+    margin-bottom: 0.5rem;
+}
+.es-stat-cell-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 2rem;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: rgb(var(--ct-primary));
+    font-variant-numeric: tabular-nums;
+}
+.es-stat-cell-caption {
+    margin-top: 0.45rem;
+    font-size: 11px;
+    color: rgb(var(--ct-on-surface-variant) / 0.7);
+}
+
+/* ── Institutional rule lines (1px ornament) ─────────────────────── */
+.es-rule-gold  { height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.7) 20%, rgba(255, 215, 0, 0.7) 80%, transparent); }
+.es-rule-ink   { height: 1px; background: rgb(var(--ct-outline-variant) / 0.55); }
+
+/* ── Section title (small-caps with rule) ────────────────────────── */
+.es-section-title {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+.es-section-title h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    letter-spacing: -0.018em;
+    color: rgb(var(--ct-primary));
+}
+.es-section-title .es-rule-ink { flex: 1; }
+
+/* ── Broadsheet: multi-column editorial feel ─────────────────────── */
+.es-broadsheet {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid rgb(var(--ct-outline-variant) / 0.5);
+    background: rgb(var(--ct-surface-lowest));
+}
+@media (min-width: 1024px) {
+    .es-broadsheet { grid-template-columns: 2fr 1fr; }
+}
+.es-broadsheet-lead    { padding: 2rem 2.25rem; }
+.es-broadsheet-sidebar {
+    padding: 1.75rem 1.75rem;
+    background: rgba(13, 20, 82, 0.02);
+    border-top: 1px solid rgb(var(--ct-outline-variant) / 0.4);
+}
+@media (min-width: 1024px) {
+    .es-broadsheet-sidebar {
+        border-top: 0;
+        border-left: 1px solid rgb(var(--ct-outline-variant) / 0.4);
+    }
+}
+
+/* ── Reduced motion: kill the live-dot pulse ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .es-masthead-live .es-dot { animation: none; }
+}

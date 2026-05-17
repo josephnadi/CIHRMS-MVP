@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AttendanceSource;
 use App\Enums\IdentityVerificationStatus;
 use App\Enums\PayrollRunStatus;
 use App\Models\Department;
@@ -8,7 +9,9 @@ use App\Models\Grade;
 use App\Models\GradeStep;
 use App\Models\IdentityVerification;
 use App\Models\User;
+use App\Services\Attendance\AttendanceService;
 use App\Services\Payroll\PayrollService;
+use Carbon\CarbonImmutable;
 use Database\Seeders\GhanaStatutoryReferenceSeeder;
 
 beforeEach(function () {
@@ -38,6 +41,13 @@ beforeEach(function () {
         'verified_at'     => now(),
         'expires_at'      => now()->addYear(),
     ]);
+
+    // One clock-in in the period so the attendance gate accepts the employee.
+    // PayrollService refuses to pay zero-attendance employees (ghost-worker
+    // safeguard) — every payroll-flow test needs at least one recorded day.
+    $att = app(AttendanceService::class);
+    $att->record($this->employee, CarbonImmutable::parse('2026-06-03 08:00'), 'in',  AttendanceSource::Biometric);
+    $att->record($this->employee, CarbonImmutable::parse('2026-06-03 17:00'), 'out', AttendanceSource::Biometric);
 });
 
 it('creates a draft, calculates, and totals roll up correctly', function () {

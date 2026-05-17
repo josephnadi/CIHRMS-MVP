@@ -46,7 +46,7 @@ test('approving a leave request stamps approver and increments balance', functio
     ]);
 
     $this->actingAs($this->hr)
-        ->patch(route('leave.updateStatus', $leave), [
+        ->patch(route('leave.update', $leave), [
             'status' => LeaveStatus::Approved->value,
         ])
         ->assertRedirect();
@@ -72,7 +72,7 @@ test('rejecting a leave request does not create a balance', function () {
     ]);
 
     $this->actingAs($this->hr)
-        ->patch(route('leave.updateStatus', $leave), [
+        ->patch(route('leave.update', $leave), [
             'status' => LeaveStatus::Rejected->value,
         ])
         ->assertRedirect();

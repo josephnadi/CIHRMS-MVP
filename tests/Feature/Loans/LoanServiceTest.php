@@ -64,8 +64,17 @@ it('decrements balance and flips to paid_off after all repayments post', functio
     $loan = $this->svc->approve($loan, $this->approver);
     $loan = $this->svc->disburse($loan, $this->approver);
 
+    // A real payroll_run row so the FK on loan_repayments.payroll_run_id holds.
+    $run = \App\Models\PayrollRun::create([
+        'reference'    => 'PR-2026-07-TEST',
+        'period_year'  => 2026, 'period_month' => 7,
+        'period_start' => '2026-07-01', 'period_end' => '2026-07-31',
+        'status'       => \App\Enums\PayrollRunStatus::Calculated->value,
+        'created_by'   => $this->approver->id,
+    ]);
+
     foreach ($loan->repayments()->orderBy('installment_no')->get() as $r) {
-        $this->svc->postRepayment($r, payrollRunId: 1);
+        $this->svc->postRepayment($r, payrollRunId: $run->id);
     }
 
     $loan = $loan->fresh();

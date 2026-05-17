@@ -22,7 +22,7 @@ beforeEach(function () {
     $this->cycle = ReviewCycle::create([
         'name' => 'H1 2026', 'cadence' => 'half_year',
         'starts_at' => '2026-01-01', 'ends_at' => '2026-06-30',
-        'status' => 'open',
+        'status' => 'active',
     ]);
 
     $this->actor = User::factory()->create(['role' => 'hr_admin']);

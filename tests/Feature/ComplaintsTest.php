@@ -22,7 +22,7 @@ test('a complaint can be filed and is assigned a unique reference', function () 
     expect($complaint)->not->toBeNull();
     expect($complaint->reference)->toStartWith('CMP-');
     expect(strlen($complaint->reference))->toBe(12); // CMP- + 8 chars
-    expect($complaint->status->value)->toBe(ComplaintStatus::Submitted->value);
+    expect($complaint->status->value)->toBe(ComplaintStatus::Open->value);
 });
 
 test('HR admin can update a complaint status', function () {
@@ -44,7 +44,7 @@ test('anyone can track a complaint by reference (public route)', function () {
     $this->get(route('complaints.track', ['reference' => $complaint->reference]))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('Complaints/Track')
-            ->where('complaint.reference', $complaint->reference)
+            ->where('complaint.data.reference', $complaint->reference)
         );
 });
 

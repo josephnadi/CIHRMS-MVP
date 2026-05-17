@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Offer of Employment — {{ $applicant->name }}</title>
+    <title>Offer of Employment â€” {{ $applicant->name }}</title>
     <style>
         @page  { margin: 30mm 25mm; }
         body   { font-family: DejaVu Sans, sans-serif; font-size: 11pt; color: #1d1f25; line-height: 1.55; }
-        .head  { border-bottom: 2px solid #0051d5; padding-bottom: 14px; margin-bottom: 28px; }
-        .head h1 { font-size: 18pt; color: #0051d5; margin: 0 0 4px; letter-spacing: -0.01em; }
+        .head  { border-bottom: 2px solid #1a237e; padding-bottom: 14px; margin-bottom: 28px; }
+        .head h1 { font-size: 18pt; color: #1a237e; margin: 0 0 4px; letter-spacing: -0.01em; }
         .head .meta { font-size: 9pt; color: #6b7280; }
         .signature { margin-top: 42px; }
         .signature .row { display: table; width: 100%; }
@@ -22,8 +22,8 @@
 </head>
 <body>
     <div class="head">
-        <h1>CIHRM Ghana — Offer of Employment</h1>
-        <div class="meta">Issued {{ now()->format('d M Y') }} · Confidential</div>
+        <h1>CIHRM Ghana â€” Offer of Employment</h1>
+        <div class="meta">Issued {{ now()->format('d M Y') }} Â· Confidential</div>
     </div>
 
     <p>Dear {{ $applicant->name }},</p>
@@ -34,7 +34,7 @@
     </p>
 
     <table class="terms">
-        <tr><td class="k">Position</td><td>{{ $job?->title ?? '—' }}</td></tr>
+        <tr><td class="k">Position</td><td>{{ $job?->title ?? 'â€”' }}</td></tr>
         <tr><td class="k">Reporting to</td><td>{{ $job?->department?->name ?? 'HR' }}</td></tr>
         @if ($salary)
             <tr><td class="k">Annual gross</td><td>GHS {{ number_format((float) $salary, 2) }}</td></tr>

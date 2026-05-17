@@ -8,8 +8,8 @@ it('serves the OpenAPI yaml spec at /api/v1/openapi.yaml', function () {
 
     $response->assertOk();
     expect($response->headers->get('Content-Type'))->toContain('yaml');
-    expect($response->getContent())->toContain('openapi: 3.0.3');
-    expect($response->getContent())->toContain('CIHRMS API');
+    expect($response->getContent())->toContain('openapi: 3.1.0');
+    expect($response->getContent())->toContain('CIHRMS Public API');
 });
 
 it('rejects /api/v1/me without a token', function () {
@@ -22,8 +22,11 @@ it('returns the caller profile via /api/v1/me with a Sanctum token', function ()
 
     $this->getJson('/api/v1/me')
         ->assertOk()
-        ->assertJsonPath('data.id', $user->id)
-        ->assertJsonStructure(['data' => ['id', 'name', 'email', 'role', 'permissions']]);
+        ->assertJsonPath('user.id', $user->id)
+        ->assertJsonStructure([
+            'user'  => ['id', 'name', 'email', 'role'],
+            'token' => ['id', 'name', 'abilities'],
+        ]);
 });
 
 it('returns 403 for /api/v1/employees without employees.view permission', function () {

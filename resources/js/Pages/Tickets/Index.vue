@@ -165,7 +165,120 @@ watch(view, (v) => {
     try { localStorage.setItem(VIEW_STORAGE_KEY, v); } catch (e) { /* noop */ }
 });
 
-// â”€â”€ Kanban columns derived from tickets.data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Jira-style state ──
+// Quick-filter chip — narrows what shows on the board without touching the
+// server filters. None / mine / unassigned / overdue / critical.
+const quickFilter = ref('none');
+
+// Swimlane — group rows by Priority or Assignee on the board.
+const swimlane = ref('none'); // 'none' | 'priority' | 'assignee'
+
+// Density — compact crams more cards into view (Jira's "Compact" mode).
+const density = ref('comfortable'); // 'comfortable' | 'compact'
+
+// Persist board prefs
+const BOARD_PREFS_KEY = 'cihrms.tickets.boardPrefs';
+onMounted(() => {
+    try {
+        const raw = localStorage.getItem(BOARD_PREFS_KEY);
+        if (raw) {
+            const p = JSON.parse(raw);
+            if (p.quickFilter) quickFilter.value = p.quickFilter;
+            if (p.swimlane)    swimlane.value   = p.swimlane;
+            if (p.density)     density.value    = p.density;
+        }
+    } catch (e) { /* noop */ }
+});
+watch([quickFilter, swimlane, density], () => {
+    try {
+        localStorage.setItem(BOARD_PREFS_KEY, JSON.stringify({
+            quickFilter: quickFilter.value, swimlane: swimlane.value, density: density.value,
+        }));
+    } catch (e) { /* noop */ }
+});
+
+// Keyboard "/" focuses the board search (Jira-like hotkey).
+const boardSearchEl = ref(null);
+const onGlobalKey = (e) => {
+    if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        boardSearchEl.value?.focus?.();
+    }
+    if (e.key === 'Escape') { drawerTicket.value = null; }
+};
+onMounted(() => document.addEventListener('keydown', onGlobalKey));
+onBeforeUnmount(() => document.removeEventListener('keydown', onGlobalKey));
+
+// Detail drawer — click a card → opens right-side drawer with full
+// context + inline transition buttons.
+const drawerTicket = ref(null);
+const openDrawer = (ticket) => { drawerTicket.value = ticket; };
+const closeDrawer = () => { drawerTicket.value = null; };
+
+// Current user (used by the "Mine" quick filter)
+const currentUserId = computed(() => page.props.auth?.user?.id ?? null);
+
+// Apply quick-filter on top of server-paged data.
+const filteredTickets = computed(() => {
+    const data = props.tickets?.data ?? [];
+    switch (quickFilter.value) {
+        case 'mine':
+            return data.filter(t => t.assigned_to?.id === currentUserId.value);
+        case 'unassigned':
+            return data.filter(t => !t.assigned_to);
+        case 'overdue':
+            return data.filter(t => t.is_overdue);
+        case 'critical':
+            return data.filter(t => t.priority === 'critical' || t.priority === 'high');
+        default:
+            return data;
+    }
+});
+
+// ── Swimlane groups (Jira's signature feature) ──
+const PRIORITY_ORDER = ['critical', 'high', 'medium', 'low'];
+
+const swimlaneGroups = computed(() => {
+    if (swimlane.value === 'none') {
+        return [{ id: 'all', label: null, items: filteredTickets.value }];
+    }
+    if (swimlane.value === 'priority') {
+        return PRIORITY_ORDER.map(p => ({
+            id: p,
+            label: p.charAt(0).toUpperCase() + p.slice(1),
+            color: priorityRail[p],
+            items: filteredTickets.value.filter(t => t.priority === p),
+        })).filter(g => g.items.length > 0);
+    }
+    if (swimlane.value === 'assignee') {
+        const buckets = new Map();
+        filteredTickets.value.forEach(t => {
+            const key = t.assigned_to?.id ?? 'unassigned';
+            if (!buckets.has(key)) {
+                buckets.set(key, {
+                    id: key,
+                    label: t.assigned_to?.name ?? 'Unassigned',
+                    items: [],
+                });
+            }
+            buckets.get(key).items.push(t);
+        });
+        return [...buckets.values()].sort((a, b) =>
+            (a.id === 'unassigned' ? 1 : 0) - (b.id === 'unassigned' ? 1 : 0)
+        );
+    }
+    return [{ id: 'all', label: null, items: filteredTickets.value }];
+});
+
+// Kanban columns are derived per swimlane group at render time.
+function columnsFor(group) {
+    return STATUS_COLUMNS.map(col => ({
+        ...col,
+        items: group.items.filter(t => t.status === col.id),
+    }));
+}
+
+// ── Kanban columns derived from tickets.data ──
 const STATUS_COLUMNS = [
     { id: 'open',        label: 'Open',        color: 'blue'   },
     { id: 'in_progress', label: 'In Progress', color: 'violet' },
@@ -406,6 +519,78 @@ const ops = computed(() => {
 
             <!-- 5% gold hairline — single institutional moment on the page -->
             <div class="h-px w-full" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.45),transparent)"></div>
+
+            <!-- ── Jira-style board toolbar ──
+                 Quick-filter chips on the left, board controls on the right.
+                 Mirrors Atlassian's compact toolbar above a Jira board. -->
+            <div v-if="view === 'board'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-3 py-2.5 shadow-card flex flex-wrap items-center gap-3">
+
+                <!-- Quick filters -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button v-for="opt in [
+                        { id: 'none',       label: 'All',         icon: 'view_kanban', count: filteredTickets.length },
+                        { id: 'mine',       label: 'Mine',        icon: 'person',      count: (tickets?.data ?? []).filter(t => t.assigned_to?.id === currentUserId).length },
+                        { id: 'unassigned', label: 'Unassigned',  icon: 'person_off',  count: (tickets?.data ?? []).filter(t => !t.assigned_to).length },
+                        { id: 'overdue',    label: 'Overdue',     icon: 'schedule',    count: stats.overdue, tone: 'red' },
+                        { id: 'critical',   label: 'Critical',    icon: 'priority_high', count: (tickets?.data ?? []).filter(t => t.priority === 'critical' || t.priority === 'high').length, tone: 'orange' },
+                    ]" :key="opt.id" @click="quickFilter = opt.id"
+                            :class="['tk-chip group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11.5px] font-bold transition-all',
+                                      quickFilter === opt.id
+                                        ? (opt.tone === 'red'    ? 'bg-red-50 text-red-700 ring-1 ring-red-300 dark:bg-red-900/30 dark:text-red-300'
+                                        :  opt.tone === 'orange' ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/30 dark:text-amber-300'
+                                        :  'bg-secondary/10 text-secondary ring-1 ring-secondary/30')
+                                        : 'text-on-surface-variant hover:bg-surface-container-low']">
+                        <span class="material-symbols-outlined text-[14px]">{{ opt.icon }}</span>
+                        {{ opt.label }}
+                        <span :class="['inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9.5px] font-black tabular-nums',
+                                        quickFilter === opt.id ? 'bg-white/70 text-secondary' : 'bg-surface-container-low text-on-surface-variant/70']">{{ opt.count }}</span>
+                    </button>
+                </div>
+
+                <!-- Inline search with "/" hotkey hint -->
+                <div class="relative flex-1 min-w-[200px] max-w-[260px] ml-auto">
+                    <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px] text-on-surface-variant/50">search</span>
+                    <input
+                        ref="boardSearchEl"
+                        v-model="localFilters.search"
+                        placeholder="Search board…"
+                        class="w-full rounded-lg border-outline-variant/60 bg-surface-container-low pl-8 pr-10 py-1.5 text-[12.5px] focus:border-secondary focus:ring-2 focus:ring-secondary/15"
+                    />
+                    <kbd class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-md border border-outline-variant/60 bg-surface-container-low text-[9.5px] font-black text-on-surface-variant/60 font-mono pointer-events-none">/</kbd>
+                </div>
+
+                <!-- Group-by (swimlane) -->
+                <div class="flex items-center gap-1 rounded-lg border border-outline-variant/60 bg-surface-container-low px-1 py-0.5">
+                    <span class="px-1.5 text-[9.5px] font-black uppercase tracking-widest text-on-surface-variant/60">Group</span>
+                    <button v-for="opt in [
+                        { id: 'none',     label: 'None',     icon: 'view_module' },
+                        { id: 'priority', label: 'Priority', icon: 'flag' },
+                        { id: 'assignee', label: 'Assignee', icon: 'group' },
+                    ]" :key="opt.id" @click="swimlane = opt.id"
+                            :class="['inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-all',
+                                      swimlane === opt.id ? 'bg-secondary text-white shadow-glow-sm' : 'text-on-surface-variant hover:bg-surface-container']"
+                            :title="`Group by ${opt.label}`">
+                        <span class="material-symbols-outlined text-[13px]">{{ opt.icon }}</span>
+                        <span class="hidden lg:inline">{{ opt.label }}</span>
+                    </button>
+                </div>
+
+                <!-- Density toggle -->
+                <div class="flex items-center gap-1 rounded-lg border border-outline-variant/60 bg-surface-container-low px-0.5 py-0.5">
+                    <button @click="density = 'comfortable'"
+                            :class="['inline-flex items-center justify-center h-7 w-7 rounded-md transition-all',
+                                      density === 'comfortable' ? 'bg-secondary text-white' : 'text-on-surface-variant hover:bg-surface-container']"
+                            title="Comfortable density">
+                        <span class="material-symbols-outlined text-[15px]">view_agenda</span>
+                    </button>
+                    <button @click="density = 'compact'"
+                            :class="['inline-flex items-center justify-center h-7 w-7 rounded-md transition-all',
+                                      density === 'compact' ? 'bg-secondary text-white' : 'text-on-surface-variant hover:bg-surface-container']"
+                            title="Compact density">
+                        <span class="material-symbols-outlined text-[15px]">density_small</span>
+                    </button>
+                </div>
+            </div>
 
             <!-- Filters strip -->
             <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">

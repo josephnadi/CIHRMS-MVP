@@ -9,11 +9,11 @@ use function Pest\Laravel\artisan;
 
 it('creates a summary row for every active employee with no records on the given date', function () {
     Carbon::setTestNow('2026-06-15 23:59'); // Monday
-    Employee::factory()->count(3)->create();
+    Employee::factory()->active()->count(3)->create();
 
     artisan('attendance:mark-absent --date=2026-06-15')->assertSuccessful();
 
-    expect(\App\Models\AttendanceSummary::where('summary_date', '2026-06-15')->count())->toBe(3);
+    expect(\App\Models\AttendanceSummary::whereDate('summary_date', '2026-06-15')->count())->toBe(3);
 
     Carbon::setTestNow();
 });

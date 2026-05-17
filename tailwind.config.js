@@ -15,9 +15,27 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans],
-                serif: ['Instrument Serif', ...defaultTheme.fontFamily.serif],
-                mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
+                // CIHRM Ghana institutional type stack — single sans for body + headings, mono for tabular data
+                sans: ['"Open Sans"', ...defaultTheme.fontFamily.sans],
+                serif: ['"Open Sans"', ...defaultTheme.fontFamily.serif],
+                mono: ['"JetBrains Mono"', ...defaultTheme.fontFamily.mono],
+                display: ['"Open Sans"', ...defaultTheme.fontFamily.sans],
+            },
+            fontSize: {
+                // Consistent type scale — pixel sizes paired with sensible line-heights and tracking
+                'micro':    ['10px',  { lineHeight: '1.25',  letterSpacing: '0.04em' }],
+                'tiny':     ['11px',  { lineHeight: '1.35',  letterSpacing: '0.02em' }],
+                'caption':  ['12px',  { lineHeight: '1.45',  letterSpacing: '0.005em' }],
+                'body':     ['14px',  { lineHeight: '1.55',  letterSpacing: '0' }],
+                'body-lg':  ['15px',  { lineHeight: '1.6',   letterSpacing: '0' }],
+                'lead':     ['16px',  { lineHeight: '1.55',  letterSpacing: '-0.005em' }],
+                'h6':       ['13px',  { lineHeight: '1.3',   letterSpacing: '-0.005em' }],
+                'h5':       ['15px',  { lineHeight: '1.3',   letterSpacing: '-0.01em' }],
+                'h4':       ['18px',  { lineHeight: '1.3',   letterSpacing: '-0.01em' }],
+                'h3':       ['22px',  { lineHeight: '1.25',  letterSpacing: '-0.015em' }],
+                'h2':       ['28px',  { lineHeight: '1.2',   letterSpacing: '-0.02em' }],
+                'h1':       ['34px',  { lineHeight: '1.15',  letterSpacing: '-0.022em' }],
+                'display':  ['44px',  { lineHeight: '1.05',  letterSpacing: '-0.028em' }],
             },
             animation: {
                 'reveal-up':     'revealUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards',
@@ -58,20 +76,20 @@ export default {
                 primary:      'rgb(var(--ct-primary)        / <alpha-value>)',
                 'on-primary': 'rgb(var(--ct-on-primary)     / <alpha-value>)',
 
-                // ── CIHRM brand: deep navy (#0a2647) is the primary identity.
+                // ── CIHRM brand: deep navy (#0d1452) is the primary identity.
                 //    `secondary` is the action token used app-wide for buttons,
                 //    active nav, links and focus rings — a mid-blue derived
                 //    from the primary so it stays cohesive on white surfaces.
-                secondary:              '#205295',  // primary action blue
+                secondary:              '#1a237e',  // primary action blue
                 'on-secondary':         '#ffffff',
-                'secondary-container':  '#2c74b3',  // hover / brighter action
+                'secondary-container':  '#3949ab',  // hover / brighter action
                 'on-secondary-container': '#ffffff',
 
                 // ── CIHRM brand palette (blue-dominant; gold ≤5% across app) ──
-                'brand-navy':           '#0a2647',  // deep brand — sidebar bg, key headings
-                'brand-navy-deep':      '#06192f',  // ambient glow, gradients
-                'brand-blue':           '#205295',  // mid-blue action
-                'brand-blue-bright':    '#2c74b3',  // brighter blue accent
+                'brand-navy':           '#0d1452',  // deep brand — sidebar bg, key headings
+                'brand-navy-deep':      '#070b3a',  // ambient glow, gradients
+                'brand-blue':           '#1a237e',  // mid-blue action
+                'brand-blue-bright':    '#3949ab',  // brighter blue accent
                 'brand-sky':            '#a7d3f0',  // soft blue tint — info bg
 
                 // Reserved accents — use sparingly (≤5% combined across UI)
@@ -102,21 +120,21 @@ export default {
                 'tertiary-container':    '#25005a',
                 'on-tertiary-container': '#9863ff',
 
-                // Sidebar — keyed off brand navy (#0a2647)
-                sidebar:         '#0a2647',
+                // Sidebar — keyed off brand navy (#0d1452)
+                sidebar:         '#0d1452',
                 'sidebar-surface': '#0f3057',
                 'sidebar-border':  '#173a66',
                 'sidebar-hover':   '#143a6e',
-                'sidebar-active':  '#205295',
+                'sidebar-active':  '#1a237e',
             },
             backgroundSize: {
                 '200%': '200%',
                 '300%': '300%',
             },
             boxShadow: {
-                'glow-sm':   '0 0 12px rgba(32, 82, 149, 0.28)',
-                'glow':      '0 0 24px rgba(32, 82, 149, 0.32)',
-                'glow-lg':   '0 0 48px rgba(32, 82, 149, 0.36)',
+                'glow-sm':   '0 0 12px rgba(26, 35, 126, 0.28)',
+                'glow':      '0 0 24px rgba(26, 35, 126, 0.32)',
+                'glow-lg':   '0 0 48px rgba(26, 35, 126, 0.36)',
                 'glow-gold': '0 0 20px rgba(255, 215, 0, 0.32)',
                 'lifted':    '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
                 'lifted-lg': '0 16px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06)',

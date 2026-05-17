@@ -9,23 +9,31 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    // CIHRMS authenticates with name + staff_id (not email/password).
+    // See \App\Http\Requests\Auth\LoginRequest::authenticate().
+    $user = User::factory()->create([
+        'name'     => 'Akua Mensah',
+        'staff_id' => 'GH-HR-AUTH-1',
+    ]);
 
     $response = $this->post('/login', [
-        'email' => $user->email,
-        'password' => 'password',
+        'name'     => $user->name,
+        'staff_id' => $user->staff_id,
     ]);
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
-test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+test('users can not authenticate with invalid credentials', function () {
+    $user = User::factory()->create([
+        'name'     => 'Akua Mensah',
+        'staff_id' => 'GH-HR-AUTH-2',
+    ]);
 
     $this->post('/login', [
-        'email' => $user->email,
-        'password' => 'wrong-password',
+        'name'     => $user->name,
+        'staff_id' => 'WRONG-STAFF-ID',
     ]);
 
     $this->assertGuest();

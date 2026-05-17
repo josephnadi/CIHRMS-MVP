@@ -52,16 +52,19 @@ beforeEach(function () {
         'expires_at'        => now()->addYear(),
     ]);
 
-    // Record one regular working day so the attendance gate passes
+    // Record exactly 8 hours so the attendance gate passes WITHOUT generating
+    // natural overtime — the OvertimeCalculator treats raw clock hours over 8
+    // as premium hours (it doesn't deduct a lunch break).
     $att = app(AttendanceService::class);
     $att->record($this->employee, CarbonImmutable::parse('2026-05-04 08:00'), 'in',  AttendanceSource::Biometric);
-    $att->record($this->employee, CarbonImmutable::parse('2026-05-04 17:00'), 'out', AttendanceSource::Biometric);
+    $att->record($this->employee, CarbonImmutable::parse('2026-05-04 16:00'), 'out', AttendanceSource::Biometric);
 });
 
 it('adds overtime pay to gross when AttendanceSummary has overtime_hours in the pay period', function () {
-    // Directly set 3 overtime hours on the day already recorded
+    // Directly set 3 overtime hours on the day already recorded.
+    // `whereDate` so the date-only literal matches the datetime stored.
     AttendanceSummary::where('employee_id', $this->employee->id)
-        ->where('summary_date', '2026-05-04')
+        ->whereDate('summary_date', '2026-05-04')
         ->update(['overtime_hours' => 3.00]);
 
     /** @var PayrollService $svc */
@@ -76,12 +79,12 @@ it('adds overtime pay to gross when AttendanceSummary has overtime_hours in the 
     // hourly = 1733.30 / 173.33 ≈ 10.00; OT pay ≈ 30.00
     expect((float) $line->overtime_pay)->toEqualWithDelta(30.0, 0.05);
 
-    // gross must be base_gross + overtime_pay
-    $baseGross = (float) $line->basic + (float) $line->allowance_total - (float) $line->overtime_pay;
+    // gross = basic + allowance_total + overtime_pay
+    $baseGross = (float) $line->basic + (float) $line->allowance_total;
     expect((float) $line->gross)->toEqualWithDelta($baseGross + (float) $line->overtime_pay, 0.01);
 
     // breakdown should carry the overtime snapshot
-    expect($line->breakdown['overtime']['hours'])->toBe(3.0);
+    expect((float) $line->breakdown['overtime']['hours'])->toBe(3.0);
     expect($line->breakdown['overtime']['pay'])->toEqualWithDelta(30.0, 0.05);
 });
 

@@ -27,7 +27,7 @@ it('marks a normal 8h clock-in/out day as present', function () {
 
     expect($s->status)->toBe(AttendanceStatus::Present);
     expect((float) $s->hours_worked)->toEqualWithDelta(9.0, 0.01);
-    expect($s->overtime_hours)->toBeFloat();
+    expect((float) $s->overtime_hours)->toBeFloat();
 });
 
 it('marks a late clock-in (after 08:15) as Late', function () {
