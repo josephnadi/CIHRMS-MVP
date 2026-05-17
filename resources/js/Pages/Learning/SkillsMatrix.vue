@@ -198,7 +198,7 @@ const exportMatrix = () => {
                     <button
                         @click="showAddSkill = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Add Skill
@@ -402,7 +402,7 @@ const exportMatrix = () => {
                                 <button
                                     @click="showAddSkill = true"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                    style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                                    style="background:linear-gradient(135deg,#0a2647,#205295)"
                                 >
                                     <span class="material-symbols-outlined text-[18px]">add</span>
                                     Add First Skill
@@ -556,7 +556,7 @@ const exportMatrix = () => {
                         @click="submitSkill"
                         :disabled="skillForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="skillForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Add Skill

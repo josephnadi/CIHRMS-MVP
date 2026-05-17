@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -15,11 +15,12 @@ const props = defineProps({
     filters:      Object,
 });
 
+// Total Assets gets gold — institutional inventory headline
 const statCards = computed(() => [
-    { label: 'Total Assets', val: props.stats?.total ?? 0,       rgb: '0,81,213',   icon: 'inventory_2' },
+    { label: 'Total Assets', val: props.stats?.total ?? 0,       rgb: '255,215,0',  icon: 'inventory_2' },
     { label: 'Assigned',     val: props.stats?.assigned ?? 0,    rgb: '5,150,105',  icon: 'check_circle' },
     { label: 'Maintenance',  val: props.stats?.maintenance ?? 0, rgb: '217,119,6',  icon: 'build' },
-    { label: 'Available',    val: props.stats?.in_stock ?? 0,    rgb: '124,92,255', icon: 'archive' },
+    { label: 'Available',    val: props.stats?.in_stock ?? 0,    rgb: '32,82,149',  icon: 'archive' },
 ]);
 
 const localFilters = ref({
@@ -68,7 +69,7 @@ function submitAssign() {
 }
 
 const statusTone = {
-    in_stock:    { label: 'Available',    cls: 'bg-violet-100 text-violet-800' },
+    in_stock:    { label: 'Available',    cls: 'bg-blue-100 text-blue-800' },
     assigned:    { label: 'Assigned',     cls: 'bg-emerald-100 text-emerald-800' },
     maintenance: { label: 'Maintenance',  cls: 'bg-amber-100 text-amber-800' },
     retired:     { label: 'Retired',      cls: 'bg-slate-100 text-slate-700' },
@@ -88,7 +89,7 @@ const categoryLabel = {
         <header class="flex items-center justify-between">
             <div>
                 <h1 class="text-[1.6rem] font-black tracking-tight text-primary">Asset Registry</h1>
-                <p class="text-sm text-on-surface-variant">Institutional inventory — workstations, mobile, vehicles, furniture.</p>
+                <p class="text-sm text-on-surface-variant">Institutional inventory â€” workstations, mobile, vehicles, furniture.</p>
             </div>
             <div class="flex gap-2">
                 <Link :href="route('assets.my')" class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-primary hover:bg-surface-container-low">My Assets</Link>
@@ -111,7 +112,7 @@ const categoryLabel = {
         </div>
 
         <div class="flex flex-wrap gap-3 items-center">
-            <SearchInput v-model="localFilters.search" placeholder="Search by tag, name, serial…" @update:modelValue="applyFilters" class="flex-1 max-w-md" />
+            <SearchInput v-model="localFilters.search" placeholder="Search by tag, name, serialâ€¦" @update:modelValue="applyFilters" class="flex-1 max-w-md" />
             <select v-model="localFilters.category" @change="applyFilters" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
                 <option value="">All Categories</option>
                 <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
@@ -135,9 +136,9 @@ const categoryLabel = {
                         <td><span :class="['rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider', statusTone[a.current_status]?.cls]">{{ statusTone[a.current_status]?.label }}</span></td>
                         <td>
                             <span v-if="a.current_assignment" class="text-xs">{{ a.current_assignment.employee_name }} <span class="text-on-surface-variant font-mono">({{ a.current_assignment.employee_no }})</span></span>
-                            <span v-else class="text-xs text-on-surface-variant">—</span>
+                            <span v-else class="text-xs text-on-surface-variant">â€”</span>
                         </td>
-                        <td class="text-xs">{{ a.location ?? '—' }}</td>
+                        <td class="text-xs">{{ a.location ?? 'â€”' }}</td>
                         <td>
                             <button v-if="a.current_status === 'in_stock' && ($page.props.auth.permissions?.includes('assets.manage') || $page.props.auth.permissions?.includes('assets.assign'))"
                                 @click="openAssign(a)" type="button" class="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold hover:bg-emerald-100">Assign</button>
@@ -172,7 +173,7 @@ const categoryLabel = {
 
     <SlidePanel :open="showAssign" @close="showAssign = false" :title="`Assign ${assignTarget?.asset_tag ?? ''}`">
         <form @submit.prevent="submitAssign" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="assignForm.employee_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="assignForm.employee_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Selectâ€¦</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} â€” {{ e.position }}</option></select></div>
             <div><label class="text-[11px] font-bold text-on-surface-variant">Due Back (optional)</label><input v-model="assignForm.due_back_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
             <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="assignForm.notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="assignForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Assign</button>

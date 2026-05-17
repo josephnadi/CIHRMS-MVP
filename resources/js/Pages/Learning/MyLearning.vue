@@ -138,7 +138,7 @@ const ringProps = (pct, r = 28) => {
                         @click="showAddCert = true"
                         :disabled="!myEmployeeId"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97] disabled:opacity-50"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">verified</span>
                         Add Certification
@@ -300,7 +300,7 @@ const ringProps = (pct, r = 28) => {
                             <button
                                 @click="openProgress(e)"
                                 class="btn-shimmer flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-[12px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
                                 <span class="material-symbols-outlined text-[15px]">play_arrow</span>
                                 Continue Learning
@@ -319,7 +319,7 @@ const ringProps = (pct, r = 28) => {
                             <Link
                                 :href="route('learning.catalog')"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">menu_book</span>
                                 Browse Catalogue
@@ -423,7 +423,7 @@ const ringProps = (pct, r = 28) => {
                                 v-if="myEmployeeId"
                                 @click="showAddCert = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 Add External Certification
@@ -568,7 +568,7 @@ const ringProps = (pct, r = 28) => {
                         @click="submitProgress"
                         :disabled="progressForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="progressForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Progress
@@ -665,7 +665,7 @@ const ringProps = (pct, r = 28) => {
                         @click="submitCert"
                         :disabled="certForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="certForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Certification

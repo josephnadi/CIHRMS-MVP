@@ -239,7 +239,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         v-if="canManage"
                         @click="showCreate = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Publish Course
@@ -426,7 +426,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 @click="enrol(c, $event)"
                                 :disabled="!c.is_published && !canManage"
                                 class="btn-shimmer flex-1 rounded-xl px-3 py-2 text-[12px] font-bold text-white disabled:opacity-50 transition-all"
-                                style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                                style="background:linear-gradient(135deg,#0a2647,#205295)"
                             >
                                 <span class="material-symbols-outlined text-[14px] mr-1 align-middle">add_task</span>
                                 {{ c.my_enrolment ? 'Continue' : 'Enrol' }}
@@ -466,7 +466,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             v-if="canManage"
                             @click="showCreate = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                            style="background:linear-gradient(135deg,#0a2647,#205295)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Publish Course
@@ -589,7 +589,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         @click="enrol(selectedCourse, $event); showDetailPanel = false"
                         :disabled="!selectedCourse.is_published && !canManage"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span class="material-symbols-outlined text-[16px]">add_task</span>
                         Enrol Now
@@ -733,7 +733,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         @click="submitCreate"
                         :disabled="createForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#205295,#2c74b3)"
+                        style="background:linear-gradient(135deg,#0a2647,#205295)"
                     >
                         <span v-if="createForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         {{ createForm.processing ? 'Publishingâ€¦' : 'Publish Course' }}
