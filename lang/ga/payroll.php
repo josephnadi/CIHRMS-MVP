@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'payslip'           => 'Nyɔmɔ wolo',
+    'period'            => 'Beiŋ',
+    'employee'          => 'Nitsulɔ',
+    'staff_id'          => 'Nitsulɔ ID',
+    'department'        => 'Nitsumɔ kuŋ',
+    'basic_salary'      => 'Nyɔmɔ titri',
+    'allowances'        => 'Yelikɛbuamɔ',
+    'gross_pay'         => 'Nyɔmɔ fɛɛ',
+    'paye'              => 'PAYE (Too)',
+    'ssnit'             => 'SSNIT (5.5%)',
+    'nhia'              => 'NHIA',
+    'tier2'             => 'Naagbee nyɔmɔ (Tier-2)',
+    'loan_repayment'    => 'Faa wo',
+    'other_deductions'  => 'Anɔkwale jiemɔi',
+    'total_deductions'  => 'Jiemɔi fɛɛ',
+    'net_pay'           => 'Nyɔmɔ ni anaaa',
+    'currency'          => 'GHS',
+    'pay_date'          => 'Nyɔmɔ ŋmɛnɛ',
+    'employer'          => 'Nitsumɔ tsɛ',
+    'issued_by'         => 'Mɔ ni hã',
+    'sms_payslip_ready' => 'Bo :period nyɔmɔ wolo ehi. Nyɔmɔ ni anaaa: GHS :net.',
+];

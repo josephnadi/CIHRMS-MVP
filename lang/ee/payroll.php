@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'payslip'           => 'Fetudɔ ŋlɔnu',
+    'period'            => 'Ɣeyiɣi',
+    'employee'          => 'Dɔwɔla',
+    'staff_id'          => 'Dɔwɔla ƒe ID',
+    'department'        => 'Dɔwɔƒe',
+    'basic_salary'      => 'Fetu tɔgbi',
+    'allowances'        => 'Kpeɖeŋunuwo',
+    'gross_pay'         => 'Fetu blibo',
+    'paye'              => 'PAYE (Adzɔnu)',
+    'ssnit'             => 'SSNIT (5.5%)',
+    'nhia'              => 'NHIA',
+    'tier2'             => 'Tier-2 fetudzra',
+    'loan_repayment'    => 'Domenyila xɔxɔ',
+    'other_deductions'  => 'Nu bubuwo ɖeɖe',
+    'total_deductions'  => 'Ɖeɖewo katã',
+    'net_pay'           => 'Fetu mãeɖeɖi',
+    'currency'          => 'GHS',
+    'pay_date'          => 'Fetu ƒe ŋkeke',
+    'employer'          => 'Dɔƒe',
+    'issued_by'         => 'Ame si na',
+    'sms_payslip_ready' => 'Wò :period fetudɔ ŋlɔnu sɔ. Fetu mãeɖeɖi: GHS :net.',
+];

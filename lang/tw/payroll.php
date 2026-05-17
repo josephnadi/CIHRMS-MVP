@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'payslip'           => 'Akatua krataa',
+    'period'            => 'Bere',
+    'employee'          => 'Adwumayɛni',
+    'staff_id'          => 'Adwumayɛni nɔma',
+    'department'        => 'Dwumadibea',
+    'basic_salary'      => 'Akatua mu titiriw',
+    'allowances'        => 'Mmoa akatua',
+    'gross_pay'         => 'Akatua nyinaa',
+    'paye'              => 'PAYE (Tow)',
+    'ssnit'             => 'SSNIT (5.5%)',
+    'nhia'              => 'NHIA',
+    'tier2'             => 'Akwadaa-bere akatua (Tier-2)',
+    'loan_repayment'    => 'Bosea kɔ',
+    'other_deductions'  => 'Akatua a wɔayi',
+    'total_deductions'  => 'Nea wɔayi nyinaa',
+    'net_pay'           => 'Akatua a wonya',
+    'currency'          => 'GHS',
+    'pay_date'          => 'Akatua da',
+    'employer'          => 'Adwumawura',
+    'issued_by'         => 'Nea ɔde maae',
+    'sms_payslip_ready' => 'Wo :period akatua krataa ayɛ krado. Akatua: GHS :net.',
+];

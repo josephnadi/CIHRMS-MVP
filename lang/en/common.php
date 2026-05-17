@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'welcome'      => 'Welcome',
+    'sign_in'      => 'Sign in',
+    'sign_out'     => 'Sign out',
+    'save'         => 'Save',
+    'cancel'       => 'Cancel',
+    'submit'       => 'Submit',
+    'back'         => 'Back',
+    'continue'     => 'Continue',
+    'confirm'      => 'Confirm',
+    'yes'          => 'Yes',
+    'no'           => 'No',
+    'loading'      => 'Loading…',
+    'search'       => 'Search',
+    'close'        => 'Close',
+    'edit'         => 'Edit',
+    'delete'       => 'Delete',
+    'profile'      => 'Profile',
+    'dashboard'    => 'Dashboard',
+    'settings'     => 'Settings',
+    'language'     => 'Language',
+    'today'        => 'Today',
+    'thank_you'    => 'Thank you.',
+];

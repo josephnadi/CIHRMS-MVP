@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'payslip'           => 'Payslip',
+    'period'            => 'Period',
+    'employee'          => 'Employee',
+    'staff_id'          => 'Staff ID',
+    'department'        => 'Department',
+    'basic_salary'      => 'Basic salary',
+    'allowances'        => 'Allowances',
+    'gross_pay'         => 'Gross pay',
+    'paye'              => 'PAYE (Income tax)',
+    'ssnit'             => 'SSNIT (5.5%)',
+    'nhia'              => 'NHIA',
+    'tier2'             => 'Tier-2 pension',
+    'loan_repayment'    => 'Loan repayment',
+    'other_deductions'  => 'Other deductions',
+    'total_deductions'  => 'Total deductions',
+    'net_pay'           => 'Net pay',
+    'currency'          => 'GHS',
+    'pay_date'          => 'Pay date',
+    'employer'          => 'Employer',
+    'issued_by'         => 'Issued by',
+    'sms_payslip_ready' => 'Your payslip for :period is ready. Net pay: GHS :net.',
+];
