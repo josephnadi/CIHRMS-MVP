@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
@@ -20,7 +20,7 @@ const props = defineProps({
 
 const emit = defineEmits(['move']);
 
-// ── Drag state ───────────────────────────────────────────────────────────────
+// â”€â”€ Drag state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const draggingItemId   = ref(null);
 const draggingFromCol  = ref(null);
 const hoveredColumnId  = ref(null);
@@ -58,16 +58,42 @@ function onDragLeave(columnId, ev) {
     }
 }
 
-function onDrop(toColumnId) {
+// Drop-celebration FX — a brief sparkle ring spawned at the cursor position.
+// Tracks the column that just received a drop so we can flash its background.
+const justDroppedColumnId = ref(null);
+const sparkles = ref([]); // {id, x, y, tone}
+let sparkSeq = 0;
+
+function spawnSparkle(ev, tone, columnId) {
+    const rect = ev.currentTarget.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const y = ev.clientY - rect.top;
+    const id = ++sparkSeq;
+    sparkles.value.push({ id, x, y, tone, columnId });
+    setTimeout(() => {
+        sparkles.value = sparkles.value.filter(s => s.id !== id);
+    }, 900);
+}
+
+function onDrop(toColumnId, ev) {
     if (!props.interactive) return;
     const itemId         = draggingItemId.value;
     const fromColumnId   = draggingFromCol.value;
     onDragEnd();
     if (itemId === null || fromColumnId === null || fromColumnId === toColumnId) return;
+
+    // Visual celebration — the destination column flashes briefly, and a
+    // sparkle ring blooms at the drop point. Tone is picked so 'green' columns
+    // (Resolved) feel triumphant.
+    const tone = props.columns.find(c => c.id === toColumnId)?.color ?? 'blue';
+    justDroppedColumnId.value = toColumnId;
+    setTimeout(() => { if (justDroppedColumnId.value === toColumnId) justDroppedColumnId.value = null; }, 700);
+    if (ev) spawnSparkle(ev, tone, toColumnId);
+
     emit('move', { itemId, fromColumnId, toColumnId });
 }
 
-// ── Kebab menu state ─────────────────────────────────────────────────────────
+// â”€â”€ Kebab menu state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const openKebabId = ref(null);
 
 function toggleKebab(itemId, ev) {
@@ -94,14 +120,14 @@ onBeforeUnmount(() => {
     document.removeEventListener('keydown', onEsc);
 });
 
-// ── Theming ──────────────────────────────────────────────────────────────────
+// â”€â”€ Theming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const colorMap = {
-    blue:   { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',     header: 'text-blue-700 dark:text-blue-300',     ring: 'ring-blue-400/40   bg-blue-50/40   dark:bg-blue-950/30' },
-    green:  { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300', header: 'text-green-700 dark:text-green-300',   ring: 'ring-green-400/40  bg-green-50/40  dark:bg-green-950/30' },
-    amber:  { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300', header: 'text-amber-700 dark:text-amber-300',   ring: 'ring-amber-400/40  bg-amber-50/40  dark:bg-amber-950/30' },
-    red:    { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300',         header: 'text-red-700 dark:text-red-300',       ring: 'ring-red-400/40    bg-red-50/40    dark:bg-red-950/30' },
-    violet: { dot: 'bg-violet-500', badge: 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300', header: 'text-violet-700 dark:text-violet-300', ring: 'ring-violet-400/40 bg-violet-50/40 dark:bg-violet-950/30' },
-    gray:   { dot: 'bg-slate-400',  badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-300', header: 'text-slate-600 dark:text-slate-300',   ring: 'ring-slate-400/40  bg-slate-50/40  dark:bg-slate-800/30' },
+    blue:   { dot: 'bg-cyan-500',   badge: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300',     header: 'text-cyan-700 dark:text-cyan-300',     ring: 'ring-cyan-400/40   bg-cyan-50/40   dark:bg-cyan-950/30',  glow: 'rgba(18,217,227,0.55)',    spark: '#12d9e3' },
+    green:  { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300', header: 'text-green-700 dark:text-green-300',   ring: 'ring-green-400/40  bg-green-50/40  dark:bg-green-950/30',  glow: 'rgba(22,163,74,0.55)',     spark: '#16a34a' },
+    amber:  { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300', header: 'text-amber-700 dark:text-amber-300',   ring: 'ring-amber-400/40  bg-amber-50/40  dark:bg-amber-950/30',  glow: 'rgba(217,119,6,0.55)',     spark: '#d97706' },
+    red:    { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300',         header: 'text-red-700 dark:text-red-300',       ring: 'ring-red-400/40    bg-red-50/40    dark:bg-red-950/30',    glow: 'rgba(220,38,38,0.55)',     spark: '#dc2626' },
+    violet: { dot: 'bg-indigo-700', badge: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300', header: 'text-indigo-700 dark:text-indigo-300', ring: 'ring-indigo-400/40 bg-indigo-50/40 dark:bg-indigo-950/30', glow: 'rgba(26,35,126,0.55)',   spark: '#1a237e' },
+    gray:   { dot: 'bg-slate-400',  badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-300', header: 'text-slate-600 dark:text-slate-300',   ring: 'ring-slate-400/40  bg-slate-50/40  dark:bg-slate-800/30',  glow: 'rgba(100,116,139,0.55)',  spark: '#64748b' },
 };
 
 function getColor(colorKey) {
@@ -118,7 +144,7 @@ const skeletonCounts = [3, 2, 4, 1];
 <template>
     <div class="w-full overflow-x-auto pb-4 -mb-4">
 
-        <!-- ── Loading skeleton ────────────────────────────────────────────── -->
+        <!-- â”€â”€ Loading skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div v-if="loading" class="flex gap-4" style="min-width: max-content;">
             <div v-for="(n, ci) in 4" :key="ci" class="min-w-[280px] flex-shrink-0">
                 <div class="flex items-center gap-2 mb-3 px-1">
@@ -139,7 +165,7 @@ const skeletonCounts = [3, 2, 4, 1];
             </div>
         </div>
 
-        <!-- ── Board ──────────────────────────────────────────────────────── -->
+        <!-- â”€â”€ Board â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div v-else class="flex gap-4" style="min-width: max-content;">
             <div
                 v-for="column in columns"
@@ -158,16 +184,25 @@ const skeletonCounts = [3, 2, 4, 1];
 
                 <!-- Drop zone -->
                 <div
-                    class="flex-1 space-y-2 min-h-[200px] rounded-xl p-2 transition-all duration-150 ring-1 ring-transparent"
+                    class="kb-zone relative flex-1 space-y-2 min-h-[200px] rounded-xl p-2 transition-all duration-200 ring-1 ring-transparent overflow-hidden"
                     :class="[
                         column.items.length === 0 && hoveredColumnId !== column.id ? 'border-2 border-dashed border-outline-variant/30' : '',
-                        hoveredColumnId === column.id && draggingFromCol !== column.id ? `ring-2 ${getColor(column.color).ring}` : '',
+                        hoveredColumnId === column.id && draggingFromCol !== column.id ? `ring-2 ${getColor(column.color).ring} kb-zone--active` : '',
+                        justDroppedColumnId === column.id ? 'kb-zone--landed' : '',
                     ]"
+                    :style="hoveredColumnId === column.id && draggingFromCol !== column.id ? `--kb-glow:${getColor(column.color).glow};` : ''"
                     @dragenter.prevent="onDragEnter(column.id)"
                     @dragover.prevent="onDragOver($event)"
                     @dragleave="onDragLeave(column.id, $event)"
-                    @drop.prevent="onDrop(column.id)"
+                    @drop.prevent="onDrop(column.id, $event)"
                 >
+                    <!-- Sparkle FX on drop — bloom and fade, scoped to this column -->
+                    <span
+                        v-for="s in sparkles.filter(x => x.columnId === column.id)"
+                        :key="s.id"
+                        class="kb-spark"
+                        :style="`--x:${s.x}px;--y:${s.y}px;--c:${getColor(s.tone).spark};`"
+                    ></span>
                     <!-- Empty state -->
                     <div
                         v-if="column.items.length === 0"
@@ -253,3 +288,67 @@ const skeletonCounts = [3, 2, 4, 1];
         </div>
     </div>
 </template>
+
+<style scoped>
+/* ── Dropzone luminance ──────────────────────────────────────
+   While a card is being dragged over a column the zone gets a soft inner
+   glow whose hue matches the column's status. Subtle, not theatrical —
+   the eye registers it without breaking focus. */
+.kb-zone--active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at 50% 0%,
+        var(--kb-glow, rgba(26,35,126,0.35)) 0%,
+        transparent 65%
+    );
+    opacity: 0.6;
+    pointer-events: none;
+    animation: kbZonePulse 1.4s ease-in-out infinite;
+}
+@keyframes kbZonePulse {
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 0.8; }
+}
+
+/* On successful drop the zone flashes once — a quick brighten + relax. */
+.kb-zone--landed {
+    animation: kbZoneLanded 0.65s ease-out;
+}
+@keyframes kbZoneLanded {
+    0%   { background-color: rgba(255,255,255,0); }
+    35%  { background-color: rgba(26,35,126,0.10); }
+    100% { background-color: rgba(255,255,255,0); }
+}
+
+/* ── Sparkle bloom on drop ──────────────────────────────────
+   A coloured ring blooms outward and fades from the cursor's drop point.
+   The colour matches the destination column's status hue. */
+.kb-spark {
+    position: absolute;
+    left: var(--x);
+    top:  var(--y);
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 9999px;
+    background: var(--c);
+    box-shadow: 0 0 0 0 var(--c);
+    pointer-events: none;
+    animation: kbSparkle 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    z-index: 5;
+}
+@keyframes kbSparkle {
+    0%   { opacity: 1; transform: scale(0.4); box-shadow: 0 0 0 0    var(--c); }
+    40%  { opacity: 0.9; transform: scale(1.1); box-shadow: 0 0 0 16px rgba(255,255,255,0); }
+    100% { opacity: 0;   transform: scale(1.4); box-shadow: 0 0 0 36px rgba(255,255,255,0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kb-zone--active::before,
+    .kb-zone--landed,
+    .kb-spark { animation: none !important; }
+}
+</style>

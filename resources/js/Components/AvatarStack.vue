@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -30,7 +30,7 @@ const colorPalette = [
     'bg-blue-500',
     'bg-green-500',
     'bg-amber-500',
-    'bg-violet-500',
+    'bg-blue-500',
     'bg-red-500',
     'bg-cyan-500',
 ];

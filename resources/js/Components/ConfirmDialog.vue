@@ -88,7 +88,7 @@ const emit = defineEmits(['confirm', 'cancel']);
                                 ]"
                                 :style="danger
                                     ? 'background: linear-gradient(135deg, #dc2626, #ef4444)'
-                                    : 'background: linear-gradient(135deg, #0051d5, #316bf3)'"
+                                    : 'background: linear-gradient(135deg, #1a237e, #3949ab)'"
                                 @click="emit('confirm')"
                             >
                                 <!-- Loading spinner -->

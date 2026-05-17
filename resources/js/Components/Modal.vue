@@ -76,7 +76,7 @@ const maxWidthClass = computed(() => ({
                 >
                     <!-- Top accent -->
                     <div class="h-[3px] w-full"
-                         style="background:linear-gradient(90deg,#0051d5,#316bf3,#7c5cff);"></div>
+                         style="background:linear-gradient(90deg,#1a237e,#3949ab,#1a237e);"></div>
                     <slot v-if="showSlot" />
                 </div>
             </Transition>

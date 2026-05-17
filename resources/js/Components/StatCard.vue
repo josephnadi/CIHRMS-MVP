@@ -8,7 +8,7 @@ const props = defineProps({
     color:   {
         type:    String,
         default: 'blue',
-        validator: v => ['blue','green','amber','red','violet','cyan'].includes(v),
+        validator: v => ['blue','green','amber','red','violet','cyan','gold','magenta','navy'].includes(v),
     },
     trend:   { type: String,  default: null },
     trendUp: { type: Boolean, default: true },
@@ -17,12 +17,15 @@ const props = defineProps({
 });
 
 const colorMap = {
-    blue:   { bg: 'bg-blue-500/10',   text: 'text-blue-500' },
-    green:  { bg: 'bg-green-500/10',  text: 'text-green-500' },
-    amber:  { bg: 'bg-amber-500/10',  text: 'text-amber-500' },
-    red:    { bg: 'bg-red-500/10',    text: 'text-red-500' },
-    violet: { bg: 'bg-violet-500/10', text: 'text-violet-500' },
-    cyan:   { bg: 'bg-cyan-500/10',   text: 'text-cyan-500' },
+    blue:    { bg: 'bg-secondary/10',                style: 'color:#1a237e' },
+    navy:    { bg: '',                               style: 'background:rgba(13, 20, 82,0.10);color:#0d1452' },
+    green:   { bg: 'bg-green-500/10',                style: 'color:#059669' },
+    amber:   { bg: 'bg-amber-500/10',                style: 'color:#d97706' },
+    red:     { bg: 'bg-red-500/10',                  style: 'color:#dc2626' },
+    violet:  { bg: '',                               style: 'background:rgba(217,18,227,0.10);color:#d912e3' },
+    cyan:    { bg: '',                               style: 'background:rgba(18,217,227,0.12);color:#0e8a93' },
+    gold:    { bg: '',                               style: 'background:rgba(255,215,0,0.14);color:#b88a08' },
+    magenta: { bg: '',                               style: 'background:rgba(217,18,227,0.10);color:#d912e3' },
 };
 
 const iconStyle = computed(() => colorMap[props.color] ?? colorMap.blue);
@@ -48,8 +51,9 @@ const iconStyle = computed(() => colorMap[props.color] ?? colorMap.blue);
         <template v-else>
             <div class="flex items-start justify-between">
                 <!-- Icon -->
-                <div :class="['h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0', iconStyle.bg]">
-                    <span :class="['material-symbols-outlined text-[20px]', iconStyle.text]">{{ icon }}</span>
+                <div :class="['h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105', iconStyle.bg]"
+                     :style="iconStyle.style">
+                    <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1">{{ icon }}</span>
                 </div>
 
                 <!-- Trend badge -->

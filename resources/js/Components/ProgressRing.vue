@@ -39,7 +39,7 @@ const props = defineProps({
 
 // Hex color map
 const colorHex = {
-    blue:   '#0051d5',
+    blue:   '#1a237e',
     green:  '#22c55e',
     amber:  '#f59e0b',
     red:    '#ef4444',
@@ -135,7 +135,7 @@ const fontSize = computed(() => {
                 />
             </g>
 
-            <!-- Center label — NOT rotated (in its own group at normal orientation) -->
+            <!-- Center label â€” NOT rotated (in its own group at normal orientation) -->
             <text
                 v-if="displayText"
                 :x="center"
@@ -144,7 +144,7 @@ const fontSize = computed(() => {
                 dominant-baseline="central"
                 :font-size="fontSize"
                 font-weight="800"
-                font-family="Plus Jakarta Sans, sans-serif"
+                font-family="Open Sans, sans-serif"
                 :fill="strokeColor"
             >
                 {{ displayText }}

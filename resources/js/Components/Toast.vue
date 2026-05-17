@@ -1,21 +1,51 @@
 <script setup>
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
 
 const page = usePage();
-const { toasts: toastList, success, error, dismiss } = useToast();
+const { toasts: toastList, success, error, info, warning, dismiss } = useToast();
 
 // Bridge Inertia flash messages into the singleton queue.
+// Flash bag accepts: success | error | info | warning.
 watch(
     () => page.props.flash,
     (flash) => {
         if (!flash) return;
         if (flash.success) success(flash.success);
         if (flash.error)   error(flash.error);
+        if (flash.info)    info(flash.info);
+        if (flash.warning) warning(flash.warning);
     },
     { deep: true, immediate: true }
 );
+
+// Per-type visual signature. Each variant pairs a palette-correct tile with
+// its own icon — the matching sound preset is fired in useToast.push().
+const VARIANTS = {
+    success: {
+        icon:  'check_circle',
+        tile:  'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800/40 dark:text-green-300',
+        accent:'text-green-600 dark:text-green-400',
+    },
+    error: {
+        icon:  'error',
+        tile:  'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800/40 dark:text-red-300',
+        accent:'text-red-600 dark:text-red-400',
+    },
+    info: {
+        icon:  'campaign',
+        // Cyan = brand "live / informational" accent (12d9e3 family)
+        tile:  'bg-cyan-50 border-cyan-200 text-cyan-900 dark:bg-cyan-900/20 dark:border-cyan-800/40 dark:text-cyan-200',
+        accent:'text-cyan-600 dark:text-cyan-400',
+    },
+    warning: {
+        icon:  'warning',
+        tile:  'bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-800/40 dark:text-amber-200',
+        accent:'text-amber-600 dark:text-amber-400',
+    },
+};
+const variantFor = (t) => VARIANTS[t] ?? VARIANTS.info;
 </script>
 
 <template>
@@ -36,15 +66,16 @@ watch(
                     :key="toast.id"
                     :class="[
                         'pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-lifted min-w-[280px] max-w-sm',
-                        toast.type === 'success'
-                            ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/40 text-green-800 dark:text-green-300'
-                            : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/40 text-red-800 dark:text-red-300',
+                        variantFor(toast.type).tile,
                     ]"
+                    role="status"
+                    aria-live="polite"
                 >
                     <!-- Icon -->
-                    <span class="material-symbols-outlined text-[20px] flex-shrink-0 mt-0.5">
-                        {{ toast.type === 'success' ? 'check_circle' : 'error' }}
-                    </span>
+                    <span
+                        :class="['material-symbols-outlined text-[20px] flex-shrink-0 mt-0.5', variantFor(toast.type).accent]"
+                        style="font-variation-settings:'FILL' 1"
+                    >{{ variantFor(toast.type).icon }}</span>
 
                     <!-- Message -->
                     <p class="flex-1 text-[13px] font-semibold leading-snug">
