@@ -107,7 +107,13 @@ class DataSubjectRequestService
         return $req->fresh();
     }
 
-    public function reject(DataSubjectRequest $req, User $dpo, string $statutoryBasis, string $summary): DataSubjectRequest
+    /** Alias used by feature tests + earlier API consumers — same as fulfill(). */
+    public function fulfilWithExport(DataSubjectRequest $req, User $dpo, string $summary): DataSubjectRequest
+    {
+        return $this->fulfill($req, $dpo, $summary);
+    }
+
+    public function reject(DataSubjectRequest $req, User $dpo, string $statutoryBasis, string $summary = ''): DataSubjectRequest
     {
         if ($req->status->isTerminal()) {
             throw new \DomainException("Request {$req->reference} is already closed.");
@@ -123,14 +129,20 @@ class DataSubjectRequestService
         return $req->fresh();
     }
 
-    public function withdraw(DataSubjectRequest $req): DataSubjectRequest
+    public function withdraw(DataSubjectRequest $req, \App\Models\User $caller): DataSubjectRequest
     {
+        // Only the data subject themselves may withdraw — never the DPO, never
+        // another user. The DPO's path is reject() with a statutory basis.
+        if ((int) $req->subject_user_id !== (int) $caller->id) {
+            throw new \DomainException('Only the subject may withdraw their own request.');
+        }
+
         if ($req->status->isTerminal()) return $req;
         $req->update([
             'status'       => DataSubjectRequestStatus::Withdrawn->value,
             'completed_at' => now(),
         ]);
-        $req->appendAuditEntry('withdrawn_by_subject', $req->subject_user_id);
+        $req->appendAuditEntry('withdrawn_by_subject', $caller->id);
         return $req->fresh();
     }
 

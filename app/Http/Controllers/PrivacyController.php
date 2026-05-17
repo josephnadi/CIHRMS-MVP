@@ -56,7 +56,7 @@ class PrivacyController extends Controller
     public function withdraw(Request $request, DataSubjectRequest $req): RedirectResponse
     {
         $this->authorize('withdraw', $req);
-        $this->service->withdraw($req);
+        $this->service->withdraw($req, $request->user());
 
         return back()->with('success', "Request {$req->reference} withdrawn.");
     }
@@ -84,20 +84,51 @@ class PrivacyController extends Controller
             ->paginate(25)
             ->withQueryString();
 
+        $open = DataSubjectRequest::open()->get(['id', 'submitted_at', 'target_completion_date']);
+
         $stats = [
-            'open'        => DataSubjectRequest::open()->count(),
-            'overdue'     => DataSubjectRequest::where('status', 'overdue')->count(),
-            'this_month'  => DataSubjectRequest::whereMonth('submitted_at', now()->month)
+            'open'          => $open->count(),
+            'overdue'       => DataSubjectRequest::where('status', 'overdue')->count(),
+            'this_month'    => DataSubjectRequest::whereMonth('submitted_at', now()->month)
                 ->whereYear('submitted_at', now()->year)->count(),
             'fulfilled_ytd' => DataSubjectRequest::where('status', 'fulfilled')
                 ->whereYear('completed_at', now()->year)->count(),
+            'rejected_ytd'  => DataSubjectRequest::where('status', 'rejected')
+                ->whereYear('completed_at', now()->year)->count(),
+            'within_sla_pct' => (function () use ($open) {
+                if ($open->isEmpty()) return 100;
+                $within = $open->filter(fn ($r) =>
+                    $r->target_completion_date && $r->target_completion_date->gte(now()->startOfDay())
+                )->count();
+                return (int) round(($within / $open->count()) * 100);
+            })(),
+            'avg_age_days'  => (int) round(
+                $open->avg(fn ($r) => $r->submitted_at ? now()->diffInDays($r->submitted_at) : 0) ?? 0
+            ),
+            'total_all_time' => DataSubjectRequest::count(),
         ];
 
+        // Composition by request type — feeds the analytical band
+        $typeBreakdown = DataSubjectRequest::query()
+            ->selectRaw('request_type, COUNT(*) as c')
+            ->groupBy('request_type')
+            ->pluck('c', 'request_type')
+            ->all();
+
+        // Composition by status — feeds the donut
+        $statusBreakdown = DataSubjectRequest::query()
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status')
+            ->all();
+
         return Inertia::render('Privacy/Admin/Index', [
-            'requests'     => DataSubjectRequestResource::collection($reqs),
-            'stats'        => $stats,
-            'filters'      => $request->only(['status', 'request_type']),
-            'activeModule' => 'privacy-admin',
+            'requests'         => DataSubjectRequestResource::collection($reqs),
+            'stats'            => $stats,
+            'typeBreakdown'    => $typeBreakdown,
+            'statusBreakdown'  => $statusBreakdown,
+            'filters'          => $request->only(['status', 'request_type']),
+            'activeModule'     => 'privacy-admin',
         ]);
     }
 

@@ -195,9 +195,8 @@ class DataSubjectExportBuilder
 
     private function complaintsFiled(User $u): array
     {
-        return \App\Models\Complaint::where('reporter_user_id', $u->id)
-            ->orWhereHas('employee', fn ($q) => $q->where('user_id', $u->id))
-            ->get()->toArray();
+        // submitted_by stores the user id (no separate employee relation).
+        return \App\Models\Complaint::where('submitted_by', $u->id)->get()->toArray();
     }
 
     private function jobApplications(User $u): array
