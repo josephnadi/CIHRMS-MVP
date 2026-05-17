@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -41,13 +41,13 @@ const capabilityIcon = (capability) => ({
 // crm/messaging/calendar/esign keep semantic colors; files = brand cyan
 // (was generic cyan-blue #0891b2); identity = navy (was slate).
 const capabilityColor = (capability) => ({
-    crm:         '#205295',  // cobalt
+    crm:         '#1a237e',  // cobalt
     files:       '#12d9e3',  // brand cyan
     spreadsheet: '#059669',  // green
-    messaging:   '#205295',  // cobalt
+    messaging:   '#1a237e',  // cobalt
     calendar:    '#d97706',  // amber
     esign:       '#dc2626',  // red
-    identity:    '#0a2647',  // navy (identity verification = institutional)
+    identity:    '#0d1452',  // navy (identity verification = institutional)
 }[capability] ?? '#6b7280');
 
 const connectForm = useForm({});
@@ -79,7 +79,7 @@ const fmtDate = (s) => s ? new Date(s).toLocaleString() : 'â€”';
 const statusPill = (status) => {
     const map = {
         sent:     { bg: 'rgba(5,150,105,0.10)',  fg: '#059669', label: 'Sent' },
-        received: { bg: 'rgba(32,82,149,0.10)',   fg: '#205295', label: 'Received' },
+        received: { bg: 'rgba(26, 35, 126,0.10)',   fg: '#1a237e', label: 'Received' },
         queued:   { bg: 'rgba(217,119,6,0.10)',  fg: '#d97706', label: 'Queued' },
         failed:   { bg: 'rgba(220,38,38,0.10)',  fg: '#dc2626', label: 'Failed' },
     };
@@ -113,8 +113,8 @@ const statusPill = (status) => {
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-4">
                     <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(32,82,149,0.10)">
-                            <span class="material-symbols-outlined text-[20px]" style="color:#205295">extension</span>
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(26, 35, 126,0.10)">
+                            <span class="material-symbols-outlined text-[20px]" style="color:#1a237e">extension</span>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant/60">Total</p>
@@ -300,7 +300,7 @@ const statusPill = (status) => {
                     <div v-for="e in recentEvents" :key="e.id"
                          class="flex items-start gap-3 px-5 py-3 hover:bg-surface-container-low/40 transition-colors">
                         <span class="material-symbols-outlined text-[18px] mt-0.5"
-                              :style="`color:${e.direction === 'outbound' ? '#205295' : '#205295'}`">
+                              :style="`color:${e.direction === 'outbound' ? '#1a237e' : '#1a237e'}`">
                             {{ e.direction === 'outbound' ? 'arrow_outward' : 'arrow_downward' }}
                         </span>
                         <div class="min-w-0 flex-1">

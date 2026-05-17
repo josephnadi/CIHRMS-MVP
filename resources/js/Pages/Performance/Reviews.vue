@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, reactive, computed, watch } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -60,7 +60,7 @@ const stats = computed(() => {
 // violet to magenta (people-side action color) to align with the broader
 // Sovereign Precision system.
 const heroCards = computed(() => [
-    { label: 'In Progress',             value: stats.value.draft,        icon: 'edit_note',         rgb: '32,82,149'  },
+    { label: 'In Progress',             value: stats.value.draft,        icon: 'edit_note',         rgb: '26, 35, 126'  },
     { label: 'Awaiting Feedback',       value: stats.value.submitted,    icon: 'hourglass_empty',   rgb: '217,119,6'  },
     { label: 'Pending Acknowledgement', value: stats.value.submitted,    icon: 'mark_email_unread', rgb: '217,18,227' },
     { label: 'Completed',               value: stats.value.acknowledged, icon: 'task_alt',          rgb: '5,150,105'  },
@@ -151,8 +151,8 @@ const closeCycle = (cycle) => {
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TYPE_META = {
-    self:       { label: 'Self',        rgb: '10,38,71',   icon: 'person'             },  // navy
-    manager:    { label: 'Manager',     rgb: '32,82,149',  icon: 'manage_accounts'    },  // cobalt
+    self:       { label: 'Self',        rgb: '13, 20, 82',   icon: 'person'             },  // navy
+    manager:    { label: 'Manager',     rgb: '26, 35, 126',  icon: 'manage_accounts'    },  // cobalt
     peer:       { label: 'Peer',        rgb: '18,217,227', icon: 'people'             },  // cyan (proper brand cyan)
     skip_level: { label: 'Skip-level',  rgb: '217,119,6',  icon: 'supervisor_account' },  // amber
     upward:     { label: 'Upward',      rgb: '5,150,105',  icon: 'arrow_upward'       },  // green
@@ -160,7 +160,7 @@ const TYPE_META = {
 
 const STATUS_META = {
     draft:        { label: 'Draft',        rgb: '107,114,128' },
-    submitted:    { label: 'Submitted',    rgb: '32,82,149'    },
+    submitted:    { label: 'Submitted',    rgb: '26, 35, 126'    },
     acknowledged: { label: 'Acknowledged', rgb: '5,150,105'   },
 };
 
@@ -215,12 +215,12 @@ const initials = (name) => {
 
 // Avatar gradient pool — disciplined cool family (matches all other modules)
 const GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 </script>
@@ -271,7 +271,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         New Review
@@ -312,7 +312,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                 <div class="flex items-end gap-2 h-14">
                     <div v-for="bin in ratingDist" :key="bin.score" class="flex flex-1 flex-col items-center gap-1">
                         <span class="text-[10px] font-mono text-on-surface-variant/60">{{ bin.count }}</span>
-                        <div class="w-full rounded-t-md transition-all duration-500" :style="`height:${Math.max(4, bin.pct * 0.36)}rem;background:linear-gradient(180deg,rgba(32,82,149,0.7),rgba(32,82,149,0.3))`"></div>
+                        <div class="w-full rounded-t-md transition-all duration-500" :style="`height:${Math.max(4, bin.pct * 0.36)}rem;background:linear-gradient(180deg,rgba(26, 35, 126,0.7),rgba(26, 35, 126,0.3))`"></div>
                         <span class="text-[10px] font-bold text-on-surface-variant/70">{{ bin.score }}</span>
                     </div>
                 </div>
@@ -436,7 +436,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         <button
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             New Review
@@ -677,7 +677,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitReview" :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)">
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Draft
                     </button>
@@ -750,7 +750,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitCycle" :disabled="cycleForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)">
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="cycleForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Create Cycle
                     </button>

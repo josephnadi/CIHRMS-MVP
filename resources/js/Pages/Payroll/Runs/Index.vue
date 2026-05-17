@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, reactive, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -56,8 +56,17 @@ const submit = () => form.post(route('payroll-runs.store'), {
 
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-semibold tracking-tight">Statutory Payroll Runs</h1>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">request_quote</span>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Phase 1 · PAYE · SSNIT · Tier-2 · NHIA</p>
+                    </div>
+                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Statutory Payroll Runs</h1>
+                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                        Calculated, approved (dual-control), and statutorily-reported payroll cycles — all rates seeded from Ghana law.
+                    </p>
+                </div>
                 <PrimaryButton @click="showPanel = true">Create run</PrimaryButton>
             </div>
         </template>
@@ -116,7 +125,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
                             <td class="px-5 py-3 text-right">{{ cedi(r.totals.net) }}</td>
                             <td class="px-5 py-3 text-right">
                                 <Link :href="route('payroll-runs.show', r.id)"
-                                      class="text-indigo-600 hover:underline">Open</Link>
+                                      class="text-blue-600 hover:underline">Open</Link>
                             </td>
                         </tr>
                     </tbody>
@@ -132,7 +141,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
             <form @submit.prevent="submit" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Year</label>
-                    <input v-model="form.period_year" type="number" class="w-full rounded-lg border-slate-200" required>
+                    <input v-model="form.period_year" aria-label="Payroll period year" type="number" class="w-full rounded-lg border-slate-200" required>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Month</label>

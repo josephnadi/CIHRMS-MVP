@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, reactive } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -9,10 +9,12 @@ import EmptyState from '@/Components/EmptyState.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 
 const props = defineProps({
-    complaints:   Object,
-    filters:      Object,
-    activeModule: String,
+    complaints:    Object,
+    investigators: { type: Array, default: () => [] },
+    filters:       Object,
+    activeModule:  String,
 });
+const investigators = props.investigators;
 
 const page = usePage();
 const canManage = computed(() => {
@@ -67,6 +69,14 @@ const updateStatus = (complaint, newStatus) => {
     router.patch(route('complaints.updateStatus', complaint.id), { status: newStatus }, {
         preserveScroll: true,
     });
+};
+
+// Reassign / un-assign the investigator. PATCH only the `assigned_to` field.
+const reassign = (complaint, userId) => {
+    router.patch(route('complaints.updateStatus', complaint.id),
+        { assigned_to: userId },
+        { preserveScroll: true },
+    );
 };
 
 // â”€â”€ Detail panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -213,7 +223,7 @@ const formatDate = (d) => {
                                 type="submit"
                                 :disabled="form.processing"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                                 <span>Submit Complaint</span>
@@ -242,7 +252,7 @@ const formatDate = (d) => {
                         <button
                             @click="doTrack"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[16px]">search</span>
                             Track
@@ -296,6 +306,7 @@ const formatDate = (d) => {
                                     <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Details</th>
                                     <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Submitted</th>
                                     <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Status</th>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Assigned to</th>
                                     <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Update</th>
                                 </tr>
                             </thead>
@@ -324,8 +335,20 @@ const formatDate = (d) => {
                                     </td>
                                     <td class="px-4 py-3.5" @click.stop>
                                         <select
+                                            :value="c.assigned_to ?? ''"
+                                            @change="ev => reassign(c, ev.target.value ? Number(ev.target.value) : null)"
+                                            aria-label="Assign investigator"
+                                            class="rounded-lg border border-outline-variant/60 bg-surface-container-low px-2 py-1 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50 max-w-[160px]"
+                                        >
+                                            <option value="">Unassigned</option>
+                                            <option v-for="inv in investigators ?? []" :key="inv.id" :value="inv.id">{{ inv.name }}</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3.5" @click.stop>
+                                        <select
                                             :value="c.status"
                                             @change="ev => updateStatus(c, ev.target.value)"
+                                            aria-label="Update status"
                                             class="rounded-lg border border-outline-variant/60 bg-surface-container-low px-2 py-1 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
                                         >
                                             <option value="open">Open</option>
@@ -342,7 +365,7 @@ const formatDate = (d) => {
                     <div v-if="complaints?.links?.length > 3" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
                         <div class="flex items-center justify-between">
                             <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-                                <span class="material-symbols-outlined text-[15px]" style="color:#205295;opacity:0.7">format_list_numbered</span>
+                                <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
                                 Showing
                                 <span class="font-bold text-on-surface tabular-nums">{{ complaints.meta?.from }}</span>
                                 –

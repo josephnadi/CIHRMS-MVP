@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { reactive } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -34,7 +34,7 @@ const channelClass = (c) => ({
     'airtel_tigo':   'bg-sky-100 text-sky-800',
     'ghipss_ach':    'bg-emerald-100 text-emerald-800',
     'cash':          'bg-slate-100 text-slate-700',
-    'cheque':        'bg-violet-100 text-violet-800',
+    'cheque':        'bg-blue-100 text-blue-800',
 }[c] ?? 'bg-slate-100 text-slate-700');
 </script>
 
@@ -44,15 +44,21 @@ const channelClass = (c) => ({
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
             <div>
-                <p class="text-xs text-on-surface-variant/60">Phase 3 · Salary disbursement</p>
-                <h1 class="text-2xl font-semibold tracking-tight">Disbursements</h1>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">payments</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Phase 3 · Salary disbursement</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Disbursements</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Outbound MoMo / GhIPSS payments, settlement reconciliation, and statutory E-Levy tracking.
+                </p>
             </div>
         </template>
 
         <div class="py-6 space-y-6">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard label="Pending"        :value="stats.pending" />
-                <StatCard label="Sent — awaiting settlement" :value="stats.sent" tone="warn" />
+                <StatCard label="Sent â€” awaiting settlement" :value="stats.sent" tone="warn" />
                 <StatCard label="Settled"        :value="stats.settled" tone="success" />
                 <StatCard label="Failed"         :value="stats.failed" tone="danger" />
                 <StatCard label="MoMo settled (YTD)" :value="cedi(stats.momo_total)" class="md:col-span-2" />
@@ -64,7 +70,7 @@ const channelClass = (c) => ({
                     <input v-model="localFilters.run_id" type="number" placeholder="Run ID"
                            @keyup.enter="applyFilters"
                            class="rounded-lg border-outline-variant text-sm w-24">
-                    <select v-model="localFilters.channel" @change="applyFilters" class="rounded-lg border-outline-variant text-sm">
+                    <select v-model="localFilters.channel" @change="applyFilters" aria-label="Filter by channel" class="rounded-lg border-outline-variant text-sm">
                         <option value="">All channels</option>
                         <option value="ghipss_ach">GhIPSS Bank</option>
                         <option value="mtn_momo">MTN MoMo</option>
@@ -73,7 +79,7 @@ const channelClass = (c) => ({
                         <option value="cash">Cash</option>
                         <option value="cheque">Cheque</option>
                     </select>
-                    <select v-model="localFilters.status" @change="applyFilters" class="rounded-lg border-outline-variant text-sm">
+                    <select v-model="localFilters.status" @change="applyFilters" aria-label="Filter by status" class="rounded-lg border-outline-variant text-sm">
                         <option value="">All statuses</option>
                         <option value="pending">Pending</option>
                         <option value="sent">Sent</option>
@@ -106,7 +112,7 @@ const channelClass = (c) => ({
                             :class="d.status === 'failed' ? 'bg-rose-50/40' : 'hover:bg-surface-container-low/60'">
                             <td class="px-5 py-3 font-mono text-xs">{{ d.run?.reference }}</td>
                             <td class="px-5 py-3">
-                                <div class="font-medium">{{ d.employee?.name ?? '—' }}</div>
+                                <div class="font-medium">{{ d.employee?.name ?? 'â€”' }}</div>
                                 <div class="text-xs text-on-surface-variant/60 font-mono">{{ d.beneficiary_account }}</div>
                             </td>
                             <td class="px-5 py-3">
@@ -116,14 +122,14 @@ const channelClass = (c) => ({
                             <td class="px-5 py-3 text-right">{{ cedi(d.gross_amount) }}</td>
                             <td class="px-5 py-3 text-right text-xs">
                                 <span v-if="d.e_levy > 0">{{ cedi(d.e_levy) }}</span>
-                                <span v-else class="text-on-surface-variant/40">—</span>
+                                <span v-else class="text-on-surface-variant/40">â€”</span>
                             </td>
                             <td class="px-5 py-3 text-right font-semibold">{{ cedi(d.net_to_recipient) }}</td>
                             <td class="px-5 py-3">
                                 <StatusBadge :status="d.status" :label="d.status_label" />
                                 <p v-if="d.failure_reason" class="text-xs text-rose-700 mt-1">{{ d.failure_reason }}</p>
                             </td>
-                            <td class="px-5 py-3 font-mono text-xs">{{ d.provider_reference ?? '—' }}</td>
+                            <td class="px-5 py-3 font-mono text-xs">{{ d.provider_reference ?? 'â€”' }}</td>
                         </tr>
                     </tbody>
                 </table>

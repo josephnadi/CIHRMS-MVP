@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -48,12 +48,12 @@ function initials(name) {
 }
 // Avatar gradient pool — disciplined cool family
 const AVATAR_GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 function avatarColor(name) {
     let h = 0;
@@ -145,9 +145,9 @@ function removeSkill(skill) {
 
 // â”€â”€ Leave balance helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TYPE_META = {
-    annual:    { color: '#205295', icon: 'beach_access' },
+    annual:    { color: '#1a237e', icon: 'beach_access' },
     sick:      { color: '#d97706', icon: 'medical_services' },
-    maternity: { color: '#205295', icon: 'child_care' },
+    maternity: { color: '#1a237e', icon: 'child_care' },
     paternity: { color: '#0891b2', icon: 'family_restroom' },
     emergency: { color: '#dc2626', icon: 'emergency' },
     study:     { color: '#059669', icon: 'school' },
@@ -170,7 +170,7 @@ const hasEmployee = computed(() => !!emp.value);
 
         <!-- â”€â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         <div class="mb-6 overflow-hidden rounded-3xl border border-outline-variant/50 bg-surface-container-lowest shadow-card">
-            <div class="relative h-24 w-full overflow-hidden" style="background:linear-gradient(135deg,#06192f,#0a2647,#1c1f3a);">
+            <div class="relative h-24 w-full overflow-hidden" style="background:linear-gradient(135deg,#070b3a,#0d1452,#1c1f3a);">
                 <!-- 5% gold hairline (single accent moment on the page) -->
                 <div class="pointer-events-none absolute inset-x-0 bottom-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.55),transparent)"></div>
             </div>
@@ -278,7 +278,7 @@ const hasEmployee = computed(() => !!emp.value);
                     <div class="flex justify-end">
                         <button type="submit" :disabled="accountForm.processing"
                                 class="btn-shimmer rounded-xl px-5 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)">
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                             Save changes
                         </button>
                     </div>
@@ -324,7 +324,7 @@ const hasEmployee = computed(() => !!emp.value);
                     <div class="flex justify-end">
                         <button type="submit" :disabled="personalForm.processing"
                                 class="btn-shimmer rounded-xl px-5 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)">
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                             Save personal info
                         </button>
                     </div>
@@ -420,7 +420,7 @@ const hasEmployee = computed(() => !!emp.value);
                     <input v-model="skillForm.expires_at" aria-label="Skill expiry date" type="date" :class="inputCls" />
                     <button type="submit" :disabled="skillForm.processing"
                             class="rounded-xl px-4 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                            style="background:linear-gradient(135deg,#205295,#7cb6e8)">
+                            style="background:linear-gradient(135deg,#1a237e,#7986cb)">
                         + Add
                     </button>
                 </form>
@@ -605,7 +605,7 @@ const hasEmployee = computed(() => !!emp.value);
                     <div class="flex justify-end">
                         <button type="submit" :disabled="passwordForm.processing"
                                 class="btn-shimmer rounded-xl px-5 py-2 text-[12px] font-bold text-white disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)">
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                             Update password
                         </button>
                     </div>

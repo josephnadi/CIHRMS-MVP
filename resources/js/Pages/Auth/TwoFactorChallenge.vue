@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -48,7 +48,7 @@ const submit = () => form.post(route('two-factor.challenge.submit'));
                     </PrimaryButton>
 
                     <button type="button" @click="useRecovery = !useRecovery"
-                            class="text-xs text-indigo-600 hover:underline">
+                            class="text-xs text-blue-600 hover:underline">
                         {{ useRecovery ? 'Use authenticator app instead' : 'Use a recovery code instead' }}
                     </button>
                 </form>

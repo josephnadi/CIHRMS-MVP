@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -19,10 +19,10 @@ const props = defineProps({
 // was 'green' with cyan accent. Now shortlisted = magenta (people-side
 // selection), offered = cobalt (action), hired = green (success).
 const STAGES = [
-    { id: 'applied',     label: 'Applied',     color: 'blue',    accent: '#205295' },
+    { id: 'applied',     label: 'Applied',     color: 'blue',    accent: '#1a237e' },
     { id: 'shortlisted', label: 'Shortlisted', color: 'magenta', accent: '#d912e3' },
     { id: 'interviewed', label: 'Interviewed', color: 'amber',   accent: '#d97706' },
-    { id: 'offered',     label: 'Offered',     color: 'blue',    accent: '#205295' },
+    { id: 'offered',     label: 'Offered',     color: 'blue',    accent: '#1a237e' },
     { id: 'hired',       label: 'Hired',       color: 'green',   accent: '#059669' },
     { id: 'rejected',    label: 'Rejected',    color: 'red',     accent: '#dc2626' },
 ];
@@ -69,12 +69,12 @@ function onMove({ itemId, toColumnId }) {
 
 // Applicant avatar gradient pool — disciplined cool family (matches all other modules)
 const AVATAR_GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 function avatarColor(name) {
     let h = 0;
@@ -154,7 +154,7 @@ const filteredList = computed(() => {
                 :href="route('jobs.show', job?.id)"
                 class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
             >
-                <span class="material-symbols-outlined text-[17px]" style="color:#205295">work</span>
+                <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">work</span>
                 Job details
             </Link>
         </div>
@@ -162,7 +162,7 @@ const filteredList = computed(() => {
         <!-- Stats -->
         <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div v-for="(s, i) in [
-                { label: 'Total Applicants', val: stats.total,           rgb: '10,38,71',   icon: 'group',        sub: 'all stages' },
+                { label: 'Total Applicants', val: stats.total,           rgb: '13, 20, 82',   icon: 'group',        sub: 'all stages' },
                 { label: 'In Pipeline',      val: stats.active,          rgb: '217,18,227', icon: 'autorenew',    sub: 'active' },
                 { label: 'Hired',            val: stats.hired,           rgb: '5,150,105',  icon: 'check_circle', sub: 'completed' },
                 { label: 'Conversion Rate',  val: conversionRate + '%',  rgb: '255,215,0',  icon: 'trending_up',  sub: 'hire ratio' },
@@ -189,7 +189,7 @@ const filteredList = computed(() => {
                     <TabBar :tabs="viewTabs" v-model="view" />
                 </div>
                 <div class="flex-1"></div>
-                <select v-if="view === 'list'" v-model="filterStatus" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-semibold text-on-surface-variant focus:outline-none focus:border-secondary/50">
+                <select v-if="view === 'list'" v-model="filterStatus" aria-label="Filter by applicant stage" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-semibold text-on-surface-variant focus:outline-none focus:border-secondary/50">
                     <option value="">All stages</option>
                     <option v-for="s in STAGES" :key="s.id" :value="s.id">{{ s.label }}</option>
                 </select>

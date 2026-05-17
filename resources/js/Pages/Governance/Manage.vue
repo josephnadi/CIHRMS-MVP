@@ -34,8 +34,14 @@ const categoryLabel = {
         <header class="flex items-center justify-between">
             <div>
                 <Link :href="route('governance.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← Governance</Link>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">Manage Policies</h1>
-                <p class="text-sm text-on-surface-variant">Create policies, draft new versions, publish for organisation-wide acknowledgement.</p>
+                <div class="flex items-center gap-2 mt-1 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">policy</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Governance · Policy lifecycle</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Manage Policies</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Create policies, draft new versions, publish for organisation-wide acknowledgement.
+                </p>
             </div>
             <button @click="showCreate = true" type="button" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white shadow-glow-sm btn-shimmer">+ New Policy</button>
         </header>
@@ -62,11 +68,11 @@ const categoryLabel = {
 
     <SlidePanel :open="showCreate" @close="showCreate = false" title="Create Policy" size="lg">
         <form @submit.prevent="createPolicy" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Title</label><input v-model="newPolicy.title" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Slug (optional, auto-derived)</label><input v-model="newPolicy.slug" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono lowercase mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newPolicy.category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Summary</label><textarea v-model="newPolicy.summary" maxlength="1000" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Initial Body (markdown — # for headings, - for bullets)</label><textarea v-model="newPolicy.initial_body" rows="8" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm font-mono mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Title</label><input v-model="newPolicy.title" aria-label="Policy title" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Slug (optional, auto-derived)</label><input v-model="newPolicy.slug" aria-label="URL slug (optional)" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono lowercase mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newPolicy.category" aria-label="Policy category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Summary</label><textarea v-model="newPolicy.summary" aria-label="Policy summary" maxlength="1000" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Initial Body (markdown — # for headings, - for bullets)</label><textarea v-model="newPolicy.initial_body" aria-label="Initial policy body (markdown)" rows="8" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm font-mono mt-1" /></div>
             <button type="submit" :disabled="newPolicy.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Create Draft</button>
         </form>
     </SlidePanel>

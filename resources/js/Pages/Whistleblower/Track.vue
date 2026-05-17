@@ -13,8 +13,15 @@ const submit = () => form.post(route('whistleblower.track.submit'));
         <main class="max-w-md mx-auto px-6 py-12 w-full">
             <div class="rounded-3xl bg-surface-container-lowest border border-outline-variant/40 shadow-lifted p-8 space-y-6">
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">Track your disclosure</h1>
-                    <p class="text-sm text-on-surface-variant mt-1">Enter the tracking code you received at submission.</p>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-[16px] text-rose-600" style="font-variation-settings:'FILL' 1">shield</span>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-rose-700">Confidential · Act 720</p>
+                    </div>
+                    <h1 class="text-[1.4rem] font-black tracking-tight text-primary leading-tight">Track your disclosure</h1>
+                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                        Enter the tracking code you received at submission.
+                        Your identity is never linked to the code.
+                    </p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-4">

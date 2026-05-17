@@ -86,7 +86,7 @@ const charCount = computed(() => (form.description || '').length);
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">
                             Contact (email or phone) — encrypted, visible only to the investigator
                         </label>
-                        <input v-model="form.submitter_contact" class="w-full rounded-lg border-outline-variant text-sm">
+                        <input v-model="form.submitter_contact" aria-label="Contact details (email or phone)" class="w-full rounded-lg border-outline-variant text-sm">
                         <p v-if="form.errors.submitter_contact" class="text-rose-600 text-xs mt-1">{{ form.errors.submitter_contact }}</p>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ const charCount = computed(() => (form.description || '').length);
                 <!-- Category -->
                 <div>
                     <label class="block text-sm font-semibold mb-2">What is this about?</label>
-                    <select v-model="form.category" class="w-full rounded-lg border-outline-variant" required>
+                    <select v-model="form.category" aria-label="Report category" class="w-full rounded-lg border-outline-variant" required>
                         <option value="">Select a category…</option>
                         <option v-for="c in categories" :key="c.value" :value="c.value">{{ c.label }}</option>
                     </select>
@@ -130,7 +130,7 @@ const charCount = computed(() => (form.description || '').length);
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">When did it happen?</label>
-                                <input v-model="form.incident_date" type="date" class="w-full rounded-lg border-outline-variant">
+                                <input v-model="form.incident_date" aria-label="Incident date" type="date" class="w-full rounded-lg border-outline-variant">
                             </div>
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">Where did it happen?</label>
@@ -142,8 +142,8 @@ const charCount = computed(() => (form.description || '').length);
                         <div>
                             <label class="block text-xs text-on-surface-variant mb-2">People involved (optional)</label>
                             <div v-for="(s, i) in form.subjects" :key="i" class="flex gap-2 mb-2">
-                                <input v-model="s.label" placeholder="Name or role" class="flex-1 rounded-lg border-outline-variant text-sm">
-                                <input v-model="s.role_context" placeholder="Their role in the incident" class="flex-1 rounded-lg border-outline-variant text-sm">
+                                <input v-model="s.label" :aria-label="`Subject ${i + 1} name or role`" placeholder="Name or role" class="flex-1 rounded-lg border-outline-variant text-sm">
+                                <input v-model="s.role_context" :aria-label="`Subject ${i + 1} role in incident`" placeholder="Their role in the incident" class="flex-1 rounded-lg border-outline-variant text-sm">
                                 <button type="button" @click="removeSubject(i)" class="text-rose-600 text-sm hover:underline">Remove</button>
                             </div>
                             <button type="button" @click="addSubject" class="text-secondary text-xs hover:underline">+ Add another person</button>

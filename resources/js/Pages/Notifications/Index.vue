@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -27,7 +27,7 @@ const unreadCount = computed(() => items.value.filter(n => !n.read_at).length);
 // TicketCreated: was a generic cyan-blue; pulled to brand cyan #12d9e3.
 // PaymentMarkedPaid: switched amber -> green (semantic — payment success).
 const TYPE_META = {
-    LeaveRequested:       { color: '#205295', icon: 'event_note',      tag: 'Leave',    hue: '32,82,149'   },
+    LeaveRequested:       { color: '#1a237e', icon: 'event_note',      tag: 'Leave',    hue: '26, 35, 126'   },
     LeaveStatusUpdated:   { color: '#059669', icon: 'event_available', tag: 'Leave',    hue: '5,150,105'   },
     TicketCreated:        { color: '#0e8a93', icon: 'support_agent',   tag: 'Service',  hue: '18,217,227'  },
     EmployeeCreated:      { color: '#d912e3', icon: 'person_add',      tag: 'Employee', hue: '217,18,227'  },

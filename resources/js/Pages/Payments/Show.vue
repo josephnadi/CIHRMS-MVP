@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -100,13 +100,13 @@ const formatDate = (d) => {
 
                 <!-- Header card — single 5% gold accent stripe on top edge -->
                 <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
-                    <div class="h-1 w-full" style="background:linear-gradient(90deg,#0a2647,#205295,#0a2647)"></div>
+                    <div class="h-1 w-full" style="background:linear-gradient(90deg,#0d1452,#1a237e,#0d1452)"></div>
                     <div class="h-px w-full" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.55),transparent)"></div>
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex items-center gap-4">
-                                <span class="flex h-12 w-12 items-center justify-center rounded-2xl shadow-glow-sm" style="background:rgba(32,82,149,0.10);border:1px solid rgba(32,82,149,0.22)">
-                                    <span class="material-symbols-outlined text-[24px]" style="color:#205295;font-variation-settings:'FILL' 1">receipt_long</span>
+                                <span class="flex h-12 w-12 items-center justify-center rounded-2xl shadow-glow-sm" style="background:rgba(26, 35, 126,0.10);border:1px solid rgba(26, 35, 126,0.22)">
+                                    <span class="material-symbols-outlined text-[24px]" style="color:#1a237e;font-variation-settings:'FILL' 1">receipt_long</span>
                                 </span>
                                 <div>
                                     <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1">Payslip</p>
@@ -180,7 +180,7 @@ const formatDate = (d) => {
 
                     <!-- Net pay — gold-hairline 5% accent -->
                     <div class="relative mt-6 rounded-2xl p-5 overflow-hidden shadow-glow"
-                         style="background:linear-gradient(135deg,#0a2647,#205295);color:#fff">
+                         style="background:linear-gradient(135deg,#0d1452,#1a237e);color:#fff">
                         <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
                         <div class="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full" style="background:radial-gradient(circle,rgba(255,215,0,0.10),transparent 70%)"></div>
                         <div class="relative flex items-center justify-between">
@@ -225,8 +225,8 @@ const formatDate = (d) => {
                     <div v-if="p.processed_by" class="pt-4">
                         <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Processed By</p>
                         <p class="text-[13px] text-on-surface flex items-center gap-1.5">
-                            <span class="flex h-5 w-5 items-center justify-center rounded-full" style="background:rgba(32,82,149,0.10)">
-                                <span class="material-symbols-outlined text-[12px]" style="color:#205295">person</span>
+                            <span class="flex h-5 w-5 items-center justify-center rounded-full" style="background:rgba(26, 35, 126,0.10)">
+                                <span class="material-symbols-outlined text-[12px]" style="color:#1a237e">person</span>
                             </span>
                             {{ p.processed_by.name }}
                         </p>
@@ -235,7 +235,7 @@ const formatDate = (d) => {
 
                 <!-- Employer cost panel -->
                 <div v-if="basicAmount > 0" class="rounded-2xl border border-outline-variant/50 shadow-card p-6"
-                     style="background:linear-gradient(180deg,rgba(32,82,149,0.06),transparent)">
+                     style="background:linear-gradient(180deg,rgba(26, 35, 126,0.06),transparent)">
                     <div class="flex items-center justify-between mb-3">
                         <p class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">
                             <span class="flex h-5 w-5 items-center justify-center rounded-md bg-secondary/10">

@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -24,7 +24,7 @@ function submitDecide() {
 }
 
 const statusTone = {
-    submitted: 'bg-violet-100 text-violet-800',
+    submitted: 'bg-blue-100 text-blue-800',
     reviewing: 'bg-amber-100 text-amber-800',
     approved:  'bg-emerald-100 text-emerald-800',
     rejected:  'bg-rose-100 text-rose-800',
@@ -37,9 +37,15 @@ const statusTone = {
 <AuthenticatedLayout active-module="benefits">
     <div class="p-6 space-y-6 animate-reveal-up">
         <header>
-            <Link :href="route('benefits.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← My Benefits</Link>
-            <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">Claims Queue</h1>
-            <p class="text-sm text-on-surface-variant">Review and decide submitted benefit claims org-wide.</p>
+            <Link :href="route('benefits.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">â† My Benefits</Link>
+            <div class="flex items-center gap-2 mt-1 mb-1">
+                <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">request_quote</span>
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Benefits administration · Approval queue</p>
+            </div>
+            <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Claims Queue</h1>
+            <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                Review and decide submitted benefit claims org-wide — each decision is recorded in the audit chain.
+            </p>
         </header>
 
         <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
@@ -73,9 +79,9 @@ const statusTone = {
     <div v-if="deciding" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="deciding = null">
         <div class="bg-surface-container-lowest rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 class="text-lg font-black text-primary mb-2">{{ decideForm.status === 'approved' ? 'Approve' : (decideForm.status === 'rejected' ? 'Reject' : 'Mark Paid') }} Claim</h3>
-            <p class="text-sm text-on-surface-variant mb-4">{{ deciding.claim_reference }} · {{ deciding.currency }} {{ deciding.amount.toFixed(2) }}</p>
+            <p class="text-sm text-on-surface-variant mb-4">{{ deciding.claim_reference }} Â· {{ deciding.currency }} {{ deciding.amount.toFixed(2) }}</p>
             <form @submit.prevent="submitDecide" class="space-y-3">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Notes{{ decideForm.status === 'rejected' ? ' (required)' : '' }}</label><textarea v-model="decideForm.notes" :required="decideForm.status === 'rejected'" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Notes{{ decideForm.status === 'rejected' ? ' (required)' : '' }}</label><textarea v-model="decideForm.notes" aria-label="Decision notes" :required="decideForm.status === 'rejected'" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
                 <div class="flex gap-2 justify-end">
                     <button type="button" @click="deciding = null" class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-on-surface-variant">Cancel</button>
                     <button type="submit" :disabled="decideForm.processing" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Confirm</button>

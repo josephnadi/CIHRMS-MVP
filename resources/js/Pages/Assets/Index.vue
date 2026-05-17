@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -20,7 +20,7 @@ const statCards = computed(() => [
     { label: 'Total Assets', val: props.stats?.total ?? 0,       rgb: '255,215,0',  icon: 'inventory_2' },
     { label: 'Assigned',     val: props.stats?.assigned ?? 0,    rgb: '5,150,105',  icon: 'check_circle' },
     { label: 'Maintenance',  val: props.stats?.maintenance ?? 0, rgb: '217,119,6',  icon: 'build' },
-    { label: 'Available',    val: props.stats?.in_stock ?? 0,    rgb: '32,82,149',  icon: 'archive' },
+    { label: 'Available',    val: props.stats?.in_stock ?? 0,    rgb: '26, 35, 126',  icon: 'archive' },
 ]);
 
 const localFilters = ref({
@@ -68,6 +68,50 @@ function submitAssign() {
     });
 }
 
+// ── Un-assign (return) ─────────────────────────────────────────────
+// Closes the current assignment row, putting the asset back into stock.
+// The backend records who returned it and the reason on the assignment.
+function unassignAsset(asset) {
+    if (! asset.current_assignment?.id) return;
+    const condition = window.prompt(
+        `Return ${asset.asset_tag} — ${asset.name}?\n\nCondition on return (good / fair / damaged / lost):`,
+        'good',
+    );
+    if (! condition) return;
+    const notes = window.prompt('Optional notes (scratches, missing accessories, etc.):', '') ?? '';
+    router.post(
+        route('assets.return', asset.current_assignment.id),
+        { condition_on_return: condition.trim().toLowerCase(), notes },
+        { preserveScroll: true },
+    );
+}
+
+// ── Retire ─────────────────────────────────────────────────────────
+// End-of-life — disposal, sale, donation. Requires a reason for the
+// asset ledger.
+function retireAsset(asset) {
+    const reason = window.prompt(
+        `Retire ${asset.asset_tag} — ${asset.name}?\n\nThis closes the asset's lifecycle. Reason (sold / donated / disposed / end-of-life):`,
+        'end-of-life',
+    );
+    if (! reason || ! reason.trim()) return;
+    router.patch(route('assets.retire', asset.id), { reason }, { preserveScroll: true });
+}
+
+// ── Mark lost ──────────────────────────────────────────────────────
+// Asset can't be located. Triggers the loss-investigation workflow on
+// the back-end (separate from retire — retired assets are accounted
+// for, lost ones are not).
+function markAssetLost(asset) {
+    const reason = window.prompt(
+        `Mark ${asset.asset_tag} — ${asset.name} as LOST?\n\nThis triggers a loss investigation. Brief circumstances:`,
+        '',
+    );
+    if (! reason || ! reason.trim()) return;
+    router.patch(route('assets.lost', asset.id), { reason }, { preserveScroll: true });
+}
+
+
 const statusTone = {
     in_stock:    { label: 'Available',    cls: 'bg-blue-100 text-blue-800' },
     assigned:    { label: 'Assigned',     cls: 'bg-emerald-100 text-emerald-800' },
@@ -113,11 +157,11 @@ const categoryLabel = {
 
         <div class="flex flex-wrap gap-3 items-center">
             <SearchInput v-model="localFilters.search" placeholder="Search by tag, name, serialâ€¦" @update:modelValue="applyFilters" class="flex-1 max-w-md" />
-            <select v-model="localFilters.category" @change="applyFilters" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
+            <select v-model="localFilters.category" @change="applyFilters" aria-label="Filter by category" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
                 <option value="">All Categories</option>
                 <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
             </select>
-            <select v-model="localFilters.status" @change="applyFilters" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
+            <select v-model="localFilters.status" @change="applyFilters" aria-label="Filter by status" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
                 <option value="">All Statuses</option>
                 <option v-for="(t, key) in statusTone" :key="key" :value="key">{{ t.label }}</option>
             </select>
@@ -139,9 +183,44 @@ const categoryLabel = {
                             <span v-else class="text-xs text-on-surface-variant">â€”</span>
                         </td>
                         <td class="text-xs">{{ a.location ?? 'â€”' }}</td>
-                        <td>
-                            <button v-if="a.current_status === 'in_stock' && ($page.props.auth.permissions?.includes('assets.manage') || $page.props.auth.permissions?.includes('assets.assign'))"
-                                @click="openAssign(a)" type="button" class="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold hover:bg-emerald-100">Assign</button>
+                        <td class="whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1">
+                                <!-- Assign (only when in stock) -->
+                                <button v-if="a.current_status === 'in_stock' && ($page.props.auth.permissions?.includes('assets.manage') || $page.props.auth.permissions?.includes('assets.assign'))"
+                                        @click="openAssign(a)" type="button"
+                                        class="inline-flex h-7 items-center gap-1 rounded-lg bg-emerald-50 text-emerald-700 px-2 text-[11px] font-bold hover:bg-emerald-100"
+                                        title="Assign to employee">
+                                    <span class="material-symbols-outlined text-[14px]">person_add</span>
+                                    Assign
+                                </button>
+
+                                <!-- Un-assign / return (only when currently assigned) -->
+                                <button v-if="a.current_status === 'assigned' && a.current_assignment?.id && ($page.props.auth.permissions?.includes('assets.manage') || $page.props.auth.permissions?.includes('assets.assign'))"
+                                        @click="unassignAsset(a)" type="button"
+                                        class="inline-flex h-7 items-center gap-1 rounded-lg bg-amber-50 text-amber-700 px-2 text-[11px] font-bold hover:bg-amber-100"
+                                        title="Return / un-assign">
+                                    <span class="material-symbols-outlined text-[14px]">assignment_return</span>
+                                    Return
+                                </button>
+
+                                <!-- Retire (lifecycle-end, requires assets.manage) -->
+                                <button v-if="!['retired','lost'].includes(a.current_status) && $page.props.auth.permissions?.includes('assets.manage')"
+                                        @click="retireAsset(a)" type="button"
+                                        class="inline-flex h-7 items-center gap-1 rounded-lg bg-slate-50 text-slate-700 px-2 text-[11px] font-bold hover:bg-slate-100"
+                                        title="Retire (end-of-life)">
+                                    <span class="material-symbols-outlined text-[14px]">archive</span>
+                                    Retire
+                                </button>
+
+                                <!-- Mark lost (requires assets.manage) -->
+                                <button v-if="!['retired','lost'].includes(a.current_status) && $page.props.auth.permissions?.includes('assets.manage')"
+                                        @click="markAssetLost(a)" type="button"
+                                        class="inline-flex h-7 items-center gap-1 rounded-lg bg-rose-50 text-rose-700 px-2 text-[11px] font-bold hover:bg-rose-100"
+                                        title="Mark lost (loss investigation)">
+                                    <span class="material-symbols-outlined text-[14px]">report</span>
+                                    Lost
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -154,28 +233,28 @@ const categoryLabel = {
     <SlidePanel :open="showCreate" @close="showCreate = false" title="Register Asset" size="lg">
         <form @submit.prevent="createAsset" class="space-y-3 p-4">
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Asset Tag</label><input v-model="newAsset.asset_tag" maxlength="40" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono uppercase mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Name</label><input v-model="newAsset.name" maxlength="120" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newAsset.category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Serial Number</label><input v-model="newAsset.serial_number" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Brand</label><input v-model="newAsset.brand" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Model</label><input v-model="newAsset.model" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Purchase Date</label><input v-model="newAsset.purchase_date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Purchase Cost ({{ newAsset.currency }})</label><input v-model.number="newAsset.purchase_cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Supplier</label><input v-model="newAsset.supplier" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Warranty Expires</label><input v-model="newAsset.warranty_expires_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Asset Tag</label><input v-model="newAsset.asset_tag" aria-label="Asset tag" maxlength="40" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono uppercase mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Name</label><input v-model="newAsset.name" aria-label="Asset name" maxlength="120" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newAsset.category" aria-label="Asset category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Serial Number</label><input v-model="newAsset.serial_number" aria-label="Serial number" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Brand</label><input v-model="newAsset.brand" aria-label="Brand" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Model</label><input v-model="newAsset.model" aria-label="Model" maxlength="80" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Purchase Date</label><input v-model="newAsset.purchase_date" aria-label="Purchase date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Purchase Cost ({{ newAsset.currency }})</label><input v-model.number="newAsset.purchase_cost" aria-label="Purchase cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Supplier</label><input v-model="newAsset.supplier" aria-label="Supplier" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Warranty Expires</label><input v-model="newAsset.warranty_expires_at" aria-label="Warranty expiry date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
             </div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Location</label><input v-model="newAsset.location" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="newAsset.notes" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Location</label><input v-model="newAsset.location" aria-label="Asset location" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="newAsset.notes" aria-label="Notes" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="newAsset.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Register Asset</button>
         </form>
     </SlidePanel>
 
     <SlidePanel :open="showAssign" @close="showAssign = false" :title="`Assign ${assignTarget?.asset_tag ?? ''}`">
         <form @submit.prevent="submitAssign" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="assignForm.employee_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Selectâ€¦</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} â€” {{ e.position }}</option></select></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Due Back (optional)</label><input v-model="assignForm.due_back_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="assignForm.notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="assignForm.employee_id" aria-label="Assignee employee" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Due Back (optional)</label><input v-model="assignForm.due_back_at" aria-label="Due-back date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="assignForm.notes" aria-label="Assignment notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="assignForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Assign</button>
         </form>
     </SlidePanel>

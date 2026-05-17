@@ -52,8 +52,14 @@ function dueLabel(d) {
         <header class="flex items-center justify-between">
             <div>
                 <Link :href="route('governance.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← Governance</Link>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">Certifications</h1>
-                <p class="text-sm text-on-surface-variant">Tracked certifications across the organisation with expiry reminders.</p>
+                <div class="flex items-center gap-2 mt-1 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">verified</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Governance · Compliance certifications</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Certifications</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Tracked certifications across the organisation with automatic expiry reminders.
+                </p>
             </div>
             <div class="flex gap-2" v-if="canManage">
                 <button @click="dispatchReminders" type="button" class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-primary hover:bg-surface-container-low">Send Reminders Now</button>
@@ -85,15 +91,15 @@ function dueLabel(d) {
 
     <SlidePanel :open="showAdd" @close="showAdd = false" title="Add Certification">
         <form @submit.prevent="createCert" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="newCert.employee_id" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Certification Name</label><input v-model="newCert.name" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Issuer</label><input v-model="newCert.issuer" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Credential ID</label><input v-model="newCert.credential_id" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="newCert.employee_id" aria-label="Employee holding this certification" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Certification Name</label><input v-model="newCert.name" aria-label="Certification name" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Issuer</label><input v-model="newCert.issuer" aria-label="Issuing body" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Credential ID</label><input v-model="newCert.credential_id" aria-label="Credential ID" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono mt-1" /></div>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Issued</label><input v-model="newCert.issued_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Expires</label><input v-model="newCert.expires_at" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Issued</label><input v-model="newCert.issued_at" aria-label="Issued date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Expires</label><input v-model="newCert.expires_at" aria-label="Expiry date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
             </div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Verification URL</label><input v-model="newCert.verification_url" type="url" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Verification URL</label><input v-model="newCert.verification_url" aria-label="Verification URL" type="url" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
             <button type="submit" :disabled="newCert.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Add Certification</button>
         </form>
     </SlidePanel>

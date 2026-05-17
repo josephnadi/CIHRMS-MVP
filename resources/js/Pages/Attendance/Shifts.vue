@@ -159,7 +159,7 @@ const coveredNow = computed(() => {
                     </button>
                     <button @click="showCreate = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         New Shift
                     </button>
@@ -187,7 +187,7 @@ const coveredNow = computed(() => {
 
             <!-- ── Hero banner ── -->
             <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#06192f 0%,#0a2647 60%,#102f4f 100%);border:1px solid rgba(255,255,255,0.06);">
+                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
                 <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
                 <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.06)"></div>
 
@@ -206,7 +206,7 @@ const coveredNow = computed(() => {
                     <div class="flex items-center gap-8 flex-shrink-0">
                         <div v-for="kpi in [
                             { label: 'On shift now',  val: coveredNow,         color: '#12d9e3' },
-                            { label: 'Total shifts',  val: stats.totalShifts,  color: '#7cb6e8' },
+                            { label: 'Total shifts',  val: stats.totalShifts,  color: '#7986cb' },
                             { label: 'Assignments',   val: stats.assignments,  color: '#ffd700' },
                         ]" :key="kpi.label" class="text-center">
                             <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
@@ -264,7 +264,7 @@ const coveredNow = computed(() => {
                     <div v-for="s in shifts.data" :key="s.id"
                          class="relative h-7 rounded-lg bg-surface-container-low/60 border border-outline-variant/40 overflow-hidden">
                         <div class="absolute top-0 bottom-0 rounded-md flex items-center pl-2 pr-2 text-[10px] font-black tracking-wide whitespace-nowrap overflow-hidden"
-                             :style="`left:${shiftBarLeft(s)}%;width:${shiftBarWidth(s)}%;background:${runningNow(s) ? 'linear-gradient(90deg,#12d9e3,#205295)' : (s.is_active ? 'linear-gradient(90deg,rgba(32,82,149,0.55),rgba(44,116,179,0.45))' : 'rgba(100,116,139,0.35)')};color:white;`">
+                             :style="`left:${shiftBarLeft(s)}%;width:${shiftBarWidth(s)}%;background:${runningNow(s) ? 'linear-gradient(90deg,#12d9e3,#1a237e)' : (s.is_active ? 'linear-gradient(90deg,rgba(26, 35, 126,0.55),rgba(57, 73, 171,0.45))' : 'rgba(100,116,139,0.35)')};color:white;`">
                             <span class="material-symbols-outlined text-[12px] mr-1 flex-shrink-0">{{ runningNow(s) ? 'play_circle' : 'schedule' }}</span>
                             <span class="truncate">{{ s.code }} · {{ s.name }}</span>
                         </div>
@@ -286,7 +286,7 @@ const coveredNow = computed(() => {
                         <template #action>
                             <button @click="showCreate = true"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
-                                    style="background:linear-gradient(135deg,#0a2647,#205295)">
+                                    style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 Create first shift
                             </button>
@@ -297,7 +297,7 @@ const coveredNow = computed(() => {
                 <div v-else class="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
                     <div v-for="(s, i) in shifts.data" :key="s.id"
                          class="relative rounded-2xl border bg-surface-container-low/50 p-5 transition-all hover:-translate-y-0.5 hover:shadow-card animate-slide-up-fade"
-                         :style="`animation-delay:${i*0.05}s;border-color:${runningNow(s) ? 'rgba(18,217,227,0.5)' : s.is_active ? 'rgb(var(--ct-outline-variant)/0.5)' : 'rgb(var(--ct-outline-variant)/0.3)'};${runningNow(s) ? 'box-shadow:0 0 0 1px rgba(18,217,227,0.18), 0 8px 24px rgba(10,38,71,0.06);' : ''}`">
+                         :style="`animation-delay:${i*0.05}s;border-color:${runningNow(s) ? 'rgba(18,217,227,0.5)' : s.is_active ? 'rgb(var(--ct-outline-variant)/0.5)' : 'rgb(var(--ct-outline-variant)/0.3)'};${runningNow(s) ? 'box-shadow:0 0 0 1px rgba(18,217,227,0.18), 0 8px 24px rgba(13, 20, 82,0.06);' : ''}`">
 
                         <!-- Status badge -->
                         <div class="absolute top-3.5 right-3.5 flex items-center gap-1.5">
@@ -328,9 +328,9 @@ const coveredNow = computed(() => {
                                         left:  shiftBarLeft(s)  + '%',
                                         width: shiftBarWidth(s) + '%',
                                         background: runningNow(s)
-                                            ? 'linear-gradient(90deg,#12d9e3,#205295)'
+                                            ? 'linear-gradient(90deg,#12d9e3,#1a237e)'
                                             : s.is_active
-                                                ? 'linear-gradient(90deg,#0a2647,#205295)'
+                                                ? 'linear-gradient(90deg,#0d1452,#1a237e)'
                                                 : '#94a3b8',
                                      }"></div>
                                 <!-- now marker -->
@@ -526,7 +526,7 @@ const coveredNow = computed(() => {
                 </div>
 
                 <label class="flex items-center gap-3 cursor-pointer rounded-xl border border-outline-variant/60 bg-surface-container-low px-4 py-3">
-                    <input v-model="newShift.is_active" type="checkbox" class="h-4 w-4 rounded accent-secondary"/>
+                    <input v-model="newShift.is_active" aria-label="Active shift" type="checkbox" class="h-4 w-4 rounded accent-secondary"/>
                     <span class="text-[13px] font-bold text-on-surface">Active shift</span>
                     <span class="text-[11.5px] text-on-surface-variant/60">Inactive shifts are archived and won't accept new assignments.</span>
                 </label>
@@ -540,7 +540,7 @@ const coveredNow = computed(() => {
                     </button>
                     <button @click="createShift" :disabled="newShift.processing"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-black text-white disabled:opacity-60"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="newShift.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span class="material-symbols-outlined text-[16px]" v-else>check_circle</span>
                         Create shift
@@ -608,7 +608,7 @@ const coveredNow = computed(() => {
                     </button>
                     <button @click="assignShift" :disabled="newAssignment.processing"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-black text-white disabled:opacity-60"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="newAssignment.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span class="material-symbols-outlined text-[16px]" v-else>person_add</span>
                         Save assignment

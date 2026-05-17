@@ -66,7 +66,7 @@ const submitMessage = () => messageForm.post(route('whistleblower.admin.messages
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                     <div>
                         <label class="block text-xs text-on-surface-variant mb-1">Severity</label>
-                        <select v-model="triageForm.severity" class="w-full rounded-lg border-outline-variant text-sm">
+                        <select v-model="triageForm.severity" aria-label="Severity" class="w-full rounded-lg border-outline-variant text-sm">
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
@@ -75,7 +75,7 @@ const submitMessage = () => messageForm.post(route('whistleblower.admin.messages
                     </div>
                     <div>
                         <label class="block text-xs text-on-surface-variant mb-1">Assign investigator</label>
-                        <select v-model="triageForm.assigned_investigator_id" class="w-full rounded-lg border-outline-variant text-sm">
+                        <select v-model="triageForm.assigned_investigator_id" aria-label="Assign investigator" class="w-full rounded-lg border-outline-variant text-sm">
                             <option value="">Myself</option>
                             <option v-for="i in investigators" :key="i.id" :value="i.id">{{ i.name }} ({{ i.role }})</option>
                         </select>
@@ -141,7 +141,7 @@ const submitMessage = () => messageForm.post(route('whistleblower.admin.messages
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">Action</label>
-                                <select v-model="actionForm.action_type" class="w-full rounded-lg border-outline-variant text-sm">
+                                <select v-model="actionForm.action_type" aria-label="Investigation action type" class="w-full rounded-lg border-outline-variant text-sm">
                                     <option value="interview">Interview conducted</option>
                                     <option value="document_review">Document review</option>
                                     <option value="site_visit">Site visit</option>
@@ -154,7 +154,7 @@ const submitMessage = () => messageForm.post(route('whistleblower.admin.messages
                             </div>
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">Change status (optional)</label>
-                                <select v-model="actionForm.new_status" class="w-full rounded-lg border-outline-variant text-sm">
+                                <select v-model="actionForm.new_status" aria-label="Change case status" class="w-full rounded-lg border-outline-variant text-sm">
                                     <option value="">Keep current</option>
                                     <option value="triaged">Triaged</option>
                                     <option value="investigating">Investigating</option>

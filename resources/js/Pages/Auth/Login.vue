@@ -1,11 +1,16 @@
 <script setup>
+import { computed } from 'vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 defineProps({
     canResetPassword: { type: Boolean },
     status: { type: String },
 });
+
+// Active SSO identity providers (shared via HandleInertiaRequests).
+const page = usePage();
+const ssoProviders = computed(() => page.props.ssoProviders ?? []);
 
 const form = useForm({
     name:     '',
@@ -23,6 +28,19 @@ const submit = () => {
 <template>
     <GuestLayout>
         <Head title="Sign In · CIHRM Ghana" />
+
+        <!-- SSO sign-in buttons (Phase 4 / WS19). Visible only when at least
+             one identity_provider row is active. Routes through the normal
+             login flow if no SSO providers are configured. -->
+        <div v-if="ssoProviders.length > 0" class="sso-stack">
+            <a v-for="p in ssoProviders" :key="p.slug"
+               :href="route('sso.initiate', { slug: p.slug })"
+               class="sso-btn">
+                <span class="material-symbols-outlined sso-btn-icon">{{ p.button_icon }}</span>
+                <span>{{ p.button_label }}</span>
+            </a>
+            <div class="sso-divider"><span>or sign in with your staff number</span></div>
+        </div>
 
         <header class="auth-folio">
             <span class="auth-folio-num">01</span>
@@ -80,7 +98,7 @@ const submit = () => {
             <!-- Remember + recover -->
             <div class="field-row">
                 <label class="check">
-                    <input type="checkbox" v-model="form.remember" />
+                    <input type="checkbox" v-model="form.remember" aria-label="Remember me on this device" />
                     <span class="check-box" aria-hidden="true">
                         <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="m3 8 3 3 7-8"/>

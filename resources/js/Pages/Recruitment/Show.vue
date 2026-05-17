@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -41,7 +41,7 @@ const submitOffer = () => {
 const envelopePill = (applicant) => {
     const map = {
         sent:      { bg: 'rgba(217,119,6,0.10)',  fg: '#d97706', label: 'Offer sent' },
-        viewed:    { bg: 'rgba(32,82,149,0.10)',   fg: '#205295', label: 'Offer viewed' },
+        viewed:    { bg: 'rgba(26, 35, 126,0.10)',   fg: '#1a237e', label: 'Offer viewed' },
         completed: { bg: 'rgba(5,150,105,0.10)',  fg: '#059669', label: 'Offer signed' },
         declined:  { bg: 'rgba(220,38,38,0.10)',  fg: '#dc2626', label: 'Offer declined' },
         voided:    { bg: 'rgba(107,114,128,0.10)',fg: '#6b7280', label: 'Offer voided' },
@@ -174,7 +174,7 @@ const initials = (name) => {
                         <div class="flex items-start gap-2.5">
                             <div
                                 class="h-9 w-9 flex-shrink-0 rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm flex items-center justify-center text-[11px] font-black text-white"
-                                :style="`background:${['linear-gradient(135deg,#0a2647,#205295)','linear-gradient(135deg,#205295,#7cb6e8)','linear-gradient(135deg,#06192f,#0a2647)','linear-gradient(135deg,#0a2647,#205295,#d912e3)','linear-gradient(135deg,#205295,#12d9e3)'][item.id % 5]}`"
+                                :style="`background:${['linear-gradient(135deg,#0d1452,#1a237e)','linear-gradient(135deg,#1a237e,#7986cb)','linear-gradient(135deg,#070b3a,#0d1452)','linear-gradient(135deg,#0d1452,#1a237e,#d912e3)','linear-gradient(135deg,#1a237e,#12d9e3)'][item.id % 5]}`"
                             >
                                 {{ initials(item.name) }}
                             </div>
@@ -278,7 +278,7 @@ const initials = (name) => {
                                 type="submit"
                                 :disabled="offerForm.processing"
                                 class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[12px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px transition-all disabled:opacity-60"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">send</span>
                                 {{ offerForm.processing ? 'Sending…' : 'Send for signature' }}

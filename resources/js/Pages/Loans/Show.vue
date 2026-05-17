@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -125,7 +125,7 @@ const rowClass = (r) => {
                                 <p class="text-[13px] text-on-surface-variant">
                                     {{ L.product?.data?.name ?? L.product?.name ?? 'â€“' }}
                                     <span v-if="L.booked_interest_rate" class="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black tracking-wider"
-                                          style="background:rgba(32,82,149,0.1);color:#205295">
+                                          style="background:rgba(26, 35, 126,0.1);color:#1a237e">
                                         {{ (L.booked_interest_rate * 100).toFixed(1) }}% p.a.
                                     </span>
                                 </p>
@@ -171,7 +171,7 @@ const rowClass = (r) => {
                     <div class="h-2.5 w-full rounded-full bg-surface-container overflow-hidden">
                         <div
                             class="h-full rounded-full transition-all"
-                            style="background:linear-gradient(90deg,#0a2647,#205295)"
+                            style="background:linear-gradient(90deg,#0d1452,#1a237e)"
                             :style="`width:${repayPct}%`"
                         ></div>
                     </div>
@@ -182,7 +182,7 @@ const rowClass = (r) => {
             <!-- â”€â”€ 4 Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
-                     style="border-left:3px solid rgba(32,82,149,0.5)">
+                     style="border-left:3px solid rgba(26, 35, 126,0.5)">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Principal</p>
                     <p class="font-mono text-[18px] font-black text-on-surface tabular-nums">{{ cedi(L.principal) }}</p>
                 </div>
@@ -236,7 +236,7 @@ const rowClass = (r) => {
                         @click="disburse"
                         :disabled="disburseForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[17px]">payments</span>
                         Disburse Loan
@@ -311,7 +311,7 @@ const rowClass = (r) => {
                                 <td class="px-4 py-2.5">
                                     <span class="text-[13px] font-semibold text-on-surface">{{ formatPeriod(r.due_period) }}</span>
                                     <span v-if="r.due_period === currentPeriod" class="ml-2 inline-flex items-center rounded-full text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5"
-                                          style="background:rgba(32,82,149,0.15);color:#205295">Current</span>
+                                          style="background:rgba(26, 35, 126,0.15);color:#1a237e">Current</span>
                                 </td>
                                 <td class="px-4 py-2.5 text-right font-mono text-[13px] font-bold text-on-surface tabular-nums">{{ cedi(r.scheduled_amount) }}</td>
                                 <td class="px-4 py-2.5 text-right font-mono text-[12px] text-on-surface-variant tabular-nums">{{ cedi(r.principal_portion) }}</td>

@@ -201,7 +201,7 @@ const attendancePct = computed(() => {
             <!-- Hero clock card — gold hairline (single 5% accent moment) + disciplined navy->cobalt->magenta gradient -->
             <div
                 class="relative overflow-hidden rounded-2xl p-6 text-white shadow-glow"
-                style="background: linear-gradient(135deg, #0a2647 0%, #205295 60%, #d912e3 100%)"
+                style="background: linear-gradient(135deg, #0d1452 0%, #1a237e 60%, #d912e3 100%)"
             >
                 <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
                 <!-- subtle grid texture -->
@@ -514,7 +514,7 @@ const attendancePct = computed(() => {
                         @click="submitCorrection"
                         :disabled="correctionForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="correctionForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Submit Request</span>

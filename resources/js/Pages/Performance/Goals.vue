@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -90,7 +90,7 @@ const heroCards = computed(() => [
         label:   'Active Goals',
         value:   stats.value.active,
         icon:    'trending_up',
-        rgb:     '32,82,149',     // cobalt (action)
+        rgb:     '26, 35, 126',     // cobalt (action)
         suffix:  '',
     },
     {
@@ -205,7 +205,7 @@ const moodMeta = {
 
 const STATUS_TONE = {
     draft:      { bg: 'rgba(107,114,128,0.12)', color: '#6b7280' },
-    active:     { bg: 'rgba(32,82,149,0.10)',    color: '#205295' },
+    active:     { bg: 'rgba(26, 35, 126,0.10)',    color: '#1a237e' },
     at_risk:    { bg: 'rgba(220,38,38,0.10)',   color: '#dc2626' },
     completed:  { bg: 'rgba(5,150,105,0.12)',   color: '#059669' },
     cancelled:  { bg: 'rgba(107,114,128,0.10)', color: '#9ca3af' },
@@ -228,7 +228,7 @@ const relativeDate = (iso) => {
 
 const progressColor = (pct) => {
     if (pct >= 75) return '#059669';
-    if (pct >= 40) return '#205295';
+    if (pct >= 40) return '#1a237e';
     if (pct > 0)   return '#d97706';
     return '#9ca3af';
 };
@@ -248,12 +248,12 @@ const initials = (name) => {
 
 // Avatar gradient pool — disciplined cool family (matches Employees/Leave/Tickets/Payments)
 const GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
@@ -293,13 +293,13 @@ const sparkPath = (values) => {
                         :href="route('performance.reviews.index')"
                         class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">rate_review</span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">rate_review</span>
                         Reviews
                     </Link>
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">track_changes</span>
                         New Goal
@@ -411,7 +411,7 @@ const sparkPath = (values) => {
                         <button
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             New Goal
@@ -463,7 +463,7 @@ const sparkPath = (values) => {
                             <h3 class="text-[15px] font-black text-on-surface leading-snug line-clamp-2 flex-1">{{ goal.title }}</h3>
                             <span
                                 class="mt-0.5 flex-shrink-0 inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                                style="background:rgba(32,82,149,0.08);color:#205295"
+                                style="background:rgba(26, 35, 126,0.08);color:#1a237e"
                             >{{ goal.cadence_label }}</span>
                         </div>
 
@@ -693,7 +693,7 @@ const sparkPath = (values) => {
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitGoal" :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)">
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Goal
                     </button>
@@ -783,7 +783,7 @@ const sparkPath = (values) => {
                         class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
                     <button @click="submitCheckin" :disabled="checkinForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)">
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="checkinForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Record Check-in
                     </button>

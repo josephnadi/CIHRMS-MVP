@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -18,10 +18,10 @@ const lr = computed(() => props.leaveRequest?.data ?? props.leaveRequest);
 // Leave type palette — aligned with Index.vue LEAVE_TYPES.
 // annual=cobalt (action), maternity=magenta (people/family), paternity=cyan,
 // study=cyan (learning), sick/emergency keep semantic colors.
-// Fixes prior bug where annual+maternity both used #205295 but maternity had
+// Fixes prior bug where annual+maternity both used #1a237e but maternity had
 // the wrong rgb triplet for its tint.
 const TYPE_META = {
-    annual:    { color: '#205295', icon: 'beach_access',     rgb: '32,82,149'  },
+    annual:    { color: '#1a237e', icon: 'beach_access',     rgb: '26, 35, 126'  },
     sick:      { color: '#d97706', icon: 'medical_services', rgb: '217,119,6'  },
     maternity: { color: '#d912e3', icon: 'child_care',       rgb: '217,18,227' },
     paternity: { color: '#0e8a93', icon: 'family_restroom',  rgb: '18,217,227' },
@@ -46,12 +46,12 @@ function fmtDateTime(d) {
 
 // Avatar gradient pool — disciplined cool family (matches Employees + Leave/Index)
 const AVATAR_GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 function avatarColor(name) {
     let h = 0;
@@ -98,7 +98,7 @@ const timeline = computed(() => {
             title: 'Leave Requested',
             actor: lr.value?.employee?.name ?? 'Employee',
             at:    lr.value?.created_at,
-            color: '#205295',
+            color: '#1a237e',
         },
     ];
     if (lr.value?.status === 'approved' && lr.value?.approver) {
@@ -293,7 +293,7 @@ const timeline = computed(() => {
 
                 <!-- Quick links -->
                 <div class="relative rounded-2xl border border-secondary/15 bg-secondary/5 p-5 overflow-hidden">
-                    <div class="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full" style="background:radial-gradient(circle,rgba(32,82,149,0.10),transparent 70%)"></div>
+                    <div class="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full" style="background:radial-gradient(circle,rgba(26, 35, 126,0.10),transparent 70%)"></div>
                     <p class="relative text-[10px] font-black uppercase tracking-[0.14em] text-secondary mb-3">Quick Links</p>
                     <div class="relative space-y-1">
                         <Link :href="route('leave.index')"

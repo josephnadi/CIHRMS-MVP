@@ -14,7 +14,7 @@ const props = defineProps({
 
         <!-- Hero Banner -->
         <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-             style="background:linear-gradient(135deg,#0c0e14,#111827);border:1px solid rgba(255,255,255,0.06)">
+             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
             <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(5,150,105,0.2),transparent 70%)"></div>
             <div class="relative flex flex-wrap items-center justify-between gap-6">
                 <div class="flex items-center gap-5">
@@ -45,7 +45,7 @@ const props = defineProps({
             <div v-for="(card, i) in [
                 { label: 'Total Headcount',     display: Math.round(spark.headcount[spark.headcount.length-1]).toLocaleString(), trend: '+2 this week', color: '#ffd700', rgb: '255,215,0',   icon: 'badge',         up: true,  spark: spark.headcount     },
                 { label: 'Turnover Rate',       display: spark.turnover[spark.turnover.length-1].toFixed(1) + '%',                trend: 'vs 5% target', color: '#d912e3', rgb: '217,18,227',  icon: 'person_remove', up: true,  spark: spark.turnover      },
-                { label: 'Open Positions',      display: Math.round(spark.openPositions[spark.openPositions.length-1]),           trend: '6 in pipeline',color: '#7cb6e8', rgb: '124,182,232', icon: 'work_outline',  up: false, spark: spark.openPositions },
+                { label: 'Open Positions',      display: Math.round(spark.openPositions[spark.openPositions.length-1]),           trend: '6 in pipeline',color: '#7986cb', rgb: '121, 134, 203', icon: 'work_outline',  up: false, spark: spark.openPositions },
                 { label: 'Training Completion', display: spark.training[spark.training.length-1].toFixed(0) + '%',                trend: 'Annual goal',  color: '#12d9e3', rgb: '18,217,227',  icon: 'school',        up: true,  spark: spark.training      },
             ]" :key="i"
                  class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
@@ -75,7 +75,7 @@ const props = defineProps({
                 <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
                     <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
                         <h3 class="text-[15px] font-black text-primary">Recruitment Pipeline</h3>
-                        <button @click="router.visit(route('jobs.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0a2647,#205295)">
+                        <button @click="router.visit(route('jobs.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                             <span class="material-symbols-outlined text-[15px]">add</span> Post Job
                         </button>
                     </div>
@@ -139,14 +139,14 @@ const props = defineProps({
             <div class="lg:col-span-4 space-y-6">
 
                 <!-- Dept Breakdown -->
-                <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
+                <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
                     <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-5" style="color:rgba(255,255,255,0.3)">Workforce by Department</p>
                     <div class="space-y-3">
                         <div v-for="dept in [
-                            { name: 'Technology', count: 285, pct: 22, color: '#2c74b3' },
+                            { name: 'Technology', count: 285, pct: 22, color: '#3949ab' },
                             { name: 'Operations', count: 412, pct: 32, color: '#059669' },
                             { name: 'Finance',    count: 156, pct: 12, color: '#d97706' },
-                            { name: 'Marketing',  count: 98,  pct: 8,  color: '#205295' },
+                            { name: 'Marketing',  count: 98,  pct: 8,  color: '#1a237e' },
                             { name: 'HR & Admin', count: 72,  pct: 6,  color: '#0891b2' },
                             { name: 'Other',      count: 261, pct: 20, color: '#6b7280' },
                         ]" :key="dept.name" class="space-y-1">

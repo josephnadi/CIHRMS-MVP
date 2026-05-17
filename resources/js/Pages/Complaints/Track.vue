@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -56,7 +56,7 @@ const formatDate = (d) => {
                     <button
                         @click="doTrack"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">search</span>
                         Track

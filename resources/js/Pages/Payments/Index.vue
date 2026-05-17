@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -41,7 +41,7 @@ const statusBreakdown = computed(() => {
         const len = pct * c;
         const seg = {
             ...d,
-            color: statusColorMap[key] ?? '#2c74b3',
+            color: statusColorMap[key] ?? '#3949ab',
             dashArray: `${len} ${c - len}`,
             dashOffset: -offset,
             pct: (pct * 100).toFixed(1),
@@ -303,13 +303,13 @@ const formatDate = (d) => {
                         @click="showCreatePanel = true"
                         class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">payments</span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">payments</span>
                         Quick Payment
                     </button>
                     <button
                         @click="showPayslipPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:-translate-y-px hover:shadow-glow transition-all"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">receipt_long</span>
                         Generate Payslip
@@ -366,7 +366,7 @@ const formatDate = (d) => {
 
                 <!-- This month -->
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-5 relative overflow-hidden"
-                     style="background:linear-gradient(135deg,#0c0e14,#1c2233);color:#fff">
+                     style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff">
                     <div class="absolute -right-6 -top-6 opacity-10">
                         <span class="material-symbols-outlined text-[90px]">payments</span>
                     </div>
@@ -448,7 +448,7 @@ const formatDate = (d) => {
                             <p class="mt-0.5 text-[11px] text-on-surface-variant">Paid amounts over the past 12 months</p>
                         </div>
                         <div class="inline-flex items-center gap-1.5 text-[10px] font-bold">
-                            <span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0a2647,#205295)"></span>
+                            <span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0d1452,#1a237e)"></span>
                             <span class="text-on-surface-variant">Paid (GHS)</span>
                         </div>
                     </div>
@@ -456,8 +456,8 @@ const formatDate = (d) => {
                     <svg viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" class="w-full h-[200px]">
                         <defs>
                             <linearGradient id="payVolFill" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#205295" stop-opacity="0.32"/>
-                                <stop offset="100%" stop-color="#205295" stop-opacity="0"/>
+                                <stop offset="0%" stop-color="#1a237e" stop-opacity="0.32"/>
+                                <stop offset="100%" stop-color="#1a237e" stop-opacity="0"/>
                             </linearGradient>
                         </defs>
                         <g stroke="currentColor" class="text-outline-variant/40" stroke-dasharray="3 4">
@@ -495,8 +495,8 @@ const formatDate = (d) => {
                                 fill="none" stroke="url(#payVolLine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
                             />
                             <linearGradient id="payVolLine" x1="0" y1="0" x2="1" y2="0">
-                                <stop offset="0%" stop-color="#0a2647"/>
-                                <stop offset="100%" stop-color="#205295"/>
+                                <stop offset="0%" stop-color="#0d1452"/>
+                                <stop offset="100%" stop-color="#1a237e"/>
                             </linearGradient>
                         </g>
 
@@ -505,7 +505,7 @@ const formatDate = (d) => {
                                 v-if="p.value > 0"
                                 :cx="30 + i * (660 / Math.max((A.volumeByMonth?.length ?? 1) - 1, 1))"
                                 :cy="170 - (p.value / volumeMax) * 140"
-                                r="3" fill="#fff" stroke="#205295" stroke-width="2"
+                                r="3" fill="#fff" stroke="#1a237e" stroke-width="2"
                             />
                             <text
                                 :x="30 + i * (660 / Math.max((A.volumeByMonth?.length ?? 1) - 1, 1))"
@@ -579,7 +579,7 @@ const formatDate = (d) => {
                             <div class="relative flex-shrink-0">
                                 <div
                                     class="flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm text-[13px] font-black text-white transition-transform group-hover:scale-105"
-                                    :style="`background:${['linear-gradient(135deg,#0a2647,#205295)','linear-gradient(135deg,#205295,#7cb6e8)','linear-gradient(135deg,#06192f,#0a2647)','linear-gradient(135deg,#0a2647,#205295,#d912e3)','linear-gradient(135deg,#205295,#12d9e3)'][i % 5]}`"
+                                    :style="`background:${['linear-gradient(135deg,#0d1452,#1a237e)','linear-gradient(135deg,#1a237e,#7986cb)','linear-gradient(135deg,#070b3a,#0d1452)','linear-gradient(135deg,#0d1452,#1a237e,#d912e3)','linear-gradient(135deg,#1a237e,#12d9e3)'][i % 5]}`"
                                 >
                                     {{ emp.name?.charAt(0) ?? '?' }}
                                 </div>
@@ -619,7 +619,7 @@ const formatDate = (d) => {
                             <div class="h-2 rounded-full bg-surface-container-low overflow-hidden">
                                 <div
                                     class="h-full rounded-full transition-all"
-                                    :style="`width:${(ccy.value / currencyMax) * 100}%;background:linear-gradient(90deg,#0a2647,#205295);transition-duration:0.8s`"
+                                    :style="`width:${(ccy.value / currencyMax) * 100}%;background:linear-gradient(90deg,#0d1452,#1a237e);transition-duration:0.8s`"
                                 ></div>
                             </div>
                             <p class="text-[10px] text-on-surface-variant/70">{{ ccy.count }} payments</p>
@@ -662,7 +662,7 @@ const formatDate = (d) => {
                 </button>
 
                 <div class="relative ml-auto">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">calendar_month</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">calendar_month</span>
                     <input
                         v-model="localFilters.month"
                         @change="applyFilters"
@@ -684,7 +684,7 @@ const formatDate = (d) => {
                             <button
                                 @click="showCreatePanel = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 New Payment
@@ -760,7 +760,7 @@ const formatDate = (d) => {
                 <div v-if="payments?.links?.length > 3" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
                     <div class="flex items-center justify-between">
                         <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-                            <span class="material-symbols-outlined text-[15px]" style="color:#205295;opacity:0.7">format_list_numbered</span>
+                            <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
                             Showing
                             <span class="font-bold text-on-surface tabular-nums">{{ payments.meta?.from }}</span>
                             –
@@ -849,7 +849,7 @@ const formatDate = (d) => {
                         @click="submit"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Create Payment</span>
@@ -1012,13 +1012,13 @@ const formatDate = (d) => {
 
                     <!-- Mark paid checkbox -->
                     <label class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 cursor-pointer">
-                        <input v-model="payslipForm.mark_paid" type="checkbox" class="h-4 w-4 accent-secondary" />
+                        <input v-model="payslipForm.mark_paid" aria-label="Mark as paid immediately" type="checkbox" class="h-4 w-4 accent-secondary" />
                         <span class="text-[12px] font-semibold text-on-surface">Mark as paid immediately</span>
                     </label>
                 </div>
 
                 <!-- RIGHT: live payslip preview -->
-                <div class="p-6 overflow-y-auto canvas-scroll" style="background:linear-gradient(180deg,rgba(32,82,149,0.04),transparent)">
+                <div class="p-6 overflow-y-auto canvas-scroll" style="background:linear-gradient(180deg,rgba(26, 35, 126,0.04),transparent)">
                     <div class="inline-flex items-center gap-1.5 rounded-full bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 px-2.5 py-0.5 mb-3">
                         <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
                         <span class="text-[9px] font-black uppercase tracking-widest text-green-700 dark:text-green-400">Live preview Â· GRA 2025 rates</span>
@@ -1099,7 +1099,7 @@ const formatDate = (d) => {
 
                     <!-- Net pay — single 5% gold accent moment on the payslip preview -->
                     <div class="relative rounded-2xl p-5 text-white shadow-glow overflow-hidden"
-                         style="background:linear-gradient(135deg,#0a2647,#205295)">
+                         style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
                         <div class="pointer-events-none absolute -top-8 -right-8 h-32 w-32 rounded-full" style="background:radial-gradient(circle,rgba(255,215,0,0.10),transparent 70%)"></div>
                         <p class="relative text-[10px] font-black uppercase tracking-[0.18em] opacity-80">Net Pay</p>
@@ -1145,7 +1145,7 @@ const formatDate = (d) => {
                         @click="submitPayslip"
                         :disabled="payslipForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white shadow-glow-sm disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="payslipForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span v-else class="material-symbols-outlined text-[16px]">receipt_long</span>

@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -24,7 +24,7 @@ const PORTALS = {
         accent: '#12d9e3',
         rgb:    '18,217,227',
         kpis: [
-            { label: 'Servers Online', val: '23 / 24',  sub: 'capacity',     color: '#2c74b3', icon: 'dns' },
+            { label: 'Servers Online', val: '23 / 24',  sub: 'capacity',     color: '#3949ab', icon: 'dns' },
             { label: 'Open Tickets',   val: 18,         sub: '3 critical',   color: '#dc2626', icon: 'bug_report' },
             { label: 'Security Alerts',val: 4,          sub: 'low severity', color: '#d97706', icon: 'security' },
             { label: 'Uptime SLA',     val: '99.97%',   sub: 'target 99.9%', color: '#059669', icon: 'electric_bolt' },
@@ -43,9 +43,9 @@ const PORTALS = {
         rgb:    '217,18,227',
         kpis: [
             { label: 'Headcount',       val: '1,284', sub: '+2 this week',  color: '#059669', icon: 'badge' },
-            { label: 'Turnover Rate',   val: '2.8%',  sub: 'vs 5% target',  color: '#205295', icon: 'person_remove' },
+            { label: 'Turnover Rate',   val: '2.8%',  sub: 'vs 5% target',  color: '#1a237e', icon: 'person_remove' },
             { label: 'Open Positions',  val: 14,      sub: '6 in pipeline', color: '#d97706', icon: 'work_outline' },
-            { label: 'Training Compl.', val: '83%',   sub: 'annual goal',   color: '#205295', icon: 'school' },
+            { label: 'Training Compl.', val: '83%',   sub: 'annual goal',   color: '#1a237e', icon: 'school' },
         ],
         sections: [
             { icon: 'group_add',  title: 'Recruitment Pipeline', body: '14 active roles, 187 applicants in review. Average time-to-hire 18 days.' },
@@ -57,11 +57,11 @@ const PORTALS = {
         title:  'Marketing',
         tagline:'Brand, communications and campaign delivery.',
         icon:   'campaign',
-        accent: '#7cb6e8',
-        rgb:    '124,182,232',
+        accent: '#7986cb',
+        rgb:    '121, 134, 203',
         kpis: [
-            { label: 'Campaign ROI',   val: '320%',  sub: 'YTD',           color: '#205295', icon: 'trending_up' },
-            { label: 'Budget Used',    val: '74%',   sub: 'of GHS 2.4M',   color: '#205295', icon: 'pie_chart' },
+            { label: 'Campaign ROI',   val: '320%',  sub: 'YTD',           color: '#1a237e', icon: 'trending_up' },
+            { label: 'Budget Used',    val: '74%',   sub: 'of GHS 2.4M',   color: '#1a237e', icon: 'pie_chart' },
             { label: 'Leads Generated',val: '2,847', sub: 'this quarter',  color: '#059669', icon: 'how_to_vote' },
             { label: 'Conversion',     val: '5.2%',  sub: 'lead â†’ meeting',color: '#d97706', icon: 'percent' },
         ],
@@ -75,13 +75,13 @@ const PORTALS = {
         title:  'Finance',
         tagline:'Treasury, payroll and statutory compliance.',
         icon:   'account_balance_wallet',
-        accent: '#2c74b3',
-        rgb:    '44,116,179',
+        accent: '#3949ab',
+        rgb:    '57, 73, 171',
         kpis: [
             { label: 'Monthly Revenue',val: 'GHS 8.7M', sub: '+4.2% MoM',    color: '#059669', icon: 'attach_money' },
-            { label: 'Budget Variance',val: '-2.1%',    sub: 'under budget', color: '#205295', icon: 'analytics' },
+            { label: 'Budget Variance',val: '-2.1%',    sub: 'under budget', color: '#1a237e', icon: 'analytics' },
             { label: 'Pending Invoices',val: 142,       sub: 'GHS 1.2M',     color: '#d97706', icon: 'receipt_long' },
-            { label: 'Fund Efficiency',val: '94%',      sub: 'utilization',  color: '#205295', icon: 'savings' },
+            { label: 'Fund Efficiency',val: '94%',      sub: 'utilization',  color: '#1a237e', icon: 'savings' },
         ],
         sections: [
             { icon: 'payments',      title: 'Payroll Cycle',     body: 'May 2026 cycle 85% processed. SSNIT and PAYE remittances on schedule.' },
@@ -101,7 +101,7 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
 
         <!-- Hero strip -->
         <div class="mb-6 overflow-hidden rounded-3xl text-white"
-             style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06);">
+             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">
             <div class="relative px-7 py-7">
                 <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl"
                      :style="`background:radial-gradient(circle,rgba(${portal.rgb},0.25),transparent 70%)`"></div>

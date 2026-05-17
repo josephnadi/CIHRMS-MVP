@@ -81,7 +81,7 @@ const formatDateTime = (d) => {
             <!-- Filters strip -->
             <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">
                 <div class="flex items-center gap-2 pl-2 pr-1 text-on-surface-variant/60">
-                    <span class="material-symbols-outlined text-[18px]" style="color:#205295">filter_list</span>
+                    <span class="material-symbols-outlined text-[18px]" style="color:#1a237e">filter_list</span>
                     <span class="text-[10px] font-black uppercase tracking-[0.18em]">Filter</span>
                 </div>
 
@@ -90,7 +90,7 @@ const formatDateTime = (d) => {
                 </div>
 
                 <div class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">person</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
                     <input
                         v-model="localFilters.user_id"
                         @keyup.enter="applyFilters"
@@ -163,7 +163,7 @@ const formatDateTime = (d) => {
                 <div v-if="logs?.total > logs?.per_page" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
                     <div class="flex items-center justify-between">
                         <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-                            <span class="material-symbols-outlined text-[15px]" style="color:#205295;opacity:0.7">format_list_numbered</span>
+                            <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
                             Showing
                             <span class="font-bold text-on-surface tabular-nums">{{ logs.from }}</span>
                             –

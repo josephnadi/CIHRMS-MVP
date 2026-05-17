@@ -13,11 +13,11 @@ const props = defineProps({
 
         <!-- Hero Banner -->
         <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
-             style="background:linear-gradient(135deg,#0c0e14 0%,#111827 100%);border:1px solid rgba(255,255,255,0.06);">
-            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(32,82,149,0.25),transparent 70%)"></div>
+             style="background:linear-gradient(135deg,#1a237e 0%,#3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
+            <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(26, 35, 126,0.25),transparent 70%)"></div>
             <div class="relative flex flex-wrap items-center justify-between gap-6">
                 <div class="flex items-center gap-5">
-                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(44,116,179,0.2);border:1px solid rgba(44,116,179,0.3)">
+                    <div class="h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(57, 73, 171,0.2);border:1px solid rgba(57, 73, 171,0.3)">
                         <span class="material-symbols-outlined text-3xl text-blue-400" style="font-variation-settings:'FILL' 1">computer</span>
                     </div>
                     <div>
@@ -106,7 +106,7 @@ const props = defineProps({
                 <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
                     <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/50">
                         <h3 class="text-[15px] font-black text-primary">Active Incidents &amp; Tickets</h3>
-                        <button @click="router.visit(route('tickets.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0a2647,#205295)">
+                        <button @click="router.visit(route('tickets.index', { new: 1 }))" class="btn-shimmer flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black text-white" style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                             <span class="material-symbols-outlined text-[15px]">add</span> New Ticket
                         </button>
                     </div>
@@ -134,7 +134,7 @@ const props = defineProps({
             <div class="lg:col-span-4 space-y-6">
 
                 <!-- On-Call Roster -->
-                <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
+                <div class="rounded-2xl p-6 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
                     <div class="absolute -right-4 -top-4 opacity-10"><span class="material-symbols-outlined text-9xl">phonelink_ring</span></div>
                     <p class="text-[9px] font-black uppercase tracking-[0.2em] mb-4" style="color:rgba(255,255,255,0.35)">On-Call Roster · Today</p>
                     <div class="space-y-3">
@@ -144,8 +144,8 @@ const props = defineProps({
                             { name: 'Isaac Mensah', role: 'Security Analyst', shift: '00:00–08:00', primary: false },
                         ]" :key="oncall.name"
                              class="flex items-center gap-3 rounded-xl p-3"
-                             :style="oncall.primary ? 'background:rgba(44,116,179,0.18);border:1px solid rgba(44,116,179,0.25)' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.05)'">
-                            <div class="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-black text-white flex-shrink-0" style="background:linear-gradient(135deg,#0a2647,#205295)">{{ oncall.name.charAt(0) }}</div>
+                             :style="oncall.primary ? 'background:rgba(57, 73, 171,0.18);border:1px solid rgba(57, 73, 171,0.25)' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.05)'">
+                            <div class="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-black text-white flex-shrink-0" style="background:linear-gradient(135deg,#0d1452,#1a237e)">{{ oncall.name.charAt(0) }}</div>
                             <div class="min-w-0 flex-1">
                                 <p class="text-[12px] font-black text-white truncate">{{ oncall.name }}</p>
                                 <p class="text-[9.5px] font-medium" style="color:rgba(255,255,255,0.4)">{{ oncall.role }}</p>

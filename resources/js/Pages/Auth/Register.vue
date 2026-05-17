@@ -18,7 +18,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Enrol · CIHRM Ghana" />
+        <Head title="Enrol Â· CIHRM Ghana" />
 
         <header class="auth-folio">
             <span class="auth-folio-num">02</span>
@@ -70,7 +70,7 @@ const submit = () => {
                 <input id="password" type="password"
                        v-model="form.password"
                        autocomplete="new-password" required
-                       placeholder="••••••••••••"
+                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                        class="field-input" />
                 <p v-if="form.errors.password" class="field-error">{{ form.errors.password }}</p>
             </div>
@@ -83,7 +83,7 @@ const submit = () => {
                 <input id="password_confirmation" type="password"
                        v-model="form.password_confirmation"
                        autocomplete="new-password" required
-                       placeholder="••••••••••••"
+                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                        class="field-input" />
                 <p v-if="form.errors.password_confirmation" class="field-error">{{ form.errors.password_confirmation }}</p>
             </div>
@@ -122,10 +122,10 @@ const submit = () => {
 </template>
 
 <style scoped>
-/* Page-specific overrides only — the rest lives in app.css */
+/* Page-specific overrides only â€” the rest lives in app.css */
 .auth-consent {
     margin: 0.4rem 0 0;
-    font-family: 'Fraunces', serif;
+    font-family: 'Open Sans', serif;
     font-style: italic;
     font-size: 12.5px;
     line-height: 1.55;
@@ -133,10 +133,10 @@ const submit = () => {
     max-width: 40ch;
 }
 .auth-consent a {
-    color: #0a2647;
+    color: #0d1452;
     text-decoration: none;
-    border-bottom: 1px solid rgba(10,38,71,0.3);
+    border-bottom: 1px solid rgba(13, 20, 82,0.3);
     transition: color 0.18s ease, border-color 0.18s ease;
 }
-.auth-consent a:hover { color: #205295; border-bottom-color: #205295; }
+.auth-consent a:hover { color: #1a237e; border-bottom-color: #1a237e; }
 </style>

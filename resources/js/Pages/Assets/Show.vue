@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -49,7 +49,7 @@ function submitLost() {
 }
 
 const statusCls = {
-    in_stock: 'bg-violet-100 text-violet-800',
+    in_stock: 'bg-blue-100 text-blue-800',
     assigned: 'bg-emerald-100 text-emerald-800',
     maintenance: 'bg-amber-100 text-amber-800',
     retired: 'bg-slate-100 text-slate-700',
@@ -58,14 +58,14 @@ const statusCls = {
 </script>
 
 <template>
-<Head :title="`${asset.asset_tag} — ${asset.name}`" />
+<Head :title="`${asset.asset_tag} â€” ${asset.name}`" />
 <AuthenticatedLayout active-module="assets">
     <div class="p-6 space-y-6 animate-reveal-up">
         <header class="flex items-center justify-between">
             <div>
-                <Link :href="route('assets.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← All Assets</Link>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">{{ asset.asset_tag }} — {{ asset.name }}</h1>
-                <p class="text-sm text-on-surface-variant">{{ asset.brand }} {{ asset.model }} · {{ asset.category }} · S/N {{ asset.serial_number ?? '—' }}</p>
+                <Link :href="route('assets.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">â† All Assets</Link>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">{{ asset.asset_tag }} â€” {{ asset.name }}</h1>
+                <p class="text-sm text-on-surface-variant">{{ asset.brand }} {{ asset.model }} Â· {{ asset.category }} Â· S/N {{ asset.serial_number ?? 'â€”' }}</p>
             </div>
             <span :class="['rounded-full px-3 py-1 text-xs font-bold uppercase', statusCls[asset.current_status]]">{{ asset.current_status?.replace('_',' ') }}</span>
         </header>
@@ -75,18 +75,18 @@ const statusCls = {
                 <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 card-lift">
                     <h2 class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 mb-3">Details</h2>
                     <dl class="space-y-2 text-sm">
-                        <div class="flex justify-between"><dt class="text-on-surface-variant">Purchase</dt><dd>{{ asset.purchase_date ?? '—' }}</dd></div>
-                        <div class="flex justify-between"><dt class="text-on-surface-variant">Cost</dt><dd>{{ asset.purchase_cost !== null ? `${asset.currency} ${asset.purchase_cost.toFixed(2)}` : '—' }}</dd></div>
-                        <div class="flex justify-between"><dt class="text-on-surface-variant">Supplier</dt><dd>{{ asset.supplier ?? '—' }}</dd></div>
-                        <div class="flex justify-between"><dt class="text-on-surface-variant">Warranty</dt><dd>{{ asset.warranty_expires_at ?? '—' }}</dd></div>
-                        <div class="flex justify-between"><dt class="text-on-surface-variant">Location</dt><dd>{{ asset.location ?? '—' }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-on-surface-variant">Purchase</dt><dd>{{ asset.purchase_date ?? 'â€”' }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-on-surface-variant">Cost</dt><dd>{{ asset.purchase_cost !== null ? `${asset.currency} ${asset.purchase_cost.toFixed(2)}` : 'â€”' }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-on-surface-variant">Supplier</dt><dd>{{ asset.supplier ?? 'â€”' }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-on-surface-variant">Warranty</dt><dd>{{ asset.warranty_expires_at ?? 'â€”' }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-on-surface-variant">Location</dt><dd>{{ asset.location ?? 'â€”' }}</dd></div>
                     </dl>
                 </section>
 
                 <section v-if="asset.current_assignment" class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 card-lift">
                     <h2 class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 mb-3">Current Assignment</h2>
                     <p class="text-sm font-bold">{{ asset.current_assignment.employee_name }}</p>
-                    <p class="text-xs text-on-surface-variant">{{ asset.current_assignment.employee_no }} · since {{ new Date(asset.current_assignment.assigned_at).toLocaleDateString() }}</p>
+                    <p class="text-xs text-on-surface-variant">{{ asset.current_assignment.employee_no }} Â· since {{ new Date(asset.current_assignment.assigned_at).toLocaleDateString() }}</p>
                     <p v-if="asset.current_assignment.due_back_at" class="mt-1 text-xs">Due back: <span class="font-bold">{{ asset.current_assignment.due_back_at }}</span></p>
                 </section>
 
@@ -115,8 +115,8 @@ const statusCls = {
                             <tr v-for="a in assignments.data" :key="a.id" class="border-t border-outline-variant/40">
                                 <td class="p-4">{{ a.employee_name }} <span class="font-mono text-xs text-on-surface-variant">({{ a.employee_no }})</span></td>
                                 <td class="text-xs">{{ new Date(a.assigned_at).toLocaleDateString() }}</td>
-                                <td class="text-xs">{{ a.returned_at ? new Date(a.returned_at).toLocaleDateString() : '—' }}</td>
-                                <td class="text-xs">{{ a.condition_on_return ?? '—' }}</td>
+                                <td class="text-xs">{{ a.returned_at ? new Date(a.returned_at).toLocaleDateString() : 'â€”' }}</td>
+                                <td class="text-xs">{{ a.condition_on_return ?? 'â€”' }}</td>
                                 <td class="text-xs text-on-surface-variant">{{ a.assigned_by }}</td>
                             </tr>
                         </tbody>
@@ -134,9 +134,9 @@ const statusCls = {
                                 <td class="p-4">{{ m.type }}</td>
                                 <td>{{ m.status?.replace('_',' ') }}</td>
                                 <td class="text-xs">{{ new Date(m.started_at).toLocaleDateString() }}</td>
-                                <td class="text-xs">{{ m.completed_at ? new Date(m.completed_at).toLocaleDateString() : '—' }}</td>
-                                <td class="text-xs">{{ m.vendor ?? '—' }}</td>
-                                <td class="text-xs">{{ m.cost !== null ? m.cost.toFixed(2) : '—' }}</td>
+                                <td class="text-xs">{{ m.completed_at ? new Date(m.completed_at).toLocaleDateString() : 'â€”' }}</td>
+                                <td class="text-xs">{{ m.vendor ?? 'â€”' }}</td>
+                                <td class="text-xs">{{ m.cost !== null ? m.cost.toFixed(2) : 'â€”' }}</td>
                                 <td>
                                     <button v-if="m.status === 'open' && $page.props.auth.permissions?.includes('assets.manage')" @click="completeMaint(m)" class="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold hover:bg-emerald-100">Complete</button>
                                 </td>
@@ -169,32 +169,32 @@ const statusCls = {
 
     <SlidePanel :open="showReturn" @close="showReturn = false" title="Return Asset">
         <form @submit.prevent="submitReturn" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Condition on return</label><select v-model="returnForm.condition_on_return" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="damaged">Damaged (auto-opens maintenance)</option></select></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="returnForm.notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Condition on return</label><select v-model="returnForm.condition_on_return" aria-label="Condition on return" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="damaged">Damaged (auto-opens maintenance)</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="returnForm.notes" aria-label="Return notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="returnForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Confirm Return</button>
         </form>
     </SlidePanel>
 
     <SlidePanel :open="showMaint" @close="showMaint = false" title="Log Maintenance">
         <form @submit.prevent="submitMaint" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Type</label><select v-model="maintForm.type" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="repair">Repair</option><option value="service">Service</option><option value="upgrade">Upgrade</option></select></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Vendor</label><input v-model="maintForm.vendor" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Cost ({{ asset.currency }})</label><input v-model.number="maintForm.cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="maintForm.notes" rows="3" maxlength="1000" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Type</label><select v-model="maintForm.type" aria-label="Maintenance type" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="repair">Repair</option><option value="service">Service</option><option value="upgrade">Upgrade</option></select></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Vendor</label><input v-model="maintForm.vendor" aria-label="Maintenance vendor" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Cost ({{ asset.currency }})</label><input v-model.number="maintForm.cost" aria-label="Maintenance cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="maintForm.notes" aria-label="Maintenance notes" rows="3" maxlength="1000" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="maintForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Log Maintenance</button>
         </form>
     </SlidePanel>
 
     <SlidePanel :open="showRetire" @close="showRetire = false" title="Retire Asset">
         <form @submit.prevent="submitRetire" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="retireForm.reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="retireForm.reason" aria-label="Retirement reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="retireForm.processing" class="w-full rounded-xl bg-slate-700 px-4 py-2 text-sm font-bold text-white">Retire Asset</button>
         </form>
     </SlidePanel>
 
     <SlidePanel :open="showLost" @close="showLost = false" title="Mark Asset Lost">
         <form @submit.prevent="submitLost" class="space-y-3 p-4">
-            <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="lostForm.reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+            <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="lostForm.reason" aria-label="Loss-circumstances reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
             <button type="submit" :disabled="lostForm.processing" class="w-full rounded-xl bg-rose-700 px-4 py-2 text-sm font-bold text-white">Mark Lost</button>
         </form>
     </SlidePanel>

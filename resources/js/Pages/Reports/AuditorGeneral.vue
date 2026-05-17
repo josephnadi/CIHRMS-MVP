@@ -85,7 +85,7 @@ const fmtDate = (unix) => new Date(unix * 1000).toLocaleString('en-GH');
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Jurisdiction</label>
-                        <select v-model="form.jurisdiction" class="rounded-lg border-outline-variant text-sm">
+                        <select v-model="form.jurisdiction" aria-label="Jurisdiction" class="rounded-lg border-outline-variant text-sm">
                             <option value="GH">Ghana</option>
                         </select>
                     </div>

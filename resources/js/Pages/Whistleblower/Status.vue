@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -27,7 +27,7 @@ const statusToneClass = (statusValue) => ({
     'evidence_gathering':       'bg-amber-50 text-amber-800',
     'closed_substantiated':     'bg-emerald-50 text-emerald-800',
     'closed_unsubstantiated':   'bg-slate-100 text-slate-700',
-    'closed_referred':          'bg-violet-50 text-violet-800',
+    'closed_referred':          'bg-blue-50 text-blue-800',
     'withdrawn':                'bg-slate-100 text-slate-500',
 }[statusValue] ?? 'bg-slate-100 text-slate-700');
 </script>
@@ -39,7 +39,7 @@ const statusToneClass = (statusValue) => ({
         <header class="border-b border-outline-variant/40">
             <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
                 <h1 class="text-base font-bold tracking-tight">CIHRM Confidential Disclosure</h1>
-                <Link :href="route('whistleblower.track')" class="text-sm text-secondary hover:underline">Different code →</Link>
+                <Link :href="route('whistleblower.track')" class="text-sm text-secondary hover:underline">Different code â†’</Link>
             </div>
         </header>
 

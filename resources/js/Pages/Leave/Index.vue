@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel          from '@/Components/SlidePanel.vue';
 import ConfirmDialog       from '@/Components/ConfirmDialog.vue';
@@ -38,7 +38,7 @@ const isHR = computed(() => ['hr_admin', 'super_admin'].includes(user.value?.rol
 // study=cyan (learning), sick=amber (medical alarm — semantic, retained),
 // emergency=red (alarm — semantic, retained), unpaid=slate (neutral).
 const LEAVE_TYPES = [
-    { value: 'annual',    label: 'Annual Leave',    days: 15,  icon: 'beach_access',     color: '#205295', chipColor: 'blue'    },
+    { value: 'annual',    label: 'Annual Leave',    days: 15,  icon: 'beach_access',     color: '#1a237e', chipColor: 'blue'    },
     { value: 'sick',      label: 'Sick Leave',      days: 14,  icon: 'medical_services', color: '#d97706', chipColor: 'amber'   },
     { value: 'maternity', label: 'Maternity Leave', days: 84,  icon: 'child_care',       color: '#d912e3', chipColor: 'magenta' },
     { value: 'paternity', label: 'Paternity Leave', days: 5,   icon: 'family_restroom',  color: '#0e8a93', chipColor: 'cyan'    },
@@ -59,7 +59,7 @@ function leaveTypeLabel(type) {
 
 // Balance card colors — aligned with LEAVE_TYPES palette
 const balanceColors = {
-    annual:    { color: '#205295', bg: 'bg-blue-50   dark:bg-blue-950/20',  ring: 'ring-blue-200   dark:ring-blue-800/30'   },
+    annual:    { color: '#1a237e', bg: 'bg-blue-50   dark:bg-blue-950/20',  ring: 'ring-blue-200   dark:ring-blue-800/30'   },
     sick:      { color: '#d97706', bg: 'bg-amber-50  dark:bg-amber-950/20', ring: 'ring-amber-200  dark:ring-amber-800/30'  },
     maternity: { color: '#d912e3', bg: '',                                  ring: '',                                       },
     paternity: { color: '#0e8a93', bg: '',                                  ring: '',                                       },
@@ -147,11 +147,20 @@ function initiateAction(req, type) {
     showActionModal.value = true;
 }
 
+function withdrawRequest(req) {
+    if (! req) return;
+    if (! window.confirm('Withdraw this leave request? This cannot be undone — you will need to submit a fresh request if you change your mind.')) return;
+    router.delete(route('leave.destroy', req.id), {
+        preserveScroll: true,
+        onFinish: () => { showDetailPanel.value = false; },
+    });
+}
+
 function submitAction() {
     if (!actionTarget.value) return;
     actionLoading.value = true;
     router.patch(
-        route('leave.updateStatus', actionTarget.value.id),
+        route('leave.update', actionTarget.value.id),
         { status: actionType.value, comment: actionComment.value },
         {
             preserveState: false,
@@ -215,12 +224,12 @@ function fmtDateShort(d) {
 
 // Avatars — disciplined cool-family gradients (matches Employees pages)
 const AVATAR_GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',          // navy → cobalt
-    'linear-gradient(135deg,#205295,#7cb6e8)',          // cobalt → soft sky
-    'linear-gradient(135deg,#06192f,#0a2647)',          // deep navy → navy
-    'linear-gradient(135deg,#205295,#2c74b3)',          // cobalt → bright blue
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',  // navy → cobalt → magenta (people spark)
-    'linear-gradient(135deg,#205295,#12d9e3)',          // cobalt → cyan
+    'linear-gradient(135deg,#0d1452,#1a237e)',          // navy → cobalt
+    'linear-gradient(135deg,#1a237e,#7986cb)',          // cobalt → soft sky
+    'linear-gradient(135deg,#070b3a,#0d1452)',          // deep navy → navy
+    'linear-gradient(135deg,#1a237e,#3949ab)',          // cobalt → bright blue
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',  // navy → cobalt → magenta (people spark)
+    'linear-gradient(135deg,#1a237e,#12d9e3)',          // cobalt → cyan
 ];
 function avatarColor(name) {
     let hash = 0;
@@ -346,7 +355,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 </div>
                 <button
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px active:scale-[0.97] transition-all"
-                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     @click="showApplyPanel = true"
                 >
                     <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">event_available</span>
@@ -471,7 +480,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         <template #action>
                             <button
                                 class="btn-shimmer rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                                 @click="showApplyPanel = true"
                             >Apply for Leave</button>
                         </template>
@@ -521,8 +530,8 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     </div>
                     <!-- On leave now (cobalt) -->
                     <div class="flex items-center gap-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2 shadow-card">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" style="background:rgba(32,82,149,0.12)">
-                            <span class="material-symbols-outlined text-[16px]" style="color:#205295;font-variation-settings:'FILL' 1">beach_access</span>
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" style="background:rgba(26, 35, 126,0.12)">
+                            <span class="material-symbols-outlined text-[16px]" style="color:#1a237e;font-variation-settings:'FILL' 1">beach_access</span>
                         </span>
                         <span class="text-[13px] font-bold text-on-surface">
                             <span class="tabular-nums">{{ onLeaveNow }}</span>
@@ -644,7 +653,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                             <!-- Employee filter -->
                             <div class="min-w-[160px] flex-1">
                                 <label :class="labelCls">Employee</label>
-                                <select v-model="filterEmployee" :class="inputCls">
+                                <select v-model="filterEmployee" aria-label="Filter by employee" :class="inputCls">
                                     <option value="">All Employees</option>
                                     <option v-for="emp in (employees ?? [])" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
                                 </select>
@@ -652,7 +661,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                             <!-- Type filter -->
                             <div class="min-w-[140px]">
                                 <label :class="labelCls">Leave Type</label>
-                                <select v-model="filterType" :class="inputCls">
+                                <select v-model="filterType" aria-label="Filter by leave type" :class="inputCls">
                                     <option value="">All Types</option>
                                     <option v-for="t in LEAVE_TYPES" :key="t.value" :value="t.value">{{ t.label }}</option>
                                 </select>
@@ -660,7 +669,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                             <!-- Status filter -->
                             <div class="min-w-[130px]">
                                 <label :class="labelCls">Status</label>
-                                <select v-model="filterStatus" :class="inputCls">
+                                <select v-model="filterStatus" aria-label="Filter by status" :class="inputCls">
                                     <option value="">All Statuses</option>
                                     <option value="pending">Pending</option>
                                     <option value="approved">Approved</option>
@@ -670,18 +679,18 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                             <!-- Date from -->
                             <div class="min-w-[130px]">
                                 <label :class="labelCls">From</label>
-                                <input type="date" v-model="filterFrom" :class="inputCls" />
+                                <input type="date" v-model="filterFrom" aria-label="Filter from date" :class="inputCls" />
                             </div>
                             <!-- Date to -->
                             <div class="min-w-[130px]">
                                 <label :class="labelCls">To</label>
-                                <input type="date" v-model="filterTo" :class="inputCls" />
+                                <input type="date" v-model="filterTo" aria-label="Filter to date" :class="inputCls" />
                             </div>
                             <!-- Actions -->
                             <div class="flex gap-2">
                                 <button
                                     class="btn-shimmer rounded-xl px-4 py-2.5 text-[13px] font-bold text-white"
-                                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                                     @click="applyFilters"
                                 >Apply</button>
                                 <button
@@ -904,7 +913,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 <!-- Leave Type -->
                 <div>
                     <label :class="labelCls">Leave Type</label>
-                    <select v-model="leaveForm.type" :class="inputCls" required>
+                    <select v-model="leaveForm.type" aria-label="Leave type" :class="inputCls" required>
                         <option v-for="t in LEAVE_TYPES" :key="t.value" :value="t.value">
                             {{ t.label }}{{ t.days ? ` (up to ${t.days} days)` : '' }}
                         </option>
@@ -1002,7 +1011,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 <button
                     type="button"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     :disabled="leaveForm.processing"
                     @click="submitLeave"
                 >
@@ -1102,6 +1111,17 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         class="flex-1 rounded-xl border border-red-200 dark:border-red-700/40 bg-red-50 dark:bg-red-900/20 py-2.5 text-[13px] font-bold text-red-700 dark:text-red-400 hover:bg-red-100 transition-colors"
                         @click="initiateAction(selectedRequest, 'rejected'); showDetailPanel = false"
                     >Reject</button>
+                </div>
+
+                <!-- Self-service: requester can withdraw their own still-pending request -->
+                <div v-if="!isHR && selectedRequest.status === 'pending'" class="pt-2">
+                    <button
+                        class="w-full rounded-xl border border-rose-200 bg-rose-50 py-2.5 text-[13px] font-bold text-rose-700 hover:bg-rose-100 transition-colors"
+                        @click="withdrawRequest(selectedRequest)"
+                    >
+                        <span class="material-symbols-outlined text-[16px] align-middle mr-1">undo</span>
+                        Withdraw this request
+                    </button>
                 </div>
             </div>
         </SlidePanel>

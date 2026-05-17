@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -117,11 +117,11 @@ const donutSegments = (data) => {
     });
 };
 
-// Disciplined donut palette — fixes a duplicate #205295 at index 2 (the
+// Disciplined donut palette — fixes a duplicate #1a237e at index 2 (the
 // original list had cobalt twice). Sovereign Precision blue family + cyan
 // + magenta + semantic green/amber/red for outcome categories.
 const donutColor = (i) => {
-    const palette = ['#0a2647', '#205295', '#7cb6e8', '#0e8a93', '#d912e3', '#059669', '#d97706', '#dc2626'];
+    const palette = ['#0d1452', '#1a237e', '#7986cb', '#0e8a93', '#d912e3', '#059669', '#d97706', '#dc2626'];
     return palette[i % palette.length];
 };
 
@@ -130,7 +130,7 @@ const totalLeave = computed(() => (a.value.leaveTypeSplit ?? []).reduce((s, d) =
 // â”€â”€ Horizontal bar (department efficiency) helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const efficiencyColor = (score) => {
     if (score >= 80) return '#059669';
-    if (score >= 60) return '#2c74b3';
+    if (score >= 60) return '#3949ab';
     if (score >= 40) return '#d97706';
     return '#dc2626';
 };
@@ -171,6 +171,37 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
 
         <div class="space-y-6">
 
+            <!-- ── Hero banner ── -->
+            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
+                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
+                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
+                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.10)"></div>
+
+                <div class="relative flex flex-wrap items-center justify-between gap-8">
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(18,217,227,0.85)">Workforce pulse · live</p>
+                        <h2 class="text-3xl font-black leading-tight">
+                            <em class="not-italic" style="color:#12d9e3">{{ formatNum(kpis.active) }}</em> active staff · <em class="not-italic" style="color:#ffd700">{{ kpis.retention_pct ?? 0 }}%</em> retention
+                        </h2>
+                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
+                            <span style="color:#16a34a">{{ formatNum(kpis.new_hires_90d) }}</span> hired in last 90 days ·
+                            <span style="color:#dc2626">{{ formatNum(kpis.terminated_90d) }}</span> exits ·
+                            <span style="color:#d912e3">{{ kpis.turnover_pct ?? 0 }}%</span> turnover rate
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-8 flex-shrink-0">
+                        <div v-for="kpi in [
+                            { label: 'On leave',  val: formatNum(kpis.on_leave),     color: '#7986cb' },
+                            { label: 'Retention', val: `${kpis.retention_pct ?? 0}%`, color: '#ffd700' },
+                            { label: 'Turnover',  val: `${kpis.turnover_pct ?? 0}%`,  color: '#d912e3' },
+                        ]" :key="kpi.label" class="text-center">
+                            <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
+                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- KPI strip — disciplined palette. Retention is the institutional
                  health metric the page exists for, so it gets the 5% gold. -->
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
@@ -193,15 +224,15 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <p class="mt-0.5 text-[11px] text-on-surface-variant">New hires per month, trailing 12 months</p>
                         </div>
                         <div class="flex items-center gap-3 text-[10px] font-semibold">
-                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0a2647,#205295)"></span>Hires</span>
+                            <span class="flex items-center gap-1.5"><span class="h-2 w-3 rounded-full" style="background:linear-gradient(90deg,#0d1452,#1a237e)"></span>Hires</span>
                         </div>
                     </div>
 
                     <svg :viewBox="`0 0 ${w} ${h}`" preserveAspectRatio="xMidYMid meet" class="w-full h-[220px]">
                         <defs>
                             <linearGradient id="hiresFill" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#205295" stop-opacity="0.32"/>
-                                <stop offset="100%" stop-color="#205295" stop-opacity="0"/>
+                                <stop offset="0%" stop-color="#1a237e" stop-opacity="0.32"/>
+                                <stop offset="100%" stop-color="#1a237e" stop-opacity="0"/>
                             </linearGradient>
                         </defs>
 
@@ -213,10 +244,10 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                         </g>
 
                         <path :d="areaPath(a.hiresByMonth)" fill="url(#hiresFill)" />
-                        <path :d="linePath(a.hiresByMonth)" fill="none" stroke="#205295" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path :d="linePath(a.hiresByMonth)" fill="none" stroke="#1a237e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
 
                         <g v-for="(p, i) in pointPositions(a.hiresByMonth)" :key="i">
-                            <circle :cx="p.x" :cy="p.y" r="3.5" fill="#fff" stroke="#205295" stroke-width="2" />
+                            <circle :cx="p.x" :cy="p.y" r="3.5" fill="#fff" stroke="#1a237e" stroke-width="2" />
                             <text :x="p.x" :y="h - pad + 18" class="fill-current text-on-surface-variant" text-anchor="middle" font-size="10" font-weight="600">{{ p.label }}</text>
                         </g>
                     </svg>
@@ -236,7 +267,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <div class="h-2 w-full rounded-full bg-surface-container-low overflow-hidden">
                                 <div
                                     class="h-full rounded-full transition-all"
-                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#0a2647,#205295);transition-duration:0.8s`"
+                                    :style="`width:${(bucket.value / barMax(a.tenureBuckets)) * 100}%;background:linear-gradient(90deg,#0d1452,#1a237e);transition-duration:0.8s`"
                                 ></div>
                             </div>
                         </div>
@@ -341,7 +372,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                     <LiveBars
                         :data="(a.headcountByDept ?? []).map(d => ({ label: d.label, value: d.value }))"
                         :height="180"
-                        color="#205295"
+                        color="#1a237e"
                         accent-color="#ffd700"
                         second-color="#12d9e3"
                         :show-median="true"
@@ -367,7 +398,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                             <div class="relative flex-shrink-0">
                                 <div
                                     class="flex h-9 w-9 items-center justify-center rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm text-[12px] font-black text-white transition-transform group-hover:scale-105"
-                                    :style="`background:${['linear-gradient(135deg,#0a2647,#205295)','linear-gradient(135deg,#205295,#7cb6e8)','linear-gradient(135deg,#06192f,#0a2647)','linear-gradient(135deg,#0a2647,#205295,#d912e3)','linear-gradient(135deg,#205295,#12d9e3)'][i % 5]}`"
+                                    :style="`background:${['linear-gradient(135deg,#0d1452,#1a237e)','linear-gradient(135deg,#1a237e,#7986cb)','linear-gradient(135deg,#070b3a,#0d1452)','linear-gradient(135deg,#0d1452,#1a237e,#d912e3)','linear-gradient(135deg,#1a237e,#12d9e3)'][i % 5]}`"
                                 >
                                     {{ emp.name?.charAt(0) ?? '?' }}
                                 </div>
@@ -472,7 +503,7 @@ const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
                     <LiveBars
                         :data="(a.leaveByMonth ?? []).map(p => ({ label: p.label, value: p.value }))"
                         :height="160"
-                        color="#205295"
+                        color="#1a237e"
                         accent-color="#ffd700"
                         second-color="#12d9e3"
                         :show-median="true"

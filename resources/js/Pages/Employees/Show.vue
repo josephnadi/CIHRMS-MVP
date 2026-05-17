@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -65,10 +65,10 @@ const doDeleteDoc = () => {
 // Avatar gradients — disciplined cool family matching Index.vue. People module
 // = navy/cobalt dominant + a single magenta variant. No warm reds/ambers.
 const gradients = [
-    'linear-gradient(135deg,#0a2647,#205295)',          // navy → cobalt
-    'linear-gradient(135deg,#205295,#7cb6e8)',          // cobalt → soft sky
-    'linear-gradient(135deg,#06192f,#0a2647)',          // deep navy → navy
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',  // navy → cobalt → magenta (people spark)
+    'linear-gradient(135deg,#0d1452,#1a237e)',          // navy → cobalt
+    'linear-gradient(135deg,#1a237e,#7986cb)',          // cobalt → soft sky
+    'linear-gradient(135deg,#070b3a,#0d1452)',          // deep navy → navy
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',  // navy → cobalt → magenta (people spark)
 ];
 
 const avatarGradient = computed(() => gradients[props.employee.id % gradients.length]);
@@ -168,7 +168,7 @@ const priorityColors = {
                 <button
                     @click="showEditPanel = true"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                 >
                     <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">edit</span>
                     Edit Profile
@@ -183,7 +183,7 @@ const priorityColors = {
                 <!-- Top edge gold hairline — the page's single 5% institutional accent -->
                 <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.55),transparent)"></div>
                 <!-- Cobalt radial behind the avatar for atmosphere -->
-                <div class="pointer-events-none absolute -top-12 -left-8 h-40 w-40 rounded-full" style="background:radial-gradient(circle,rgba(32,82,149,0.12),transparent 70%)"></div>
+                <div class="pointer-events-none absolute -top-12 -left-8 h-40 w-40 rounded-full" style="background:radial-gradient(circle,rgba(26, 35, 126,0.12),transparent 70%)"></div>
 
                 <div class="relative flex flex-wrap items-start gap-6">
 
@@ -193,7 +193,7 @@ const priorityColors = {
                             class="h-16 w-16 rounded-2xl flex items-center justify-center text-[22px] font-black text-white shadow-lifted ring-4 ring-white dark:ring-surface-container-lowest overflow-hidden"
                             :style="employee.avatar_url ? '' : `background:${avatarGradient}`"
                         >
-                            <img v-if="employee.avatar_url" :src="employee.avatar_url" class="h-full w-full object-cover" />
+                            <img v-if="employee.avatar_url" :src="employee.avatar_url" :alt="`${employee.user?.name ?? 'Employee'} profile photo`" class="h-full w-full object-cover" />
                             <span v-else>{{ initials(employee.user?.name) }}</span>
                         </div>
                         <!-- Status dot -->
@@ -244,7 +244,7 @@ const priorityColors = {
                  Phone=cobalt (action), Email=cyan (comms), Role=magenta (people). -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div class="group rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-4 shadow-card flex items-center gap-3 card-lift">
-                    <div class="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105" style="background:rgba(32,82,149,0.10);color:#205295">
+                    <div class="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105" style="background:rgba(26, 35, 126,0.10);color:#1a237e">
                         <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1">phone</span>
                     </div>
                     <div class="min-w-0">
@@ -483,12 +483,12 @@ const priorityColors = {
                     <p v-else class="text-[12.5px] italic text-on-surface-variant/55">No emergency contact on file.</p>
                 </div>
 
-                <!-- Compensation — payroll module uses the blue family (#2c74b3) -->
+                <!-- Compensation — payroll module uses the blue family (#3949ab) -->
                 <div v-if="employee.bank_name || employee.bank_account || employee.salary !== undefined"
                      class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-6 shadow-card">
                     <h4 class="mb-4 text-[14px] font-bold text-on-surface flex items-center gap-2">
-                        <span class="flex h-6 w-6 items-center justify-center rounded-md" style="background:rgba(44,116,179,0.12)">
-                            <span class="material-symbols-outlined text-[15px]" style="color:#2c74b3;font-variation-settings:'FILL' 1">account_balance_wallet</span>
+                        <span class="flex h-6 w-6 items-center justify-center rounded-md" style="background:rgba(57, 73, 171,0.12)">
+                            <span class="material-symbols-outlined text-[15px]" style="color:#3949ab;font-variation-settings:'FILL' 1">account_balance_wallet</span>
                         </span>
                         Compensation
                     </h4>
@@ -563,7 +563,7 @@ const priorityColors = {
                             @click="submitDoc"
                             :disabled="!docFile || !docForm.title || docForm.processing"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-50"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[17px]">upload</span>
                             Upload
@@ -590,7 +590,7 @@ const priorityColors = {
                                 class="group transition-colors hover:bg-secondary/[0.04]">
                                 <td class="px-4 py-3 flex items-center gap-3">
                                     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-container-low text-on-surface-variant/70">
-                                        <span class="material-symbols-outlined text-[18px]" style="color:#205295">{{ docIcon(doc.file_name ?? doc.title) }}</span>
+                                        <span class="material-symbols-outlined text-[18px]" style="color:#1a237e">{{ docIcon(doc.file_name ?? doc.title) }}</span>
                                     </span>
                                     <span class="text-[13px] font-bold text-on-surface">{{ doc.title }}</span>
                                 </td>
@@ -808,7 +808,7 @@ const priorityColors = {
                     </button>
                     <button @click="submitEdit" :disabled="editForm.processing"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="editForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Changes
                     </button>

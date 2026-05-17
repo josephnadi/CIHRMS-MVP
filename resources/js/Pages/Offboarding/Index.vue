@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -46,12 +46,12 @@ const lwdUrgency = (dateStr) => {
 
 // Avatar gradient pool — disciplined cool family
 const gradients = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -74,7 +74,7 @@ const exitTypeIcon = (type) => ({
 })[type] ?? 'logout';
 
 const exitTypeColor = (type) => ({
-    resignation:       'rgba(32,82,149,0.12)',
+    resignation:       'rgba(26, 35, 126,0.12)',
     retirement:        'rgba(5,150,105,0.12)',
     end_of_contract:   'rgba(217,119,6,0.12)',
     dismissal:         'rgba(220,38,38,0.12)',
@@ -156,7 +156,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                 <button
                     @click="showPanel = true"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                 >
                     <span class="material-symbols-outlined text-[18px]">add</span>
                     Open Case
@@ -255,7 +255,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <button
                             @click="showPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Open Case
@@ -314,7 +314,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <div class="h-2 w-full rounded-full bg-surface-container overflow-hidden">
                             <div
                                 class="h-full rounded-full transition-all"
-                                :style="`width:${pct(c.clearance_progress)};background:${Number(c.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#205295,#2c74b3)'}`"
+                                :style="`width:${pct(c.clearance_progress)};background:${Number(c.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#1a237e,#3949ab)'}`"
                             ></div>
                         </div>
                     </div>
@@ -468,7 +468,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         @click="submitCase"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Initiate Case

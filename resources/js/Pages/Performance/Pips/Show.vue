@@ -89,7 +89,7 @@ const isClosed = computed(() => ['succeeded', 'failed_demoted', 'failed_terminat
                               class="w-full rounded-lg border-outline-variant text-sm"
                               placeholder="Notes on observed progress, blockers, and next steps."></textarea>
                     <label class="flex items-center gap-2 text-sm">
-                        <input v-model="checkinForm.met_target" type="checkbox">
+                        <input v-model="checkinForm.met_target" aria-label="Targets met for this check-in" type="checkbox">
                         Targets met for this check-in period
                     </label>
                     <PrimaryButton type="submit" :disabled="checkinForm.processing">Record check-in</PrimaryButton>
@@ -113,7 +113,7 @@ const isClosed = computed(() => ['succeeded', 'failed_demoted', 'failed_terminat
 
                 <div class="rounded-2xl border border-outline-variant/40 p-5 space-y-3 bg-brand-navy/[0.03]">
                     <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-navy/70">Close PIP (2FA required)</p>
-                    <select v-model="closeForm.outcome" class="w-full rounded-lg border-outline-variant text-sm">
+                    <select v-model="closeForm.outcome" aria-label="PIP close outcome" class="w-full rounded-lg border-outline-variant text-sm">
                         <option value="succeeded">Succeeded — return to normal cycle</option>
                         <option value="failed_demoted">Failed — Demote</option>
                         <option value="failed_terminated">Failed — Terminate (opens off-boarding)</option>

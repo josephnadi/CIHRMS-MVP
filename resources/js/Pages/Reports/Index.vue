@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -27,7 +27,7 @@ const iconFor = {
 const accentFor = {
     headcount: '#b88a08',      // gold-deep (readable on light bg) — flagship
     leave:     '#059669',      // green (approved-leave semantic)
-    payroll:   '#205295',      // cobalt (payroll module)
+    payroll:   '#1a237e',      // cobalt (payroll module)
     tickets:   '#dc2626',      // red (service-desk alarm semantic)
     turnover:  '#d97706',      // amber (warning semantic)
 };
@@ -36,11 +36,11 @@ const gradientFor = (key) => {
     const map = {
         headcount: 'linear-gradient(135deg,#b88a08,#ffd700)',  // gold deep → gold (flagship)
         leave:     'linear-gradient(135deg,#059669,#10b981)',
-        payroll:   'linear-gradient(135deg,#0a2647,#205295)',  // navy → cobalt
+        payroll:   'linear-gradient(135deg,#0d1452,#1a237e)',  // navy → cobalt
         tickets:   'linear-gradient(135deg,#dc2626,#ef4444)',
         turnover:  'linear-gradient(135deg,#d97706,#f59e0b)',
     };
-    return map[key] ?? 'linear-gradient(135deg,#0a2647,#205295)';
+    return map[key] ?? 'linear-gradient(135deg,#0d1452,#1a237e)';
 };
 
 const exportUrl = computed(() => {

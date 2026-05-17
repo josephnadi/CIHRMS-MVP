@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -220,7 +220,7 @@ const areaIcon = (area) => ({
                     <div class="h-2.5 w-full rounded-full bg-surface-container overflow-hidden">
                         <div
                             class="h-full rounded-full transition-all"
-                            :style="`width:${pct(C.clearance_progress)};background:${Number(C.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#0a2647,#205295)'}`"
+                            :style="`width:${pct(C.clearance_progress)};background:${Number(C.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#0d1452,#1a237e)'}`"
                         ></div>
                     </div>
                 </div>
@@ -229,7 +229,7 @@ const areaIcon = (area) => ({
             <!-- â”€â”€ 4 Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
-                     style="border-left:3px solid rgba(32,82,149,0.5)">
+                     style="border-left:3px solid rgba(26, 35, 126,0.5)">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-1">Notice Received</p>
                     <p class="text-[14px] font-black text-on-surface">{{ formatDate(C.notice_received_on) }}</p>
                 </div>
@@ -512,7 +512,7 @@ const areaIcon = (area) => ({
                         @click="calculate"
                         :disabled="settleForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="settleForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span class="material-symbols-outlined text-[17px]" v-else>calculate</span>
@@ -611,7 +611,7 @@ const areaIcon = (area) => ({
                                 <!-- Net payable highlight -->
                                 <div class="flex justify-between text-[16px] font-black bg-secondary/5 rounded-xl px-3 py-3 mt-2 border border-secondary/15">
                                     <dt class="text-on-surface">Net Payable</dt>
-                                    <dd class="font-mono tabular-nums" style="color:#205295">{{ cedi(S.net_payable) }}</dd>
+                                    <dd class="font-mono tabular-nums" style="color:#1a237e">{{ cedi(S.net_payable) }}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -633,7 +633,7 @@ const areaIcon = (area) => ({
                             v-if="S.status === 'approved' && C.can?.complete"
                             @click="complete"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[17px]">task_alt</span>
                             Complete Case &amp; Terminate Employee

@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -72,7 +72,7 @@ const submitCert = () => {
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const progressColor = (pct) => {
     if ((pct ?? 0) >= 80) return '#059669';
-    if ((pct ?? 0) >= 40) return '#205295';
+    if ((pct ?? 0) >= 40) return '#1a237e';
     if ((pct ?? 0) > 0)   return '#d97706';
     return '#9ca3af';
 };
@@ -138,7 +138,7 @@ const ringProps = (pct, r = 28) => {
                         @click="showAddCert = true"
                         :disabled="!myEmployeeId"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97] disabled:opacity-50"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[18px]">verified</span>
                         Add Certification
@@ -152,7 +152,7 @@ const ringProps = (pct, r = 28) => {
             <!-- â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
             <div
                 class="relative rounded-2xl overflow-hidden p-6 md:p-8"
-                style="background:linear-gradient(135deg,#0a2647,#205295,#1e5f9c)"
+                style="background:linear-gradient(135deg,#0d1452,#1a237e,#1e5f9c)"
             >
                 <!-- Background pattern -->
                 <div class="absolute inset-0 opacity-5"
@@ -204,7 +204,7 @@ const ringProps = (pct, r = 28) => {
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <div
                     v-for="(s, i) in [
-                        { label: 'In Progress',       value: stats?.in_progress ?? 0, icon: 'play_arrow',  color: '32,82,149'    },
+                        { label: 'In Progress',       value: stats?.in_progress ?? 0, icon: 'play_arrow',  color: '26, 35, 126'    },
                         { label: 'Completed',         value: stats?.completed   ?? 0, icon: 'task_alt',    color: '5,150,105'   },
                         { label: 'Certifications',    value: stats?.certs       ?? 0, icon: 'verified',    color: '124,92,255'  },
                         { label: 'Expiring (60 days)',value: stats?.expiring    ?? 0, icon: 'schedule',    color: '217,119,6'   },
@@ -300,7 +300,7 @@ const ringProps = (pct, r = 28) => {
                             <button
                                 @click="openProgress(e)"
                                 class="btn-shimmer flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-[12px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[15px]">play_arrow</span>
                                 Continue Learning
@@ -319,7 +319,7 @@ const ringProps = (pct, r = 28) => {
                             <Link
                                 :href="route('learning.catalog')"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">menu_book</span>
                                 Browse Catalogue
@@ -423,7 +423,7 @@ const ringProps = (pct, r = 28) => {
                                 v-if="myEmployeeId"
                                 @click="showAddCert = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 Add External Certification
@@ -496,9 +496,9 @@ const ringProps = (pct, r = 28) => {
                 <div class="flex items-start gap-3 rounded-xl border border-outline-variant/60 bg-surface-container/40 p-3.5">
                     <div
                         class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                        :style="`background:${progressEnrolment.course?.category_color ?? '#205295'}1a`"
+                        :style="`background:${progressEnrolment.course?.category_color ?? '#1a237e'}1a`"
                     >
-                        <span class="material-symbols-outlined text-[20px]" :style="`color:${progressEnrolment.course?.category_color ?? '#205295'}`">school</span>
+                        <span class="material-symbols-outlined text-[20px]" :style="`color:${progressEnrolment.course?.category_color ?? '#1a237e'}`">school</span>
                     </div>
                     <div>
                         <p class="text-[13px] font-bold text-on-surface leading-tight">{{ progressEnrolment.course?.title }}</p>
@@ -568,7 +568,7 @@ const ringProps = (pct, r = 28) => {
                         @click="submitProgress"
                         :disabled="progressForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="progressForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Progress
@@ -665,7 +665,7 @@ const ringProps = (pct, r = 28) => {
                         @click="submitCert"
                         :disabled="certForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="certForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Save Certification

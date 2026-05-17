@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, reactive, computed, watch } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -38,7 +38,7 @@ const inProgress = computed(() => pipList.value.filter(p => p.status === 'in_pro
 // Stat cards — Succeeded (YTD) gets gold (institutional improvement success metric)
 const statCards = computed(() => [
     { label: 'Open PIPs',             value: props.stats?.open_total     ?? 0, icon: 'warning',         rgb: '217,119,6'  },
-    { label: 'In Progress',           value: inProgress.value,                 icon: 'hourglass_top',   rgb: '32,82,149'  },
+    { label: 'In Progress',           value: inProgress.value,                 icon: 'hourglass_top',   rgb: '26, 35, 126'  },
     { label: 'Succeeded (YTD)',       value: props.stats?.succeeded_ytd  ?? 0, icon: 'check_circle',    rgb: '255,215,0'  },
     { label: 'Terminated (YTD)',      value: props.stats?.terminated_ytd ?? 0, icon: 'person_off',      rgb: '220,38,38'  },
 ]);
@@ -76,13 +76,15 @@ const submitPip = () => {
 // Status config — borders aligned with brand palette where appropriate.
 // in_progress = cobalt (action). extended = magenta (people-side process).
 const statusConfig = {
-    open:             { pill: 'bg-amber-400/15 text-amber-700',     border: '#f59e0b', label: 'Open'                  },
-    in_progress:      { pill: 'bg-blue-500/15 text-blue-700',       border: '#205295', label: 'In Progress'           },
-    extended:         { pill: 'bg-fuchsia-500/15 text-fuchsia-700', border: '#d912e3', label: 'Extended'              },
-    succeeded:        { pill: 'bg-emerald-500/15 text-emerald-700', border: '#10b981', label: 'Succeeded'             },
-    failed_demoted:   { pill: 'bg-orange-500/15 text-orange-700',   border: '#f97316', label: 'Failed – Demoted'      },
-    failed_terminated:{ pill: 'bg-rose-500/15 text-rose-700',       border: '#f43f5e', label: 'Failed – Terminated'   },
-    cancelled:        { pill: 'bg-slate-400/15 text-slate-500',     border: '#94a3b8', label: 'Cancelled'             },
+    // Borders use the brand palette. Pills use semantic tailwind families
+    // that already pair with brand hex (gold/cyan/magenta/sky).
+    open:             { pill: 'bg-amber-50 text-amber-700 border-amber-200',     border: '#ffd700', label: 'Open'                  },
+    in_progress:      { pill: 'bg-blue-50 text-blue-700 border-blue-200',        border: '#1a237e', label: 'In Progress'           },
+    extended:         { pill: 'bg-rose-50 text-rose-700 border-rose-200',        border: '#d912e3', label: 'Extended'              },
+    succeeded:        { pill: 'bg-emerald-50 text-emerald-700 border-emerald-200', border: '#059669', label: 'Succeeded'           },
+    failed_demoted:   { pill: 'bg-amber-50 text-amber-700 border-amber-200',     border: '#d97706', label: 'Failed – Demoted'      },
+    failed_terminated:{ pill: 'bg-rose-50 text-rose-700 border-rose-200',        border: '#dc2626', label: 'Failed – Terminated'   },
+    cancelled:        { pill: 'bg-slate-100 text-slate-600 border-slate-200',    border: '#64748b', label: 'Cancelled'             },
 };
 
 const getStatusCfg = (status) => statusConfig[status] ?? { pill: 'bg-surface-container text-on-surface-variant', border: '#9ca3af', label: status };
@@ -113,18 +115,18 @@ const progressColor = (pip) => {
     const isPastDue = pip.target_end_date && new Date(pip.target_end_date) < new Date();
     if (isPastDue) return '#dc2626';
     if (pct >= 75) return '#d97706';
-    return '#205295';
+    return '#1a237e';
 };
 
 // â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Avatar gradient pool — disciplined cool family
 const gradients = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -167,7 +169,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                         v-if="canManage"
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Open PIP
@@ -242,7 +244,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                             v-if="canManage"
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Open PIP
@@ -323,7 +325,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                                 >{{ initials(pip.mentor.name) }}</div>
                                 <span class="text-[11px] text-on-surface-variant">Mentor: <span class="font-semibold text-on-surface">{{ pip.mentor.name }}</span></span>
                             </div>
-                            <div v-if="pip.extensions_used > 0" class="flex items-center gap-1 text-[11px] text-violet-700">
+                            <div v-if="pip.extensions_used > 0" class="flex items-center gap-1 text-[11px]" style="color:#d912e3">
                                 <span class="material-symbols-outlined text-[13px]">add_circle</span>
                                 {{ pip.extensions_used }} extension{{ pip.extensions_used !== 1 ? 's' : '' }}
                             </div>
@@ -458,7 +460,7 @@ const isPastDue = (pip) => pip.target_end_date && new Date(pip.target_end_date) 
                     <button
                         @click="submitPip"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[16px]">assignment</span>
                         Open PIP

@@ -14,8 +14,14 @@ const props = defineProps({
     <div class="p-6 space-y-6 animate-reveal-up">
         <header>
             <Link :href="route('assets.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← All Assets</Link>
-            <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">My Assets</h1>
-            <p class="text-sm text-on-surface-variant">Equipment currently assigned to you.</p>
+            <div class="flex items-center gap-2 mt-1 mb-1">
+                <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">devices</span>
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Self-service · Assigned equipment</p>
+            </div>
+            <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">My Assets</h1>
+            <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                Equipment currently issued to you — sign the return form here when handing back.
+            </p>
         </header>
 
         <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">

@@ -15,12 +15,12 @@ const props = defineProps({
 // ── Categories with palette-keyed icons + tones ──
 const CATEGORIES = {
     hr:         { label: 'HR',         icon: 'people',           tile: 'icon-magenta', accent: '#d912e3' },
-    finance:    { label: 'Finance',    icon: 'account_balance',  tile: 'icon-brand',   accent: '#205295' },
+    finance:    { label: 'Finance',    icon: 'account_balance',  tile: 'icon-brand',   accent: '#1a237e' },
     it:         { label: 'IT',         icon: 'computer',         tile: 'icon-cyan',    accent: '#12d9e3' },
     compliance: { label: 'Compliance', icon: 'gavel',            tile: 'icon-gold',    accent: '#ffd700' },
     safety:     { label: 'Safety',     icon: 'health_and_safety',tile: 'icon-success', accent: '#059669' },
-    conduct:    { label: 'Conduct',    icon: 'verified_user',    tile: 'icon-navy',    accent: '#0a2647' },
-    other:      { label: 'Other',      icon: 'description',      tile: 'icon-sky',     accent: '#7cb6e8' },
+    conduct:    { label: 'Conduct',    icon: 'verified_user',    tile: 'icon-navy',    accent: '#0d1452' },
+    other:      { label: 'Other',      icon: 'description',      tile: 'icon-sky',     accent: '#7986cb' },
 };
 const categoryMeta = (k) => CATEGORIES[k] ?? CATEGORIES.other;
 
@@ -106,7 +106,7 @@ const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyP
                     <Link v-if="$page.props.auth.permissions?.includes('governance.manage')"
                           :href="route('governance.manage')"
                           class="btn-shimmer inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px active:scale-[0.97]"
-                          style="background:linear-gradient(135deg,#0a2647,#205295)">
+                          style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span class="material-symbols-outlined text-[18px]">edit_note</span>
                         Manage policies
                     </Link>
@@ -118,7 +118,7 @@ const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyP
 
             <!-- ── Hero banner ── -->
             <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#06192f 0%,#0a2647 60%,#102f4f 100%);border:1px solid rgba(255,255,255,0.06);">
+                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
                 <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
                 <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.06)"></div>
 
@@ -142,7 +142,7 @@ const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyP
                         <div v-for="kpi in [
                             { label: 'Total',       val: stats?.total_policies ?? 0,  color: '#12d9e3' },
                             { label: 'Pending you', val: stats?.pending_for_me ?? 0,  color: '#ffd700' },
-                            { label: 'Certs',       val: cert_stats?.total ?? 0,       color: '#7cb6e8' },
+                            { label: 'Certs',       val: cert_stats?.total ?? 0,       color: '#7986cb' },
                         ]" :key="kpi.label" class="text-center">
                             <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
                             <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
@@ -205,7 +205,7 @@ const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyP
                         <svg viewBox="0 0 100 100" width="180" height="180" class="-rotate-90">
                             <circle cx="50" cy="50" r="42" fill="none" stroke="rgb(var(--ct-surface-low))" stroke-width="9"/>
                             <circle cx="50" cy="50" r="42" fill="none"
-                                    :stroke="compliancePct >= 100 ? '#12d9e3' : compliancePct >= 80 ? '#205295' : '#ffd700'"
+                                    :stroke="compliancePct >= 100 ? '#12d9e3' : compliancePct >= 80 ? '#1a237e' : '#ffd700'"
                                     stroke-width="9" stroke-linecap="round"
                                     :stroke-dasharray="`${complianceDash} ${circumference}`"
                                     style="transition: stroke-dasharray 0.7s cubic-bezier(0.22,1,0.36,1);"/>
@@ -301,7 +301,7 @@ const clearFilters = () => { search.value = ''; categoryFilter.value = ''; onlyP
                         <option v-for="(meta, key) in CATEGORIES" :key="key" :value="key">{{ meta.label }}</option>
                     </select>
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input v-model="onlyPendingMine" type="checkbox" class="rounded border-outline-variant text-secondary focus:ring-secondary/20"/>
+                        <input v-model="onlyPendingMine" aria-label="Show only items pending my acknowledgement" type="checkbox" class="rounded border-outline-variant text-secondary focus:ring-secondary/20"/>
                         <span class="text-[12px] font-semibold text-on-surface">Pending mine only</span>
                     </label>
                     <button v-if="hasActiveFilters" @click="clearFilters"

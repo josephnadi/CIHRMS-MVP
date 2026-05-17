@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
@@ -89,8 +89,8 @@ const clearFilters = () => {
 const statusMeta = (s) => ({
     pending_approval: { label: 'Pending',   bg: 'bg-amber-50 text-amber-700 border-amber-200',  dot: '#d97706' },
     approved:         { label: 'Approved',  bg: 'bg-cyan-50 text-cyan-700 border-cyan-200',     dot: '#12d9e3' },
-    disbursed:        { label: 'Disbursed', bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#205295' },
-    repaying:         { label: 'Repaying',  bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#2c74b3' },
+    disbursed:        { label: 'Disbursed', bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#1a237e' },
+    repaying:         { label: 'Repaying',  bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#3949ab' },
     paid_off:         { label: 'Paid off',  bg: 'bg-green-50 text-green-700 border-green-200',  dot: '#059669' },
     fully_repaid:     { label: 'Repaid',    bg: 'bg-green-50 text-green-700 border-green-200',  dot: '#059669' },
     rejected:         { label: 'Rejected',  bg: 'bg-red-50 text-red-700 border-red-200',        dot: '#dc2626' },
@@ -112,7 +112,57 @@ const donutSegs  = computed(() => {
 const activePortfolio = computed(() => donutSegs.value.disbursed + donutSegs.value.repaying);
 
 // ── Apply panel ──
-const showApply = ref(false);
+const showApply    = ref(false);
+
+// ── Loan product management (separate slide-panel; gated by loans.product_manage) ──
+const _page = usePage();
+const canManageProducts = computed(() => (_page.props?.auth?.permissions ?? []).includes('loans.product_manage'));
+
+const showProducts = ref(false);
+const editingProduct = ref(null);
+const productForm = useForm({
+    code: '', name: '', type: 'personal', description: '',
+    min_amount: 1000, max_amount: 50_000,
+    min_term_months: 3, max_term_months: 36,
+    annual_interest_rate: 0.12, amortization_method: 'reducing_balance',
+    max_dti_ratio: 0.4, requires_guarantor: false, requires_collateral: false,
+    approvals_required: 2, is_active: true,
+    effective_from: new Date().toISOString().slice(0, 10), effective_to: null,
+});
+
+const openCreateProduct = () => {
+    editingProduct.value = null;
+    productForm.reset();
+    productForm.clearErrors();
+};
+
+const openEditProduct = (p) => {
+    editingProduct.value = p;
+    Object.keys(productForm.data()).forEach(k => {
+        if (p[k] !== undefined) productForm[k] = p[k];
+    });
+    productForm.is_active = p.is_active !== false;
+    productForm.clearErrors();
+};
+
+const submitProduct = () => {
+    if (editingProduct.value) {
+        productForm.patch(route('loans.products.update', editingProduct.value.id), {
+            preserveScroll: true,
+            onSuccess: () => { editingProduct.value = null; productForm.reset(); },
+        });
+    } else {
+        productForm.post(route('loans.products.store'), {
+            preserveScroll: true,
+            onSuccess: () => { productForm.reset(); },
+        });
+    }
+};
+
+const deleteProduct = (p) => {
+    if (! window.confirm(`Delete loan product "${p.name}"?\n\nExisting loans referencing it will block deletion — deactivate it instead if so.`)) return;
+    router.delete(route('loans.products.destroy', p.id), { preserveScroll: true });
+};
 const form = useForm({
     product_id:  '',
     principal:   '',
@@ -187,9 +237,15 @@ const repayPct = (loan) => {
                         <span class="h-1.5 w-1.5 rounded-full bg-cyan-500 live-dot"></span>
                         <span class="text-[10px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">{{ stats?.active_count ?? 0 }} active</span>
                     </div>
+                    <button v-if="canManageProducts"
+                            @click="showProducts = true"
+                            class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2 text-[13px] font-bold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all">
+                        <span class="material-symbols-outlined text-[17px]">tune</span>
+                        Manage products
+                    </button>
                     <button @click="showApply = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Apply for loan
                     </button>
@@ -201,7 +257,7 @@ const repayPct = (loan) => {
 
             <!-- ── Hero banner ── -->
             <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white animate-reveal-up"
-                 style="background:linear-gradient(135deg,#06192f 0%,#0a2647 60%,#102f4f 100%);border:1px solid rgba(255,255,255,0.06);">
+                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
                 <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.18),transparent 70%)"></div>
                 <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.06)"></div>
 
@@ -221,7 +277,7 @@ const repayPct = (loan) => {
                         <div v-for="kpi in [
                             { label: 'Active',     val: stats?.active_count ?? 0,                       color: '#12d9e3' },
                             { label: 'Pending',    val: stats?.pending_approval ?? 0,                   color: '#ffd700' },
-                            { label: 'Outstanding',val: cediShort(stats?.total_outstanding ?? 0),       color: '#7cb6e8' },
+                            { label: 'Outstanding',val: cediShort(stats?.total_outstanding ?? 0),       color: '#7986cb' },
                         ]" :key="kpi.label" class="text-center">
                             <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
                             <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
@@ -268,7 +324,7 @@ const repayPct = (loan) => {
                     <div v-if="monthlyDisbursements.length" class="mt-2">
                         <LiveBars :data="monthlyDisbursements"
                                   :height="200"
-                                  color="#205295"
+                                  color="#1a237e"
                                   accent-color="#ffd700"
                                   second-color="#12d9e3"
                                   :show-median="true"
@@ -293,7 +349,7 @@ const repayPct = (loan) => {
                             <circle v-if="donutSegs.pending > 0" cx="50" cy="50" r="42" fill="none" stroke="#ffd700" stroke-width="10"
                                     :stroke-dasharray="`${donutSegs.pending * 2.6389} ${263.89}`" stroke-dashoffset="0"/>
                             <!-- disbursed (brand blue) -->
-                            <circle v-if="donutSegs.disbursed > 0" cx="50" cy="50" r="42" fill="none" stroke="#205295" stroke-width="10"
+                            <circle v-if="donutSegs.disbursed > 0" cx="50" cy="50" r="42" fill="none" stroke="#1a237e" stroke-width="10"
                                     :stroke-dasharray="`${donutSegs.disbursed * 2.6389} ${263.89}`"
                                     :stroke-dashoffset="`${-donutSegs.pending * 2.6389}`"/>
                             <!-- repaying (cyan) -->
@@ -320,7 +376,7 @@ const repayPct = (loan) => {
                     <div class="mt-4 space-y-1.5">
                         <div v-for="row in [
                             { key: 'pending_approval',  label: 'Pending',   color: '#ffd700' },
-                            { key: 'disbursed',         label: 'Disbursed', color: '#205295' },
+                            { key: 'disbursed',         label: 'Disbursed', color: '#1a237e' },
                             { key: 'repaying',          label: 'Repaying',  color: '#12d9e3' },
                             { key: 'paid_off',          label: 'Paid off',  color: '#059669' },
                             { key: 'rejected',          label: 'Rejected',  color: '#dc2626' },
@@ -380,7 +436,7 @@ const repayPct = (loan) => {
                         <template #action>
                             <button @click="showApply = true"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
-                                    style="background:linear-gradient(135deg,#0a2647,#205295)">
+                                    style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 Apply for loan
                             </button>
@@ -451,7 +507,7 @@ const repayPct = (loan) => {
                             </div>
                             <div class="h-2 w-full rounded-full bg-surface-container overflow-hidden">
                                 <div class="h-full rounded-full transition-all duration-700"
-                                     :style="`width:${repayPct(loan)}%;background:linear-gradient(90deg,#205295,#12d9e3);`"></div>
+                                     :style="`width:${repayPct(loan)}%;background:linear-gradient(90deg,#1a237e,#12d9e3);`"></div>
                             </div>
                             <p class="text-[10.5px] text-on-surface-variant">
                                 Outstanding: <span class="font-black text-primary tabular-nums">{{ cedi(loan.outstanding_balance) }}</span>
@@ -487,6 +543,81 @@ const repayPct = (loan) => {
         </div>
 
         <!-- ── Apply for Loan slide-panel ── -->
+        <!-- ── Loan product management ───────────────────────────── -->
+        <SlidePanel :open="showProducts" title="Loan products" size="lg"
+                    @close="showProducts = false; editingProduct = null; productForm.reset();">
+            <div class="p-4 space-y-4">
+                <!-- Existing products list -->
+                <div class="rounded-xl border border-outline-variant/50 overflow-hidden">
+                    <table v-if="productList.length" class="w-full text-[12.5px]">
+                        <thead class="bg-surface-container-low text-on-surface-variant"><tr class="text-left text-[10px] font-black uppercase tracking-widest">
+                            <th class="px-3 py-2">Code</th><th>Name</th><th>Rate</th><th>Range</th><th>Status</th><th></th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-outline-variant/40">
+                            <tr v-for="p in productList" :key="p.id" class="hover:bg-surface-container-low/40 transition-colors">
+                                <td class="px-3 py-2 font-mono">{{ p.code }}</td>
+                                <td>{{ p.name }}</td>
+                                <td>{{ (Number(p.annual_interest_rate) * 100).toFixed(2) }}%</td>
+                                <td class="text-[11px] text-on-surface-variant">{{ cediShort(p.min_amount) }} – {{ cediShort(p.max_amount) }}</td>
+                                <td><span class="text-[10px] font-bold" :class="p.is_active ? 'text-emerald-700' : 'text-on-surface-variant'">{{ p.is_active ? 'ACTIVE' : 'inactive' }}</span></td>
+                                <td class="text-right whitespace-nowrap pr-3">
+                                    <button type="button" @click="openEditProduct(p)"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant/70 hover:bg-secondary/10 hover:text-secondary transition-colors"
+                                            title="Edit product">
+                                        <span class="material-symbols-outlined text-[15px]">edit</span>
+                                    </button>
+                                    <button type="button" @click="deleteProduct(p)"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant/70 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                                            title="Delete product">
+                                        <span class="material-symbols-outlined text-[15px]">delete</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p v-else class="p-4 text-center text-[12px] text-on-surface-variant">No products defined yet.</p>
+                </div>
+
+                <!-- Create / edit form -->
+                <form @submit.prevent="submitProduct" class="rounded-xl border border-outline-variant/50 p-4 space-y-3 bg-surface-container-low/30">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-[13px] font-bold text-on-surface">{{ editingProduct ? `Edit ${editingProduct.name}` : 'New product' }}</h3>
+                        <button v-if="editingProduct" type="button" @click="openCreateProduct"
+                                class="text-[11px] font-bold text-on-surface-variant hover:text-secondary">+ Create new instead</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Code</label><input v-model="productForm.code" aria-label="Product code" maxlength="30" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 font-mono uppercase text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Name</label><input v-model="productForm.name" aria-label="Product name" maxlength="120" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Type</label><select v-model="productForm.type" aria-label="Product type" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]">
+                            <option value="personal">Personal</option><option value="vehicle">Vehicle</option><option value="housing">Housing</option><option value="education">Education</option><option value="emergency">Emergency</option><option value="other">Other</option>
+                        </select></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Amortization</label><select v-model="productForm.amortization_method" aria-label="Amortization method" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]">
+                            <option value="reducing_balance">Reducing balance</option><option value="flat">Flat</option>
+                        </select></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Min amount (GHS)</label><input v-model.number="productForm.min_amount" aria-label="Minimum loan amount (GHS)" type="number" step="0.01" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Max amount (GHS)</label><input v-model.number="productForm.max_amount" aria-label="Maximum loan amount (GHS)" type="number" step="0.01" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Min term (months)</label><input v-model.number="productForm.min_term_months" aria-label="Minimum term in months" type="number" min="1" max="360" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Max term (months)</label><input v-model.number="productForm.max_term_months" aria-label="Maximum term in months" type="number" min="1" max="360" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Annual rate (0–1)</label><input v-model.number="productForm.annual_interest_rate" aria-label="Annual interest rate (decimal between 0 and 1)" type="number" step="0.0001" min="0" max="1" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Max DTI ratio</label><input v-model.number="productForm.max_dti_ratio" aria-label="Maximum debt-to-income ratio" type="number" step="0.01" min="0" max="1" class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Approvals required</label><input v-model.number="productForm.approvals_required" aria-label="Number of approvals required" type="number" min="1" max="5" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Effective from</label><input v-model="productForm.effective_from" aria-label="Effective-from date" type="date" required class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                        <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Effective to</label><input v-model="productForm.effective_to" aria-label="Effective-to date" type="date" class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 text-[12px] font-semibold"><input type="checkbox" v-model="productForm.requires_guarantor" aria-label="Requires guarantor" class="rounded border-outline-variant" /> Requires guarantor</label>
+                        <label class="flex items-center gap-2 text-[12px] font-semibold"><input type="checkbox" v-model="productForm.requires_collateral" aria-label="Requires collateral" class="rounded border-outline-variant" /> Requires collateral</label>
+                        <label class="flex items-center gap-2 text-[12px] font-semibold"><input type="checkbox" v-model="productForm.is_active" aria-label="Product is active" class="rounded border-outline-variant" /> Active</label>
+                    </div>
+                    <div><label class="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider">Description</label><textarea v-model="productForm.description" aria-label="Product description" rows="2" class="w-full mt-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px]" /></div>
+                    <button type="submit" :disabled="productForm.processing"
+                            class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-[13px] font-bold text-white disabled:opacity-60">
+                        {{ editingProduct ? 'Update Product' : 'Create Product' }}
+                    </button>
+                </form>
+            </div>
+        </SlidePanel>
+
         <SlidePanel :open="showApply" title="Apply for a loan" size="lg" @close="showApply = false">
             <form @submit.prevent="submitLoan" class="space-y-5 p-6">
 
@@ -561,7 +692,7 @@ const repayPct = (loan) => {
                         </div>
                         <div class="grid grid-cols-2 gap-2.5">
                             <div v-for="q in [
-                                { label: 'Monthly installment', val: cedi(preview.monthly_installment), accent: '#205295' },
+                                { label: 'Monthly installment', val: cedi(preview.monthly_installment), accent: '#1a237e' },
                                 { label: 'Total interest',       val: cedi(preview.total_interest),     accent: '#d912e3' },
                                 { label: 'Total repayable',      val: cedi(preview.total_repayable),    accent: '#ffd700' },
                                 { label: 'Installments',         val: preview.schedule?.length ?? form.term_months, accent: '#12d9e3' },
@@ -584,7 +715,7 @@ const repayPct = (loan) => {
                     </button>
                     <button @click="submitLoan" :disabled="form.processing"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-black text-white disabled:opacity-60 shadow-glow-sm"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)">
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)">
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span v-else class="material-symbols-outlined text-[16px]">send</span>
                         Submit application

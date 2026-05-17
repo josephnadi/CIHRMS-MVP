@@ -34,6 +34,10 @@ const submitAdjust = () => adjustForm.post(route('performance.calibration.adjust
 
 const lock  = () => router.post(route('performance.calibration.lock',  S.value.id), {}, { preserveScroll: true });
 const apply = () => router.post(route('performance.calibration.apply', S.value.id), {}, { preserveScroll: true });
+const reopen = () => {
+    if (! window.confirm('Reopen this locked session?\n\nAdjustments will be editable again. The applier will need to re-apply after the new lock.')) return;
+    router.post(route('performance.calibration.reopen', S.value.id), {}, { preserveScroll: true });
+};
 
 // Distribution comparison bands
 const bands = ['5', '4', '3', '2', '1'];
@@ -89,6 +93,13 @@ const act = (b) => Math.round(((props.actual_distribution     ?? {})[b] ?? 0) * 
                     <h2 class="font-semibold">Reviews in scope ({{ reviews.length }})</h2>
                     <div class="flex gap-3">
                         <PrimaryButton v-if="S.status === 'in_progress'" @click="lock">Lock session</PrimaryButton>
+                        <button v-if="S.status === 'locked'"
+                                type="button"
+                                @click="reopen"
+                                class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-[13px] font-bold text-amber-700 hover:bg-amber-100 transition-colors">
+                            <span class="material-symbols-outlined text-[16px] align-middle mr-1">lock_open</span>
+                            Reopen
+                        </button>
                         <PrimaryButton v-if="S.status === 'locked'" @click="apply">
                             Apply adjustments (2FA · dual control)
                         </PrimaryButton>
@@ -142,7 +153,7 @@ const act = (b) => Math.round(((props.actual_distribution     ?? {})[b] ?? 0) * 
                         </div>
                         <div class="col-span-2">
                             <label class="block text-xs text-on-surface-variant mb-1">Reason</label>
-                            <input v-model="adjustForm.reason" class="w-full rounded-lg border-outline-variant text-sm" required>
+                            <input v-model="adjustForm.reason" aria-label="Adjustment reason" class="w-full rounded-lg border-outline-variant text-sm" required>
                         </div>
                     </div>
                     <div class="flex gap-2">

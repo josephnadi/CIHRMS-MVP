@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { reactive } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -25,13 +25,39 @@ const applyFilters = () => router.get(route('positions.index'), {
     department_id: localFilters.department_id || undefined,
     grade_id:      localFilters.grade_id      || undefined,
 }, { preserveState: true, replace: true });
+
+// ── Inline actions ──────────────────────────────────────────────────
+// Freeze a position when it's vacant but the headcount ceiling needs
+// to be enforced. Vacate when an employee leaves the post (HR records
+// the reason — feeds the audit trail). Both routes are POST.
+const freezePosition = (p) => {
+    const reason = window.prompt(`Freeze position ${p.code} — ${p.title}?\n\nReason (required, audit-logged):`, '');
+    if (! reason || ! reason.trim()) return;
+    router.post(route('positions.freeze', p.id), { reason }, { preserveScroll: true });
+};
+
+const vacatePosition = (p) => {
+    if (p.status !== 'filled' && p.status !== 'acting') return;
+    const reason = window.prompt(`Vacate position ${p.code} — ${p.title}?\n\nReason (e.g. transfer, termination, resignation):`, '');
+    if (! reason || ! reason.trim()) return;
+    router.post(route('positions.vacate', p.id), { reason }, { preserveScroll: true });
+};
 </script>
 
 <template>
     <Head title="Positions / Establishment" />
     <AuthenticatedLayout :active-module="activeModule">
         <template #header>
-            <h1 class="text-2xl font-semibold tracking-tight">Establishment — Positions</h1>
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">account_tree</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Establishment · Headcount ceiling</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Positions</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Approved positions, grade bands, and active assignments — the establishment register.
+                </p>
+            </div>
         </template>
 
         <div class="py-6 space-y-6">
@@ -77,12 +103,34 @@ const applyFilters = () => router.get(route('positions.index'), {
                             <td class="px-5 py-3 font-mono text-xs">{{ p.code }}</td>
                             <td class="px-5 py-3 font-medium">{{ p.title }}</td>
                             <td class="px-5 py-3">{{ p.grade?.code }}</td>
-                            <td class="px-5 py-3">{{ p.department?.name ?? '—' }}</td>
-                            <td class="px-5 py-3">{{ p.cost_center ?? '—' }}</td>
+                            <td class="px-5 py-3">{{ p.department?.name ?? 'â€”' }}</td>
+                            <td class="px-5 py-3">{{ p.cost_center ?? 'â€”' }}</td>
                             <td class="px-5 py-3">{{ p.funding_source_label }}</td>
                             <td class="px-5 py-3"><StatusBadge :status="p.status" :label="p.status_label" /></td>
-                            <td class="px-5 py-3 text-right">
-                                <Link :href="route('positions.show', p.id)" class="text-indigo-600 hover:underline">Open</Link>
+                            <td class="px-5 py-3 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1">
+                                    <button v-if="(p.status === 'filled' || p.status === 'acting')"
+                                            type="button"
+                                            @click="vacatePosition(p)"
+                                            class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors"
+                                            title="Vacate this position">
+                                        <span class="material-symbols-outlined text-[14px]">person_remove</span>
+                                        Vacate
+                                    </button>
+                                    <button v-if="p.status !== 'frozen'"
+                                            type="button"
+                                            @click="freezePosition(p)"
+                                            class="inline-flex h-7 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                                            title="Freeze (suspend hiring against this slot)">
+                                        <span class="material-symbols-outlined text-[14px]">ac_unit</span>
+                                        Freeze
+                                    </button>
+                                    <Link :href="route('positions.show', p.id)"
+                                          class="inline-flex h-7 items-center gap-1 rounded-lg border border-secondary/30 bg-secondary/5 px-2 text-[11px] font-bold text-secondary hover:bg-secondary/10 transition-colors">
+                                        Open
+                                        <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </Link>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

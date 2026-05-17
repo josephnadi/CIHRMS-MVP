@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -96,7 +96,7 @@ const kpiCards = computed(() => {
         //   magenta = people, cyan = tech/service, gold = flagship (5%), blue = financial
         { label: 'Active Staff',    display: (s.employees ?? 0).toLocaleString(),                                       trend: s.openJobs ? `${s.openJobs} open roles` : 'Workforce',     icon: 'badge',          color: '#d912e3', rgb: '217,18,227', spark: e, up: true  },
         { label: 'Open Tickets',    display: s.openTickets ?? 0,                                                        trend: 'Service desk',                                            icon: 'support_agent',  color: '#12d9e3', rgb: '18,217,227', spark: t, up: false },
-        { label: 'Pending Leave',   display: s.pendingLeave ?? 0,                                                       trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#7cb6e8', rgb: '124,182,232', spark: l, up: false },
+        { label: 'Pending Leave',   display: s.pendingLeave ?? 0,                                                       trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#7986cb', rgb: '121, 134, 203', spark: l, up: false },
         { label: 'Pending Payroll', display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : '—', icon: 'payments',       color: '#ffd700', rgb: '255,215,0',  spark: c, up: true  },
     ];
 });
@@ -302,7 +302,7 @@ const getStatusColor = (status) => {
                     <!-- Live sync indicator: cyan pulse while syncing, gold ring when idle (institutional 5% accent) -->
                     <div class="flex items-center gap-1.5 rounded-full px-3 py-1.5 border live-pill"
                          :style="isSyncing
-                            ? 'background:rgba(18,217,227,0.10);border-color:rgba(18,217,227,0.40);color:#0a2647;'
+                            ? 'background:rgba(18,217,227,0.10);border-color:rgba(18,217,227,0.40);color:#0d1452;'
                             : 'background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,0.45);color:#b88a08;'">
                         <span class="h-1.5 w-1.5 rounded-full"
                               :style="isSyncing
@@ -337,7 +337,7 @@ const getStatusColor = (status) => {
                             <div class="flex items-center gap-3">
                                 <div class="relative">
                                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                                    <input v-model="search" class="rounded-full border-outline-variant bg-surface-container-low pl-9 pr-4 py-2 text-xs focus:ring-secondary/20 focus:border-secondary w-48" placeholder="Search..." />
+                                    <input v-model="search" aria-label="Search employees" class="rounded-full border-outline-variant bg-surface-container-low pl-9 pr-4 py-2 text-xs focus:ring-secondary/20 focus:border-secondary w-48" placeholder="Search..." />
                                 </div>
                                 <Link :href="route('employees.index')" class="flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-all">
                                     <span class="material-symbols-outlined text-xl">filter_list</span>
@@ -345,7 +345,7 @@ const getStatusColor = (status) => {
                                 </Link>
                                 <button @click="router.visit(route('employees.index', { new: 1 }))"
                                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-95"
-                                        style="background:linear-gradient(135deg,#0a2647,#205295);">
+                                        style="background:linear-gradient(135deg,#0d1452,#1a237e);">
                                     <span class="material-symbols-outlined text-[18px]">add</span>
                                     Add Employee
                                 </button>
@@ -356,7 +356,7 @@ const getStatusColor = (status) => {
                             <table class="w-full text-left">
                                 <thead class="sticky top-0 z-10">
                                     <tr class="bg-surface-container-low text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 border-b border-outline-variant/50">
-                                        <th class="px-8 py-4 w-12"><input type="checkbox" class="rounded border-outline-variant text-secondary focus:ring-secondary/20" /></th>
+                                        <th class="px-8 py-4 w-12"><input type="checkbox" aria-label="Select all employees" class="rounded border-outline-variant text-secondary focus:ring-secondary/20" /></th>
                                         <th class="px-4 py-4 w-16">ID</th>
                                         <th class="px-6 py-4">Employee Name</th>
                                         <th class="px-6 py-4">Department</th>
@@ -371,12 +371,12 @@ const getStatusColor = (status) => {
                                         :class="selectedEmployee?.id === employee.id ? 'bg-secondary/[0.07] border-l-4 border-l-secondary' : 'hover:bg-surface-container-low/50'"
                                         @click="selectEmployee(employee)"
                                     >
-                                        <td class="px-8 py-6"><input type="checkbox" :checked="selectedEmployee?.id === employee.id" class="rounded border-outline-variant text-secondary focus:ring-secondary/20" /></td>
+                                        <td class="px-8 py-6"><input type="checkbox" :checked="selectedEmployee?.id === employee.id" :aria-label="`Select ${employee.name}`" class="rounded border-outline-variant text-secondary focus:ring-secondary/20" /></td>
                                         <td class="px-4 py-6 text-xs font-mono font-bold text-on-surface-variant">#{{ employee.id }}</td>
                                         <td class="px-6 py-6">
                                             <div class="flex items-center gap-4">
                                                 <div class="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg border-2 border-white shadow-sm overflow-hidden">
-                                                    <img v-if="employee.avatar" :src="employee.avatar" class="h-full w-full object-cover" />
+                                                    <img v-if="employee.avatar" :src="employee.avatar" :alt="`${employee.name} profile photo`" class="h-full w-full object-cover" />
                                                     <span v-else>{{ employee.employee_no.charAt(0) }}</span>
                                                 </div>
                                                 <div>
@@ -423,7 +423,7 @@ const getStatusColor = (status) => {
                         <div class="rounded-3xl border border-outline-variant bg-surface-container-lowest p-8 shadow-sm text-center">
                             <div class="relative mx-auto mb-6 h-32 w-32">
                                 <div class="h-full w-full rounded-full bg-secondary/10 flex items-center justify-center font-bold text-secondary text-4xl border-4 border-white shadow-xl overflow-hidden">
-                                    <img v-if="selectedEmployee.avatar" :src="selectedEmployee.avatar" class="h-full w-full object-cover" />
+                                    <img v-if="selectedEmployee.avatar" :src="selectedEmployee.avatar" :alt="`${selectedEmployee.name} profile photo`" class="h-full w-full object-cover" />
                                     <span v-else>{{ selectedEmployee.employee_no.charAt(0) }}</span>
                                 </div>
                                 <div class="absolute bottom-1 right-1 h-6 w-6 rounded-full border-4 border-white bg-green-500 shadow-sm"></div>
@@ -541,7 +541,7 @@ const getStatusColor = (status) => {
                     <div v-for="(stat, si) in [
                         { label: 'Open Tickets',    val: Math.round(sparkData.tickets[sparkData.tickets.length-1]), badge: '12 critical',  badgeColor: 'bg-red-50 text-red-700',    icon: 'confirmation_number', color: '#12d9e3', rgb: '18,217,227',  spark: sparkData.tickets    },
                         { label: 'Avg Resolution',  val: '4.2h',                                                    badge: '↑ improving',  badgeColor: 'bg-green-50 text-green-700', icon: 'timer',               color: '#ffd700', rgb: '255,215,0',   spark: sparkData.compliance },
-                        { label: 'SLA Compliance',  val: sparkData.compliance[sparkData.compliance.length-1].toFixed(1)+'%', badge: 'Target 95%', badgeColor: 'bg-green-50 text-green-700', icon: 'verified', color: '#205295', rgb: '32,82,149', spark: sparkData.compliance },
+                        { label: 'SLA Compliance',  val: sparkData.compliance[sparkData.compliance.length-1].toFixed(1)+'%', badge: 'Target 95%', badgeColor: 'bg-green-50 text-green-700', icon: 'verified', color: '#1a237e', rgb: '26, 35, 126', spark: sparkData.compliance },
                         { label: 'Pending Review',  val: '8',                                                       badge: '3 escalated',  badgeColor: 'bg-amber-50 text-amber-700', icon: 'inbox',               color: '#d912e3', rgb: '217,18,227',  spark: sparkData.leave      },
                     ]" :key="si"
                          class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
@@ -591,7 +591,7 @@ const getStatusColor = (status) => {
                                         <span class="material-symbols-outlined text-sm">schedule</span>
                                         <span class="text-[10px] font-black">14m left</span>
                                     </div>
-                                    <img src="https://i.pravatar.cc/150?u=4" class="h-6 w-6 rounded-full border border-outline-variant" />
+                                    <img src="https://i.pravatar.cc/150?u=4" alt="" class="h-6 w-6 rounded-full border border-outline-variant" />
                                 </div>
                             </div>
 
@@ -614,7 +614,7 @@ const getStatusColor = (status) => {
 
                     <!-- In Progress Column -->
                     <div class="flex flex-col gap-4 rounded-2xl p-4"
-                         style="background:rgba(32,82,149,0.03);border:1px solid rgba(32,82,149,0.1);">
+                         style="background:rgba(26, 35, 126,0.03);border:1px solid rgba(26, 35, 126,0.1);">
                         <div class="flex items-center justify-between px-1">
                             <div class="flex items-center gap-2">
                                 <div class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
@@ -636,7 +636,7 @@ const getStatusColor = (status) => {
                                         <span class="material-symbols-outlined text-sm animate-spin-slow">sync</span>
                                         <span class="text-[10px] font-black">In Review</span>
                                     </div>
-                                    <img src="https://i.pravatar.cc/150?u=8" class="h-6 w-6 rounded-full border border-outline-variant" />
+                                    <img src="https://i.pravatar.cc/150?u=8" alt="" class="h-6 w-6 rounded-full border border-outline-variant" />
                                 </div>
                             </div>
                         </div>
@@ -666,7 +666,7 @@ const getStatusColor = (status) => {
                                         <span class="material-symbols-outlined text-sm">pause_circle</span>
                                         <span class="text-[10px] font-bold">Awaiting Feedback</span>
                                     </div>
-                                    <img src="https://i.pravatar.cc/150?u=12" class="h-6 w-6 rounded-full border border-outline-variant" />
+                                    <img src="https://i.pravatar.cc/150?u=12" alt="" class="h-6 w-6 rounded-full border border-outline-variant" />
                                 </div>
                             </div>
                         </div>
@@ -677,8 +677,8 @@ const getStatusColor = (status) => {
                 <button @click="router.visit(route('tickets.index', { new: 1 }))"
                         type="button"
                         title="Create new ticket"
-                        class="btn-shimmer fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-glow-lg transition-all hover:scale-110 hover:shadow-[0_0_48px_rgba(32,82,149,0.5)] active:scale-95 z-50"
-                        style="background:linear-gradient(135deg,#0a2647,#205295);">
+                        class="btn-shimmer fixed bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-glow-lg transition-all hover:scale-110 hover:shadow-[0_0_48px_rgba(26, 35, 126,0.5)] active:scale-95 z-50"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e);">
                     <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">add_task</span>
                 </button>
             </div>
@@ -711,7 +711,7 @@ const getStatusColor = (status) => {
                             :data="perfBarData.map((v,i) => ({ label: ['J','F','M','A','M','J','J','A','S','O','N','D'][i], value: v }))"
                             :height="208"
                             :format-value="v => `${Math.round(v)}%`"
-                            color="#205295"
+                            color="#1a237e"
                             accent-color="#ffd700"
                             second-color="#12d9e3"
                             :show-median="true"
@@ -721,7 +721,7 @@ const getStatusColor = (status) => {
 
                     <!-- Strategic OKRs -->
                     <div class="col-span-12 lg:col-span-4 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden flex flex-col"
-                         style="background:linear-gradient(135deg,#0c0e14 0%,#131620 100%);border:1px solid rgba(255,255,255,0.06);">
+                         style="background:linear-gradient(135deg,#1a237e 0%,#3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
                         <div class="absolute -right-4 -top-4 opacity-10">
                             <span class="material-symbols-outlined text-9xl">stars</span>
                         </div>
@@ -757,7 +757,7 @@ const getStatusColor = (status) => {
                         <button @click="router.visit(route('performance.goals.index'))"
                                 type="button"
                                 class="btn-shimmer mt-10 w-full rounded-xl py-3 text-[13px] font-black text-white border transition-all hover:bg-white/20"
-                                style="background:rgba(32,82,149,0.25);border-color:rgba(44,116,179,0.3);">
+                                style="background:rgba(26, 35, 126,0.25);border-color:rgba(57, 73, 171,0.3);">
                             View Strategic Roadmap
                         </button>
                     </div>
@@ -933,7 +933,7 @@ const getStatusColor = (status) => {
                     <!-- My session -->
                     <div class="col-span-12 lg:col-span-4 space-y-4">
                         <div class="rounded-2xl p-6 text-white shadow-xl"
-                             style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06)">
+                             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06)">
                             <h4 class="text-[11px] font-black uppercase tracking-widest text-white/60 mb-4">My Session</h4>
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -1021,15 +1021,15 @@ const getStatusColor = (status) => {
                             <div class="grid gap-4 sm:grid-cols-3">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-black uppercase text-on-surface-variant">Start Date</label>
-                                    <input v-model="leaveForm.start_date" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-2.5 text-xs" />
+                                    <input v-model="leaveForm.start_date" aria-label="Leave start date" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-2.5 text-xs" />
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-black uppercase text-on-surface-variant">End Date</label>
-                                    <input v-model="leaveForm.end_date" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-2.5 text-xs" />
+                                    <input v-model="leaveForm.end_date" aria-label="Leave end date" type="date" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-2.5 text-xs" />
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-black uppercase text-on-surface-variant">Leave Type</label>
-                                    <select v-model="leaveForm.type" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-2.5 text-xs">
+                                    <select v-model="leaveForm.type" aria-label="Leave type" class="w-full rounded-xl border-outline-variant bg-surface-container-low px-4 py-2.5 text-xs">
                                         <option value="annual">Annual Leave</option>
                                         <option value="sick">Sick Leave</option>
                                         <option value="maternity">Maternity</option>
@@ -1046,7 +1046,7 @@ const getStatusColor = (status) => {
                     <!-- Leave Balances -->
                     <div class="col-span-12 lg:col-span-4 space-y-6">
                         <div class="rounded-3xl p-8 text-white shadow-xl"
-                             style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06);">
+                             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">
                             <h4 class="text-sm font-black uppercase tracking-widest mb-6 text-white/60">Your Balance</h4>
                             <div class="space-y-6">
                                 <div class="flex items-center justify-between">
@@ -1138,7 +1138,7 @@ const getStatusColor = (status) => {
                             <div class="space-y-4">
                                 <div v-for="i in 3" :key="i" class="flex items-center gap-3">
                                     <div class="h-8 w-8 rounded-full bg-surface-container-low border border-outline-variant overflow-hidden">
-                                        <img :src="`https://i.pravatar.cc/150?u=${i+20}`" class="h-full w-full object-cover" />
+                                        <img :src="`https://i.pravatar.cc/150?u=${i+20}`" alt="" class="h-full w-full object-cover" />
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <p class="text-xs font-black text-primary truncate">Candidate #{{ i+100 }}</p>
@@ -1156,7 +1156,7 @@ const getStatusColor = (status) => {
                 <div class="grid grid-cols-12 gap-8">
                     <!-- Summary Card -->
                     <div class="col-span-12 lg:col-span-4 rounded-3xl p-8 text-white shadow-xl flex flex-col justify-between overflow-hidden relative"
-                         style="background:linear-gradient(135deg,#0c0e14,#131620);border:1px solid rgba(255,255,255,0.06);">
+                         style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">
                         <div class="absolute -right-4 -top-4 opacity-10"><span class="material-symbols-outlined text-9xl">payments</span></div>
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">Total Monthly Payroll</p>
@@ -1423,7 +1423,7 @@ const getStatusColor = (status) => {
                         <div class="col-span-12 lg:col-span-4 space-y-8">
                             <!-- Latest Payslip Card -->
                             <div class="rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden group cursor-pointer"
-                                 style="background:linear-gradient(135deg,#0c0e14,#1a1d2e);border:1px solid rgba(255,255,255,0.06);">
+                                 style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">
                                 <div class="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
                                     <span class="material-symbols-outlined text-9xl">receipt_long</span>
                                 </div>
@@ -1492,7 +1492,7 @@ const getStatusColor = (status) => {
 
                     <!-- Hero Greeting Banner -->
                     <div class="relative overflow-hidden rounded-3xl px-10 py-8 text-white"
-                         style="background:linear-gradient(135deg,#0c0e14 0%,#131620 100%);border:1px solid rgba(255,255,255,0.06);">
+                         style="background:linear-gradient(135deg,#1a237e 0%,#3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
                         <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-secondary/10 blur-3xl"></div>
                         <div class="pointer-events-none absolute bottom-0 left-1/3 h-48 w-48 rounded-full blur-2xl" style="background:rgba(124,92,255,0.07);"></div>
                         <div class="relative flex flex-wrap items-center justify-between gap-8">
@@ -1505,7 +1505,7 @@ const getStatusColor = (status) => {
                                 <div class="mt-6 flex items-center gap-3">
                                     <button @click="router.visit(route('employees.index', { new: 1 }))"
                                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                                            style="background:linear-gradient(135deg,#0a2647,#205295);">
+                                            style="background:linear-gradient(135deg,#0d1452,#1a237e);">
                                         <span class="material-symbols-outlined text-[17px]">person_add</span>
                                         Add Employee
                                     </button>
@@ -1576,7 +1576,7 @@ const getStatusColor = (status) => {
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="h-2 w-4 rounded-full" style="background:linear-gradient(90deg,#205295,#2c74b3)"></span>
+                                        <span class="h-2 w-4 rounded-full" style="background:linear-gradient(90deg,#1a237e,#3949ab)"></span>
                                         <span class="text-[9.5px] font-bold text-on-surface-variant">Leave requests</span>
                                     </div>
                                 </div>
@@ -1588,7 +1588,7 @@ const getStatusColor = (status) => {
                                     :data="chartLeaveByMonth.map((v,i) => ({ label: ['J','F','M','A','M','J','J','A','S','O','N','D'][i], value: v }))"
                                     :height="260"
                                     :format-value="v => `${v} requests`"
-                                    color="#205295"
+                                    color="#1a237e"
                                     accent-color="#ffd700"
                                     second-color="#12d9e3"
                                     :show-median="true"
@@ -1642,7 +1642,7 @@ const getStatusColor = (status) => {
                                     <div class="flex items-center gap-3">
                                         <button @click="router.visit(route('employees.index', { new: 1 }))"
                                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px active:scale-[0.97]"
-                                                style="background:linear-gradient(135deg,#0a2647,#205295);">
+                                                style="background:linear-gradient(135deg,#0d1452,#1a237e);">
                                             <span class="material-symbols-outlined text-[16px]">add</span>
                                             New Employee
                                         </button>
@@ -1664,7 +1664,7 @@ const getStatusColor = (status) => {
                                                 <td class="px-7 py-4">
                                                     <div class="flex items-center gap-3">
                                                         <div class="h-9 w-9 rounded-full bg-secondary/10 flex items-center justify-center font-bold text-secondary text-sm border-2 border-white shadow-sm overflow-hidden">
-                                                            <img v-if="employee.avatar" :src="employee.avatar" class="h-full w-full object-cover" />
+                                                            <img v-if="employee.avatar" :src="employee.avatar" :alt="`${employee.name} profile photo`" class="h-full w-full object-cover" />
                                                             <span v-else>{{ employee.employee_no?.charAt(0) }}</span>
                                                         </div>
                                                         <div>
@@ -1835,7 +1835,7 @@ const getStatusColor = (status) => {
 
                             <!-- AI Workforce Insight -->
                             <div class="overflow-hidden rounded-2xl text-white relative"
-                                 style="background:linear-gradient(135deg,#0a2647,#205295);border:1px solid rgba(255,255,255,0.1);">
+                                 style="background:linear-gradient(135deg,#0d1452,#1a237e);border:1px solid rgba(255,255,255,0.1);">
                                 <div class="absolute -right-4 -top-4 opacity-10">
                                     <span class="material-symbols-outlined text-8xl">auto_awesome</span>
                                 </div>

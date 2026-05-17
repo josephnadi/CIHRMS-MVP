@@ -12,8 +12,12 @@ const props = defineProps({
 
 const C = computed(() => props.contract.data ?? props.contract);
 
-const send = () => router.post(route('performance.contracts.send', C.value.id), {}, { preserveScroll: true });
-const sign = () => router.post(route('performance.contracts.sign', C.value.id), {}, { preserveScroll: true });
+const send   = () => router.post(route('performance.contracts.send',   C.value.id), {}, { preserveScroll: true });
+const sign   = () => router.post(route('performance.contracts.sign',   C.value.id), {}, { preserveScroll: true });
+const revoke = () => {
+    if (! window.confirm('Revoke this contract back to draft?\n\nThe employee will lose the pending-signature notification. You can amend KPIs and re-send afterwards.')) return;
+    router.post(route('performance.contracts.revoke', C.value.id), {}, { preserveScroll: true });
+};
 
 const evalForm = useForm({ actuals: {}, end_year_note: '' });
 const evaluate = () => evalForm.post(route('performance.contracts.evaluate', C.value.id), { preserveScroll: true });
@@ -89,6 +93,13 @@ const totalWeight = computed(() => (C.value.kpis ?? []).reduce((s, k) => s + Num
                 <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-navy/70">Workflow</p>
                 <div class="flex flex-wrap gap-3">
                     <PrimaryButton v-if="C.status === 'draft'" @click="send">Send for signature</PrimaryButton>
+                    <button v-if="C.status === 'pending_signature' && !C.employee_signed_at && !C.supervisor_signed_at"
+                            type="button"
+                            @click="revoke"
+                            class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-[13px] font-bold text-amber-700 hover:bg-amber-100 transition-colors">
+                        <span class="material-symbols-outlined text-[16px] align-middle mr-1">undo</span>
+                        Revoke to draft
+                    </button>
                     <PrimaryButton v-if="C.status === 'pending_signature' && C.can?.sign" @click="sign">Sign contract</PrimaryButton>
                 </div>
 

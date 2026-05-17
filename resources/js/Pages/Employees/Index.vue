@@ -1,5 +1,5 @@
-﻿<script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+<script setup>
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
@@ -114,6 +114,45 @@ const doDelete = () => {
     });
 };
 
+// ── Inline status change ─────────────────────────────────────────
+// HR can flip an employee between active / on_leave / inactive /
+// terminated without opening the full edit form. PATCHes only the
+// `status` field (UpdateEmployeeRequest accepts a partial update).
+const statusMenuFor = ref(null);
+const STATUS_OPTIONS = [
+    { value: 'active',     label: 'Active',     icon: 'check_circle' },
+    { value: 'on_leave',   label: 'On leave',   icon: 'beach_access' },
+    { value: 'inactive',   label: 'Inactive',   icon: 'pause_circle' },
+    { value: 'terminated', label: 'Terminated', icon: 'cancel'       },
+];
+
+const toggleStatusMenu = (empId, event) => {
+    event?.stopPropagation();
+    statusMenuFor.value = statusMenuFor.value === empId ? null : empId;
+};
+
+const setEmployeeStatus = (emp, newStatus, event) => {
+    event?.stopPropagation();
+    statusMenuFor.value = null;
+    if (emp.status === newStatus) return;
+    if (newStatus === 'terminated') {
+        if (! window.confirm(`Mark ${emp.user?.name ?? 'this employee'} as TERMINATED?\n\nThis is a final-state change. Off-board the employee separately if needed.`)) return;
+    }
+    router.patch(
+        route('employees.update', emp.id),
+        { status: newStatus },
+        { preserveScroll: true },
+    );
+};
+
+// Close the status menu on any outside click. Registered + cleaned up via
+// component lifecycle so leaving the page doesn't leak a listener.
+const onOutsideEmpStatusClick = (e) => {
+    if (! e.target.closest('.emp-status-menu')) statusMenuFor.value = null;
+};
+onMounted(() => document.addEventListener('click', onOutsideEmpStatusClick));
+onBeforeUnmount(() => document.removeEventListener('click', onOutsideEmpStatusClick));
+
 // â”€â”€ Stats derived from meta (backend should provide these) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const stats = computed(() => ({
     total:       props.employees?.meta?.total             ?? 0,
@@ -127,12 +166,12 @@ const stats = computed(() => ({
 // and one cyan variant (tech/young). No warm reds or ambers — they pollute the
 // page-wide palette and break the institutional feel.
 const gradients = [
-    'linear-gradient(135deg,#0a2647,#205295)',          // navy → cobalt (institutional)
-    'linear-gradient(135deg,#205295,#7cb6e8)',          // cobalt → soft sky
-    'linear-gradient(135deg,#06192f,#0a2647)',          // deep navy → navy (senior)
-    'linear-gradient(135deg,#205295,#2c74b3)',          // cobalt → bright blue
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',  // navy → cobalt → magenta (people spark)
-    'linear-gradient(135deg,#205295,#12d9e3)',          // cobalt → cyan (tech)
+    'linear-gradient(135deg,#0d1452,#1a237e)',          // navy → cobalt (institutional)
+    'linear-gradient(135deg,#1a237e,#7986cb)',          // cobalt → soft sky
+    'linear-gradient(135deg,#070b3a,#0d1452)',          // deep navy → navy (senior)
+    'linear-gradient(135deg,#1a237e,#3949ab)',          // cobalt → bright blue
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',  // navy → cobalt → magenta (people spark)
+    'linear-gradient(135deg,#1a237e,#12d9e3)',          // cobalt → cyan (tech)
 ];
 
 const avatarGradient = (id) => gradients[id % gradients.length];
@@ -172,13 +211,13 @@ const formatDate = (d) => {
                         @click="showDeptPanel = true"
                         class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container hover:border-secondary/30 hover:text-secondary transition-all"
                     >
-                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">corporate_fare</span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">corporate_fare</span>
                         Add Department
                     </button>
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">person_add</span>
                         Add Employee
@@ -228,7 +267,7 @@ const formatDate = (d) => {
             <!-- Filters strip -->
             <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">
                 <div class="flex items-center gap-2 pl-2 pr-1 text-on-surface-variant/60">
-                    <span class="material-symbols-outlined text-[18px]" style="color:#205295">filter_list</span>
+                    <span class="material-symbols-outlined text-[18px]" style="color:#1a237e">filter_list</span>
                     <span class="text-[10px] font-black uppercase tracking-[0.18em]">Filter</span>
                 </div>
 
@@ -240,7 +279,7 @@ const formatDate = (d) => {
                 </div>
 
                 <div class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">corporate_fare</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">corporate_fare</span>
                     <select
                         v-model="localFilters.department_id"
                         @change="applyFilters"
@@ -255,7 +294,7 @@ const formatDate = (d) => {
                 </div>
 
                 <div class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">workspaces</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">workspaces</span>
                     <select
                         v-model="localFilters.status"
                         @change="applyFilters"
@@ -293,7 +332,7 @@ const formatDate = (d) => {
                             <button
                                 @click="showAddPanel = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">person_add</span>
                                 Add Employee
@@ -373,6 +412,36 @@ const formatDate = (d) => {
                                         >
                                             <span class="material-symbols-outlined text-[17px]">visibility</span>
                                         </Link>
+
+                                        <!-- Inline status change -->
+                                        <div class="emp-status-menu relative">
+                                            <button
+                                                type="button"
+                                                @click="toggleStatusMenu(emp.id, $event)"
+                                                class="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-on-surface-variant/70 hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/15 transition-all"
+                                                title="Change status"
+                                                aria-label="Change employee status"
+                                            >
+                                                <span class="material-symbols-outlined text-[17px]">swap_vert</span>
+                                            </button>
+                                            <div v-if="statusMenuFor === emp.id"
+                                                 class="absolute right-0 top-9 z-30 w-44 rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-lifted py-1.5">
+                                                <button v-for="opt in STATUS_OPTIONS"
+                                                        :key="opt.value"
+                                                        type="button"
+                                                        @click="setEmployeeStatus(emp, opt.value, $event)"
+                                                        :disabled="emp.status === opt.value"
+                                                        class="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-semibold transition-colors"
+                                                        :class="emp.status === opt.value
+                                                            ? 'text-secondary cursor-default bg-secondary/[0.05]'
+                                                            : 'text-on-surface hover:bg-surface-container'">
+                                                    <span class="material-symbols-outlined text-[15px]">{{ opt.icon }}</span>
+                                                    {{ opt.label }}
+                                                    <span v-if="emp.status === opt.value" class="material-symbols-outlined text-[15px] ml-auto">check</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <button
                                             type="button"
                                             @click="confirmDelete(emp.id, $event)"
@@ -394,7 +463,7 @@ const formatDate = (d) => {
                 <div v-if="employees?.links?.length > 3" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
                     <div class="flex items-center justify-between">
                         <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-                            <span class="material-symbols-outlined text-[15px]" style="color:#205295;opacity:0.7">format_list_numbered</span>
+                            <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
                             Showing
                             <span class="font-bold text-on-surface tabular-nums">{{ employees.meta?.from }}</span>
                             –
@@ -419,7 +488,7 @@ const formatDate = (d) => {
 
                 <!-- Login account block — cobalt-tinted (action context) -->
                 <div class="rounded-2xl border border-secondary/15 bg-secondary/[0.04] p-4 space-y-4 relative overflow-hidden">
-                    <div class="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full" style="background:radial-gradient(circle,rgba(32,82,149,0.10),transparent 70%)"></div>
+                    <div class="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full" style="background:radial-gradient(circle,rgba(26, 35, 126,0.10),transparent 70%)"></div>
                     <div class="relative flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-secondary">
                         <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">badge</span>
                         Login account
@@ -590,7 +659,7 @@ const formatDate = (d) => {
                         @click="submitEmployee"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Save Employee</span>
@@ -661,7 +730,7 @@ const formatDate = (d) => {
                         @click="submitDepartment"
                         :disabled="deptForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="deptForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Save Department</span>

@@ -45,7 +45,7 @@ const distributionBands = computed(() => {
     // Placeholder — real data comes from the show page; index shows a summary indicator
     return [
         { label: 'Exceeds',  pct: 20, color: '#059669' },
-        { label: 'Meets',    pct: 65, color: '#205295' },
+        { label: 'Meets',    pct: 65, color: '#1a237e' },
         { label: 'Below',    pct: 15, color: '#dc2626' },
     ];
 });
@@ -79,12 +79,12 @@ const statusClass = (s) => statusTone[s] ?? 'bg-surface-container text-on-surfac
 
 // Avatar gradient pool — disciplined cool family
 const gradients = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 const avatarGradient = (id) => gradients[(id ?? 0) % gradients.length];
 const initials = (name) => {
@@ -125,7 +125,7 @@ const formatDate = (d) => {
                         v-if="canFacilitate"
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Start Calibration
@@ -209,7 +209,7 @@ const formatDate = (d) => {
                             v-if="canFacilitate"
                             @click="showAddPanel = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Start Calibration
@@ -352,7 +352,7 @@ const formatDate = (d) => {
                         @click="submitSession"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span v-else class="material-symbols-outlined text-[16px]">event_available</span>

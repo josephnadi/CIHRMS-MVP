@@ -1,5 +1,5 @@
-﻿<script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+<script setup>
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
@@ -131,6 +131,25 @@ const quickStatus = (ticket, status) => {
     }, { preserveScroll: true });
 };
 
+// Inline priority change — partial PATCH, only `priority` is sent
+const PRIORITY_OPTIONS = ['critical', 'high', 'medium', 'low'];
+const priorityMenuFor = ref(null);
+
+const quickPriority = (ticket, priority) => {
+    if (ticket.priority === priority) return;
+    router.patch(route('tickets.update', ticket.id), {
+        priority,
+    }, { preserveScroll: true });
+};
+
+// Close the priority menu on any outside click. Lifecycle-bound so the
+// listener doesn't leak when the user navigates away.
+const onOutsideTicketPriorityClick = (e) => {
+    if (! e.target.closest('.ticket-priority-menu')) priorityMenuFor.value = null;
+};
+onMounted(() => document.addEventListener('click', onOutsideTicketPriorityClick));
+onBeforeUnmount(() => document.removeEventListener('click', onOutsideTicketPriorityClick));
+
 // â”€â”€ View toggle (List | Board) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VIEW_STORAGE_KEY = 'cihrms.tickets.view';
 const view = ref('board'); // default per request â€” Kanban first
@@ -185,7 +204,7 @@ const priorityIcon = {
 };
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 };
 
@@ -196,6 +215,81 @@ const daysSince = (d) => {
     if (diff === 1) return '1d ago';
     return `${diff}d ago`;
 };
+
+// ── Jira-style issue key. Each ticket reads as "SD-{id}" (Service Desk). ──
+const issueKey = (id) => 'SD-' + String(id).padStart(3, '0');
+
+// ── Avatar helper — initials + deterministic palette colour. ──
+const initials = (name) => {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).slice(0, 2).map(s => s.charAt(0).toUpperCase()).join('');
+};
+const AVATAR_PALETTE = [
+    { bg: '#1a237e', fg: '#fff' },
+    { bg: '#3949ab', fg: '#fff' },
+    { bg: '#12d9e3', fg: '#06303a' },
+    { bg: '#d912e3', fg: '#fff' },
+    { bg: '#16a34a', fg: '#fff' },
+    { bg: '#d97706', fg: '#fff' },
+    { bg: '#dc2626', fg: '#fff' },
+    { bg: '#7986cb', fg: '#fff' },
+];
+const avatarTone = (name) => {
+    if (!name) return AVATAR_PALETTE[0];
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+    return AVATAR_PALETTE[Math.abs(h) % AVATAR_PALETTE.length];
+};
+
+// ── Priority left-rail colour (3px bar on every card) ──
+const priorityRail = {
+    critical: '#dc2626',  // red
+    high:     '#ea580c',  // orange
+    medium:   '#d97706',  // amber
+    low:      '#12d9e3',  // cyan (signals "calm, in queue")
+};
+
+// ── Age pip — colour-codes freshness so triagers can scan ──
+// Tickets that linger silently are the ones that bite. The pip turns hot
+// the longer it sits unresolved.
+const ageMeta = (createdAt) => {
+    if (!createdAt) return null;
+    const days = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+    if (days < 1)  return { color: '#16a34a', label: 'fresh',  hours: Math.max(1, Math.round(days * 24)) + 'h' };
+    if (days < 3)  return { color: '#12d9e3', label: 'active', hours: Math.round(days) + 'd' };
+    if (days < 7)  return { color: '#d97706', label: 'aging',  hours: Math.round(days) + 'd' };
+    if (days < 14) return { color: '#ea580c', label: 'stale',  hours: Math.round(days) + 'd' };
+    return            { color: '#dc2626', label: 'cold',   hours: Math.round(days) + 'd' };
+};
+
+// ── Mission-control SLA stats ──
+// Derived purely client-side from the visible page so the hero feels live
+// without an extra round-trip.
+const ops = computed(() => {
+    const data = props.tickets?.data ?? [];
+    const open = data.filter(t => t.status !== 'closed' && t.status !== 'resolved');
+    const resolved = data.filter(t => t.status === 'resolved' || t.status === 'closed');
+    const overdue = data.filter(t => t.is_overdue);
+    const onTime  = resolved.filter(t => !t.is_overdue).length;
+    const slaPct  = resolved.length > 0 ? Math.round((onTime / resolved.length) * 100) : 100;
+
+    // Avg age of open tickets in days
+    const avgAgeDays = open.length > 0
+        ? Math.round(open.reduce((s, t) => s + (Date.now() - new Date(t.created_at).getTime()) / 86400000, 0) / open.length)
+        : 0;
+
+    // Active resolvers — distinct assignees among open tickets
+    const resolvers = new Set();
+    open.forEach(t => { if (t.assigned_to?.name) resolvers.add(t.assigned_to.name); });
+
+    return {
+        slaPct,
+        avgAgeDays,
+        activeResolvers: resolvers.size,
+        critical: data.filter(t => t.priority === 'critical' && t.status !== 'closed' && t.status !== 'resolved').length,
+        resolvedThisRun: resolved.length,
+    };
+});
 </script>
 
 <template>
@@ -247,7 +341,7 @@ const daysSince = (d) => {
                     <button
                         @click="showAddPanel = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">add_circle</span>
                         New Ticket
@@ -258,14 +352,56 @@ const daysSince = (d) => {
 
         <div class="space-y-6">
 
-            <!-- Stats — disciplined palette: navy=identity, blue=action, magenta=in-flight (people-side),
-                 red=overdue (semantic alarm). Hex strings replaced with named tokens so StatCard's
-                 validator accepts them and renders the proper colour wells. -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard :value="stats.total" label="Total Tickets" icon="confirmation_number" color="navy" />
-                <StatCard :value="stats.open" label="Open" icon="inbox" color="blue" />
-                <StatCard :value="stats.inProgress" label="In Progress" icon="autorenew" color="magenta" />
-                <StatCard :value="stats.overdue" label="Overdue" icon="schedule" color="red" />
+            <!-- ── Operations hero ─────────────────────────────────
+                 The Service Desk is operational territory — the visual
+                 should feel like a live console, not four passive cards.
+                 We pack the four primary KPIs into a single hero band with
+                 a pulsing live ribbon and on-duty resolver count. -->
+            <div class="relative overflow-hidden rounded-3xl px-7 py-6 text-white animate-reveal-up"
+                 style="background:linear-gradient(135deg,#1a237e 0%,#283593 55%,#3949ab 100%);border:1px solid rgba(255,255,255,0.07);">
+                <!-- Atmospheric radials -->
+                <div class="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(18,217,227,0.22),transparent 70%)"></div>
+                <div class="pointer-events-none absolute -left-6 bottom-0 h-44 w-44 rounded-full blur-2xl" style="background:rgba(255,215,0,0.10)"></div>
+
+                <!-- Live ribbon — a thin gradient bar at the top of the card,
+                     loops to suggest "data flowing in". -->
+                <div class="absolute inset-x-0 top-0 h-px overflow-hidden">
+                    <div class="tk-ribbon h-px w-1/3"></div>
+                </div>
+
+                <div class="relative flex flex-wrap items-center justify-between gap-8">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 live-dot"></span>
+                            <p class="text-[9px] font-black uppercase tracking-[0.25em]" style="color:rgba(18,217,227,0.85)">Service desk · live operations</p>
+                        </div>
+                        <h2 class="text-3xl font-black leading-tight">
+                            <em class="not-italic" style="color:#12d9e3">{{ stats.open + stats.inProgress }}</em> active ticket<span v-if="(stats.open + stats.inProgress) !== 1">s</span>
+                            <template v-if="ops.critical > 0"> · <em class="not-italic" style="color:#fda4af">{{ ops.critical }}</em> critical</template>
+                        </h2>
+                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.55)">
+                            <span style="color:#ffd700">{{ ops.slaPct }}%</span> resolved on time ·
+                            <span style="color:#7986cb">{{ ops.avgAgeDays }}d</span> avg open age ·
+                            <span style="color:#a7f3d0">{{ ops.activeResolvers }}</span> on duty
+                        </p>
+                    </div>
+
+                    <!-- Inline KPI strip — four counters with palette personalities -->
+                    <div class="flex items-center gap-7 flex-shrink-0">
+                        <div v-for="(kpi, i) in [
+                            { label: 'Total',       val: stats.total,      color: '#ffffff' },
+                            { label: 'Open',        val: stats.open,       color: '#12d9e3' },
+                            { label: 'In progress', val: stats.inProgress, color: '#7986cb' },
+                            { label: 'Overdue',     val: stats.overdue,    color: '#fda4af', accent: stats.overdue > 0 },
+                        ]" :key="kpi.label" class="text-center"
+                             :style="`animation:slideUpFade 0.45s ease both;animation-delay:${i*0.06}s`">
+                            <p class="text-[34px] font-black leading-none tabular-nums"
+                               :class="kpi.accent ? 'tk-kpi-warn' : ''"
+                               :style="`color:${kpi.color}`">{{ kpi.val }}</p>
+                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.4)">{{ kpi.label }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- 5% gold hairline — single institutional moment on the page -->
@@ -274,7 +410,7 @@ const daysSince = (d) => {
             <!-- Filters strip -->
             <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">
                 <div class="flex items-center gap-2 pl-2 pr-1 text-on-surface-variant/60">
-                    <span class="material-symbols-outlined text-[18px]" style="color:#205295">filter_list</span>
+                    <span class="material-symbols-outlined text-[18px]" style="color:#1a237e">filter_list</span>
                     <span class="text-[10px] font-black uppercase tracking-[0.18em]">Filter</span>
                 </div>
 
@@ -283,7 +419,7 @@ const daysSince = (d) => {
                 </div>
 
                 <div class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">workspaces</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">workspaces</span>
                     <select
                         v-model="localFilters.status"
                         @change="applyFilters"
@@ -299,7 +435,7 @@ const daysSince = (d) => {
                 </div>
 
                 <div class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">flag</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">flag</span>
                     <select
                         v-model="localFilters.priority"
                         @change="applyFilters"
@@ -315,7 +451,7 @@ const daysSince = (d) => {
                 </div>
 
                 <div v-if="canManage" class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#205295;opacity:0.7">person</span>
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
                     <select
                         v-model="localFilters.assigned_to"
                         @change="applyFilters"
@@ -360,7 +496,7 @@ const daysSince = (d) => {
                             <button
                                 @click="showAddPanel = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 New Ticket
@@ -376,8 +512,17 @@ const daysSince = (d) => {
                     @move="onTicketMove"
                 >
                     <template #card="{ item }">
-                        <Link :href="route('tickets.show', item.id)" class="block">
-                            <!-- Priority chip + title -->
+                        <Link :href="route('tickets.show', item.id)" class="block relative">
+                            <!-- Priority left-rail — fast scan signal for triage.
+                                 Critical/high get a subtle pulse to draw the eye. -->
+                            <span
+                                class="absolute -left-3 top-0 bottom-0 w-[3px] rounded-full"
+                                :class="(item.priority === 'critical' || item.priority === 'high') ? 'tk-rail-pulse' : ''"
+                                :style="`background:${priorityRail[item.priority] ?? '#94a3b8'}`"
+                                aria-hidden="true"
+                            ></span>
+
+                            <!-- Priority chip + ID + age pip -->
                             <div class="flex items-start gap-2 mb-2">
                                 <span
                                     :class="['inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider whitespace-nowrap', priorityClasses[item.priority]]"
@@ -387,6 +532,20 @@ const daysSince = (d) => {
                                     {{ item.priority_label }}
                                 </span>
                                 <span class="text-[10px] font-mono text-on-surface-variant/50">#{{ item.id }}</span>
+
+                                <!-- Age pip — small dot + numeric age. Hot colours = aging fast. -->
+                                <span
+                                    v-if="ageMeta(item.created_at)"
+                                    class="ml-auto inline-flex items-center gap-1 text-[9.5px] font-bold tabular-nums"
+                                    :style="`color:${ageMeta(item.created_at).color}`"
+                                    :title="`Created ${daysSince(item.created_at)} — ${ageMeta(item.created_at).label}`"
+                                >
+                                    <span
+                                        class="h-1.5 w-1.5 rounded-full"
+                                        :style="`background:${ageMeta(item.created_at).color};box-shadow:0 0 0 2px ${ageMeta(item.created_at).color}22`"
+                                    ></span>
+                                    {{ ageMeta(item.created_at).hours }}
+                                </span>
                             </div>
 
                             <p class="text-[13px] font-bold text-on-surface leading-snug line-clamp-2">{{ item.title }}</p>
@@ -402,7 +561,7 @@ const daysSince = (d) => {
                                 <div
                                     v-if="item.assigned_to"
                                     class="flex items-center gap-1 rounded-full px-1.5 py-0.5"
-                                    style="background:rgba(32,82,149,0.10);color:#205295"
+                                    style="background:rgba(26, 35, 126,0.10);color:#1a237e"
                                 >
                                     <span class="material-symbols-outlined text-[12px]">badge</span>
                                     <span class="font-bold truncate max-w-[80px]">{{ item.assigned_to.name }}</span>
@@ -411,7 +570,7 @@ const daysSince = (d) => {
 
                             <!-- Due date -->
                             <div v-if="item.due_at" class="mt-2 flex items-center gap-1 text-[10px]"
-                                 :class="item.is_overdue ? 'text-red-600 font-bold' : 'text-on-surface-variant/60'">
+                                 :class="item.is_overdue ? 'text-red-600 font-bold tk-overdue' : 'text-on-surface-variant/60'">
                                 <span class="material-symbols-outlined text-[12px]">schedule</span>
                                 <span>Due {{ formatDate(item.due_at) }}</span>
                                 <span v-if="item.is_overdue" class="ml-auto text-[9px] font-black uppercase tracking-wider">Overdue</span>
@@ -439,7 +598,7 @@ const daysSince = (d) => {
                             <button
                                 @click="showAddPanel = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                 New Ticket
@@ -481,12 +640,30 @@ const daysSince = (d) => {
                                 </td>
 
                                 <td class="px-4 py-3.5">
-                                    <span
-                                        :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-[0.08em]', priorityClasses[ticket.priority]]"
-                                    >
-                                        <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">{{ priorityIcon[ticket.priority] }}</span>
-                                        {{ ticket.priority_label }}
-                                    </span>
+                                    <!-- Inline priority change — click the pill to open a menu of options -->
+                                    <div class="relative ticket-priority-menu" @click.stop>
+                                        <button type="button"
+                                                @click="priorityMenuFor = priorityMenuFor === ticket.id ? null : ticket.id"
+                                                :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-[0.08em] cursor-pointer hover:ring-2 hover:ring-secondary/30 transition-all', priorityClasses[ticket.priority]]"
+                                                aria-label="Change priority">
+                                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">{{ priorityIcon[ticket.priority] }}</span>
+                                            {{ ticket.priority_label }}
+                                            <span class="material-symbols-outlined text-[12px] opacity-70">expand_more</span>
+                                        </button>
+                                        <div v-if="priorityMenuFor === ticket.id"
+                                             class="absolute left-0 top-7 z-30 w-36 rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-lifted py-1.5">
+                                            <button v-for="p in PRIORITY_OPTIONS" :key="p"
+                                                    type="button"
+                                                    @click="quickPriority(ticket, p); priorityMenuFor = null"
+                                                    :disabled="ticket.priority === p"
+                                                    class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-[11.5px] font-semibold uppercase tracking-wider transition-colors"
+                                                    :class="ticket.priority === p ? 'text-secondary cursor-default bg-secondary/[0.05]' : 'text-on-surface hover:bg-surface-container'">
+                                                <span class="material-symbols-outlined text-[14px]">{{ priorityIcon[p] }}</span>
+                                                {{ p }}
+                                                <span v-if="ticket.priority === p" class="material-symbols-outlined text-[14px] ml-auto">check</span>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <td class="px-4 py-3.5">
@@ -554,7 +731,7 @@ const daysSince = (d) => {
                 <div v-if="tickets?.links?.length > 3" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
                     <div class="flex items-center justify-between">
                         <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-                            <span class="material-symbols-outlined text-[15px]" style="color:#205295;opacity:0.7">format_list_numbered</span>
+                            <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
                             Showing
                             <span class="font-bold text-on-surface tabular-nums">{{ tickets.meta?.from }}</span>
                             –
@@ -635,7 +812,7 @@ const daysSince = (d) => {
                         @click="submit"
                         :disabled="form.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span>Submit Ticket</span>
@@ -655,3 +832,55 @@ const daysSince = (d) => {
 
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+/* Live "data flowing" ribbon — a small gradient bar that streaks across the
+   top edge of the operations hero. Loops forever; visual breathing room. */
+.tk-ribbon {
+    background: linear-gradient(90deg, transparent, rgba(18,217,227,0.9), rgba(255,215,0,0.7), transparent);
+    animation: tkRibbon 3.8s linear infinite;
+}
+@keyframes tkRibbon {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+}
+
+/* Live-dot — a single tiny pulse on the hero "Live operations" tag. */
+.live-dot { animation: tkLiveDot 1.6s ease-in-out infinite; }
+@keyframes tkLiveDot {
+    0%, 100% { opacity: 1;   transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    50%      { opacity: 0.4; transform: scale(0.7); box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+}
+
+/* Overdue KPI count — soft heartbeat to draw the eye when > 0. */
+.tk-kpi-warn { animation: tkWarnPulse 2s ease-in-out infinite; }
+@keyframes tkWarnPulse {
+    0%, 100% { text-shadow: 0 0 0 rgba(248, 113, 113, 0); }
+    50%      { text-shadow: 0 0 14px rgba(248, 113, 113, 0.55); }
+}
+
+/* Priority-rail pulse on critical / high cards — barely perceptible, just
+   enough that the rail gently breathes. */
+.tk-rail-pulse {
+    animation: tkRailPulse 2.4s ease-in-out infinite;
+}
+@keyframes tkRailPulse {
+    0%, 100% { opacity: 1;   filter: brightness(1); }
+    50%      { opacity: 0.6; filter: brightness(1.4); }
+}
+
+/* Overdue due-date — a faint flicker so it never goes silent. */
+.tk-overdue {
+    animation: tkOverdueFlash 2.6s ease-in-out infinite;
+}
+@keyframes tkOverdueFlash {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tk-ribbon, .live-dot, .tk-kpi-warn, .tk-rail-pulse, .tk-overdue {
+        animation: none !important;
+    }
+}
+</style>

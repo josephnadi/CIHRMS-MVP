@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
@@ -62,7 +62,7 @@ const runGradient = computed(() => {
         draft:      'from-slate-600 to-slate-700',
         processing: 'from-blue-600 to-blue-700',
         approved:   'from-emerald-600 to-emerald-700',
-        paid:       'from-[#205295] to-[#2c74b3]',
+        paid:       'from-[#1a237e] to-[#3949ab]',
     };
     return map[props.currentRun?.status] ?? map.draft;
 });
@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
                     <Link
                         :href="route('payroll.run-wizard')"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295);"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e);"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Start New Payroll Run
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
                         <Link
                             :href="route(runAction.route)"
                             class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white transition-all hover:-translate-y-px active:scale-[0.97]"
-                            style="background:linear-gradient(135deg,#0a2647,#205295);"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e);"
                         >
                             <span class="material-symbols-outlined text-[18px]">{{ runAction.icon }}</span>
                             {{ runAction.label }}

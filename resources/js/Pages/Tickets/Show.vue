@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -153,7 +153,7 @@ const daysSince = (d) => {
                         <button
                             @click="submitUpdate"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">save</span>
                             Save Changes
@@ -172,7 +172,7 @@ const daysSince = (d) => {
                     <ol class="relative space-y-4 border-l-2 border-outline-variant/40 pl-5 ml-3">
                         <li class="relative">
                             <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-white shadow-glow-sm"
-                                  style="background:#205295">
+                                  style="background:#1a237e">
                                 <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">add_circle</span>
                             </span>
                             <p class="text-[13px] font-bold text-on-surface leading-tight">Ticket opened</p>
@@ -180,7 +180,7 @@ const daysSince = (d) => {
                         </li>
                         <li v-if="t.assigned_to" class="relative">
                             <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full text-white shadow-glow-sm"
-                                  style="background:#205295">
+                                  style="background:#1a237e">
                                 <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">person_add</span>
                             </span>
                             <p class="text-[13px] font-bold text-on-surface leading-tight">Assigned to {{ t.assigned_to.name }}</p>
@@ -224,8 +224,8 @@ const daysSince = (d) => {
                     <div class="py-4">
                         <p class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 mb-1.5">Assigned To</p>
                         <p class="text-[13px] font-bold text-on-surface flex items-center gap-1.5">
-                            <span v-if="t.assigned_to" class="flex h-5 w-5 items-center justify-center rounded-full" style="background:rgba(32,82,149,0.10)">
-                                <span class="material-symbols-outlined text-[12px]" style="color:#205295">person</span>
+                            <span v-if="t.assigned_to" class="flex h-5 w-5 items-center justify-center rounded-full" style="background:rgba(26, 35, 126,0.10)">
+                                <span class="material-symbols-outlined text-[12px]" style="color:#1a237e">person</span>
                             </span>
                             {{ t.assigned_to?.name ?? 'Unassigned' }}
                         </p>

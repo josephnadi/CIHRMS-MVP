@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref, reactive } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -104,16 +104,16 @@ const cellStyle = (val) => {
     if (!val) return null;
     const level = numericLevel(val);
     const intensities = [
-        'rgba(32,82,149,0.10)',  // 1 - barely visible
-        'rgba(32,82,149,0.25)',  // 2
-        'rgba(32,82,149,0.50)',  // 3
-        'rgba(32,82,149,0.75)',  // 4
-        'rgba(32,82,149,0.95)',  // 5 - full cobalt
+        'rgba(26, 35, 126,0.10)',  // 1 - barely visible
+        'rgba(26, 35, 126,0.25)',  // 2
+        'rgba(26, 35, 126,0.50)',  // 3
+        'rgba(26, 35, 126,0.75)',  // 4
+        'rgba(26, 35, 126,0.95)',  // 5 - full cobalt
     ];
     const textColors = [
-        '#205295',
-        '#205295',
-        '#205295',
+        '#1a237e',
+        '#1a237e',
+        '#1a237e',
         '#eff6ff',
         '#ffffff',
     ];
@@ -128,7 +128,7 @@ const cellStyle = (val) => {
 const levelCell = (level) => {
     const map = {
         beginner:     { bg: 'rgba(217,119,6,0.20)',   fg: '#92400e',   abbr: 'B', num: 1 },
-        intermediate: { bg: 'rgba(32,82,149,0.20)',    fg: '#1e3a8a',   abbr: 'I', num: 2 },
+        intermediate: { bg: 'rgba(26, 35, 126,0.20)',    fg: '#1e3a8a',   abbr: 'I', num: 2 },
         advanced:     { bg: 'rgba(124,58,237,0.20)',  fg: '#5b21b6',   abbr: 'A', num: 3 },
         expert:       { bg: 'rgba(5,150,105,0.25)',   fg: '#064e3b',   abbr: 'E', num: 4 },
     };
@@ -198,7 +198,7 @@ const exportMatrix = () => {
                     <button
                         @click="showAddSkill = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Add Skill
@@ -215,7 +215,7 @@ const exportMatrix = () => {
                     v-for="(s, i) in [
                         { label: 'Skills Tracked',        value: skills.length,            icon: 'psychology',    color: '124,92,255' },
                         { label: 'Critical-skill Coverage',value: `${criticalCoverage}%`,  icon: 'verified_user', color: '5,150,105'  },
-                        { label: 'Employees Tracked',     value: employees.length,          icon: 'people',        color: '32,82,149'   },
+                        { label: 'Employees Tracked',     value: employees.length,          icon: 'people',        color: '26, 35, 126'   },
                         { label: 'Skill Gaps (0 skills)', value: gapCount,                 icon: 'warning',       color: '217,119,6'  },
                     ]"
                     :key="s.label"
@@ -402,7 +402,7 @@ const exportMatrix = () => {
                                 <button
                                     @click="showAddSkill = true"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                                 >
                                     <span class="material-symbols-outlined text-[18px]">add</span>
                                     Add First Skill
@@ -419,11 +419,11 @@ const exportMatrix = () => {
                     <div class="space-y-2">
                         <div v-for="(item, level) in {
                             'Not assessed':  { bg: 'rgba(100,116,139,0.08)', fg: '#94a3b8', dot: 'Â·' },
-                            'Level 1 â€“ Novice':       { bg: 'rgba(32,82,149,0.10)', fg: '#205295', dot: '1' },
-                            'Level 2 â€“ Developing':   { bg: 'rgba(32,82,149,0.25)', fg: '#205295', dot: '2' },
-                            'Level 3 â€“ Proficient':   { bg: 'rgba(32,82,149,0.50)', fg: '#205295', dot: '3' },
-                            'Level 4 â€“ Advanced':     { bg: 'rgba(32,82,149,0.75)', fg: '#eff6ff', dot: '4' },
-                            'Level 5 â€“ Expert':       { bg: 'rgba(32,82,149,0.95)', fg: '#ffffff', dot: '5' },
+                            'Level 1 â€“ Novice':       { bg: 'rgba(26, 35, 126,0.10)', fg: '#1a237e', dot: '1' },
+                            'Level 2 â€“ Developing':   { bg: 'rgba(26, 35, 126,0.25)', fg: '#1a237e', dot: '2' },
+                            'Level 3 â€“ Proficient':   { bg: 'rgba(26, 35, 126,0.50)', fg: '#1a237e', dot: '3' },
+                            'Level 4 â€“ Advanced':     { bg: 'rgba(26, 35, 126,0.75)', fg: '#eff6ff', dot: '4' },
+                            'Level 5 â€“ Expert':       { bg: 'rgba(26, 35, 126,0.95)', fg: '#ffffff', dot: '5' },
                         }" :key="level"
                              class="flex items-center gap-2.5">
                             <span
@@ -439,7 +439,7 @@ const exportMatrix = () => {
                         <div class="space-y-1.5">
                             <div v-for="(meta, label) in {
                                 Beginner:     { bg: 'rgba(217,119,6,0.20)',  fg: '#92400e' },
-                                Intermediate: { bg: 'rgba(32,82,149,0.20)',   fg: '#1e3a8a' },
+                                Intermediate: { bg: 'rgba(26, 35, 126,0.20)',   fg: '#1e3a8a' },
                                 Advanced:     { bg: 'rgba(124,58,237,0.20)', fg: '#5b21b6' },
                                 Expert:       { bg: 'rgba(5,150,105,0.25)',  fg: '#064e3b' },
                             }" :key="label"
@@ -478,7 +478,7 @@ const exportMatrix = () => {
                 <div class="h-3 rounded-full bg-surface-container overflow-hidden">
                     <div
                         class="h-full rounded-full transition-all duration-700"
-                        :style="`width:${coveragePct}%;background:linear-gradient(90deg,#205295,#2c74b3)`"
+                        :style="`width:${coveragePct}%;background:linear-gradient(90deg,#1a237e,#3949ab)`"
                     ></div>
                 </div>
                 <div class="mt-2 flex items-center justify-between text-[11px] text-on-surface-variant/60">
@@ -556,7 +556,7 @@ const exportMatrix = () => {
                         @click="submitSkill"
                         :disabled="skillForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="skillForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         Add Skill

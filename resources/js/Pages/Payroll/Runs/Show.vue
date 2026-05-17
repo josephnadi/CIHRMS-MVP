@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -38,9 +38,12 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('payroll-runs.index')" class="text-xs text-slate-500 hover:underline">← All runs</Link>
-                    <h1 class="text-2xl font-semibold tracking-tight">{{ R.reference }}</h1>
-                    <p class="text-sm text-slate-500">{{ R.period_label }} · {{ R.department?.name ?? 'Whole organization' }}</p>
+                    <Link :href="route('payroll-runs.index')" class="text-xs text-slate-500 hover:underline">â† All runs</Link>
+                    <div class="flex items-center gap-2 mt-1 mb-1">
+                        <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">receipt_long</span>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">{{ R.period_label }} · {{ R.department?.name ?? 'Whole organization' }}</p>
+                    </div>
+                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight font-mono">{{ R.reference }}</h1>
                 </div>
                 <StatusBadge :status="R.status" :label="R.status_label" class="text-base" />
             </div>
@@ -75,8 +78,8 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
                 <div class="px-5 py-3 border-b border-slate-100 flex gap-6 text-sm">
-                    <button @click="tab='lines'" :class="tab==='lines' ? 'text-indigo-600 font-semibold' : 'text-slate-500'">Lines ({{ lines?.meta?.total ?? lines?.data?.length ?? 0 }})</button>
-                    <button @click="tab='returns'" :class="tab==='returns' ? 'text-indigo-600 font-semibold' : 'text-slate-500'">Statutory returns ({{ returns?.data?.length ?? returns?.length ?? 0 }})</button>
+                    <button @click="tab='lines'" :class="tab==='lines' ? 'text-blue-600 font-semibold' : 'text-slate-500'">Lines ({{ lines?.meta?.total ?? lines?.data?.length ?? 0 }})</button>
+                    <button @click="tab='returns'" :class="tab==='returns' ? 'text-blue-600 font-semibold' : 'text-slate-500'">Statutory returns ({{ returns?.data?.length ?? returns?.length ?? 0 }})</button>
                 </div>
 
                 <div v-if="tab==='lines'" class="overflow-x-auto">
@@ -97,7 +100,7 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
                             <tr v-for="l in (lines?.data ?? lines ?? [])" :key="l.id"
                                 :class="l.status === 'skipped' ? 'bg-amber-50' : 'hover:bg-slate-50'">
                                 <td class="px-4 py-2">
-                                    <div class="font-medium">{{ l.employee?.name ?? '—' }}</div>
+                                    <div class="font-medium">{{ l.employee?.name ?? 'â€”' }}</div>
                                     <div class="text-xs text-slate-500">{{ l.employee?.employee_no }}</div>
                                 </td>
                                 <td class="px-4 py-2">{{ l.grade_code }} / {{ l.step }}</td>
@@ -120,10 +123,10 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
                          class="px-5 py-4 flex items-center justify-between">
                         <div>
                             <div class="font-medium">{{ rt.kind_label }}</div>
-                            <div class="text-xs text-slate-500">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
+                            <div class="text-xs text-slate-500">{{ rt.record_count }} records Â· {{ cedi(rt.total_amount) }}</div>
                         </div>
                         <a :href="route('payroll-runs.return-download', { run: R.id, returnId: rt.id })"
-                           class="text-indigo-600 hover:underline text-sm">Download</a>
+                           class="text-blue-600 hover:underline text-sm">Download</a>
                     </div>
                     <div v-if="(returns?.data?.length ?? returns?.length ?? 0) === 0"
                          class="px-5 py-8 text-center text-slate-500 text-sm">

@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, watch } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -44,9 +44,9 @@ const CELL_META = {
     high_medium:   {
         label:       'Growth Employee',
         description: 'High potential, consistent output. Stretch with visible assignments.',
-        tint:        '32,82,149',
-        bg:          'rgba(32,82,149,0.06)',
-        border:      'rgba(32,82,149,0.2)',
+        tint:        '26, 35, 126',
+        bg:          'rgba(26, 35, 126,0.06)',
+        border:      'rgba(26, 35, 126,0.2)',
         zone:        'invest',
     },
     high_high:     {
@@ -68,9 +68,9 @@ const CELL_META = {
     medium_medium: {
         label:       'Core Player',
         description: 'Solid, reliable contributor. Retain, recognise, and prevent disengagement.',
-        tint:        '32,82,149',
-        bg:          'rgba(32,82,149,0.05)',
-        border:      'rgba(32,82,149,0.15)',
+        tint:        '26, 35, 126',
+        bg:          'rgba(26, 35, 126,0.05)',
+        border:      'rgba(26, 35, 126,0.15)',
         zone:        'core',
     },
     medium_high:   {
@@ -92,9 +92,9 @@ const CELL_META = {
     low_medium:    {
         label:       'Effective',
         description: 'Steady performer in current role. Recognise contribution; watch for stagnation.',
-        tint:        '32,82,149',
-        bg:          'rgba(32,82,149,0.04)',
-        border:      'rgba(32,82,149,0.12)',
+        tint:        '26, 35, 126',
+        bg:          'rgba(26, 35, 126,0.04)',
+        border:      'rgba(26, 35, 126,0.12)',
         zone:        'core',
     },
     low_high:      {
@@ -145,7 +145,7 @@ const buckets = computed(() => {
     // cobalt (action), Needs Attention stays red (alarm semantic).
     return [
         { label: 'High Performers',  count: sum(star), rgb: '255,215,0',  icon: 'star',        description: 'Retain, develop, reward.' },
-        { label: 'Growth Pool',      count: sum(inv),  rgb: '32,82,149',  icon: 'trending_up', description: 'Invest in stretch and coaching.' },
+        { label: 'Growth Pool',      count: sum(inv),  rgb: '26, 35, 126',  icon: 'trending_up', description: 'Invest in stretch and coaching.' },
         { label: 'Needs Attention',  count: sum(risk), rgb: '220,38,38',  icon: 'warning',     description: 'Address with targeted plans.' },
     ];
 });
@@ -153,12 +153,12 @@ const buckets = computed(() => {
 // â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Avatar gradient pool — disciplined cool family
 const GRADIENTS = [
-    'linear-gradient(135deg,#0a2647,#205295)',
-    'linear-gradient(135deg,#205295,#7cb6e8)',
-    'linear-gradient(135deg,#06192f,#0a2647)',
-    'linear-gradient(135deg,#205295,#2c74b3)',
-    'linear-gradient(135deg,#0a2647,#205295,#d912e3)',
-    'linear-gradient(135deg,#205295,#12d9e3)',
+    'linear-gradient(135deg,#0d1452,#1a237e)',
+    'linear-gradient(135deg,#1a237e,#7986cb)',
+    'linear-gradient(135deg,#070b3a,#0d1452)',
+    'linear-gradient(135deg,#1a237e,#3949ab)',
+    'linear-gradient(135deg,#0d1452,#1a237e,#d912e3)',
+    'linear-gradient(135deg,#1a237e,#12d9e3)',
 ];
 const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
@@ -194,7 +194,7 @@ const initials = (name) => {
                         :href="route('performance.reviews.index')"
                         class="flex items-center gap-2 rounded-xl border border-outline-variant/80 px-4 py-2.5 text-[13px] font-semibold text-on-surface-variant hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-all"
                     >
-                        <span class="material-symbols-outlined text-[17px]" style="color:#205295">rate_review</span>
+                        <span class="material-symbols-outlined text-[17px]" style="color:#1a237e">rate_review</span>
                         Reviews
                     </Link>
                     <!-- Calibration hint for HR — magenta (people-management) -->
@@ -233,7 +233,7 @@ const initials = (name) => {
                         <Link
                             :href="route('performance.reviews.index')"
                             class="btn-shimmer inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">rate_review</span>
                             Go to Reviews

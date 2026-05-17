@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref, watch, reactive } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -198,7 +198,7 @@ const formatIcon = (fmt) => ({
 
 const difficultyColors = {
     beginner:     { bg: 'rgba(217,119,6,0.12)',   fg: '#92400e' },
-    intermediate: { bg: 'rgba(32,82,149,0.12)',     fg: '#205295' },
+    intermediate: { bg: 'rgba(26, 35, 126,0.12)',     fg: '#1a237e' },
     advanced:     { bg: 'rgba(124,92,255,0.12)',   fg: '#6d28d9' },
     expert:       { bg: 'rgba(5,150,105,0.12)',    fg: '#065f46' },
 };
@@ -239,7 +239,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         v-if="canManage"
                         @click="showCreate = true"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm transition-all hover:-translate-y-px hover:shadow-glow active:scale-[0.97]"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Publish Course
@@ -250,29 +250,52 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
 
         <div class="space-y-6 animate-reveal-up">
 
-            <!-- â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <div
-                    v-for="(s, i) in [
-                        { label: 'Total Courses',    value: stats.total,      icon: 'menu_book',  color: '32,82,149'  },
-                        { label: 'Published',        value: stats.published,  icon: 'visibility', color: '5,150,105' },
-                        { label: 'My Enrolments',    value: stats.enrolments, icon: 'school',     color: '217,119,6' },
-                        { label: 'Catalogue Hours',  value: stats.hours,      icon: 'schedule',   color: '15,118,110'},
-                    ]"
-                    :key="s.label"
-                    class="rounded-2xl border bg-surface-container-lowest p-5 shadow-card card-lift"
-                    :style="`border-color:rgba(${s.color},0.25);animation-delay:${i * 0.06}s`"
-                >
-                    <div class="flex items-start justify-between">
-                        <div
-                            class="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            :style="`background:rgba(${s.color},0.12)`"
-                        >
-                            <span class="material-symbols-outlined text-[20px]" :style="`color:rgb(${s.color})`" style="font-variation-settings:'FILL' 1">{{ s.icon }}</span>
+            <!-- ── Hero banner ── -->
+            <div class="relative overflow-hidden rounded-3xl px-8 py-7 text-white"
+                 style="background:linear-gradient(135deg,#1a237e 0%, #283593 55%, #3949ab 100%);border:1px solid rgba(255,255,255,0.06);">
+                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(217,18,227,0.18),transparent 70%)"></div>
+                <div class="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full blur-2xl" style="background:rgba(255,215,0,0.10)"></div>
+
+                <div class="relative flex flex-wrap items-center justify-between gap-8">
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style="color:rgba(217,18,227,0.85)">Learning library · live</p>
+                        <h2 class="text-3xl font-black leading-tight">
+                            <em class="not-italic" style="color:#d912e3">{{ stats.total }}</em> course<span v-if="stats.total !== 1">s</span> · <em class="not-italic" style="color:#ffd700">{{ stats.hours }}</em>h of content
+                        </h2>
+                        <p class="mt-2 text-sm font-medium" style="color:rgba(255,255,255,0.5)">
+                            <span style="color:#16a34a">{{ stats.published }}</span> published ·
+                            <span style="color:#12d9e3">{{ stats.enrolments }}</span> active enrolment<span v-if="stats.enrolments !== 1">s</span> across the visible catalogue
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-8 flex-shrink-0">
+                        <div v-for="kpi in [
+                            { label: 'Published', val: stats.published,  color: '#16a34a' },
+                            { label: 'Enrolments', val: stats.enrolments, color: '#12d9e3' },
+                            { label: 'Hours',      val: stats.hours,      color: '#ffd700' },
+                        ]" :key="kpi.label" class="text-center">
+                            <p class="text-3xl font-black leading-none tabular-nums" :style="`color:${kpi.color}`">{{ kpi.val }}</p>
+                            <p class="mt-1 text-[9px] font-black uppercase tracking-[0.18em]" style="color:rgba(255,255,255,0.35)">{{ kpi.label }}</p>
                         </div>
                     </div>
-                    <p class="mt-4 text-[28px] font-black text-on-surface tracking-tight leading-none">{{ s.value }}</p>
-                    <p class="mt-1.5 text-[12px] font-semibold text-on-surface-variant">{{ s.label }}</p>
+                </div>
+            </div>
+
+            <!-- ── Stat tiles (icon-tile palette: brand/cyan/magenta/gold) ── -->
+            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div v-for="(card, i) in [
+                    { label: 'Total courses',   val: stats.total,      sub: 'In catalogue',          cls: 'icon-brand',   icon: 'menu_book' },
+                    { label: 'Published',       val: stats.published,  sub: 'Live to learners',      cls: 'icon-cyan',    icon: 'visibility' },
+                    { label: 'My enrolments',   val: stats.enrolments, sub: 'Across visible list',   cls: 'icon-magenta', icon: 'school' },
+                    { label: 'Catalogue hours', val: stats.hours,      sub: 'Total content depth',   cls: 'icon-gold',    icon: 'schedule' },
+                ]" :key="card.label"
+                     class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
+                     :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.06}s`">
+                    <div class="icon-tile" :class="card.cls">
+                        <span class="material-symbols-outlined">{{ card.icon }}</span>
+                    </div>
+                    <p class="mt-3 text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
+                    <p class="mt-1 text-[28px] font-black tabular-nums text-primary leading-none">{{ card.val }}</p>
+                    <p class="mt-1 text-[10px] font-semibold text-on-surface-variant">{{ card.sub }}</p>
                 </div>
             </div>
 
@@ -336,7 +359,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <!-- Hero gradient strip -->
                     <div
                         class="relative h-28 flex items-end p-3 overflow-hidden"
-                        style="background:linear-gradient(135deg,rgba(32,82,149,0.80),rgba(44,116,179,0.60))"
+                        style="background:linear-gradient(135deg,rgba(26, 35, 126,0.80),rgba(57, 73, 171,0.60))"
                         :style="c.category_color ? `background:linear-gradient(135deg,${c.category_color}cc,${c.category_color}80)` : ''"
                     >
                         <!-- Background cover image if available -->
@@ -356,7 +379,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         <div class="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between z-10">
                             <span
                                 class="rounded-lg bg-white/90 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.10em]"
-                                :style="`color:${c.category_color ?? '#205295'}`"
+                                :style="`color:${c.category_color ?? '#1a237e'}`"
                             >{{ c.category_label }}</span>
 
                             <span
@@ -426,7 +449,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 @click="enrol(c, $event)"
                                 :disabled="!c.is_published && !canManage"
                                 class="btn-shimmer flex-1 rounded-xl px-3 py-2 text-[12px] font-bold text-white disabled:opacity-50 transition-all"
-                                style="background:linear-gradient(135deg,#0a2647,#205295)"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
                                 <span class="material-symbols-outlined text-[14px] mr-1 align-middle">add_task</span>
                                 {{ c.my_enrolment ? 'Continue' : 'Enrol' }}
@@ -466,7 +489,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             v-if="canManage"
                             @click="showCreate = true"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0a2647,#205295)"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[18px]">add</span>
                             Publish Course
@@ -501,12 +524,12 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                 <!-- Hero -->
                 <div
                     class="relative h-32 rounded-2xl overflow-hidden flex items-end p-4"
-                    :style="`background:linear-gradient(135deg,${selectedCourse.category_color ?? '#205295'}cc,${selectedCourse.category_color ?? '#2c74b3'}80)`"
+                    :style="`background:linear-gradient(135deg,${selectedCourse.category_color ?? '#1a237e'}cc,${selectedCourse.category_color ?? '#3949ab'}80)`"
                 >
-                    <img v-if="selectedCourse.cover_image" :src="selectedCourse.cover_image" class="absolute inset-0 h-full w-full object-cover opacity-30" />
+                    <img v-if="selectedCourse.cover_image" :src="selectedCourse.cover_image" alt="" class="absolute inset-0 h-full w-full object-cover opacity-30" />
                     <div class="relative z-10">
                         <span class="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.10em]"
-                              :style="`color:${selectedCourse.category_color ?? '#205295'}`">
+                              :style="`color:${selectedCourse.category_color ?? '#1a237e'}`">
                             {{ selectedCourse.category_label }}
                         </span>
                     </div>
@@ -589,7 +612,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         @click="enrol(selectedCourse, $event); showDetailPanel = false"
                         :disabled="!selectedCourse.is_published && !canManage"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span class="material-symbols-outlined text-[16px]">add_task</span>
                         Enrol Now
@@ -714,7 +737,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
 
                 <!-- Publish toggle -->
                 <label class="flex items-center gap-3 rounded-xl border border-outline-variant/60 bg-surface-container/40 px-4 py-3 cursor-pointer">
-                    <input type="checkbox" v-model="createForm.is_published" class="h-4 w-4 rounded border-outline-variant accent-secondary" />
+                    <input type="checkbox" v-model="createForm.is_published" aria-label="Publish course immediately" class="h-4 w-4 rounded border-outline-variant accent-secondary" />
                     <div>
                         <p class="text-[13px] font-semibold text-on-surface">Publish immediately</p>
                         <p class="text-[11px] text-on-surface-variant/70">Employees will be able to see and enrol in this course right away.</p>
@@ -733,7 +756,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         @click="submitCreate"
                         :disabled="createForm.processing"
                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0a2647,#205295)"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                     >
                         <span v-if="createForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         {{ createForm.processing ? 'Publishingâ€¦' : 'Publish Course' }}

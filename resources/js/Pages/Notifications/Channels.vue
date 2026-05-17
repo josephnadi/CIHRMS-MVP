@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, reactive } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
@@ -18,8 +18,8 @@ const form = useForm({
 });
 
 const channels = reactive([
-    { key: 'email',    label: 'Email',         desc: 'Receive HR notifications in your inbox.',                  icon: 'mail',     color: '#205295' },
-    { key: 'in_app',   label: 'In-app',        desc: 'Show notifications inside CIHRMS.',                        icon: 'campaign', color: '#205295' },
+    { key: 'email',    label: 'Email',         desc: 'Receive HR notifications in your inbox.',                  icon: 'mail',     color: '#1a237e' },
+    { key: 'in_app',   label: 'In-app',        desc: 'Show notifications inside CIHRMS.',                        icon: 'campaign', color: '#1a237e' },
     { key: 'whatsapp', label: 'WhatsApp',      desc: 'Get template messages on WhatsApp Business.',              icon: 'sms',      color: '#22c55e' },
     { key: 'slack',    label: 'Slack',         desc: 'Direct messages from the CIHRMS Slack bot.',               icon: 'chat',     color: '#4a154b' },
     { key: 'teams',    label: 'Microsoft Teams',desc: 'Adaptive cards posted to the configured HR channel.',     icon: 'forum',    color: '#5059c9' },
@@ -112,7 +112,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                 </div>
 
                 <label class="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" v-model="form.whatsapp_consent" class="mt-0.5 h-4 w-4 rounded border-outline-variant" />
+                    <input type="checkbox" v-model="form.whatsapp_consent" aria-label="Consent to WhatsApp notifications" class="mt-0.5 h-4 w-4 rounded border-outline-variant" />
                     <span class="text-[12px] text-on-surface-variant">
                         I consent to receive HR notifications from CIHRMS on WhatsApp at the number above.
                     </span>
@@ -146,7 +146,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                     type="submit"
                     :disabled="form.processing"
                     class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow hover:-translate-y-px transition-all disabled:opacity-60"
-                    style="background:linear-gradient(135deg,#0a2647,#205295)"
+                    style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                 >
                     <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">save</span>
                     {{ form.processing ? 'Saving…' : 'Save preferences' }}
