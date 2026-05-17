@@ -1,14 +1,109 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import { useSound } from '@/composables/useSound';
 
 const page  = usePage();
 const items = computed(() => page.props.announcementTicker ?? []);
+const sfx   = useSound();
+let knownIds = new Set();
 
-const paused   = ref(false);
-const dismissed = ref(false);
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const paused       = ref(false);
+const dismissed    = ref(false);
+const refreshing   = ref(false);
+const lastSyncedAt = ref(new Date());
+const pulse        = ref(0); // bumps when items change â†’ triggers content fade
 
-const speedSec = computed(() => Math.max(28, items.value.length * 6));
+// â”€â”€ Polling: every 60s, partial-reload only the ticker payload â”€â”€â”€â”€
+const POLL_MS = 60_000;
+let pollHandle = null;
+
+const refreshNow = () => {
+    if (document.hidden) return; // skip when tab is backgrounded
+    refreshing.value = true;
+    router.reload({
+        only: ['announcementTicker', 'notifications', 'notificationCount'],
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            refreshing.value = false;
+            lastSyncedAt.value = new Date();
+        },
+    });
+};
+
+const startPolling = () => {
+    stopPolling();
+    pollHandle = setInterval(refreshNow, POLL_MS);
+};
+const stopPolling = () => {
+    if (pollHandle) {
+        clearInterval(pollHandle);
+        pollHandle = null;
+    }
+};
+
+const handleVisibility = () => {
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        refreshNow();
+        startPolling();
+    }
+};
+
+onMounted(() => {
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+});
+onBeforeUnmount(() => {
+    stopPolling();
+    document.removeEventListener('visibilitychange', handleVisibility);
+});
+
+// Bump pulse counter + chime when the item set changes
+watch(
+    () => items.value.map(i => i.id).join('|'),
+    () => {
+        pulse.value++;
+
+        // Detect genuinely new items (skip first paint so we don't chime on cold load)
+        if (knownIds.size > 0) {
+            const fresh = items.value.filter(i => !knownIds.has(i.id));
+            if (fresh.length > 0) {
+                const first = fresh[0];
+                const sound = first.type === 'birthday' ? 'announcement'
+                            : first.type === 'task'     ? 'assigned.you'
+                            : first.type === 'event'    ? 'event.created'
+                            : first.severity === 'urgent' ? 'warning'
+                            : 'announcement';
+                sfx.play(sound);
+            }
+        }
+        knownIds = new Set(items.value.map(i => i.id));
+    },
+);
+onMounted(() => { knownIds = new Set(items.value.map(i => i.id)); });
+
+// â”€â”€ Visual helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const speedSec = computed(() => Math.max(32, items.value.length * 7));
+
+// Friendly "synced 2m ago" label
+const syncedAgo = ref('just now');
+let agoHandle = null;
+const refreshAgo = () => {
+    const secs = Math.max(1, Math.round((Date.now() - lastSyncedAt.value.getTime()) / 1000));
+    if (secs < 60)        syncedAgo.value = `synced ${secs}s ago`;
+    else if (secs < 3600) syncedAgo.value = `synced ${Math.round(secs / 60)}m ago`;
+    else                  syncedAgo.value = `synced ${Math.round(secs / 3600)}h ago`;
+};
+onMounted(() => {
+    refreshAgo();
+    agoHandle = setInterval(refreshAgo, 10_000);
+});
+onBeforeUnmount(() => { if (agoHandle) clearInterval(agoHandle); });
+watch(lastSyncedAt, refreshAgo);
 
 const severityClass = (sev) => ({
     info:      'text-secondary',
@@ -16,90 +111,355 @@ const severityClass = (sev) => ({
     urgent:    'text-brand-magenta',
 }[sev] || 'text-on-surface-variant');
 
-const typeAccentClass = (type) => ({
+const typeAccent = (type) => ({
     notice:   'before:bg-secondary',
     event:    'before:bg-brand-cyan',
     birthday: 'before:bg-brand-magenta',
     task:     'before:bg-brand-gold',
-    system:   'before:bg-on-surface-variant',
+    system:   'before:bg-brand-blue-bright',
 }[type] || 'before:bg-on-surface-variant/60');
 </script>
 
 <template>
-    <div v-if="items.length && !dismissed"
-         class="relative isolate flex h-9 w-full items-center overflow-hidden border-b border-outline-variant/60 bg-gradient-to-r from-surface-container-lowest via-surface-container-lowest to-surface-container-low"
-         @mouseenter="paused = true"
-         @mouseleave="paused = false">
+    <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0 -translate-y-2"
+    >
+        <div v-if="items.length && !dismissed"
+             class="tk-shell"
+             role="status"
+             aria-live="polite"
+             aria-label="Organisation notices"
+             @mouseenter="paused = true"
+             @mouseleave="paused = false">
 
-        <!-- Leading label chip -->
-        <div class="z-20 flex h-full items-center gap-2 border-r border-outline-variant/60 bg-brand-navy px-3 text-white">
-            <span class="material-symbols-outlined text-[16px] text-brand-gold" style="font-variation-settings:'FILL' 1">campaign</span>
-            <span class="text-[10px] font-black uppercase tracking-[0.15em]">Notice board</span>
-        </div>
-
-        <!-- Left fade -->
-        <div class="pointer-events-none absolute left-[120px] top-0 z-10 h-full w-10 bg-gradient-to-r from-surface-container-lowest to-transparent"></div>
-
-        <!-- Marquee track -->
-        <div class="relative flex flex-1 overflow-hidden">
-            <div class="flex shrink-0 items-center gap-7 whitespace-nowrap pl-6 pr-7 will-change-transform"
-                 :class="paused ? 'tk-track tk-pause' : 'tk-track'"
-                 :style="`--tk-duration:${speedSec}s`">
-                <template v-for="item in items" :key="`a-${item.id}`">
-                    <component :is="item.link_url ? 'a' : 'span'"
-                               :href="item.link_url ?? undefined"
-                               class="group relative inline-flex items-center gap-2 pl-3 text-[12.5px] font-medium text-on-surface
-                                      before:absolute before:left-0 before:top-1/2 before:h-3 before:w-[2px] before:-translate-y-1/2 before:rounded-full
-                                      transition-colors hover:text-secondary"
-                               :class="typeAccentClass(item.type)">
-                        <span class="material-symbols-outlined text-[15px]" :class="severityClass(item.severity)" style="font-variation-settings:'FILL' 1">{{ item.icon }}</span>
-                        <span>{{ item.title }}</span>
-                    </component>
-                </template>
+            <!-- Leading label chip Â· navy with pulsing gold "live" dot -->
+            <div class="tk-label">
+                <span class="tk-live" aria-hidden="true">
+                    <span class="tk-live-dot" :class="{ 'tk-live-dot--spin': refreshing }"></span>
+                    <span class="tk-live-ring"></span>
+                </span>
+                <span class="material-symbols-outlined tk-label-icon" style="font-variation-settings:'FILL' 1">campaign</span>
+                <span class="tk-label-text">Notice board</span>
+                <span class="tk-label-count">{{ items.length }}</span>
             </div>
-            <!-- Duplicate track for seamless loop -->
-            <div class="flex shrink-0 items-center gap-7 whitespace-nowrap pl-6 pr-7 will-change-transform"
-                 :class="paused ? 'tk-track tk-pause' : 'tk-track'"
-                 :style="`--tk-duration:${speedSec}s`"
-                 aria-hidden="true">
-                <template v-for="item in items" :key="`b-${item.id}`">
-                    <component :is="item.link_url ? 'a' : 'span'"
-                               :href="item.link_url ?? undefined"
-                               class="group relative inline-flex items-center gap-2 pl-3 text-[12.5px] font-medium text-on-surface
-                                      before:absolute before:left-0 before:top-1/2 before:h-3 before:w-[2px] before:-translate-y-1/2 before:rounded-full"
-                               :class="typeAccentClass(item.type)">
-                        <span class="material-symbols-outlined text-[15px]" :class="severityClass(item.severity)" style="font-variation-settings:'FILL' 1">{{ item.icon }}</span>
-                        <span>{{ item.title }}</span>
-                    </component>
-                </template>
+
+            <!-- Marquee viewport -->
+            <div class="tk-viewport">
+                <Transition name="tk-cross" mode="out-in">
+                    <div class="tk-rail" :key="pulse">
+                        <!-- Track 1 -->
+                        <div class="tk-track" :class="{ 'tk-paused': paused }"
+                             :style="`--tk-duration:${speedSec}s`">
+                            <template v-for="item in items" :key="`a-${item.id}`">
+                                <component :is="item.link_url ? 'a' : 'span'"
+                                           :href="item.link_url ?? undefined"
+                                           class="tk-item"
+                                           :class="[typeAccent(item.type), `tk-${item.severity}`]">
+                                    <span class="material-symbols-outlined tk-item-icon"
+                                          :class="severityClass(item.severity)"
+                                          style="font-variation-settings:'FILL' 1">{{ item.icon }}</span>
+                                    <span class="tk-item-title">{{ item.title }}</span>
+                                    <span v-if="item.pinned" class="material-symbols-outlined tk-pin" aria-label="Pinned">push_pin</span>
+                                </component>
+                            </template>
+                        </div>
+                        <!-- Track 2 (clone for seamless loop) -->
+                        <div class="tk-track" :class="{ 'tk-paused': paused }"
+                             :style="`--tk-duration:${speedSec}s`"
+                             aria-hidden="true">
+                            <template v-for="item in items" :key="`b-${item.id}`">
+                                <component :is="item.link_url ? 'a' : 'span'"
+                                           :href="item.link_url ?? undefined"
+                                           class="tk-item"
+                                           :class="[typeAccent(item.type), `tk-${item.severity}`]">
+                                    <span class="material-symbols-outlined tk-item-icon"
+                                          :class="severityClass(item.severity)"
+                                          style="font-variation-settings:'FILL' 1">{{ item.icon }}</span>
+                                    <span class="tk-item-title">{{ item.title }}</span>
+                                    <span v-if="item.pinned" class="material-symbols-outlined tk-pin" aria-label="Pinned">push_pin</span>
+                                </component>
+                            </template>
+                        </div>
+                    </div>
+                </Transition>
+
+                <!-- Edge fades -->
+                <div class="tk-fade tk-fade--left" aria-hidden="true"></div>
+                <div class="tk-fade tk-fade--right" aria-hidden="true"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="tk-ctl">
+                <span class="tk-synced" :title="lastSyncedAt.toLocaleTimeString()">{{ syncedAgo }}</span>
+                <button type="button" class="tk-btn"
+                        :title="paused ? 'Resume' : 'Pause'"
+                        :aria-label="paused ? 'Resume scrolling' : 'Pause scrolling'"
+                        @click="paused = !paused">
+                    <span class="material-symbols-outlined">{{ paused ? 'play_arrow' : 'pause' }}</span>
+                </button>
+                <button type="button" class="tk-btn"
+                        title="Refresh now"
+                        aria-label="Refresh notices"
+                        @click="refreshNow">
+                    <span class="material-symbols-outlined" :class="{ 'tk-spin': refreshing }">refresh</span>
+                </button>
+                <button type="button" class="tk-btn tk-btn--close"
+                        title="Dismiss"
+                        aria-label="Hide notice ticker"
+                        @click="dismissed = true">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
         </div>
-
-        <!-- Right fade -->
-        <div class="pointer-events-none absolute right-9 top-0 z-10 h-full w-10 bg-gradient-to-l from-surface-container-lowest to-transparent"></div>
-
-        <!-- Dismiss -->
-        <button type="button" @click="dismissed = true"
-                class="z-20 flex h-full w-9 items-center justify-center border-l border-outline-variant/60 text-on-surface-variant/60 transition-colors hover:bg-surface-container-low hover:text-on-surface"
-                aria-label="Hide notice ticker">
-            <span class="material-symbols-outlined text-[16px]">close</span>
-        </button>
-    </div>
+    </Transition>
 </template>
 
 <style scoped>
-.tk-track {
-    animation: tk-scroll var(--tk-duration, 40s) linear infinite;
+/* â”€â”€â”€ Shell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tk-shell {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    height: 38px;
+    width: 100%;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 60%),
+        linear-gradient(90deg, #1a237e 0%, #283593 55%, #3949ab 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.18), 0 4px 18px -8px rgba(13, 20, 82,0.55);
+    color: #e8eef7;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    isolation: isolate;
+    z-index: 30;
 }
-.tk-pause {
-    animation-play-state: paused;
-}
-@keyframes tk-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-100%); }
+/* Faint reading-grid texture */
+.tk-shell::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 80px);
+    pointer-events: none;
+    z-index: 0;
 }
 
+/* â”€â”€â”€ Leading label Â· navy chip with gold "live" pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tk-label {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 16px 0 14px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,215,0,0.02));
+    border-right: 1px solid rgba(255,215,0,0.18);
+    color: #ffd700;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    z-index: 2;
+}
+.tk-label-icon  { font-size: 17px; line-height: 1; opacity: 0.9; }
+.tk-label-text  { line-height: 1; }
+.tk-label-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 5px;
+    background: #ffd700;
+    color: #070b3a;
+    border-radius: 99px;
+    font-size: 9.5px;
+    font-weight: 900;
+    letter-spacing: 0;
+    box-shadow: 0 0 12px rgba(255,215,0,0.32);
+}
+
+/* Live dot pulse */
+.tk-live {
+    position: relative;
+    width: 10px; height: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.tk-live-dot {
+    position: relative;
+    width: 6px; height: 6px;
+    background: #ffd700;
+    border-radius: 99px;
+    box-shadow: 0 0 10px rgba(255,215,0,0.7);
+    z-index: 1;
+}
+.tk-live-dot--spin {
+    background: #12d9e3;
+    box-shadow: 0 0 12px rgba(18,217,227,0.85);
+}
+.tk-live-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 99px;
+    border: 1.5px solid rgba(255,215,0,0.5);
+    animation: tk-pulse 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes tk-pulse {
+    0%   { transform: scale(0.5); opacity: 0.9; }
+    80%  { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* â”€â”€â”€ Viewport + marquee â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tk-viewport {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+}
+.tk-rail {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+.tk-track {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0;
+    white-space: nowrap;
+    padding: 0 18px;
+    will-change: transform;
+    animation: tk-scroll var(--tk-duration, 36s) linear infinite;
+}
+.tk-paused { animation-play-state: paused; }
+.tk-viewport:hover .tk-track { animation-play-state: paused; }
+
+@keyframes tk-scroll {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-100%, 0, 0); }
+}
+
+/* Cross-fade when items change (refresh tick) */
+.tk-cross-enter-active,
+.tk-cross-leave-active { transition: opacity 0.32s ease; }
+.tk-cross-enter-from,
+.tk-cross-leave-to     { opacity: 0; }
+
+/* â”€â”€â”€ Item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tk-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px 0 14px;
+    margin-right: 6px;
+    height: 28px;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.88);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    transition: color 0.15s ease, background 0.18s ease;
+}
+.tk-item::before {
+    content: '';
+    position: absolute;
+    left: 6px; top: 7px; bottom: 7px;
+    width: 2px;
+    border-radius: 2px;
+}
+.tk-item:hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.06);
+}
+.tk-item-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+.tk-item-title { line-height: 1; padding-top: 1px; }
+
+/* Severity-keyed left-rail intensity */
+.tk-item.tk-urgent    { color: #ffe2ec; }
+.tk-item.tk-urgent::before    { background: #d912e3; box-shadow: 0 0 8px rgba(217,18,227,0.65); }
+.tk-item.tk-important { color: #fff5d6; }
+.tk-item.tk-important::before { background: #ffd700; }
+
+/* Pin indicator */
+.tk-pin {
+    font-size: 13px;
+    margin-left: 2px;
+    color: #ffd700;
+    transform: rotate(35deg);
+}
+
+/* Edge fades */
+.tk-fade {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 56px;
+    pointer-events: none;
+    z-index: 2;
+}
+.tk-fade--left  { left: 0;  background: linear-gradient(90deg,  #1a237e, transparent); }
+.tk-fade--right { right: 0; background: linear-gradient(270deg, #3949ab, transparent); }
+
+/* â”€â”€â”€ Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tk-ctl {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 6px 0 10px;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+    z-index: 2;
+}
+.tk-synced {
+    margin-right: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.42);
+    white-space: nowrap;
+}
+.tk-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    color: rgba(255,255,255,0.55);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+.tk-btn:hover { color: #ffffff; background: rgba(255,255,255,0.08); }
+.tk-btn--close:hover { color: #ffe2ec; background: rgba(217,18,227,0.18); }
+.tk-btn .material-symbols-outlined { font-size: 16px; }
+
+.tk-spin { animation: tk-rotate 0.9s linear infinite; }
+@keyframes tk-rotate {
+    to { transform: rotate(360deg); }
+}
+
+/* â”€â”€â”€ Reduced motion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (prefers-reduced-motion: reduce) {
-    .tk-track { animation: none; }
+    .tk-track     { animation: none; }
+    .tk-live-ring { animation: none; }
+    .tk-spin      { animation: none; }
+}
+
+/* â”€â”€â”€ Small screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@media (max-width: 640px) {
+    .tk-label-text { display: none; }
+    .tk-label      { padding: 0 10px 0 8px; gap: 6px; }
+    .tk-synced     { display: none; }
+    .tk-item       { padding: 0 12px 0 10px; font-size: 12px; }
 }
 </style>
