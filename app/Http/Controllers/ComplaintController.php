@@ -18,10 +18,22 @@ class ComplaintController extends Controller
 
     public function index(Request $request): Response
     {
+        // Users with complaints.manage are the candidate investigators — these
+        // populate the inline reassignment dropdown on each row.
+        $investigators = \App\Models\User::query()
+            ->whereHas('roles.permissions', fn ($q) => $q->where('slug', 'complaints.manage'))
+            ->orWhere('role', 'super_admin')
+            ->orWhere('role', 'hr_admin')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->limit(50)
+            ->get();
+
         return Inertia::render('Complaints/Index', [
-            'complaints'   => ComplaintResource::collection($this->complaints->list($request->status)),
-            'filters'      => $request->only(['status']),
-            'activeModule' => 'governance',
+            'complaints'    => ComplaintResource::collection($this->complaints->list($request->status)),
+            'filters'       => $request->only(['status']),
+            'investigators' => $investigators,
+            'activeModule'  => 'governance',
         ]);
     }
 

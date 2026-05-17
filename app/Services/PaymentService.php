@@ -7,6 +7,7 @@ use App\Http\Requests\Payment\GeneratePayslipRequest;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Models\Payment;
 use App\Models\PayrollItem;
+use App\Support\DbExpr;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
@@ -199,14 +200,9 @@ class PaymentService
 
     private function volumeByMonth(): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
         $start = now()->subMonths(11)->startOfMonth();
 
-        $paid = Payment::selectRaw(
-                $isSqlite
-                    ? "strftime('%Y-%m', paid_at) as period, SUM(amount) as total"
-                    : "to_char(paid_at, 'YYYY-MM') as period, SUM(amount) as total"
-            )
+        $paid = Payment::selectRaw(DbExpr::yearMonth('paid_at') . ' as period, SUM(amount) as total')
             ->whereNotNull('paid_at')
             ->where('paid_at', '>=', $start)
             ->where('status', PaymentStatus::Paid->value)

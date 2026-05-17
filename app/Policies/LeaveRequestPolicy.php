@@ -42,4 +42,17 @@ class LeaveRequestPolicy
         return $user->hasPermission('leave.approve')
             && $user->managesDepartment($leave->employee?->department_id);
     }
+
+    /**
+     * Cancel-own — the requester can withdraw their own leave while it is
+     * still Pending. HR with leave.manage can cancel anyone's. Once a request
+     * is Approved or Rejected the workflow is closed; if you really need to
+     * undo that, do it through approval-reversal, not this path.
+     */
+    public function cancel(User $user, LeaveRequest $leave): bool
+    {
+        if ($leave->status?->value !== 'pending') return false;
+        if ($user->hasPermission('leave.manage')) return true;
+        return $leave->employee?->user_id === $user->id;
+    }
 }

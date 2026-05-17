@@ -15,9 +15,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable([
-    'name', 'email', 'password', 'role', 'permissions', 'staff_id',
+    'name', 'email', 'locale', 'password', 'role', 'permissions', 'staff_id',
     // Wave 12 — messaging preferences
     'notification_channels', 'whatsapp_phone', 'whatsapp_consent_at', 'slack_user_id',
     // Phase 1 — TOTP 2FA
@@ -30,24 +31,46 @@ use Illuminate\Support\Facades\Cache;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     /**
-     * Legacy fallback table — used for seeding and backwards-compat only.
-     * The DB-backed `roles` + `role_permissions` tables are the source of truth.
+     * Legacy fallback table — mirror of \Database\Seeders\RolePermissionSeeder::ROLE_PERMS.
+     *
+     * Two paths read this map:
+     *  • production code when the DB-backed `roles` relation isn't eager-loaded
+     *  • test factories that create a User with `role` but don't attach DB roles
+     *
+     * Keep this list in lock-step with the seeder. If you grant a permission to
+     * a role in the seeder, mirror it here — otherwise authorisation will drift
+     * between fresh-seeded DBs and test/factory-only flows.
      */
     public const ROLE_PERMISSIONS = [
         'super_admin' => ['*'],
         'hr_admin' => [
-            'dashboard.view', 'employees.manage', 'employees.view',
-            'leave.request', 'leave.manage', 'leave.approve',
+            'dashboard.view', 'employees.view', 'employees.manage', 'employees.transfer',
+            'employees.view_salary',
+            'leave.request', 'leave.approve', 'leave.manage',
             'tickets.create', 'tickets.manage',
             'complaints.create', 'complaints.manage',
-            'recruitment.manage', 'recruitment.apply',
-            'integrations.manage',
-            'performance.view', 'performance.manage',
+            'recruitment.apply', 'recruitment.manage',
+            'payroll.view', 'payroll.run', 'payroll.view_all',
+            'positions.view', 'positions.manage', 'grades.manage',
+            'identity.view', 'identity.verify',
+            'attendance.view', 'attendance.manage', 'attendance.clock_self', 'attendance.shift_manage',
+            'attendance.approve', 'attendance.correct',
+            'loans.view', 'loans.apply', 'loans.manage', 'loans.product_manage',
+            'offboarding.view', 'offboarding.initiate', 'offboarding.clear',
+            'offboarding.settle', 'offboarding.manage',
+            'performance.view', 'performance.manage', 'performance.calibrate', 'performance.pip_manage',
             'learning.view', 'learning.manage',
+            'assets.view', 'assets.manage', 'assets.assign',
+            'messaging.view', 'messaging.send', 'messaging.manage',
+            'sso.manage', 'sso.audit_view',
+            'benefits.view', 'benefits.view_all', 'benefits.manage', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
             'announcements.manage',
+            'reports.view',
+            'integrations.manage', 'users.manage',
             // HR sees every department portal for cross-functional oversight.
             'portal.hr', 'portal.it', 'portal.finance', 'portal.marketing',
         ],
@@ -55,36 +78,67 @@ class User extends Authenticatable
             'dashboard.view', 'employees.view',
             'leave.request', 'leave.approve',
             'tickets.create', 'tickets.manage',
-            'complaints.create', 'recruitment.apply', 'reports.view',
+            'complaints.create', 'recruitment.apply',
+            'attendance.view', 'attendance.clock_self',
+            'attendance.approve', 'attendance.correct',
             'performance.view', 'performance.manage',
             'learning.view', 'learning.manage',
+            'assets.view', 'assets.assign',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
+            'reports.view',
         ],
         'dept_head' => [
-            'dashboard.view', 'employees.view',
+            'dashboard.view', 'employees.view', 'employees.transfer',
             'leave.request', 'leave.approve',
             'tickets.create', 'tickets.manage',
-            'complaints.create', 'recruitment.apply', 'reports.view',
+            'complaints.create', 'recruitment.apply',
+            'positions.view',
+            'attendance.view', 'attendance.clock_self',
+            'attendance.approve', 'attendance.correct',
             'performance.view', 'performance.manage',
             'learning.view', 'learning.manage',
+            'assets.view', 'assets.assign',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
+            'reports.view',
         ],
         'employee' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
+            'attendance.clock_self', 'attendance.correct',
             'performance.view',
             'learning.view',
+            'loans.apply',
+            'assets.view',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
         ],
         'finance_officer' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
-            'payroll.manage', 'reports.view',
+            'payroll.view', 'payroll.manage', 'payroll.approve', 'payroll.view_all', 'statutory.export',
+            'employees.view_salary',
+            'attendance.correct',
+            'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
+            'payroll.disburse',
+            'offboarding.view', 'offboarding.settle', 'offboarding.approve',
             'learning.view',
+            'assets.view',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
+            'reports.view',
             'portal.finance',
         ],
         'it_support' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
+            'attendance.correct',
             'learning.view',
+            'assets.view', 'assets.manage', 'assets.assign',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
             'portal.it',
         ],
         'marketing' => [
@@ -94,10 +148,18 @@ class User extends Authenticatable
             'portal.marketing',
         ],
         'auditor' => [
-            'dashboard.view',
+            'dashboard.view', 'employees.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'reports.view', 'audit.view',
+            'payroll.view_all', 'positions.view', 'identity.view', 'statutory.export',
+            'attendance.view', 'attendance.correct',
             'learning.view',
+            'assets.view',
+            'whistleblower.view_all', 'whistleblower.investigate',
+            'performance.calibrate_apply',
+            'privacy.fulfill',
+            'benefits.view', 'benefits.enrol', 'benefits.claim',
+            'governance.view', 'governance.acknowledge',
         ],
     ];
 

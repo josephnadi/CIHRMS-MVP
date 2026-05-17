@@ -16,7 +16,17 @@ class UpdateComplaintStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::enum(ComplaintStatus::class)],
+            'status'      => ['sometimes', Rule::enum(ComplaintStatus::class)],
+            'assigned_to' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($v) {
+            if (! $this->hasAny(['status', 'assigned_to'])) {
+                $v->errors()->add('status', 'Provide at least a status change or a new assignee.');
+            }
+        });
     }
 }

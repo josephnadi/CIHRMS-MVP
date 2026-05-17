@@ -68,9 +68,9 @@ class RecruitmentController extends Controller
         return back()->with('success', 'Job posting created successfully.');
     }
 
-    public function apply(ApplyJobRequest $request, JobPosting $jobPosting): RedirectResponse
+    public function apply(ApplyJobRequest $request, JobPosting $job): RedirectResponse
     {
-        $this->recruitment->apply($request, $jobPosting);
+        $this->recruitment->apply($request, $job);
 
         return back()->with('success', 'Application submitted successfully.');
     }

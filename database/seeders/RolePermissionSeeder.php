@@ -113,6 +113,10 @@ class RolePermissionSeeder extends Seeder
         'privacy.fulfill'           => ['Privacy', 'Fulfil/reject data-subject requests (DPO role)'],
         'privacy.erase'             => ['Privacy', 'Execute right-to-erasure tombstoning (super-admin gate)'],
 
+        // ── Phase 3: Public API (WS16) ──
+        'api.token_manage'          => ['API',     'Issue and revoke partner API tokens'],
+        'api.webhooks_manage'       => ['API',     'Register and manage webhook subscriptions'],
+
         // ── Phase 2: Performance Management completion ──
         // Calibration uses dual-control: facilitator locks, a different user applies.
         'performance.calibrate'       => ['Performance', 'Facilitate calibration sessions and record adjustments'],
@@ -123,6 +127,15 @@ class RolePermissionSeeder extends Seeder
         'assets.view'            => ['Assets',       'View asset registry'],
         'assets.manage'          => ['Assets',       'Register, assign, return, retire assets'],
         'assets.assign'          => ['Assets',       'Assign assets within own department'],
+
+        // ── Phase 3: Messaging (SMS / USSD) ──
+        'messaging.view'    => ['Messaging', 'View SMS log and inbound messages'],
+        'messaging.send'    => ['Messaging', 'Send one-off SMS to a phone number'],
+        'messaging.manage'  => ['Messaging', 'Issue / rotate USSD self-service PINs'],
+
+        // ── Phase 4: SSO (NITA / OIDC / SAML) ──
+        'sso.manage'        => ['SSO',       'Configure identity providers (NITA, Azure, ghana.gov)'],
+        'sso.audit_view'    => ['SSO',       'View SSO login attempt audit log'],
 
         // ── Phase 4: Benefits ──
         'benefits.view'      => ['Benefits',     'View own benefits, plans, claims'],
@@ -164,6 +177,8 @@ class RolePermissionSeeder extends Seeder
             'offboarding.settle', 'offboarding.manage',
             'performance.calibrate', 'performance.pip_manage',
             'assets.view', 'assets.manage', 'assets.assign',
+            'messaging.view', 'messaging.send', 'messaging.manage',
+            'sso.manage', 'sso.audit_view',
             'benefits.view', 'benefits.view_all', 'benefits.manage', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
             'announcements.manage',

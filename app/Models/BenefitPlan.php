@@ -21,6 +21,18 @@ class BenefitPlan extends Model
         'max_dependants', 'cover_details',
     ];
 
+    /**
+     * Model-level defaults so a fresh instance reads back the same value the
+     * migration writes on insert. Without this, BenefitsService::enrol() sees
+     * is_active = null on the in-memory model immediately after create() and
+     * throws "Plan X is not active" until the row is reloaded.
+     */
+    protected $attributes = [
+        'is_active'       => true,
+        'employee_contribution_percentage' => 0,
+        'max_dependants'  => 0,
+    ];
+
     protected function casts(): array
     {
         return [

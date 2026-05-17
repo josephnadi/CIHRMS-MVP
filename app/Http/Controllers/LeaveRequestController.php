@@ -22,7 +22,7 @@ class LeaveRequestController extends Controller
         $employee = $request->user()->employee;
 
         return Inertia::render('Leave/Index', [
-            'leaveRequests' => LeaveRequestResource::collection($this->leaves->list($request)),
+            'leaves'        => LeaveRequestResource::collection($this->leaves->list($request)),
             'balances'      => $employee
                 ? LeaveBalanceResource::collection($this->leaves->balances($employee->id, now()->year))
                 : [],
@@ -51,5 +51,19 @@ class LeaveRequestController extends Controller
         $this->leaves->updateStatus($request, $leaveRequest);
 
         return back()->with('success', 'Leave status updated.');
+    }
+
+    /**
+     * Cancel (withdraw) a still-pending leave request. The requester can
+     * cancel their own; HR with leave.manage can cancel anyone's. Approved
+     * requests can't be cancelled from here — those go through reversal.
+     */
+    public function destroy(Request $request, LeaveRequest $leaveRequest): RedirectResponse
+    {
+        $this->authorize('cancel', $leaveRequest);
+
+        $leaveRequest->delete();
+
+        return back()->with('success', 'Leave request withdrawn.');
     }
 }

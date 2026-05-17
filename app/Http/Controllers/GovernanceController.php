@@ -36,9 +36,44 @@ class GovernanceController extends Controller
             ->orderBy('title')
             ->get();
 
+        $pendingAckIds = $this->service->pendingAcksFor($request->user())->pluck('id');
+
+        // Category distribution — feeds the analytical band on the redesigned page
+        $categoryDistribution = $policies
+            ->groupBy('category')
+            ->map(fn ($group) => $group->count())
+            ->all();
+
+        // Per-user acknowledgement compliance roll-up
+        $totalPolicies  = $policies->count();
+        $publishedCount = $policies->whereNotNull('current_version_id')->count();
+        $pendingForMe   = $pendingAckIds->count();
+        $myAcked        = max(0, $publishedCount - $pendingForMe);
+
+        // Certifications telemetry — surfaced inline so users see compliance
+        // status without leaving the page
+        $certStats = [
+            'total'        => Certification::count(),
+            'expiring_30d' => Certification::whereNotNull('expires_at')
+                ->whereBetween('expires_at', [now(), now()->addDays(30)])
+                ->count(),
+            'expired'      => Certification::whereNotNull('expires_at')
+                ->where('expires_at', '<', now())
+                ->count(),
+        ];
+
         return Inertia::render('Governance/Index', [
-            'policies'        => PolicyResource::collection($policies),
-            'pending_ack_ids' => $this->service->pendingAcksFor($request->user())->pluck('id'),
+            'policies'             => PolicyResource::collection($policies),
+            'pending_ack_ids'      => $pendingAckIds,
+            'categoryDistribution' => $categoryDistribution,
+            'stats'                => [
+                'total_policies'  => $totalPolicies,
+                'published_count' => $publishedCount,
+                'pending_for_me'  => $pendingForMe,
+                'my_acked_count'  => $myAcked,
+                'my_ack_rate'     => $publishedCount > 0 ? (int) round($myAcked / $publishedCount * 100) : 100,
+            ],
+            'cert_stats'           => $certStats,
         ]);
     }
 

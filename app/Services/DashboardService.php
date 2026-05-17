@@ -11,6 +11,7 @@ use App\Models\LeaveRequest;
 use App\Models\Payment;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Support\DbExpr;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -74,13 +75,7 @@ class DashboardService
 
     public function getLeaveByMonth(int $year): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
-
-        return LeaveRequest::selectRaw(
-                $isSqlite
-                    ? "CAST(strftime('%m', start_date) AS INTEGER) as month, COUNT(*) as total"
-                    : "EXTRACT(MONTH FROM start_date)::int as month, COUNT(*) as total"
-            )
+        return LeaveRequest::selectRaw(DbExpr::month('start_date') . ' as month, COUNT(*) as total')
             ->whereYear('start_date', $year)
             ->approved()
             ->groupBy('month')
@@ -90,13 +85,7 @@ class DashboardService
 
     public function getTicketTrend(): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
-
-        return Ticket::selectRaw(
-                $isSqlite
-                    ? "CAST(strftime('%W', created_at) AS INTEGER) as week, COUNT(*) as total"
-                    : "EXTRACT(WEEK FROM created_at)::int as week, COUNT(*) as total"
-            )
+        return Ticket::selectRaw(DbExpr::week('created_at') . ' as week, COUNT(*) as total')
             ->where('created_at', '>=', now()->subWeeks(12))
             ->groupBy('week')
             ->pluck('total', 'week')
@@ -130,13 +119,9 @@ class DashboardService
         $eventTypes = self::METRIC_EVENT_TYPES[$metric];
         $from = Carbon::today()->subDays($days - 1);
 
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
-        $dateExpr = $isSqlite
-            ? "DATE(created_at)"
-            : "DATE(created_at)";
-
+        // DATE() is supported by SQLite, MySQL, and PostgreSQL — no driver split needed.
         $rows = AnalyticsEvent::query()
-            ->selectRaw("{$dateExpr} as event_date, COUNT(*) as total")
+            ->selectRaw('DATE(created_at) as event_date, COUNT(*) as total')
             ->whereIn('event', $eventTypes)
             ->where('created_at', '>=', $from)
             ->groupBy('event_date')

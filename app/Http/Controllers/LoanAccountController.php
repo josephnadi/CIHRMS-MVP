@@ -13,6 +13,7 @@ use App\Models\LoanAccount;
 use App\Models\LoanProduct;
 use App\Services\Loans\AmortizationCalculator;
 use App\Services\Loans\LoanService;
+use App\Support\DbExpr;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -51,12 +52,43 @@ class LoanAccountController extends Controller
                 ->sum('disbursed_amount'),
         ];
 
+        // Status distribution for the composition donut (all-time snapshot)
+        $statusBreakdown = LoanAccount::query()
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status')
+            ->all();
+
+        // Monthly disbursement trend (last 12 months) for the LiveBars chart
+        $start = now()->subMonths(11)->startOfMonth();
+        $aggRows = LoanAccount::query()
+            ->whereNotNull('disbursed_at')
+            ->where('disbursed_at', '>=', $start)
+            ->selectRaw(DbExpr::yearMonth('disbursed_at') . ' as ym, SUM(disbursed_amount) as total, COUNT(*) as cnt')
+            ->groupBy('ym')
+            ->pluck('total', 'ym')
+            ->all();
+
+        $monthlyDisbursements = [];
+        $cursor = $start->copy();
+        for ($i = 0; $i < 12; $i++) {
+            $ym = $cursor->format('Y-m');
+            $monthlyDisbursements[] = [
+                'label' => $cursor->format('M'),
+                'ym'    => $ym,
+                'value' => round((float) ($aggRows[$ym] ?? 0), 2),
+            ];
+            $cursor = $cursor->copy()->addMonth();
+        }
+
         return Inertia::render('Loans/Index', [
-            'loans'        => LoanAccountResource::collection($loans),
-            'products'     => LoanProductResource::collection(LoanProduct::active()->orderBy('name')->get()),
-            'stats'        => $stats,
-            'filters'      => $request->only(['status', 'product_id', 'q']),
-            'activeModule' => 'loans',
+            'loans'                => LoanAccountResource::collection($loans),
+            'products'             => LoanProductResource::collection(LoanProduct::active()->orderBy('name')->get()),
+            'stats'                => $stats,
+            'statusBreakdown'      => $statusBreakdown,
+            'monthlyDisbursements' => $monthlyDisbursements,
+            'filters'              => $request->only(['status', 'product_id', 'q']),
+            'activeModule'         => 'loans',
         ]);
     }
 
@@ -160,5 +192,58 @@ class LoanAccountController extends Controller
         );
 
         return response()->json($bundle);
+    }
+
+    // ── Loan product catalogue (managed inline with the loans page) ─────
+    // Only finance / loan-product-managers can curate the catalogue; per-route
+    // middleware in routes/web.php enforces `loans.product_manage`.
+
+    public function storeProduct(Request $request): RedirectResponse
+    {
+        $data = $this->validateProduct($request);
+        LoanProduct::create($data);
+        return back()->with('success', 'Loan product created.');
+    }
+
+    public function updateProduct(Request $request, LoanProduct $product): RedirectResponse
+    {
+        $data = $this->validateProduct($request);
+        $product->update($data);
+        return back()->with('success', 'Loan product updated.');
+    }
+
+    public function destroyProduct(LoanProduct $product): RedirectResponse
+    {
+        $loanCount = $product->loans()->count();
+        if ($loanCount > 0) {
+            return back()->with('error',
+                "Cannot delete product: {$loanCount} loan(s) reference it. Deactivate (is_active=false) instead so it stops appearing in the apply flow."
+            );
+        }
+        $product->delete();
+        return back()->with('success', 'Loan product removed.');
+    }
+
+    private function validateProduct(Request $request): array
+    {
+        return $request->validate([
+            'code'                 => ['required', 'string', 'max:30'],
+            'name'                 => ['required', 'string', 'max:120'],
+            'type'                 => ['required', 'string'],
+            'min_amount'           => ['required', 'numeric', 'min:0'],
+            'max_amount'           => ['required', 'numeric', 'gt:0'],
+            'min_term_months'      => ['required', 'integer', 'min:1', 'max:360'],
+            'max_term_months'      => ['required', 'integer', 'min:1', 'max:360'],
+            'annual_interest_rate' => ['required', 'numeric', 'min:0', 'max:1'],
+            'amortization_method'  => ['required', 'string'],
+            'max_dti_ratio'        => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'requires_guarantor'   => ['sometimes', 'boolean'],
+            'requires_collateral'  => ['sometimes', 'boolean'],
+            'approvals_required'   => ['required', 'integer', 'min:1', 'max:5'],
+            'is_active'            => ['sometimes', 'boolean'],
+            'description'          => ['nullable', 'string', 'max:1000'],
+            'effective_from'       => ['required', 'date'],
+            'effective_to'         => ['nullable', 'date', 'after:effective_from'],
+        ]);
     }
 }

@@ -228,7 +228,7 @@ class AttendanceService
         $schedule = $this->shiftService->scheduleFor($employee, $day);
 
         $isNonWorkingDay = ! in_array(
-            strtolower(Carbon::parse($day)->englishDayOfWeek),
+            strtolower(substr(Carbon::parse($day)->englishDayOfWeek, 0, 3)),
             $schedule['working_days'],
             true
         );

@@ -2,9 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -42,5 +44,27 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * After-create hook: if the RBAC schema is in place AND a Role row exists
+     * for the user's primary role slug, attach it via the user_roles pivot.
+     * This mirrors RolePermissionSeeder step 3 so freshly-factoried test users
+     * get the DB-backed permission set automatically — otherwise the Policy
+     * layer 403s every test that depends on a new permission slug introduced
+     * after the legacy User::ROLE_PERMISSIONS map.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            if (! $user->role) return;
+            if (! Schema::hasTable('roles') || ! Schema::hasTable('user_roles')) return;
+
+            $slug = is_object($user->role) ? $user->role->value : $user->role;
+            $role = Role::query()->where('slug', $slug)->first();
+            if ($role) {
+                $user->roles()->syncWithoutDetaching([$role->id => ['department_id' => null]]);
+            }
+        });
     }
 }

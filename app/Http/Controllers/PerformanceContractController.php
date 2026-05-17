@@ -87,6 +87,21 @@ class PerformanceContractController extends Controller
         return back()->with('success', 'Contract sent for signature.');
     }
 
+    public function revoke(Request $request, PerformanceContract $contract): RedirectResponse
+    {
+        // Reuse the draft-side authorisation gate — only supervisors who can
+        // draft the contract can revoke it back to draft.
+        $this->authorize('draft', PerformanceContract::class);
+
+        try {
+            $this->contracts->revoke($contract, $request->user());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Contract revoked back to draft. Adjust KPIs and re-send when ready.');
+    }
+
     public function sign(Request $request, PerformanceContract $contract): RedirectResponse
     {
         $this->authorize('sign', $contract);

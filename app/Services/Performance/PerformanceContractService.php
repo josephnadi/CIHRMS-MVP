@@ -58,6 +58,26 @@ class PerformanceContractService
         return $contract->fresh();
     }
 
+    /**
+     * Revoke a contract that's been sent but not yet signed — returns it to
+     * Draft so the supervisor can amend KPIs before re-sending. Refuses once
+     * any signature is recorded (use Cancel for that path instead, which is
+     * a final-state change).
+     */
+    public function revoke(PerformanceContract $contract, User $actor): PerformanceContract
+    {
+        if ($contract->status !== PerformanceContractStatus::PendingSign) {
+            throw new \DomainException('Only pending-signature contracts can be revoked. Use cancel for active contracts.');
+        }
+        if ($contract->employee_signed_at || $contract->supervisor_signed_at) {
+            throw new \DomainException('Cannot revoke a partially-signed contract — cancel it instead.');
+        }
+        $contract->update([
+            'status' => PerformanceContractStatus::Draft->value,
+        ]);
+        return $contract->fresh();
+    }
+
     public function sign(PerformanceContract $contract, User $signer): PerformanceContract
     {
         if ($contract->status !== PerformanceContractStatus::PendingSign) {

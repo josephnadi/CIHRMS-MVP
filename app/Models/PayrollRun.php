@@ -13,6 +13,29 @@ class PayrollRun extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Auto-populate the human-readable reference on insert if the caller
+     * didn't supply one. Format: PR-{YYYY}-{MM}-{6-hex} — unique per run.
+     * Production code paths (PayrollService::createDraft) already generate
+     * a reference; this fallback keeps the model robust for direct
+     * ::create() calls (e.g. seeders, ad-hoc tests).
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $run) {
+            if (empty($run->reference)) {
+                $year  = (int) ($run->period_year  ?? now()->year);
+                $month = (int) ($run->period_month ?? now()->month);
+                $run->reference = sprintf(
+                    'PR-%04d-%02d-%s',
+                    $year,
+                    $month,
+                    strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)),
+                );
+            }
+        });
+    }
+
     protected $fillable = [
         'reference',
         'period_year', 'period_month', 'period_start', 'period_end',

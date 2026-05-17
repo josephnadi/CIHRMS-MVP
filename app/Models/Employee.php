@@ -48,6 +48,8 @@ class Employee extends Model
         'step_anniversary_date',
         // Pension
         'tier2_trustee_id',
+        // Disbursement preference (cash | bank_transfer | mobile_money | ghipss)
+        'disbursement_channel',
         // Integrations
         'external_crm_id',
     ];

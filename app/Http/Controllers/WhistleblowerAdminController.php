@@ -44,18 +44,48 @@ class WhistleblowerAdminController extends Controller
             ->paginate(25)
             ->withQueryString();
 
+        $totalAllTime = WhistleblowerReport::count();
+        $anonCount    = WhistleblowerReport::where('is_anonymous', true)->count();
+
         $stats = [
-            'open_total'    => WhistleblowerReport::open()->count(),
+            'open_total'      => WhistleblowerReport::open()->count(),
             'awaiting_triage' => WhistleblowerReport::where('status', WhistleblowerStatus::Submitted->value)->count(),
-            'critical_open' => WhistleblowerReport::open()->where('severity', WhistleblowerSeverity::Critical->value)->count(),
-            'closed_ytd'    => WhistleblowerReport::whereYear('closed_at', now()->year)->count(),
+            'critical_open'   => WhistleblowerReport::open()->where('severity', WhistleblowerSeverity::Critical->value)->count(),
+            'closed_ytd'      => WhistleblowerReport::whereYear('closed_at', now()->year)->count(),
+            'total_all_time'  => $totalAllTime,
+            'anonymous_pct'   => $totalAllTime > 0 ? (int) round($anonCount / $totalAllTime * 100) : 0,
+            'overdue_triage'  => WhistleblowerReport::where('status', WhistleblowerStatus::Submitted->value)
+                ->where('received_at', '<', now()->subDays(3))
+                ->count(),
         ];
 
+        // Severity / category / status composition — feed the analytical band
+        $severityBreakdown = WhistleblowerReport::query()
+            ->selectRaw('severity, COUNT(*) as c')
+            ->groupBy('severity')
+            ->pluck('c', 'severity')
+            ->all();
+
+        $categoryBreakdown = WhistleblowerReport::query()
+            ->selectRaw('category, COUNT(*) as c')
+            ->groupBy('category')
+            ->pluck('c', 'category')
+            ->all();
+
+        $statusBreakdown = WhistleblowerReport::query()
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status')
+            ->all();
+
         return Inertia::render('Whistleblower/Admin/Index', [
-            'reports'      => WhistleblowerReportResource::collection($reports),
-            'stats'        => $stats,
-            'filters'      => $request->only(['status', 'severity', 'category']),
-            'activeModule' => 'whistleblower',
+            'reports'           => WhistleblowerReportResource::collection($reports),
+            'stats'             => $stats,
+            'severityBreakdown' => $severityBreakdown,
+            'categoryBreakdown' => $categoryBreakdown,
+            'statusBreakdown'   => $statusBreakdown,
+            'filters'           => $request->only(['status', 'severity', 'category']),
+            'activeModule'      => 'whistleblower',
         ]);
     }
 

@@ -101,6 +101,30 @@ class EmployeeController extends Controller
         return back()->with('success', 'Department created successfully.');
     }
 
+    public function updateDepartment(Request $request, \App\Models\Department $department): RedirectResponse
+    {
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:120'],
+            'code'        => ['nullable', 'string', 'max:20'],
+            'description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $this->employees->updateDepartment($department, $data);
+
+        return back()->with('success', 'Department updated.');
+    }
+
+    public function destroyDepartment(\App\Models\Department $department): RedirectResponse
+    {
+        try {
+            $this->employees->deleteDepartment($department);
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Department removed.');
+    }
+
     public function departments(Request $request): Response
     {
         return Inertia::render('Departments/Index', [

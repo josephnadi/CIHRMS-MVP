@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\Payment;
 use App\Models\Ticket;
+use App\Support\DbExpr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -36,8 +37,6 @@ class ReportsController extends Controller
 
     private function previews(): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
-
         return [
             'headcount' => [
                 'metric'   => Employee::where('status', EmployeeStatus::Active->value)->count(),
@@ -71,11 +70,7 @@ class ReportsController extends Controller
                     ->whereYear('paid_at', now()->year)
                     ->sum('amount'), 2),
                 'metric_label' => 'Paid this month (GHS)',
-                'series'       => Payment::selectRaw(
-                        $isSqlite
-                            ? "strftime('%Y-%m', paid_at) as label, SUM(amount) as value"
-                            : "to_char(paid_at, 'YYYY-MM') as label, SUM(amount) as value"
-                    )
+                'series'       => Payment::selectRaw(DbExpr::yearMonth('paid_at') . ' as label, SUM(amount) as value')
                     ->whereNotNull('paid_at')
                     ->where('paid_at', '>=', now()->subMonths(5)->startOfMonth())
                     ->where('status', PaymentStatus::Paid->value)
@@ -103,11 +98,7 @@ class ReportsController extends Controller
                     ->where('updated_at', '>=', now()->subMonths(12))
                     ->count(),
                 'metric_label' => 'Terminated (12mo)',
-                'series'       => Employee::selectRaw(
-                        $isSqlite
-                            ? "strftime('%Y-%m', updated_at) as label, COUNT(*) as value"
-                            : "to_char(updated_at, 'YYYY-MM') as label, COUNT(*) as value"
-                    )
+                'series'       => Employee::selectRaw(DbExpr::yearMonth('updated_at') . ' as label, COUNT(*) as value')
                     ->where('status', EmployeeStatus::Terminated->value)
                     ->where('updated_at', '>=', now()->subMonths(11)->startOfMonth())
                     ->groupBy('label')

@@ -22,14 +22,25 @@ class ComplaintService
 
     public function updateStatus(UpdateComplaintStatusRequest $request, Complaint $complaint): Complaint
     {
-        $complaint->update(['status' => ComplaintStatus::from($request->validated('status'))]);
+        $updates = [];
+        if ($request->filled('status')) {
+            $updates['status'] = ComplaintStatus::from($request->validated('status'));
+        }
+        if ($request->has('assigned_to')) {
+            // explicit null is permitted (un-assign)
+            $updates['assigned_to'] = $request->validated('assigned_to');
+        }
+        if (! empty($updates)) {
+            $complaint->update($updates);
+        }
 
         return $complaint;
     }
 
     public function list(string $status = null): LengthAwarePaginator
     {
-        return Complaint::when($status, fn ($q, $v) => $q->where('status', $v))
+        return Complaint::with('assignee:id,name')
+            ->when($status, fn ($q, $v) => $q->where('status', $v))
             ->latest()
             ->paginate(20);
     }

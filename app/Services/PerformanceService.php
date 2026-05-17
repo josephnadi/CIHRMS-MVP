@@ -19,6 +19,7 @@ use App\Models\LeaveRequest;
 use App\Models\Review;
 use App\Models\ReviewCycle;
 use App\Models\Ticket;
+use App\Support\DbExpr;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -89,14 +90,9 @@ class PerformanceService
 
     private function hiresByMonth(): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
         $start = now()->subMonths(11)->startOfMonth();
 
-        $raw = Employee::selectRaw(
-                $isSqlite
-                    ? "strftime('%Y-%m', hire_date) as period, COUNT(*) as total"
-                    : "to_char(hire_date, 'YYYY-MM') as period, COUNT(*) as total"
-            )
+        $raw = Employee::selectRaw(DbExpr::yearMonth('hire_date') . ' as period, COUNT(*) as total')
             ->where('hire_date', '>=', $start)
             ->groupBy('period')
             ->pluck('total', 'period')
@@ -107,14 +103,9 @@ class PerformanceService
 
     private function leaveByMonth(): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
         $start = now()->subMonths(11)->startOfMonth();
 
-        $raw = LeaveRequest::selectRaw(
-                $isSqlite
-                    ? "strftime('%Y-%m', start_date) as period, COUNT(*) as total"
-                    : "to_char(start_date, 'YYYY-MM') as period, COUNT(*) as total"
-            )
+        $raw = LeaveRequest::selectRaw(DbExpr::yearMonth('start_date') . ' as period, COUNT(*) as total')
             ->where('start_date', '>=', $start)
             ->where('status', LeaveStatus::Approved->value)
             ->groupBy('period')
@@ -126,14 +117,9 @@ class PerformanceService
 
     private function ticketTrend(): array
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
         $start = now()->subMonths(11)->startOfMonth();
 
-        $raw = Ticket::selectRaw(
-                $isSqlite
-                    ? "strftime('%Y-%m', created_at) as period, COUNT(*) as total"
-                    : "to_char(created_at, 'YYYY-MM') as period, COUNT(*) as total"
-            )
+        $raw = Ticket::selectRaw(DbExpr::yearMonth('created_at') . ' as period, COUNT(*) as total')
             ->where('created_at', '>=', $start)
             ->groupBy('period')
             ->pluck('total', 'period')
@@ -251,11 +237,7 @@ class PerformanceService
 
     private function avgResolveHours(): float
     {
-        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
-
-        $expr = $isSqlite
-            ? "AVG(ABS((julianday(resolved_at) - julianday(created_at)) * 24))"
-            : "AVG(ABS(EXTRACT(EPOCH FROM (resolved_at - created_at)) / 3600))";
+        $expr = 'AVG(ABS(' . DbExpr::hoursBetween('created_at', 'resolved_at') . '))';
 
         $value = Ticket::whereNotNull('resolved_at')
             ->where('resolved_at', '>=', now()->subDays(90))

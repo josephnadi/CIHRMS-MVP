@@ -128,4 +128,18 @@ class CalibrationController extends Controller
 
         return back()->with('success', 'Adjustments applied to all reviews in the session.');
     }
+
+    public function reopen(Request $request, CalibrationSession $session): RedirectResponse
+    {
+        // Reopen is a facilitator-side privilege (same gate as locking).
+        $this->authorize('facilitate', CalibrationSession::class);
+
+        try {
+            $this->calibration->reopen($session, $request->user());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Session reopened. You can adjust ratings again before re-locking.');
+    }
 }

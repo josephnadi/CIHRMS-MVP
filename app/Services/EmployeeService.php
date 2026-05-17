@@ -93,6 +93,28 @@ class EmployeeService
         return Department::create($request->validated());
     }
 
+    public function updateDepartment(Department $department, array $attributes): Department
+    {
+        $department->update($attributes);
+        return $department->fresh();
+    }
+
+    /**
+     * Soft-delete a department. Refuses if any employees still belong to it
+     * — the caller should re-assign first. Returns the count of employees
+     * if the deletion is refused so the UI can surface a clear message.
+     */
+    public function deleteDepartment(Department $department): void
+    {
+        $employeeCount = Employee::where('department_id', $department->id)->count();
+        if ($employeeCount > 0) {
+            throw new \DomainException(
+                "Cannot delete department: {$employeeCount} employee(s) still assigned. Re-assign them first."
+            );
+        }
+        $department->delete();
+    }
+
     public function list(Request $request): LengthAwarePaginator
     {
         return Employee::with(['department', 'user', 'manager.user'])

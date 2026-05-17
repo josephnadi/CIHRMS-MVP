@@ -472,9 +472,14 @@ class AuditorGeneralReportPack
             \RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
+        // Normalise separators so Windows backslash paths don't end up as
+        // top-level zip entries when $sourceDir was built with forward slashes.
+        $sourceNorm = rtrim(str_replace('\\', '/', $sourceDir), '/') . '/';
+
         foreach ($iterator as $file) {
             /** @var \SplFileInfo $file */
-            $local = ltrim(str_replace($sourceDir, '', $file->getRealPath()), '/\\');
+            $real  = str_replace('\\', '/', $file->getRealPath());
+            $local = ltrim(str_replace($sourceNorm, '', $real), '/');
             $zip->addFile($file->getRealPath(), $local);
         }
 

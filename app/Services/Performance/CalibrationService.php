@@ -81,6 +81,24 @@ class CalibrationService
         return $session->fresh();
     }
 
+    /**
+     * Reopen a locked session — sets status back to InProgress so the
+     * facilitator can adjust ratings again. Refuses if the session has
+     * already been applied (Review rows are written by then; reopening
+     * after that would create a stale-state risk).
+     */
+    public function reopen(CalibrationSession $session, User $reopener): CalibrationSession
+    {
+        if ($session->status !== CalibrationStatus::Locked) {
+            throw new \DomainException('Only locked sessions can be reopened. Applied sessions are final.');
+        }
+        $session->update([
+            'status'    => CalibrationStatus::InProgress->value,
+            'locked_at' => null,
+        ]);
+        return $session->fresh();
+    }
+
     public function apply(CalibrationSession $session, User $applier): CalibrationSession
     {
         if ($session->status !== CalibrationStatus::Locked) {

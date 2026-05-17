@@ -13,6 +13,11 @@ class ComplaintResource extends JsonResource
             'id'           => $this->id,
             'reference'    => $this->reference,
             'submitted_by' => $this->submitted_by,
+            'assigned_to'  => $this->assigned_to,
+            'assignee'     => $this->whenLoaded('assignee', fn () => [
+                'id'   => $this->assignee?->id,
+                'name' => $this->assignee?->name,
+            ]),
             'details'      => $this->details,
             'status'       => $this->status?->value,
             'status_label' => $this->status?->label(),

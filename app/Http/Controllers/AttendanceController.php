@@ -62,14 +62,51 @@ class AttendanceController extends Controller
             'month_avg_hours' => round((float) AttendanceSummary::between($start, $end)
                 ->where('hours_worked', '>', 0)
                 ->avg('hours_worked'), 2),
+            'on_leave_today' => AttendanceSummary::whereDate('summary_date', now())
+                ->where('status', 'on_leave')->count(),
+            'workforce_size' => Employee::where('status', 'active')->count(),
         ];
 
+        // Daily presence trend for the month — drives the analytical LiveBars chart.
+        // Single GROUP-BY query per status, then merge so the days line up.
+        $dailyAgg = AttendanceSummary::between($start, $end)
+            ->selectRaw('summary_date, status, COUNT(*) as c')
+            ->groupBy('summary_date', 'status')
+            ->get()
+            ->groupBy(fn ($row) => substr((string) $row->summary_date, 0, 10));
+
+        $dailyTrend = [];
+        $cursor = $start;
+        while ($cursor <= $end) {
+            $key = $cursor->toDateString();
+            $rows = $dailyAgg[$key] ?? collect();
+            $dailyTrend[] = [
+                'date'    => $key,
+                'label'   => $cursor->format('j'),
+                'present' => (int) ($rows->firstWhere('status', 'present')->c ?? 0),
+                'late'    => (int) ($rows->firstWhere('status', 'late')->c    ?? 0),
+                'absent'  => (int) ($rows->firstWhere('status', 'absent')->c  ?? 0),
+                'on_leave'=> (int) ($rows->firstWhere('status', 'on_leave')->c?? 0),
+                'is_weekend' => $cursor->isWeekend(),
+            ];
+            $cursor = $cursor->addDay();
+        }
+
+        // Status distribution for the month — feeds the composition donut.
+        $statusDistribution = AttendanceSummary::between($start, $end)
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status')
+            ->all();
+
         return Inertia::render('Attendance/Index', [
-            'summaries'    => AttendanceSummaryResource::collection($summaries),
-            'stats'        => $stats,
-            'month'        => $month,
-            'filters'      => $request->only(['department_id']),
-            'activeModule' => 'attendance',
+            'summaries'          => AttendanceSummaryResource::collection($summaries),
+            'stats'              => $stats,
+            'dailyTrend'         => $dailyTrend,
+            'statusDistribution' => $statusDistribution,
+            'month'              => $month,
+            'filters'            => $request->only(['department_id']),
+            'activeModule'       => 'attendance',
         ]);
     }
 
