@@ -453,7 +453,7 @@ const ops = computed(() => {
 <template>
     <Head title="Tickets" />
     <div data-page-root="true">
-            <Teleport to="#page-header-mount">
+            <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2 mb-1">

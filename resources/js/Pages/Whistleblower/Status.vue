@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-
 const props = defineProps({
     status:        Object,
     tracking_code: String,

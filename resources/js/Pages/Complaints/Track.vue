@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 
 const props = defineProps({
@@ -25,16 +24,13 @@ const formatDate = (d) => {
 
 <template>
     <Head title="Track Complaint" />
-    <AuthenticatedLayout activeModule="governance">
-
-        <template #header>
-            <div>
-                <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Track Complaint</h2>
-                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                    Look up the status of a submitted complaint using its reference number.
-                </p>
-            </div>
-        </template>
+    <div class="mx-auto max-w-2xl px-6 py-8 space-y-6">
+        <div>
+            <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Track Complaint</h2>
+            <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                Look up the status of a submitted complaint using its reference number.
+            </p>
+        </div>
 
         <div class="max-w-2xl space-y-5">
 
@@ -93,6 +89,5 @@ const formatDate = (d) => {
                 </div>
             </div>
         </div>
-
-    </AuthenticatedLayout>
+    </div>
 </template>

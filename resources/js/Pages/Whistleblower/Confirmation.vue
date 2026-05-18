@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
-
 defineProps({
     case_number:   String,
     tracking_code: String,

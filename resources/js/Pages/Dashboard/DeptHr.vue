@@ -21,93 +21,24 @@ const trainingNow = computed(() => props.spark.training[props.spark.training.len
 <template>
     <div class="space-y-8 animate-reveal-up">
 
-        <!-- ─── Masthead strip ────────────────────────────────────── -->
-        <div class="es-masthead">
-            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PEOPLE DESK EDITION</span></span>
-            <span class="es-masthead-spacer"></span>
-            <span>{{ editionDate }}</span>
-            <span class="es-masthead-spacer"></span>
-            <span>Bulletin · Talent &amp; Culture</span>
-            <span class="es-masthead-spacer"></span>
-            <span class="es-masthead-live">
-                <span class="es-dot" aria-hidden="true"></span>
-                Live · {{ headcountNow.toLocaleString() }} on payroll
-            </span>
-        </div>
-
-        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
-        <div class="es-broadsheet rounded-none">
-            <!-- LEAD column -->
-            <div class="es-broadsheet-lead">
-                <p class="es-eyebrow mb-6">From the Human Resources desk</p>
-                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                    A workforce in motion,
-                    <span class="es-display-italic block">measured in lives, not lines.</span>
-                </h2>
-                <p class="es-display-sub">
-                    Talent acquisition, retention, learning and compliance — a daily ledger of the people
-                    who make the institute. {{ openPositionsNow }} roles open, {{ trainingNow }}% trained to plan.
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">people</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">PEOPLE DESK</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">People &amp; Workforce</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Talent acquisition, retention, and compliance — a daily ledger of the people who make the institute.
                 </p>
-
-                <!-- Quick-action chips -->
-                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                    <button @click="router.visit(route('employees.index', { new: 1 }))" class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">person_add</span>
-                        Add Employee
-                    </button>
-                    <span class="text-on-surface-variant/30">·</span>
-                    <button @click="router.visit(route('jobs.index', { new: 1 }))" class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">work</span>
-                        Post Job
-                    </button>
-                    <span class="text-on-surface-variant/30">·</span>
-                    <button @click="router.visit(route('leave.index'))" class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">calendar_month</span>
-                        Leave Queue
-                    </button>
-                </div>
             </div>
-
-            <!-- SIDEBAR column: flagship KPI — total headcount -->
-            <div class="es-broadsheet-sidebar">
-                <div class="es-stat-hero">
-                    <p class="es-stat-hero-label">Total Headcount</p>
-                    <p class="es-stat-hero-value">{{ headcountNow.toLocaleString() }}</p>
-                    <p class="es-stat-hero-caption">
-                        Active staff on record · {{ openPositionsNow }} role{{ openPositionsNow === 1 ? '' : 's' }} open
-                    </p>
-                    <span class="es-stat-hero-delta">
-                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
-                        +2 this week · 12-month sparkline below
-                    </span>
-                    <div class="mt-4 -mx-1">
-                        <Sparkline :data="spark.headcount" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Headcount" class="!block w-full"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── Supporting metrics strip ───────────────────────────── -->
-        <div class="es-stat-strip rounded-none">
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Turnover Rate</p>
-                <p class="es-stat-cell-value">{{ turnoverNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                <p class="es-stat-cell-caption">vs 5% institutional target</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Open Positions</p>
-                <p class="es-stat-cell-value">{{ openPositionsNow }}</p>
-                <p class="es-stat-cell-caption">6 in interview pipeline</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Training Completion</p>
-                <p class="es-stat-cell-value">{{ trainingNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                <p class="es-stat-cell-caption">Annual learning goal</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Pending Leave</p>
-                <p class="es-stat-cell-value">{{ (stats.pendingLeave ?? 0).toLocaleString() }}</p>
-                <p class="es-stat-cell-caption">Awaiting approval</p>
+            <div class="flex items-center gap-2">
+                <button @click="router.visit(route('employees.index', { new: 1 }))"
+                        class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
+                        style="background:linear-gradient(135deg,#0d1452,#1a237e);">
+                    <span class="material-symbols-outlined text-[17px]">person_add</span>
+                    Add Employee
+                </button>
             </div>
         </div>
 

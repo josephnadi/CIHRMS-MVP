@@ -18,88 +18,16 @@ const conversionNow = computed(() => props.spark.conversion[props.spark.conversi
 <template>
     <div class="space-y-8 animate-reveal-up">
 
-        <!-- ─── Masthead strip ────────────────────────────────────── -->
-        <div class="es-masthead">
-            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">BRAND &amp; COMMS EDITION</span></span>
-            <span class="es-masthead-spacer"></span>
-            <span>{{ editionDate }}</span>
-            <span class="es-masthead-spacer"></span>
-            <span>Bulletin · Marketing Desk</span>
-            <span class="es-masthead-spacer"></span>
-            <span class="es-masthead-live">
-                <span class="es-dot" aria-hidden="true"></span>
-                Live · 6 campaigns running
-            </span>
-        </div>
-
-        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
-        <div class="es-broadsheet rounded-none">
-            <!-- LEAD column -->
-            <div class="es-broadsheet-lead">
-                <p class="es-eyebrow mb-6">From the Brand &amp; Communications desk</p>
-                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                    Stories that compound,
-                    <span class="es-display-italic block">audiences that endure.</span>
-                </h2>
-                <p class="es-display-sub">
-                    The state of brand, channel and conversion — every cedi spent and every lead earned,
-                    accounted for in a single editorial frame. {{ leadsNow.toLocaleString() }} leads this cycle.
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">campaign</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">BRAND &amp; COMMS</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Marketing &amp; Communications</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Campaign ROI, channel performance, brand sentiment — every cedi and every lead in one frame.
                 </p>
-
-                <!-- Quick-action chips -->
-                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                    <span class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">campaign</span>
-                        New Campaign
-                    </span>
-                    <span class="text-on-surface-variant/30">·</span>
-                    <span class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">edit_note</span>
-                        Content Brief
-                    </span>
-                </div>
-            </div>
-
-            <!-- SIDEBAR column: flagship KPI — campaign ROI -->
-            <div class="es-broadsheet-sidebar">
-                <div class="es-stat-hero">
-                    <p class="es-stat-hero-label">Campaign ROI</p>
-                    <p class="es-stat-hero-value">{{ roiNow }}<span style="font-size:0.45em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                    <p class="es-stat-hero-caption">
-                        Weighted across active campaigns · target 200%
-                    </p>
-                    <span class="es-stat-hero-delta">
-                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
-                        Above benchmark · sparkline below
-                    </span>
-                    <div class="mt-4 -mx-1">
-                        <Sparkline :data="spark.roi" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Campaign ROI" class="!block w-full"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── Supporting metrics strip ───────────────────────────── -->
-        <div class="es-stat-strip rounded-none">
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Budget Utilised</p>
-                <p class="es-stat-cell-value">{{ budgetNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                <p class="es-stat-cell-caption">of GHS 420K annual envelope</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Leads Generated</p>
-                <p class="es-stat-cell-value">{{ leadsNow.toLocaleString() }}</p>
-                <p class="es-stat-cell-caption">+8% week-on-week</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Conversion Rate</p>
-                <p class="es-stat-cell-value">{{ conversionNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                <p class="es-stat-cell-caption">vs 4% target</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Team Strength</p>
-                <p class="es-stat-cell-value">35</p>
-                <p class="es-stat-cell-caption">Brand, digital, content, PR</p>
             </div>
         </div>
 

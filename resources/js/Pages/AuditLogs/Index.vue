@@ -6,6 +6,8 @@ import SearchInput from '@/Components/SearchInput.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     logs:         Object,
     filters:      Object,
@@ -96,201 +98,135 @@ const chainBreaks = 0;
 
 <template>
     <Head title="Audit Logs" />
-    <AuthenticatedLayout :activeModule="activeModule">
+    <div data-page-root="true">
+            <Teleport to="#page-header-mount" defer>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">verified_user</span>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">AUDIT TRAIL · TAMPER-EVIDENT</p>
+                        </div>
+                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Audit Logs</h1>
+                        <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                            Every administrative act sealed into a SHA-256 hash chain · chain-of-custody for the Republic.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @click="router.reload({ only: ['logs'] })" type="button"
+                                class="flex items-center gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2.5 text-[13px] font-black text-primary shadow-card transition-all hover:-translate-y-px hover:shadow-card-hover">
+                            <span class="material-symbols-outlined text-[17px]">verified</span>
+                            Verify Chain
+                        </button>
+                        <button v-if="hasAgRoute" @click="router.visit(route('ag-reports.index'))" type="button"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e);">
+                            <span class="material-symbols-outlined text-[17px]">gavel</span>
+                            Export AG Pack
+                        </button>
+                    </div>
+                </div>
+            </Teleport>
 
-        <template #header>
             <div class="space-y-6">
 
-                <!-- ─── Masthead strip ────────────────────────────────────── -->
-                <div class="es-masthead">
-                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">AUDIT TRAIL · TAMPER-EVIDENT</span></span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.date }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.edition }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span class="es-masthead-live">
-                        <span class="es-dot" aria-hidden="true"></span>
-                        Live · Chain verified
-                    </span>
-                </div>
-
-                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
-                <div class="es-broadsheet rounded-none">
-                    <!-- LEAD column -->
-                    <div class="es-broadsheet-lead">
-                        <p class="es-eyebrow mb-6">Tamper-evident · SHA-256 chained</p>
-                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                            Audit trail,
-                            <span class="es-display-italic">intact.</span>
-                        </h2>
-                        <p class="es-display-sub">
-                            Every administrative act — read, write, approval, override — is sealed into a
-                            SHA-256 hash chain establishing chain-of-custody for the Republic.
-                            Records are immutable, cryptographically linked, and prepared for
-                            Auditor-General export on demand.
-                        </p>
-
-                        <!-- Typographic chip actions -->
-                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                            <button @click="router.reload({ only: ['logs'] })" type="button" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">verified</span>
-                                Verify chain
-                            </button>
-                            <template v-if="hasAgRoute">
-                                <span class="text-on-surface-variant/30">·</span>
-                                <button @click="router.visit(route('ag-reports.index'))" type="button" class="es-chip">
-                                    <span class="material-symbols-outlined text-[15px]">gavel</span>
-                                    Export Auditor-General pack
-                                </button>
-                            </template>
-                        </div>
+                <!-- Filters strip -->
+                <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">
+                    <div class="flex items-center gap-2 pl-2 pr-1 text-on-surface-variant/60">
+                        <span class="material-symbols-outlined text-[18px]" style="color:#1a237e">filter_list</span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.18em]">Filter</span>
                     </div>
 
-                    <!-- SIDEBAR column: headline chain length -->
-                    <div class="es-broadsheet-sidebar">
-                        <div class="es-stat-hero">
-                            <p class="es-stat-hero-label">Chain length</p>
-                            <p class="es-stat-hero-value">{{ (logs?.meta?.total ?? logs?.total ?? 0).toLocaleString() }}</p>
-                            <p class="es-stat-hero-caption">
-                                Chain rows · last verified {{ editionLabel.time }}
+                    <div class="flex-1 min-w-[260px] max-w-md">
+                        <SearchInput v-model="localFilters.search" placeholder="Search path or action…" />
+                    </div>
+
+                    <div class="relative">
+                        <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
+                        <input
+                            v-model="localFilters.user_id"
+                            @keyup.enter="applyFilters"
+                            type="number"
+                            placeholder="User ID"
+                            class="w-36 rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all tabular-nums"
+                        />
+                    </div>
+
+                    <button
+                        v-if="localFilters.search || localFilters.user_id"
+                        @click="() => { localFilters.search = ''; localFilters.user_id = ''; applyFilters(); }"
+                        class="ml-auto flex items-center gap-1.5 rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container hover:border-red-300/60 hover:text-red-600 transition-all"
+                    >
+                        <span class="material-symbols-outlined text-[16px]">backspace</span>
+                        Clear
+                    </button>
+                </div>
+
+                <!-- Table -->
+                <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
+                    <div v-if="logs?.data?.length === 0" class="p-12">
+                        <EmptyState
+                            title="No audit log entries"
+                            description="No system activity matches the current filters."
+                            icon="shield"
+                        />
+                    </div>
+
+                    <div v-else class="max-h-[calc(100vh-360px)] min-h-[280px] overflow-auto">
+                        <table class="w-full text-left">
+                            <thead class="sticky top-0 z-10">
+                                <tr>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Time</th>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">User</th>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Method</th>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Path</th>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Action</th>
+                                    <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">IP</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant/30">
+                                <tr v-for="log in logs.data" :key="log.id" class="transition-colors hover:bg-secondary/[0.04]">
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="text-[11px] font-mono text-on-surface-variant">{{ formatDateTime(log.created_at) }}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <p class="text-[12px] font-semibold text-on-surface">{{ log.user?.name ?? '—' }}</p>
+                                        <p class="text-[10px] text-on-surface-variant/60">#{{ log.user_id ?? '?' }}</p>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span :class="['inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold', methodClasses[log.method] ?? methodClasses.GET]">
+                                            {{ log.method }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 max-w-md">
+                                        <span class="text-[12px] font-mono text-on-surface truncate block" :title="log.path">{{ log.path }}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-[12px] text-on-surface-variant">{{ log.action ?? '—' }}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-[11px] font-mono text-on-surface-variant/70">{{ log.ip_address ?? '—' }}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div v-if="logs?.total > logs?.per_page" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
+                        <div class="flex items-center justify-between">
+                            <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
+                                Showing
+                                <span class="font-bold text-on-surface tabular-nums">{{ logs.from }}</span>
+                                –
+                                <span class="font-bold text-on-surface tabular-nums">{{ logs.to }}</span>
+                                of
+                                <span class="font-bold text-on-surface tabular-nums">{{ logs.total }}</span>
                             </p>
-                            <span class="es-stat-hero-delta">
-                                <span class="material-symbols-outlined text-[13px]">link</span>
-                                SHA-256 sealed
-                            </span>
+                            <Pagination :links="logs.links" />
                         </div>
                     </div>
                 </div>
-
-                <!-- ─── Stat strip ───────────────────────────────────────── -->
-                <div class="es-stat-strip">
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Chain length</p>
-                        <p class="es-stat-cell-value">{{ (logs?.total ?? 0).toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Sealed rows on file</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Last verified</p>
-                        <p class="es-stat-cell-value-sm">{{ editionLabel.time }}</p>
-                        <p class="es-stat-cell-caption">SHA-256 chain reconciled</p>
-                    </div>
-                    <div :class="['es-stat-cell', chainBreaks > 0 ? 'es-stat-cell--down' : '']">
-                        <p class="es-stat-cell-label">Breaks</p>
-                        <p class="es-stat-cell-value">{{ chainBreaks }}</p>
-                        <p class="es-stat-cell-caption">
-                            {{ chainBreaks === 0 ? 'Chain integrity holds' : 'Investigate immediately' }}
-                        </p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Oldest entry</p>
-                        <p class="es-stat-cell-value-sm">{{ oldestVisibleLabel }}</p>
-                        <p class="es-stat-cell-caption">Earliest in current dispatch</p>
-                    </div>
-                </div>
-            </div>
-        </template>
-
-        <div class="space-y-6">
-
-            <!-- Filters strip -->
-            <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-card">
-                <div class="flex items-center gap-2 pl-2 pr-1 text-on-surface-variant/60">
-                    <span class="material-symbols-outlined text-[18px]" style="color:#1a237e">filter_list</span>
-                    <span class="text-[10px] font-black uppercase tracking-[0.18em]">Filter</span>
-                </div>
-
-                <div class="flex-1 min-w-[260px] max-w-md">
-                    <SearchInput v-model="localFilters.search" placeholder="Search path or action…" />
-                </div>
-
-                <div class="relative">
-                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
-                    <input
-                        v-model="localFilters.user_id"
-                        @keyup.enter="applyFilters"
-                        type="number"
-                        placeholder="User ID"
-                        class="w-36 rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all tabular-nums"
-                    />
-                </div>
-
-                <button
-                    v-if="localFilters.search || localFilters.user_id"
-                    @click="() => { localFilters.search = ''; localFilters.user_id = ''; applyFilters(); }"
-                    class="ml-auto flex items-center gap-1.5 rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container hover:border-red-300/60 hover:text-red-600 transition-all"
-                >
-                    <span class="material-symbols-outlined text-[16px]">backspace</span>
-                    Clear
-                </button>
             </div>
 
-            <!-- Table -->
-            <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
-                <div v-if="logs?.data?.length === 0" class="p-12">
-                    <EmptyState
-                        title="No audit log entries"
-                        description="No system activity matches the current filters."
-                        icon="shield"
-                    />
-                </div>
-
-                <div v-else class="max-h-[calc(100vh-360px)] min-h-[280px] overflow-auto">
-                    <table class="w-full text-left">
-                        <thead class="sticky top-0 z-10">
-                            <tr>
-                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Time</th>
-                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">User</th>
-                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Method</th>
-                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Path</th>
-                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">Action</th>
-                                <th class="bg-surface-container-low/95 backdrop-blur-sm px-4 py-3 text-left text-[10.5px] font-black uppercase tracking-[0.14em] text-on-surface-variant/70">IP</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-outline-variant/30">
-                            <tr v-for="log in logs.data" :key="log.id" class="transition-colors hover:bg-secondary/[0.04]">
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="text-[11px] font-mono text-on-surface-variant">{{ formatDateTime(log.created_at) }}</span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <p class="text-[12px] font-semibold text-on-surface">{{ log.user?.name ?? '—' }}</p>
-                                    <p class="text-[10px] text-on-surface-variant/60">#{{ log.user_id ?? '?' }}</p>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span :class="['inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold', methodClasses[log.method] ?? methodClasses.GET]">
-                                        {{ log.method }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 max-w-md">
-                                    <span class="text-[12px] font-mono text-on-surface truncate block" :title="log.path">{{ log.path }}</span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="text-[12px] text-on-surface-variant">{{ log.action ?? '—' }}</span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="text-[11px] font-mono text-on-surface-variant/70">{{ log.ip_address ?? '—' }}</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div v-if="logs?.total > logs?.per_page" class="border-t border-outline-variant/50 bg-surface-container-low/40 px-4 py-3">
-                    <div class="flex items-center justify-between">
-                        <p class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-                            <span class="material-symbols-outlined text-[15px]" style="color:#1a237e;opacity:0.7">format_list_numbered</span>
-                            Showing
-                            <span class="font-bold text-on-surface tabular-nums">{{ logs.from }}</span>
-                            –
-                            <span class="font-bold text-on-surface tabular-nums">{{ logs.to }}</span>
-                            of
-                            <span class="font-bold text-on-surface tabular-nums">{{ logs.total }}</span>
-                        </p>
-                        <Pagination :links="logs.links" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </AuthenticatedLayout>
+    </div>
 </template>

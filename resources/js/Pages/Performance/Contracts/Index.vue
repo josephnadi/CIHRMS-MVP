@@ -9,6 +9,8 @@ import SearchInput from '@/Components/SearchInput.vue';
 import StatCard from '@/Components/StatCard.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     contracts:    Object, // paginated: { data: [], links: [], meta: {} }
     cycles:       Array,  // [{ id, name, status }]
@@ -177,388 +179,319 @@ const editorialMetrics = computed(() => {
 
 <template>
     <Head title="Performance Contracts" />
-    <AuthenticatedLayout :activeModule="activeModule">
+    <div data-page-root="true">
+            <Teleport to="#page-header-mount" defer>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">assignment</span>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">PERFORMANCE CONTRACTS</p>
+                        </div>
+                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Performance Contracts</h1>
+                        <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                            Annual performance contracts — draft, dual-signature, mid-cycle evaluation, weighted-achievement close.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button v-if="canManage" @click="showAddPanel = true"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e);">
+                            <span class="material-symbols-outlined text-[17px]">description</span>
+                            Draft Contract
+                        </button>
+                    </div>
+                </div>
+            </Teleport>
 
-        <!-- ── Editorial Sovereign header ───────────────────────────── -->
-        <template #header>
-            <section class="space-y-8">
+            <div class="space-y-6">
 
-                <!-- Masthead strip -->
-                <div class="es-masthead">
-                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">PERFORMANCE — CONTRACTS LEDGER</span></span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.date }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.edition }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span class="es-masthead-live">
-                        <span class="es-dot" aria-hidden="true"></span>
-                        Ledger · Live
-                    </span>
+                <!-- ── Stat cards ─────────────────────────────────────────────── -->
+                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <div
+                        v-for="(card, i) in statCards"
+                        :key="card.label"
+                        class="group relative rounded-2xl border bg-surface-container-lowest p-4 shadow-card card-lift overflow-hidden"
+                        :style="`border-color:rgba(${card.rgb},0.20);animation-delay:${i * 0.06}s`"
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">{{ card.label }}</p>
+                                <p class="mt-1.5 text-[1.6rem] font-black leading-none tracking-tight text-on-surface">{{ card.value }}</p>
+                            </div>
+                            <span
+                                class="material-symbols-outlined flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-[20px]"
+                                :style="`color:rgb(${card.rgb});background:rgba(${card.rgb},0.10);font-variation-settings:'FILL' 1`"
+                            >{{ card.icon }}</span>
+                        </div>
+                        <div
+                            class="absolute inset-x-0 bottom-0 h-[3px] rounded-b-2xl opacity-40"
+                            :style="`background:rgb(${card.rgb})`"
+                        ></div>
+                    </div>
                 </div>
 
-                <!-- Broadsheet hero -->
-                <div class="es-broadsheet rounded-none">
-                    <div class="es-broadsheet-lead">
-                        <p class="es-eyebrow mb-6">Annual performance contracts</p>
-                        <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                            Goals,
-                            <span class="es-display-italic block">agreed and signed.</span>
-                        </h2>
-                        <p class="es-display-sub">
-                            The institutional ledger of annual performance contracts —
-                            from draft through dual signature, mid-cycle evaluation,
-                            and weighted-achievement close. Every KPI is weighted, dated,
-                            and counter-signed.
-                        </p>
+                <!-- ── Filter strip ───────────────────────────────────────────── -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex-1 min-w-[200px] max-w-xs">
+                        <SearchInput v-model="localFilters.search" placeholder="Search employee name, no…" />
+                    </div>
 
-                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                            <Link :href="route('modules.performance')" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">arrow_back</span>
-                                Performance
-                            </Link>
-                            <span class="es-chip-divider">·</span>
+                    <select
+                        v-model="localFilters.cycle_id"
+                        @change="applyFilters"
+                        class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                    >
+                        <option value="">All Cycles</option>
+                        <option v-for="c in cycles" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+
+                    <select
+                        v-model="localFilters.status"
+                        @change="applyFilters"
+                        class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="pending_signature">Pending Signature</option>
+                        <option value="active">Active</option>
+                        <option value="under_evaluation">Under Evaluation</option>
+                        <option value="achieved">Achieved</option>
+                        <option value="missed">Missed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+
+                    <button
+                        v-if="hasFilters"
+                        @click="clearFilters"
+                        class="rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-1.5"
+                    >
+                        <span class="material-symbols-outlined text-[16px]">close</span>
+                        Clear
+                    </button>
+                </div>
+
+                <!-- ── Contract cards grid ────────────────────────────────────── -->
+                <div v-if="contractList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
+                    <EmptyState
+                        title="No contracts found"
+                        description="Performance contracts will appear once HR drafts them for a review cycle."
+                        icon="description"
+                    >
+                        <template #action>
                             <button
                                 v-if="canManage"
                                 @click="showAddPanel = true"
-                                class="es-chip"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                             >
-                                <span class="material-symbols-outlined text-[15px]">description</span>
-                                Draft contract
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                New Contract
                             </button>
-                        </div>
-                    </div>
-
-                    <div class="es-broadsheet-sidebar">
-                        <div class="es-stat-hero">
-                            <p class="es-stat-hero-label">Contracts on file</p>
-                            <p class="es-stat-hero-value">{{ stats.total }}</p>
-                            <p class="es-stat-hero-caption">
-                                Across all cycles · {{ stats.avgRating ? `${stats.avgRating}% avg achievement` : 'pending evaluation' }}
-                            </p>
-                            <span class="es-stat-hero-delta">
-                                <span class="material-symbols-outlined text-[13px]">rate_review</span>
-                                {{ stats.inEval }} under evaluation
-                            </span>
-                        </div>
-                    </div>
+                        </template>
+                    </EmptyState>
                 </div>
 
-                <!-- Sub-metric strip -->
-                <div class="es-stat-strip rounded-none">
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Active</p>
-                        <p class="es-stat-cell-value">{{ editorialMetrics.active }}</p>
-                        <p class="es-stat-cell-caption">In-cycle, signed</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Pending signature</p>
-                        <p class="es-stat-cell-value">{{ editorialMetrics.pending }}</p>
-                        <p class="es-stat-cell-caption">Awaiting counter-sign</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Achieved</p>
-                        <p class="es-stat-cell-value">{{ editorialMetrics.achieved }}</p>
-                        <p class="es-stat-cell-caption">Closed at target</p>
-                    </div>
-                    <div class="es-stat-cell" :class="{ 'es-stat-cell--down': editorialMetrics.missed > 0 }">
-                        <p class="es-stat-cell-label">Missed</p>
-                        <p class="es-stat-cell-value">{{ editorialMetrics.missed }}</p>
-                        <p class="es-stat-cell-caption">Below threshold</p>
-                    </div>
-                </div>
-            </section>
-        </template>
-
-        <div class="space-y-6">
-
-            <!-- ── Stat cards ─────────────────────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <div
-                    v-for="(card, i) in statCards"
-                    :key="card.label"
-                    class="group relative rounded-2xl border bg-surface-container-lowest p-4 shadow-card card-lift overflow-hidden"
-                    :style="`border-color:rgba(${card.rgb},0.20);animation-delay:${i * 0.06}s`"
-                >
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">{{ card.label }}</p>
-                            <p class="mt-1.5 text-[1.6rem] font-black leading-none tracking-tight text-on-surface">{{ card.value }}</p>
-                        </div>
-                        <span
-                            class="material-symbols-outlined flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-[20px]"
-                            :style="`color:rgb(${card.rgb});background:rgba(${card.rgb},0.10);font-variation-settings:'FILL' 1`"
-                        >{{ card.icon }}</span>
-                    </div>
+                <div v-else class="grid gap-4 md:grid-cols-2">
                     <div
-                        class="absolute inset-x-0 bottom-0 h-[3px] rounded-b-2xl opacity-40"
-                        :style="`background:rgb(${card.rgb})`"
-                    ></div>
-                </div>
-            </div>
+                        v-for="contract in contractList"
+                        :key="contract.id"
+                        class="group relative rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden transition-all hover:shadow-lifted hover:-translate-y-0.5"
+                    >
+                        <!-- Top accent bar based on status -->
+                        <div
+                            class="h-[3px] w-full"
+                            :class="{
+                                'bg-slate-400'   : contract.status === 'draft',
+                                'bg-amber-500'   : contract.status === 'pending_signature',
+                                'bg-blue-500'    : contract.status === 'active',
+                                'bg-violet-500'  : contract.status === 'under_evaluation',
+                                'bg-emerald-500' : contract.status === 'achieved',
+                                'bg-rose-500'    : contract.status === 'missed',
+                                'bg-slate-300'   : contract.status === 'cancelled',
+                            }"
+                        ></div>
 
-            <!-- ── Filter strip ───────────────────────────────────────────── -->
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex-1 min-w-[200px] max-w-xs">
-                    <SearchInput v-model="localFilters.search" placeholder="Search employee name, no…" />
-                </div>
-
-                <select
-                    v-model="localFilters.cycle_id"
-                    @change="applyFilters"
-                    class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                >
-                    <option value="">All Cycles</option>
-                    <option v-for="c in cycles" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
-
-                <select
-                    v-model="localFilters.status"
-                    @change="applyFilters"
-                    class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                >
-                    <option value="">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="pending_signature">Pending Signature</option>
-                    <option value="active">Active</option>
-                    <option value="under_evaluation">Under Evaluation</option>
-                    <option value="achieved">Achieved</option>
-                    <option value="missed">Missed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-
-                <button
-                    v-if="hasFilters"
-                    @click="clearFilters"
-                    class="rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-1.5"
-                >
-                    <span class="material-symbols-outlined text-[16px]">close</span>
-                    Clear
-                </button>
-            </div>
-
-            <!-- ── Contract cards grid ────────────────────────────────────── -->
-            <div v-if="contractList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
-                <EmptyState
-                    title="No contracts found"
-                    description="Performance contracts will appear once HR drafts them for a review cycle."
-                    icon="description"
-                >
-                    <template #action>
-                        <button
-                            v-if="canManage"
-                            @click="showAddPanel = true"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                        >
-                            <span class="material-symbols-outlined text-[18px]">add</span>
-                            New Contract
-                        </button>
-                    </template>
-                </EmptyState>
-            </div>
-
-            <div v-else class="grid gap-4 md:grid-cols-2">
-                <div
-                    v-for="contract in contractList"
-                    :key="contract.id"
-                    class="group relative rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden transition-all hover:shadow-lifted hover:-translate-y-0.5"
-                >
-                    <!-- Top accent bar based on status -->
-                    <div
-                        class="h-[3px] w-full"
-                        :class="{
-                            'bg-slate-400'   : contract.status === 'draft',
-                            'bg-amber-500'   : contract.status === 'pending_signature',
-                            'bg-blue-500'    : contract.status === 'active',
-                            'bg-violet-500'  : contract.status === 'under_evaluation',
-                            'bg-emerald-500' : contract.status === 'achieved',
-                            'bg-rose-500'    : contract.status === 'missed',
-                            'bg-slate-300'   : contract.status === 'cancelled',
-                        }"
-                    ></div>
-
-                    <div class="p-5">
-                        <!-- Employee row -->
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div
-                                    class="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white"
-                                    :style="`background:${avatarGradient(contract.employee?.id)}`"
-                                >{{ initials(contract.employee?.name) }}</div>
-                                <div class="min-w-0">
-                                    <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ contract.employee?.name ?? '—' }}</p>
-                                    <p class="text-[11px] text-on-surface-variant/60 leading-tight">
-                                        {{ contract.employee?.employee_no }}
-                                        <span v-if="contract.employee?.department" class="ml-1">· {{ contract.employee.department }}</span>
-                                    </p>
+                        <div class="p-5">
+                            <!-- Employee row -->
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div
+                                        class="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white"
+                                        :style="`background:${avatarGradient(contract.employee?.id)}`"
+                                    >{{ initials(contract.employee?.name) }}</div>
+                                    <div class="min-w-0">
+                                        <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ contract.employee?.name ?? '—' }}</p>
+                                        <p class="text-[11px] text-on-surface-variant/60 leading-tight">
+                                            {{ contract.employee?.employee_no }}
+                                            <span v-if="contract.employee?.department" class="ml-1">· {{ contract.employee.department }}</span>
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                            <span
-                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider whitespace-nowrap"
-                                :class="statusClass(contract.status)"
-                            >{{ contract.status_label ?? contract.status }}</span>
-                        </div>
-
-                        <!-- Cycle pill -->
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                                <span class="material-symbols-outlined text-[13px]">calendar_today</span>
-                                {{ contract.cycle?.name ?? '—' }}
-                            </span>
-                            <span v-if="contract.supervisor?.name" class="text-[11px] text-on-surface-variant/60">
-                                Manager: <span class="font-semibold text-on-surface">{{ contract.supervisor.name }}</span>
-                            </span>
-                        </div>
-
-                        <!-- Signature checkpoint dots -->
-                        <div class="flex items-center gap-3 mb-3">
-                            <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">Signatures</p>
-                            <div class="flex items-center gap-1.5">
                                 <span
-                                    v-for="dot in signedDots(contract)"
-                                    :key="dot.label"
-                                    class="flex items-center gap-1 text-[10px] font-semibold"
-                                    :class="dot.done ? 'text-emerald-600' : 'text-on-surface-variant/40'"
-                                    :title="dot.label"
-                                >
-                                    <span class="material-symbols-outlined text-[14px]" :style="dot.done ? 'font-variation-settings:\'FILL\' 1' : ''">
-                                        {{ dot.done ? 'check_circle' : 'radio_button_unchecked' }}
-                                    </span>
+                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider whitespace-nowrap"
+                                    :class="statusClass(contract.status)"
+                                >{{ contract.status_label ?? contract.status }}</span>
+                            </div>
+
+                            <!-- Cycle pill -->
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
+                                    <span class="material-symbols-outlined text-[13px]">calendar_today</span>
+                                    {{ contract.cycle?.name ?? '—' }}
+                                </span>
+                                <span v-if="contract.supervisor?.name" class="text-[11px] text-on-surface-variant/60">
+                                    Manager: <span class="font-semibold text-on-surface">{{ contract.supervisor.name }}</span>
                                 </span>
                             </div>
-                        </div>
 
-                        <!-- Achievement / KPIs row -->
-                        <div class="flex items-center justify-between border-t border-outline-variant/40 pt-3">
-                            <div class="flex items-center gap-4">
-                                <div>
-                                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">KPIs</p>
-                                    <p class="text-[13px] font-bold text-on-surface">{{ contract.kpis?.length ?? 0 }}</p>
-                                </div>
-                                <div v-if="contract.weighted_achievement !== null">
-                                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">Achievement</p>
-                                    <p
-                                        class="text-[13px] font-bold"
-                                        :class="contract.weighted_achievement >= 60 ? 'text-emerald-700' : 'text-rose-600'"
-                                    >{{ contract.weighted_achievement.toFixed(1) }}%</p>
-                                </div>
-                                <div v-else>
-                                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">Achievement</p>
-                                    <p class="text-[12px] text-on-surface-variant/40 italic">Pending</p>
+                            <!-- Signature checkpoint dots -->
+                            <div class="flex items-center gap-3 mb-3">
+                                <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">Signatures</p>
+                                <div class="flex items-center gap-1.5">
+                                    <span
+                                        v-for="dot in signedDots(contract)"
+                                        :key="dot.label"
+                                        class="flex items-center gap-1 text-[10px] font-semibold"
+                                        :class="dot.done ? 'text-emerald-600' : 'text-on-surface-variant/40'"
+                                        :title="dot.label"
+                                    >
+                                        <span class="material-symbols-outlined text-[14px]" :style="dot.done ? 'font-variation-settings:\'FILL\' 1' : ''">
+                                            {{ dot.done ? 'check_circle' : 'radio_button_unchecked' }}
+                                        </span>
+                                    </span>
                                 </div>
                             </div>
 
-                            <Link
-                                :href="route('performance.contracts.show', contract.id)"
-                                class="flex items-center gap-1.5 rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-surface-container-low transition-colors"
-                            >
-                                <span class="material-symbols-outlined text-[15px]">open_in_new</span>
-                                Open
-                            </Link>
+                            <!-- Achievement / KPIs row -->
+                            <div class="flex items-center justify-between border-t border-outline-variant/40 pt-3">
+                                <div class="flex items-center gap-4">
+                                    <div>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">KPIs</p>
+                                        <p class="text-[13px] font-bold text-on-surface">{{ contract.kpis?.length ?? 0 }}</p>
+                                    </div>
+                                    <div v-if="contract.weighted_achievement !== null">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">Achievement</p>
+                                        <p
+                                            class="text-[13px] font-bold"
+                                            :class="contract.weighted_achievement >= 60 ? 'text-emerald-700' : 'text-rose-600'"
+                                        >{{ contract.weighted_achievement.toFixed(1) }}%</p>
+                                    </div>
+                                    <div v-else>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60">Achievement</p>
+                                        <p class="text-[12px] text-on-surface-variant/40 italic">Pending</p>
+                                    </div>
+                                </div>
+
+                                <Link
+                                    :href="route('performance.contracts.show', contract.id)"
+                                    class="flex items-center gap-1.5 rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-surface-container-low transition-colors"
+                                >
+                                    <span class="material-symbols-outlined text-[15px]">open_in_new</span>
+                                    Open
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Pagination -->
-            <div v-if="contracts?.links?.length > 3" class="flex items-center justify-between rounded-2xl bg-surface-container-lowest border border-outline-variant/50 px-4 py-3 shadow-card">
-                <p class="text-[12px] text-on-surface-variant">
-                    Showing
-                    <span class="font-semibold text-on-surface">{{ contracts.meta?.from }}</span>
-                    –
-                    <span class="font-semibold text-on-surface">{{ contracts.meta?.to }}</span>
-                    of
-                    <span class="font-semibold text-on-surface">{{ contracts.meta?.total }}</span>
-                </p>
-                <Pagination :links="contracts.links" />
-            </div>
-        </div>
-
-        <!-- ── New Contract SlidePanel ────────────────────────────────────── -->
-        <SlidePanel
-            :open="showAddPanel"
-            title="New Performance Contract"
-            size="lg"
-            @close="showAddPanel = false"
-        >
-            <form @submit.prevent="submitContract" class="space-y-5 p-6">
-
-                <div class="rounded-2xl border border-secondary/15 bg-secondary/5 p-4">
-                    <p class="text-[11px] font-black uppercase tracking-[0.18em] text-secondary mb-1">
-                        Performance Contract Setup
+                <!-- Pagination -->
+                <div v-if="contracts?.links?.length > 3" class="flex items-center justify-between rounded-2xl bg-surface-container-lowest border border-outline-variant/50 px-4 py-3 shadow-card">
+                    <p class="text-[12px] text-on-surface-variant">
+                        Showing
+                        <span class="font-semibold text-on-surface">{{ contracts.meta?.from }}</span>
+                        –
+                        <span class="font-semibold text-on-surface">{{ contracts.meta?.to }}</span>
+                        of
+                        <span class="font-semibold text-on-surface">{{ contracts.meta?.total }}</span>
                     </p>
-                    <p class="text-[12px] text-on-surface-variant/70">
-                        A draft contract will be created and sent for signatures before becoming active.
-                    </p>
+                    <Pagination :links="contracts.links" />
                 </div>
+            </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Review Cycle <span class="text-red-500">*</span></label>
-                        <select
-                            v-model="form.cycle_id"
-                            required
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                        >
-                            <option value="" disabled>Select cycle</option>
-                            <option v-for="c in cycles" :key="c.id" :value="c.id">{{ c.name }}</option>
-                        </select>
+            <!-- ── New Contract SlidePanel ────────────────────────────────────── -->
+            <SlidePanel
+                :open="showAddPanel"
+                title="New Performance Contract"
+                size="lg"
+                @close="showAddPanel = false"
+            >
+                <form @submit.prevent="submitContract" class="space-y-5 p-6">
+
+                    <div class="rounded-2xl border border-secondary/15 bg-secondary/5 p-4">
+                        <p class="text-[11px] font-black uppercase tracking-[0.18em] text-secondary mb-1">
+                            Performance Contract Setup
+                        </p>
+                        <p class="text-[12px] text-on-surface-variant/70">
+                            A draft contract will be created and sent for signatures before becoming active.
+                        </p>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Review Cycle <span class="text-red-500">*</span></label>
+                            <select
+                                v-model="form.cycle_id"
+                                required
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            >
+                                <option value="" disabled>Select cycle</option>
+                                <option v-for="c in cycles" :key="c.id" :value="c.id">{{ c.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee ID <span class="text-red-500">*</span></label>
+                            <input
+                                v-model="form.employee_id"
+                                type="number"
+                                placeholder="Employee ID"
+                                required
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            />
+                            <p class="mt-1 text-[11px] text-on-surface-variant/60">Enter the employee's database ID</p>
+                        </div>
+                    </div>
+
                     <div>
-                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee ID <span class="text-red-500">*</span></label>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Supervisor ID</label>
                         <input
-                            v-model="form.employee_id"
+                            v-model="form.supervisor_id"
                             type="number"
-                            placeholder="Employee ID"
-                            required
+                            placeholder="Supervisor employee ID (optional)"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                         />
-                        <p class="mt-1 text-[11px] text-on-surface-variant/60">Enter the employee's database ID</p>
                     </div>
-                </div>
 
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Supervisor ID</label>
-                    <input
-                        v-model="form.supervisor_id"
-                        type="number"
-                        placeholder="Supervisor employee ID (optional)"
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                    />
-                </div>
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                            KPIs <span class="text-on-surface-variant/50 font-normal">(JSON array)</span>
+                        </label>
+                        <textarea
+                            v-model="form.kpis"
+                            rows="6"
+                            placeholder='[{"title":"Reduce report turnaround","weight":30,"target_value":3,"unit":"days"}]'
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[12px] font-mono text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                        />
+                    </div>
+                </form>
 
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                        KPIs <span class="text-on-surface-variant/50 font-normal">(JSON array)</span>
-                    </label>
-                    <textarea
-                        v-model="form.kpis"
-                        rows="6"
-                        placeholder='[{"title":"Reduce report turnaround","weight":30,"target_value":3,"unit":"days"}]'
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[12px] font-mono text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
-                    />
-                </div>
-            </form>
+                <template #footer>
+                    <div class="flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            @click="showAddPanel = false"
+                            class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+                        >Cancel</button>
+                        <button
+                            @click="submitContract"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
+                        >
+                            <span class="material-symbols-outlined text-[16px]">description</span>
+                            Draft Contract
+                        </button>
+                    </div>
+                </template>
+            </SlidePanel>
 
-            <template #footer>
-                <div class="flex items-center justify-end gap-3">
-                    <button
-                        type="button"
-                        @click="showAddPanel = false"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
-                    >Cancel</button>
-                    <button
-                        @click="submitContract"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span class="material-symbols-outlined text-[16px]">description</span>
-                        Draft Contract
-                    </button>
-                </div>
-            </template>
-        </SlidePanel>
-
-    </AuthenticatedLayout>
+    </div>
 </template>

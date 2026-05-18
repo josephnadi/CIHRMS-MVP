@@ -9,6 +9,8 @@ import SearchInput from '@/Components/SearchInput.vue';
 import StatCard from '@/Components/StatCard.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     cases:        Object, // paginated { data: [], links: [], meta: {} }
     stats:        Object, // { in_progress, awaiting_settle, completed_ytd, settlement_total }
@@ -143,9 +145,20 @@ const form = useForm({
     reason:             '',
 });
 
+// Auto-open the off-boarding panel when arriving via Quick Action (?new=1).
+// Strip the flag immediately so refresh + post-submit back() don't re-trigger
+// the panel and leave the backdrop stuck over the page.
 onMounted(() => {
-    if (new URLSearchParams(window.location.search).get('new') === '1') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('new') === '1') {
         showPanel.value = true;
+        params.delete('new');
+        const qs = params.toString();
+        window.history.replaceState(
+            {},
+            '',
+            window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash,
+        );
     }
 });
 
@@ -157,381 +170,314 @@ const submitCase = () => form.post(route('offboarding.store'), {
 
 <template>
     <Head title="Off-boarding &amp; Settlement" />
-    <AuthenticatedLayout :activeModule="activeModule">
-
-        <!-- ── Header ────────────────────────────────────────────── -->
-        <template #header>
-            <div class="es-masthead">
-                <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">OFF-BOARDING DOSSIER</span></span>
-                <span class="es-masthead-spacer"></span>
-                <span>{{ editionLabel.date }}</span>
-                <span class="es-masthead-spacer"></span>
-                <span>{{ editionLabel.edition }}</span>
-                <span class="es-masthead-spacer"></span>
-                <span class="es-masthead-live">
-                    <span class="es-dot" aria-hidden="true"></span>
-                    Register live · audit chain sealed
-                </span>
-            </div>
-        </template>
-
-        <div class="space-y-8">
-
-            <!-- ── Broadsheet hero ─────────────────────────────────── -->
-            <div class="es-broadsheet rounded-none">
-                <!-- LEAD column -->
-                <div class="es-broadsheet-lead">
-                    <p class="es-eyebrow mb-6">Departures · Clearance &amp; final settlement</p>
-                    <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                        Off-boarding,
-                        <span class="es-display-italic block">cleared.</span>
-                    </h2>
-                    <p class="es-display-sub">
-                        Every separation is logged against Ghana Labour Act, 2003 (Act 651) §17 termination-notice requirements.
-                        Clearance is convened across IT, Finance, HR, and the Reports-To line; final settlement is released only on
-                        dual-control sign-off and stands under audit until the case is closed in the register.
-                    </p>
-
-                    <!-- Typographic action chips -->
-                    <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                        <button @click="showPanel = true" class="es-chip">
-                            <span class="material-symbols-outlined text-[15px]">edit_note</span>
-                            Initiate case
-                        </button>
-                        <span class="text-on-surface-variant/30">·</span>
-                        <button @click="() => { localFilters.status = 'in_progress'; applyFilters(); }" class="es-chip">
-                            <span class="material-symbols-outlined text-[15px]">fact_check</span>
-                            Pending clearances
-                        </button>
-                        <span class="text-on-surface-variant/30">·</span>
-                        <button @click="() => { localFilters.status = 'awaiting_settlement'; applyFilters(); }" class="es-chip">
-                            <span class="material-symbols-outlined text-[15px]">account_balance_wallet</span>
-                            Awaiting final settlement
-                        </button>
-                    </div>
-                </div>
-
-                <!-- SIDEBAR column: headline KPI -->
-                <div class="es-broadsheet-sidebar">
-                    <div class="es-stat-hero">
-                        <p class="es-stat-hero-label">Open Cases</p>
-                        <p class="es-stat-hero-value">{{ (stats?.in_progress ?? 0).toLocaleString() }}</p>
-                        <p class="es-stat-hero-caption">
-                            Active separations on the register · {{ (stats?.awaiting_settle ?? 0).toLocaleString() }} awaiting settlement
+    <div data-page-root="true">
+            <!-- ── Header ────────────────────────────────────────────── -->
+            <Teleport to="#page-header-mount" defer>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">logout</span>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">OFF-BOARDING DOSSIER</p>
+                        </div>
+                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Off-boarding &amp; Settlement</h1>
+                        <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                            Every separation logged against Act 651 §17 · clearance across IT, Finance, HR, line manager · dual-control settlement.
                         </p>
-                        <span class="es-stat-hero-delta">
-                            <span class="material-symbols-outlined text-[13px]">verified</span>
-                            Act 651 §17 notice tracked
-                        </span>
                     </div>
-                </div>
-            </div>
-
-            <!-- ── Supporting metrics strip ────────────────────────── -->
-            <div class="es-stat-strip rounded-none">
-                <div class="es-stat-cell">
-                    <p class="es-stat-cell-label">Open Cases</p>
-                    <p class="es-stat-cell-value">{{ (stats?.in_progress ?? 0).toLocaleString() }}</p>
-                    <p class="es-stat-cell-caption">Separations on register</p>
-                </div>
-                <div class="es-stat-cell">
-                    <p class="es-stat-cell-label">Clearing</p>
-                    <p class="es-stat-cell-value">{{ (stats?.awaiting_settle ?? 0).toLocaleString() }}</p>
-                    <p class="es-stat-cell-caption">Awaiting dual-control release</p>
-                </div>
-                <div class="es-stat-cell">
-                    <p class="es-stat-cell-label">Settled · YTD</p>
-                    <p class="es-stat-cell-value">{{ (stats?.completed_ytd ?? 0).toLocaleString() }}</p>
-                    <p class="es-stat-cell-caption">{{ cedi(stats?.settlement_total ?? 0) }} paid out</p>
-                </div>
-                <div class="es-stat-cell es-stat-cell--down">
-                    <p class="es-stat-cell-label">Cancelled</p>
-                    <p class="es-stat-cell-value">{{ (stats?.cancelled ?? 0).toLocaleString() }}</p>
-                    <p class="es-stat-cell-caption">Withdrawn / rescinded</p>
-                </div>
-            </div>
-
-            <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex-1 min-w-[200px] max-w-xs">
-                    <SearchInput
-                        v-model="localFilters.q"
-                        placeholder="Search reference or employeeâ€¦"
-                    />
-                </div>
-
-                <select
-                    v-model="localFilters.status"
-                    @change="applyFilters"
-                    class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                >
-                    <option value="">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="awaiting_settlement">Awaiting Settlement</option>
-                    <option value="settled">Settled</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-
-                <select
-                    v-model="localFilters.exit_type"
-                    @change="applyFilters"
-                    class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                >
-                    <option value="">All Exit Types</option>
-                    <option value="resignation">Resignation</option>
-                    <option value="retirement">Retirement</option>
-                    <option value="end_of_contract">End of Contract</option>
-                    <option value="dismissal">Dismissal</option>
-                    <option value="redundancy">Redundancy</option>
-                    <option value="mutual_separation">Mutual Separation</option>
-                    <option value="death">Death</option>
-                    <option value="abscondment">Abscondment</option>
-                </select>
-
-                <button
-                    v-if="hasFilters"
-                    @click="clearFilters"
-                    class="rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-1.5"
-                >
-                    <span class="material-symbols-outlined text-[16px]">close</span>
-                    Clear
-                </button>
-            </div>
-
-            <!-- â”€â”€ Case card grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-            <div v-if="(cases?.data?.length ?? 0) === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
-                <EmptyState
-                    title="No off-boarding cases found"
-                    description="Initiated cases will appear here. Adjust filters or open a new case."
-                    icon="logout"
-                >
-                    <template #action>
-                        <button
-                            @click="showPanel = true"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
-                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                        >
-                            <span class="material-symbols-outlined text-[18px]">add</span>
-                            Open Case
+                    <div class="flex items-center gap-2">
+                        <button @click="showPanel = true"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e);">
+                            <span class="material-symbols-outlined text-[17px]">edit_note</span>
+                            Initiate Case
                         </button>
-                    </template>
-                </EmptyState>
-            </div>
-
-            <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div
-                    v-for="(c, i) in cases.data"
-                    :key="c.id"
-                    class="card-lift rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5 flex flex-col gap-4 cursor-pointer animate-slide-up-fade"
-                    :style="`animation-delay:${i * 0.06}s`"
-                    @click="router.get(route('offboarding.show', c.id))"
-                >
-                    <!-- Employee header -->
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center text-[13px] font-black text-white"
-                            :style="`background:${avatarGradient(c.employee?.id ?? c.id)}`"
-                        >
-                            {{ initials(c.employee?.name) }}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ c.employee?.name ?? 'â€“' }}</p>
-                            <p class="text-[11px] text-on-surface-variant/60 leading-tight truncate">
-                                {{ c.employee?.department ?? '' }}
-                                <span v-if="c.employee?.employee_no"> Â· {{ c.employee.employee_no }}</span>
-                            </p>
-                        </div>
-                        <StatusBadge :status="c.status" :label="c.status_label" />
-                    </div>
-
-                    <!-- Exit type badge + LWD -->
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold"
-                            :style="`background:${exitTypeColor(c.exit_type)}`"
-                        >
-                            <span class="material-symbols-outlined text-[14px]">{{ exitTypeIcon(c.exit_type) }}</span>
-                            {{ c.exit_type_label ?? c.exit_type }}
-                        </div>
-                        <div class="ml-auto flex items-center gap-1.5 text-[12px]" :class="lwdUrgency(c.last_working_day)">
-                            <span class="material-symbols-outlined text-[15px]">event</span>
-                            LWD: {{ relativeLWD(c.last_working_day) }}
-                        </div>
-                    </div>
-
-                    <!-- Clearance progress bar -->
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-semibold text-on-surface-variant">Clearance progress</span>
-                            <span class="font-black text-on-surface">{{ pct(c.clearance_progress) }}</span>
-                        </div>
-                        <div class="h-2 w-full rounded-full bg-surface-container overflow-hidden">
-                            <div
-                                class="h-full rounded-full transition-all"
-                                :style="`width:${pct(c.clearance_progress)};background:${Number(c.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#1a237e,#3949ab)'}`"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <!-- Settlement row -->
-                    <div class="rounded-xl bg-surface-container-low px-4 py-3 flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 mb-0.5">Net Settlement</p>
-                            <p v-if="c.settlement" class="font-mono text-[14px] font-black text-on-surface tabular-nums">
-                                {{ cedi(c.settlement.net_payable) }}
-                            </p>
-                            <p v-else class="text-[13px] text-on-surface-variant/40 italic">Not yet calculated</p>
-                        </div>
-                        <div v-if="c.settlement">
-                            <StatusBadge :status="c.settlement.status" :label="c.settlement.status_label" />
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="flex items-center justify-between pt-1 border-t border-outline-variant/40">
-                        <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant/60">
-                            <span class="material-symbols-outlined text-[13px]">calendar_today</span>
-                            Notice: {{ formatDate(c.notice_received_on) }}
-                        </div>
-                        <Link
-                            :href="route('offboarding.show', c.id)"
-                            class="flex items-center gap-1 text-[12px] font-bold text-secondary hover:underline"
-                            @click.stop
-                        >
-                            Open Case
-                            <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
-                        </Link>
                     </div>
                 </div>
-            </div>
+            </Teleport>
 
-            <!-- Pagination -->
-            <div v-if="cases?.links?.length > 3" class="flex items-center justify-between">
-                <p class="text-[12px] text-on-surface-variant">
-                    Showing
-                    <span class="font-semibold text-on-surface">{{ cases.meta?.from }}</span>
-                    â€“
-                    <span class="font-semibold text-on-surface">{{ cases.meta?.to }}</span>
-                    of
-                    <span class="font-semibold text-on-surface">{{ cases.meta?.total }}</span>
-                </p>
-                <Pagination :links="cases.links" />
-            </div>
-        </div>
+            <div class="space-y-8">
 
-        <!-- â”€â”€ Initiate Off-boarding SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-        <SlidePanel
-            :open="showPanel"
-            title="Initiate Off-boarding Case"
-            size="lg"
-            @close="showPanel = false"
-        >
-            <form @submit.prevent="submitCase" class="space-y-5 p-6">
+                <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex-1 min-w-[200px] max-w-xs">
+                        <SearchInput
+                            v-model="localFilters.q"
+                            placeholder="Search reference or employeeâ€¦"
+                        />
+                    </div>
 
-                <!-- Employee ID -->
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                        Employee ID <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        v-model="form.employee_id"
-                        type="number"
-                        placeholder="Employee record ID"
-                        required
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                        :class="{ 'border-red-400': form.errors.employee_id }"
-                    />
-                    <p v-if="form.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_id }}</p>
-                </div>
-
-                <!-- Exit type -->
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                        Exit Type <span class="text-red-500">*</span>
-                    </label>
                     <select
-                        v-model="form.exit_type"
-                        required
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                        :class="{ 'border-red-400': form.errors.exit_type }"
+                        v-model="localFilters.status"
+                        @change="applyFilters"
+                        class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                     >
+                        <option value="">All Statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="awaiting_settlement">Awaiting Settlement</option>
+                        <option value="settled">Settled</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+
+                    <select
+                        v-model="localFilters.exit_type"
+                        @change="applyFilters"
+                        class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                    >
+                        <option value="">All Exit Types</option>
                         <option value="resignation">Resignation</option>
                         <option value="retirement">Retirement</option>
                         <option value="end_of_contract">End of Contract</option>
-                        <option value="dismissal">Dismissal (with cause)</option>
-                        <option value="redundancy">Redundancy (Act 651 Â§31)</option>
+                        <option value="dismissal">Dismissal</option>
+                        <option value="redundancy">Redundancy</option>
                         <option value="mutual_separation">Mutual Separation</option>
                         <option value="death">Death</option>
                         <option value="abscondment">Abscondment</option>
                     </select>
-                    <p v-if="form.errors.exit_type" class="mt-1 text-[11px] text-red-500">{{ form.errors.exit_type }}</p>
-                </div>
 
-                <!-- Dates -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                            Notice Received On <span class="text-red-500">*</span>
-                        </label>
-                        <input
-                            v-model="form.notice_received_on"
-                            type="date"
-                            required
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                            :class="{ 'border-red-400': form.errors.notice_received_on }"
-                        />
-                        <p v-if="form.errors.notice_received_on" class="mt-1 text-[11px] text-red-500">{{ form.errors.notice_received_on }}</p>
-                    </div>
-                    <div>
-                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                            Last Working Day <span class="text-red-500">*</span>
-                        </label>
-                        <input
-                            v-model="form.last_working_day"
-                            type="date"
-                            required
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                            :class="{ 'border-red-400': form.errors.last_working_day }"
-                        />
-                        <p v-if="form.errors.last_working_day" class="mt-1 text-[11px] text-red-500">{{ form.errors.last_working_day }}</p>
-                    </div>
-                </div>
-
-                <!-- Reason -->
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Reason / Context</label>
-                    <textarea
-                        v-model="form.reason"
-                        rows="3"
-                        placeholder="Briefly describe the circumstancesâ€¦"
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
-                    ></textarea>
-                </div>
-            </form>
-
-            <template #footer>
-                <div class="flex items-center justify-end gap-3">
                     <button
-                        type="button"
-                        @click="showPanel = false"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+                        v-if="hasFilters"
+                        @click="clearFilters"
+                        class="rounded-xl border border-outline-variant/60 px-3 py-2.5 text-[12px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors flex items-center gap-1.5"
                     >
-                        Cancel
-                    </button>
-                    <button
-                        @click="submitCase"
-                        :disabled="form.processing"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                        Initiate Case
+                        <span class="material-symbols-outlined text-[16px]">close</span>
+                        Clear
                     </button>
                 </div>
-            </template>
-        </SlidePanel>
 
-    </AuthenticatedLayout>
+                <!-- â”€â”€ Case card grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <div v-if="(cases?.data?.length ?? 0) === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
+                    <EmptyState
+                        title="No off-boarding cases found"
+                        description="Initiated cases will appear here. Adjust filters or open a new case."
+                        icon="logout"
+                    >
+                        <template #action>
+                            <button
+                                @click="showPanel = true"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
+                            >
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                Open Case
+                            </button>
+                        </template>
+                    </EmptyState>
+                </div>
+
+                <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <div
+                        v-for="(c, i) in cases.data"
+                        :key="c.id"
+                        class="card-lift rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5 flex flex-col gap-4 cursor-pointer animate-slide-up-fade"
+                        :style="`animation-delay:${i * 0.06}s`"
+                        @click="router.get(route('offboarding.show', c.id))"
+                    >
+                        <!-- Employee header -->
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center text-[13px] font-black text-white"
+                                :style="`background:${avatarGradient(c.employee?.id ?? c.id)}`"
+                            >
+                                {{ initials(c.employee?.name) }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ c.employee?.name ?? 'â€“' }}</p>
+                                <p class="text-[11px] text-on-surface-variant/60 leading-tight truncate">
+                                    {{ c.employee?.department ?? '' }}
+                                    <span v-if="c.employee?.employee_no"> Â· {{ c.employee.employee_no }}</span>
+                                </p>
+                            </div>
+                            <StatusBadge :status="c.status" :label="c.status_label" />
+                        </div>
+
+                        <!-- Exit type badge + LWD -->
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold"
+                                :style="`background:${exitTypeColor(c.exit_type)}`"
+                            >
+                                <span class="material-symbols-outlined text-[14px]">{{ exitTypeIcon(c.exit_type) }}</span>
+                                {{ c.exit_type_label ?? c.exit_type }}
+                            </div>
+                            <div class="ml-auto flex items-center gap-1.5 text-[12px]" :class="lwdUrgency(c.last_working_day)">
+                                <span class="material-symbols-outlined text-[15px]">event</span>
+                                LWD: {{ relativeLWD(c.last_working_day) }}
+                            </div>
+                        </div>
+
+                        <!-- Clearance progress bar -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-semibold text-on-surface-variant">Clearance progress</span>
+                                <span class="font-black text-on-surface">{{ pct(c.clearance_progress) }}</span>
+                            </div>
+                            <div class="h-2 w-full rounded-full bg-surface-container overflow-hidden">
+                                <div
+                                    class="h-full rounded-full transition-all"
+                                    :style="`width:${pct(c.clearance_progress)};background:${Number(c.clearance_progress) >= 1 ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#1a237e,#3949ab)'}`"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <!-- Settlement row -->
+                        <div class="rounded-xl bg-surface-container-low px-4 py-3 flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60 mb-0.5">Net Settlement</p>
+                                <p v-if="c.settlement" class="font-mono text-[14px] font-black text-on-surface tabular-nums">
+                                    {{ cedi(c.settlement.net_payable) }}
+                                </p>
+                                <p v-else class="text-[13px] text-on-surface-variant/40 italic">Not yet calculated</p>
+                            </div>
+                            <div v-if="c.settlement">
+                                <StatusBadge :status="c.settlement.status" :label="c.settlement.status_label" />
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="flex items-center justify-between pt-1 border-t border-outline-variant/40">
+                            <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant/60">
+                                <span class="material-symbols-outlined text-[13px]">calendar_today</span>
+                                Notice: {{ formatDate(c.notice_received_on) }}
+                            </div>
+                            <Link
+                                :href="route('offboarding.show', c.id)"
+                                class="flex items-center gap-1 text-[12px] font-bold text-secondary hover:underline"
+                                @click.stop
+                            >
+                                Open Case
+                                <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="cases?.links?.length > 3" class="flex items-center justify-between">
+                    <p class="text-[12px] text-on-surface-variant">
+                        Showing
+                        <span class="font-semibold text-on-surface">{{ cases.meta?.from }}</span>
+                        â€“
+                        <span class="font-semibold text-on-surface">{{ cases.meta?.to }}</span>
+                        of
+                        <span class="font-semibold text-on-surface">{{ cases.meta?.total }}</span>
+                    </p>
+                    <Pagination :links="cases.links" />
+                </div>
+            </div>
+
+            <!-- â”€â”€ Initiate Off-boarding SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <SlidePanel
+                :open="showPanel"
+                title="Initiate Off-boarding Case"
+                size="lg"
+                @close="showPanel = false"
+            >
+                <form @submit.prevent="submitCase" class="space-y-5 p-6">
+
+                    <!-- Employee ID -->
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                            Employee ID <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            v-model="form.employee_id"
+                            type="number"
+                            placeholder="Employee record ID"
+                            required
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            :class="{ 'border-red-400': form.errors.employee_id }"
+                        />
+                        <p v-if="form.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_id }}</p>
+                    </div>
+
+                    <!-- Exit type -->
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                            Exit Type <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            v-model="form.exit_type"
+                            required
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            :class="{ 'border-red-400': form.errors.exit_type }"
+                        >
+                            <option value="resignation">Resignation</option>
+                            <option value="retirement">Retirement</option>
+                            <option value="end_of_contract">End of Contract</option>
+                            <option value="dismissal">Dismissal (with cause)</option>
+                            <option value="redundancy">Redundancy (Act 651 Â§31)</option>
+                            <option value="mutual_separation">Mutual Separation</option>
+                            <option value="death">Death</option>
+                            <option value="abscondment">Abscondment</option>
+                        </select>
+                        <p v-if="form.errors.exit_type" class="mt-1 text-[11px] text-red-500">{{ form.errors.exit_type }}</p>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                                Notice Received On <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                v-model="form.notice_received_on"
+                                type="date"
+                                required
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.notice_received_on }"
+                            />
+                            <p v-if="form.errors.notice_received_on" class="mt-1 text-[11px] text-red-500">{{ form.errors.notice_received_on }}</p>
+                        </div>
+                        <div>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                                Last Working Day <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                v-model="form.last_working_day"
+                                type="date"
+                                required
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.last_working_day }"
+                            />
+                            <p v-if="form.errors.last_working_day" class="mt-1 text-[11px] text-red-500">{{ form.errors.last_working_day }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Reason / Context</label>
+                        <textarea
+                            v-model="form.reason"
+                            rows="3"
+                            placeholder="Briefly describe the circumstancesâ€¦"
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                        ></textarea>
+                    </div>
+                </form>
+
+                <template #footer>
+                    <div class="flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            @click="showPanel = false"
+                            class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            @click="submitCase"
+                            :disabled="form.processing"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
+                        >
+                            <span v-if="form.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                            Initiate Case
+                        </button>
+                    </div>
+                </template>
+            </SlidePanel>
+
+    </div>
 </template>

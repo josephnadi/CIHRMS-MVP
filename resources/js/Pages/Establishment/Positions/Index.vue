@@ -7,6 +7,8 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     positions:    Object,
     stats:        Object,
@@ -46,100 +48,100 @@ const vacatePosition = (p) => {
 
 <template>
     <Head title="Positions / Establishment" />
-    <AuthenticatedLayout :active-module="activeModule">
-        <template #header>
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">account_tree</span>
-                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Establishment · Headcount ceiling</p>
+    <div data-page-root="true">
+            <Teleport to="#page-header-mount" defer>
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">account_tree</span>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Establishment · Headcount ceiling</p>
+                    </div>
+                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Positions</h1>
+                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                        Approved positions, grade bands, and active assignments — the establishment register.
+                    </p>
                 </div>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Positions</h1>
-                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                    Approved positions, grade bands, and active assignments — the establishment register.
-                </p>
+            </Teleport>
+
+            <div class="py-6 space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatCard label="Total positions" :value="stats.total" />
+                    <StatCard label="Vacant" :value="stats.vacant" tone="warn" />
+                    <StatCard label="Filled" :value="stats.filled" tone="success" />
+                    <StatCard label="Frozen" :value="stats.frozen" tone="neutral" />
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+                    <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
+                        <select v-model="localFilters.status" @change="applyFilters"
+                                class="rounded-lg border-slate-200 text-sm">
+                            <option value="">All statuses</option>
+                            <option value="vacant">Vacant</option>
+                            <option value="filled">Filled</option>
+                            <option value="frozen">Frozen</option>
+                            <option value="acting">Acting</option>
+                        </select>
+                    </div>
+
+                    <div v-if="positions?.data?.length === 0">
+                        <EmptyState title="No positions defined yet"
+                                    description="Approved establishment posts will appear here." />
+                    </div>
+
+                    <table v-else class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                            <tr>
+                                <th class="px-5 py-3 text-left">Code</th>
+                                <th class="px-5 py-3 text-left">Title</th>
+                                <th class="px-5 py-3 text-left">Grade</th>
+                                <th class="px-5 py-3 text-left">Department</th>
+                                <th class="px-5 py-3 text-left">Cost center</th>
+                                <th class="px-5 py-3 text-left">Funding</th>
+                                <th class="px-5 py-3 text-left">Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr v-for="p in positions.data" :key="p.id" class="hover:bg-slate-50">
+                                <td class="px-5 py-3 font-mono text-xs">{{ p.code }}</td>
+                                <td class="px-5 py-3 font-medium">{{ p.title }}</td>
+                                <td class="px-5 py-3">{{ p.grade?.code }}</td>
+                                <td class="px-5 py-3">{{ p.department?.name ?? 'â€”' }}</td>
+                                <td class="px-5 py-3">{{ p.cost_center ?? 'â€”' }}</td>
+                                <td class="px-5 py-3">{{ p.funding_source_label }}</td>
+                                <td class="px-5 py-3"><StatusBadge :status="p.status" :label="p.status_label" /></td>
+                                <td class="px-5 py-3 text-right whitespace-nowrap">
+                                    <div class="inline-flex items-center gap-1">
+                                        <button v-if="(p.status === 'filled' || p.status === 'acting')"
+                                                type="button"
+                                                @click="vacatePosition(p)"
+                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors"
+                                                title="Vacate this position">
+                                            <span class="material-symbols-outlined text-[14px]">person_remove</span>
+                                            Vacate
+                                        </button>
+                                        <button v-if="p.status !== 'frozen'"
+                                                type="button"
+                                                @click="freezePosition(p)"
+                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                                                title="Freeze (suspend hiring against this slot)">
+                                            <span class="material-symbols-outlined text-[14px]">ac_unit</span>
+                                            Freeze
+                                        </button>
+                                        <Link :href="route('positions.show', p.id)"
+                                              class="inline-flex h-7 items-center gap-1 rounded-lg border border-secondary/30 bg-secondary/5 px-2 text-[11px] font-bold text-secondary hover:bg-secondary/10 transition-colors">
+                                            Open
+                                            <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="px-5 py-3 border-t border-slate-100">
+                        <Pagination :links="positions?.meta?.links ?? []" />
+                    </div>
+                </div>
             </div>
-        </template>
-
-        <div class="py-6 space-y-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard label="Total positions" :value="stats.total" />
-                <StatCard label="Vacant" :value="stats.vacant" tone="warn" />
-                <StatCard label="Filled" :value="stats.filled" tone="success" />
-                <StatCard label="Frozen" :value="stats.frozen" tone="neutral" />
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
-                    <select v-model="localFilters.status" @change="applyFilters"
-                            class="rounded-lg border-slate-200 text-sm">
-                        <option value="">All statuses</option>
-                        <option value="vacant">Vacant</option>
-                        <option value="filled">Filled</option>
-                        <option value="frozen">Frozen</option>
-                        <option value="acting">Acting</option>
-                    </select>
-                </div>
-
-                <div v-if="positions?.data?.length === 0">
-                    <EmptyState title="No positions defined yet"
-                                description="Approved establishment posts will appear here." />
-                </div>
-
-                <table v-else class="w-full text-sm">
-                    <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
-                        <tr>
-                            <th class="px-5 py-3 text-left">Code</th>
-                            <th class="px-5 py-3 text-left">Title</th>
-                            <th class="px-5 py-3 text-left">Grade</th>
-                            <th class="px-5 py-3 text-left">Department</th>
-                            <th class="px-5 py-3 text-left">Cost center</th>
-                            <th class="px-5 py-3 text-left">Funding</th>
-                            <th class="px-5 py-3 text-left">Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr v-for="p in positions.data" :key="p.id" class="hover:bg-slate-50">
-                            <td class="px-5 py-3 font-mono text-xs">{{ p.code }}</td>
-                            <td class="px-5 py-3 font-medium">{{ p.title }}</td>
-                            <td class="px-5 py-3">{{ p.grade?.code }}</td>
-                            <td class="px-5 py-3">{{ p.department?.name ?? 'â€”' }}</td>
-                            <td class="px-5 py-3">{{ p.cost_center ?? 'â€”' }}</td>
-                            <td class="px-5 py-3">{{ p.funding_source_label }}</td>
-                            <td class="px-5 py-3"><StatusBadge :status="p.status" :label="p.status_label" /></td>
-                            <td class="px-5 py-3 text-right whitespace-nowrap">
-                                <div class="inline-flex items-center gap-1">
-                                    <button v-if="(p.status === 'filled' || p.status === 'acting')"
-                                            type="button"
-                                            @click="vacatePosition(p)"
-                                            class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors"
-                                            title="Vacate this position">
-                                        <span class="material-symbols-outlined text-[14px]">person_remove</span>
-                                        Vacate
-                                    </button>
-                                    <button v-if="p.status !== 'frozen'"
-                                            type="button"
-                                            @click="freezePosition(p)"
-                                            class="inline-flex h-7 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors"
-                                            title="Freeze (suspend hiring against this slot)">
-                                        <span class="material-symbols-outlined text-[14px]">ac_unit</span>
-                                        Freeze
-                                    </button>
-                                    <Link :href="route('positions.show', p.id)"
-                                          class="inline-flex h-7 items-center gap-1 rounded-lg border border-secondary/30 bg-secondary/5 px-2 text-[11px] font-bold text-secondary hover:bg-secondary/10 transition-colors">
-                                        Open
-                                        <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
-                                    </Link>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="px-5 py-3 border-t border-slate-100">
-                    <Pagination :links="positions?.meta?.links ?? []" />
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </div>
 </template>

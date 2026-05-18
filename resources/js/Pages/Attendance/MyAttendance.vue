@@ -8,6 +8,8 @@ import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     period:  Object,
     summary: Object,
@@ -172,356 +174,355 @@ const attendancePct = computed(() => {
 
 <template>
     <Head title="My Attendance" />
-    <AuthenticatedLayout active-module="attendance">
-
-        <!-- ── Header ────────────────────────────────────────────────────────── -->
-        <template #header>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">My Attendance</h2>
-                    <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Track your clock-in, clock-out, and monthly attendance summary.
-                        <span class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                            {{ attendancePct }}% this month
-                        </span>
-                    </p>
-                </div>
-                <button
-                    @click="showCorrection = true"
-                    class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-primary hover:bg-surface-container-low transition-colors flex items-center gap-2"
-                >
-                    <span class="material-symbols-outlined text-[17px]">edit_note</span>
-                    Request Correction
-                </button>
-            </div>
-        </template>
-
-        <div class="p-6 space-y-6 animate-reveal-up">
-
-            <!-- Hero clock card — gold hairline (single 5% accent moment) + disciplined navy->cobalt->magenta gradient -->
-            <div
-                class="relative overflow-hidden rounded-2xl p-6 text-white shadow-glow"
-                style="background: linear-gradient(135deg, #0d1452 0%, #1a237e 60%, #d912e3 100%)"
-            >
-                <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
-                <!-- subtle grid texture -->
-                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.15) 24px,rgba(255,255,255,.15) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.15) 24px,rgba(255,255,255,.15) 25px)"></div>
-
-                <div class="relative flex flex-wrap items-center justify-between gap-6">
-                    <!-- Clock display -->
+    <div data-page-root="true">
+            <!-- ── Header ────────────────────────────────────────────────────────── -->
+            <Teleport to="#page-header-mount" defer>
+                <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <p class="text-[11px] font-black uppercase tracking-[0.18em] text-white/60 mb-1">Current Time</p>
-                        <p class="font-mono text-[3rem] font-black leading-none tracking-tight tabular-nums">{{ liveTime }}</p>
-                        <p class="mt-1 text-[14px] font-medium text-white/80">{{ liveDate }}</p>
-
-                        <!-- Today status pill -->
-                        <div class="mt-3 inline-flex items-center gap-2">
-                            <span
-                                v-if="isClockedIn"
-                                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-[12px] font-black text-emerald-300 border border-emerald-400/30"
-                            >
-                                <span class="relative flex h-2 w-2">
-                                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-                                </span>
-                                CLOCKED IN
+                        <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">My Attendance</h2>
+                        <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                            Track your clock-in, clock-out, and monthly attendance summary.
+                            <span class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
+                                {{ attendancePct }}% this month
                             </span>
-                            <span
-                                v-else
-                                class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[12px] font-black text-white/70 border border-white/20"
-                            >
-                                <span class="h-2 w-2 rounded-full bg-white/40"></span>
-                                CLOCKED OUT
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Clock in/out actions -->
-                    <div class="flex flex-col items-end gap-3">
-                        <!-- GPS status -->
-                        <div class="flex items-center gap-1.5 text-[11px] text-white/60">
-                            <span class="material-symbols-outlined text-[14px]">location_on</span>
-                            <span v-if="geoStatus === 'idle'">GPS available</span>
-                            <span v-else-if="geoStatus === 'resolving'" class="animate-pulse">Capturing GPS…</span>
-                            <span v-else-if="geoStatus === 'captured'" class="text-emerald-300">GPS captured</span>
-                            <span v-else class="text-white/40">GPS unavailable</span>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <button
-                                v-if="!isClockedIn"
-                                @click="clockSelf('in')"
-                                :disabled="clockForm.processing"
-                                class="btn-shimmer inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[14px] font-black text-primary shadow-lg transition-all hover:-translate-y-px hover:shadow-xl active:scale-[0.97] disabled:opacity-60"
-                            >
-                                <span v-if="clockForm.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                                <span v-else class="material-symbols-outlined text-[18px]">login</span>
-                                Clock In
-                            </button>
-                            <button
-                                v-else
-                                @click="clockSelf('out')"
-                                :disabled="clockForm.processing"
-                                class="btn-shimmer inline-flex items-center gap-2 rounded-xl bg-white/20 border border-white/40 px-6 py-3 text-[14px] font-black text-white shadow-lg transition-all hover:-translate-y-px hover:bg-white/30 active:scale-[0.97] disabled:opacity-60"
-                            >
-                                <span v-if="clockForm.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                                <span v-else class="material-symbols-outlined text-[18px]">logout</span>
-                                Clock Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stat cards — Total Hours gets the gold accent (the institutional time-on-the-clock metric) -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard
-                    :value="stats.daysWorked"
-                    label="Days Worked"
-                    icon="event_available"
-                    color="green"
-                />
-                <StatCard
-                    :value="typeof stats.totalHours === 'number' ? stats.totalHours.toFixed(1) : stats.totalHours"
-                    label="Total Hours"
-                    icon="schedule"
-                    color="gold"
-                />
-                <StatCard
-                    :value="stats.daysLate"
-                    label="Late Arrivals"
-                    icon="alarm"
-                    color="amber"
-                />
-                <StatCard
-                    :value="typeof stats.overtime === 'number' ? stats.overtime.toFixed(1) : stats.overtime"
-                    label="Overtime Hrs"
-                    icon="more_time"
-                    color="magenta"
-                />
-            </div>
-
-            <!-- ── Month calendar grid + table side-by-side ─────────────────── -->
-            <div class="grid gap-6 lg:grid-cols-[auto_1fr]">
-
-                <!-- Calendar -->
-                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 card-lift min-w-[300px]">
-                    <div class="flex items-center justify-between mb-4">
-                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">
-                            {{ period?.label ?? '' }}
                         </p>
-                        <input
-                            v-model="monthValue"
-                            type="month"
-                            @change="changeMonth"
-                            class="rounded-lg border border-outline-variant bg-surface-container-low px-2.5 py-1 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50 transition-all"
-                        />
                     </div>
+                    <button
+                        @click="showCorrection = true"
+                        class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-primary hover:bg-surface-container-low transition-colors flex items-center gap-2"
+                    >
+                        <span class="material-symbols-outlined text-[17px]">edit_note</span>
+                        Request Correction
+                    </button>
+                </div>
+            </Teleport>
 
-                    <!-- Legend -->
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-emerald-200"></span>Present</span>
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-amber-200"></span>Late</span>
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-rose-200"></span>Absent</span>
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-violet-200"></span>Leave</span>
-                    </div>
+            <div class="p-6 space-y-6 animate-reveal-up">
 
-                    <!-- Day-of-week headers -->
-                    <div class="grid grid-cols-7 gap-1 mb-1">
-                        <div v-for="d in ['M','T','W','T','F','S','S']" :key="d"
-                             class="text-center text-[10px] font-black text-on-surface-variant/60 py-1">{{ d }}</div>
-                    </div>
+                <!-- Hero clock card — gold hairline (single 5% accent moment) + disciplined navy->cobalt->magenta gradient -->
+                <div
+                    class="relative overflow-hidden rounded-2xl p-6 text-white shadow-glow"
+                    style="background: linear-gradient(135deg, #0d1452 0%, #1a237e 60%, #d912e3 100%)"
+                >
+                    <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)"></div>
+                    <!-- subtle grid texture -->
+                    <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,.15) 24px,rgba(255,255,255,.15) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,.15) 24px,rgba(255,255,255,.15) 25px)"></div>
 
-                    <!-- Calendar cells -->
-                    <div class="grid grid-cols-7 gap-1">
-                        <template v-for="(cell, idx) in calendarDays" :key="idx">
-                            <!-- Empty padding -->
-                            <div v-if="!cell" class="h-9 rounded-lg"></div>
-                            <!-- Day cell -->
-                            <div
-                                v-else
-                                :class="[
-                                    'h-9 rounded-lg flex items-center justify-center text-[12px] font-bold transition-all',
-                                    dayBg(cell),
-                                    cell.dateStr === todayStr
-                                        ? 'ring-2 ring-offset-1 ring-primary shadow-sm'
-                                        : ''
-                                ]"
-                                :title="cell.record?.status_label ?? cell.dateStr"
-                            >
-                                {{ cell.date }}
+                    <div class="relative flex flex-wrap items-center justify-between gap-6">
+                        <!-- Clock display -->
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.18em] text-white/60 mb-1">Current Time</p>
+                            <p class="font-mono text-[3rem] font-black leading-none tracking-tight tabular-nums">{{ liveTime }}</p>
+                            <p class="mt-1 text-[14px] font-medium text-white/80">{{ liveDate }}</p>
+
+                            <!-- Today status pill -->
+                            <div class="mt-3 inline-flex items-center gap-2">
+                                <span
+                                    v-if="isClockedIn"
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-[12px] font-black text-emerald-300 border border-emerald-400/30"
+                                >
+                                    <span class="relative flex h-2 w-2">
+                                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                                    </span>
+                                    CLOCKED IN
+                                </span>
+                                <span
+                                    v-else
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[12px] font-black text-white/70 border border-white/20"
+                                >
+                                    <span class="h-2 w-2 rounded-full bg-white/40"></span>
+                                    CLOCKED OUT
+                                </span>
                             </div>
-                        </template>
+                        </div>
+
+                        <!-- Clock in/out actions -->
+                        <div class="flex flex-col items-end gap-3">
+                            <!-- GPS status -->
+                            <div class="flex items-center gap-1.5 text-[11px] text-white/60">
+                                <span class="material-symbols-outlined text-[14px]">location_on</span>
+                                <span v-if="geoStatus === 'idle'">GPS available</span>
+                                <span v-else-if="geoStatus === 'resolving'" class="animate-pulse">Capturing GPS…</span>
+                                <span v-else-if="geoStatus === 'captured'" class="text-emerald-300">GPS captured</span>
+                                <span v-else class="text-white/40">GPS unavailable</span>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button
+                                    v-if="!isClockedIn"
+                                    @click="clockSelf('in')"
+                                    :disabled="clockForm.processing"
+                                    class="btn-shimmer inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[14px] font-black text-primary shadow-lg transition-all hover:-translate-y-px hover:shadow-xl active:scale-[0.97] disabled:opacity-60"
+                                >
+                                    <span v-if="clockForm.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                    <span v-else class="material-symbols-outlined text-[18px]">login</span>
+                                    Clock In
+                                </button>
+                                <button
+                                    v-else
+                                    @click="clockSelf('out')"
+                                    :disabled="clockForm.processing"
+                                    class="btn-shimmer inline-flex items-center gap-2 rounded-xl bg-white/20 border border-white/40 px-6 py-3 text-[14px] font-black text-white shadow-lg transition-all hover:-translate-y-px hover:bg-white/30 active:scale-[0.97] disabled:opacity-60"
+                                >
+                                    <span v-if="clockForm.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                    <span v-else class="material-symbols-outlined text-[18px]">logout</span>
+                                    Clock Out
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Attendance table -->
-                <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
-                    <div class="px-5 py-3.5 border-b border-outline-variant/40">
-                        <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Daily Records</p>
-                    </div>
+                <!-- Stat cards — Total Hours gets the gold accent (the institutional time-on-the-clock metric) -->
+                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <StatCard
+                        :value="stats.daysWorked"
+                        label="Days Worked"
+                        icon="event_available"
+                        color="green"
+                    />
+                    <StatCard
+                        :value="typeof stats.totalHours === 'number' ? stats.totalHours.toFixed(1) : stats.totalHours"
+                        label="Total Hours"
+                        icon="schedule"
+                        color="gold"
+                    />
+                    <StatCard
+                        :value="stats.daysLate"
+                        label="Late Arrivals"
+                        icon="alarm"
+                        color="amber"
+                    />
+                    <StatCard
+                        :value="typeof stats.overtime === 'number' ? stats.overtime.toFixed(1) : stats.overtime"
+                        label="Overtime Hrs"
+                        icon="more_time"
+                        color="magenta"
+                    />
+                </div>
 
-                    <div v-if="!days?.data?.length" class="p-8">
-                        <EmptyState title="No attendance records for this period." class="py-4" />
-                    </div>
+                <!-- ── Month calendar grid + table side-by-side ─────────────────── -->
+                <div class="grid gap-6 lg:grid-cols-[auto_1fr]">
 
-                    <div v-else class="overflow-auto max-h-[480px]">
-                        <table class="w-full text-left">
-                            <thead class="sticky top-0 z-10">
-                                <tr>
-                                    <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Date</th>
-                                    <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Status</th>
-                                    <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">In</th>
-                                    <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">Out</th>
-                                    <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">Hours</th>
-                                    <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">OT</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-outline-variant/40">
-                                <tr
-                                    v-for="d in days.data"
-                                    :key="d.id ?? d.date"
+                    <!-- Calendar -->
+                    <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 card-lift min-w-[300px]">
+                        <div class="flex items-center justify-between mb-4">
+                            <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">
+                                {{ period?.label ?? '' }}
+                            </p>
+                            <input
+                                v-model="monthValue"
+                                type="month"
+                                @change="changeMonth"
+                                class="rounded-lg border border-outline-variant bg-surface-container-low px-2.5 py-1 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50 transition-all"
+                            />
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-emerald-200"></span>Present</span>
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-amber-200"></span>Late</span>
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-rose-200"></span>Absent</span>
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold"><span class="h-2 w-2 rounded-sm bg-violet-200"></span>Leave</span>
+                        </div>
+
+                        <!-- Day-of-week headers -->
+                        <div class="grid grid-cols-7 gap-1 mb-1">
+                            <div v-for="d in ['M','T','W','T','F','S','S']" :key="d"
+                                 class="text-center text-[10px] font-black text-on-surface-variant/60 py-1">{{ d }}</div>
+                        </div>
+
+                        <!-- Calendar cells -->
+                        <div class="grid grid-cols-7 gap-1">
+                            <template v-for="(cell, idx) in calendarDays" :key="idx">
+                                <!-- Empty padding -->
+                                <div v-if="!cell" class="h-9 rounded-lg"></div>
+                                <!-- Day cell -->
+                                <div
+                                    v-else
                                     :class="[
-                                        'hover:bg-surface-container/40 transition-colors',
-                                        d.date === todayStr ? 'bg-secondary/5' : ''
+                                        'h-9 rounded-lg flex items-center justify-center text-[12px] font-bold transition-all',
+                                        dayBg(cell),
+                                        cell.dateStr === todayStr
+                                            ? 'ring-2 ring-offset-1 ring-primary shadow-sm'
+                                            : ''
                                     ]"
+                                    :title="cell.record?.status_label ?? cell.dateStr"
                                 >
-                                    <td class="px-4 py-3">
-                                        <span class="text-[13px] font-semibold text-on-surface">{{ formatDate(d.date) }}</span>
-                                        <span v-if="d.date === todayStr" class="ml-1.5 text-[10px] font-black text-secondary uppercase">Today</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span :class="['inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold', statusToneClass(d.status)]">
-                                            {{ d.status_label ?? d.status }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-right font-mono text-[12px] text-on-surface-variant tabular-nums">
-                                        {{ d.first_in ? formatTs(d.date + ' ' + d.first_in) : '—' }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right font-mono text-[12px] text-on-surface-variant tabular-nums">
-                                        {{ d.last_out ? formatTs(d.date + ' ' + d.last_out) : '—' }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right text-[13px] font-semibold text-on-surface tabular-nums">
-                                        {{ d.hours_worked != null ? Number(d.hours_worked).toFixed(2) : '—' }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right text-[13px] tabular-nums"
-                                        :class="Number(d.overtime_hours) > 0 ? 'text-violet-700 font-bold' : 'text-on-surface-variant/50'">
-                                        {{ d.overtime_hours != null ? Number(d.overtime_hours).toFixed(2) : '—' }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    {{ cell.date }}
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
-                    <!-- Pagination -->
-                    <div v-if="days?.links?.length > 3" class="border-t border-outline-variant/40 px-4 py-3">
-                        <Pagination :links="days.links" />
+                    <!-- Attendance table -->
+                    <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
+                        <div class="px-5 py-3.5 border-b border-outline-variant/40">
+                            <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Daily Records</p>
+                        </div>
+
+                        <div v-if="!days?.data?.length" class="p-8">
+                            <EmptyState title="No attendance records for this period." class="py-4" />
+                        </div>
+
+                        <div v-else class="overflow-auto max-h-[480px]">
+                            <table class="w-full text-left">
+                                <thead class="sticky top-0 z-10">
+                                    <tr>
+                                        <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Date</th>
+                                        <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">Status</th>
+                                        <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">In</th>
+                                        <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">Out</th>
+                                        <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">Hours</th>
+                                        <th class="bg-surface-container-low px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70 text-right">OT</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/40">
+                                    <tr
+                                        v-for="d in days.data"
+                                        :key="d.id ?? d.date"
+                                        :class="[
+                                            'hover:bg-surface-container/40 transition-colors',
+                                            d.date === todayStr ? 'bg-secondary/5' : ''
+                                        ]"
+                                    >
+                                        <td class="px-4 py-3">
+                                            <span class="text-[13px] font-semibold text-on-surface">{{ formatDate(d.date) }}</span>
+                                            <span v-if="d.date === todayStr" class="ml-1.5 text-[10px] font-black text-secondary uppercase">Today</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span :class="['inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold', statusToneClass(d.status)]">
+                                                {{ d.status_label ?? d.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono text-[12px] text-on-surface-variant tabular-nums">
+                                            {{ d.first_in ? formatTs(d.date + ' ' + d.first_in) : '—' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono text-[12px] text-on-surface-variant tabular-nums">
+                                            {{ d.last_out ? formatTs(d.date + ' ' + d.last_out) : '—' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right text-[13px] font-semibold text-on-surface tabular-nums">
+                                            {{ d.hours_worked != null ? Number(d.hours_worked).toFixed(2) : '—' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right text-[13px] tabular-nums"
+                                            :class="Number(d.overtime_hours) > 0 ? 'text-violet-700 font-bold' : 'text-on-surface-variant/50'">
+                                            {{ d.overtime_hours != null ? Number(d.overtime_hours).toFixed(2) : '—' }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div v-if="days?.links?.length > 3" class="border-t border-outline-variant/40 px-4 py-3">
+                            <Pagination :links="days.links" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ── Request Correction slide-panel ─────────────────────────────────── -->
-        <SlidePanel :open="showCorrection" @close="showCorrection = false" title="Request Attendance Correction" size="md">
-            <form @submit.prevent="submitCorrection" class="space-y-5 p-6">
-                <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3">
-                    <span class="material-symbols-outlined text-[20px] text-amber-600 mt-0.5">info</span>
-                    <p class="text-[12px] text-amber-800 leading-relaxed">
-                        Submit a correction if your clock-in or clock-out was missed or recorded incorrectly. An HR administrator will review and approve or reject your request.
-                    </p>
-                </div>
+            <!-- ── Request Correction slide-panel ─────────────────────────────────── -->
+            <SlidePanel :open="showCorrection" @close="showCorrection = false" title="Request Attendance Correction" size="md">
+                <form @submit.prevent="submitCorrection" class="space-y-5 p-6">
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-[20px] text-amber-600 mt-0.5">info</span>
+                        <p class="text-[12px] text-amber-800 leading-relaxed">
+                            Submit a correction if your clock-in or clock-out was missed or recorded incorrectly. An HR administrator will review and approve or reject your request.
+                        </p>
+                    </div>
 
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                        Event Date & Time <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        v-model="correctionForm.requested_event_at"
-                        type="datetime-local"
-                        required
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
-                        :class="{ 'border-red-400': correctionForm.errors.requested_event_at }"
-                    />
-                    <p v-if="correctionForm.errors.requested_event_at" class="mt-1 text-[11px] text-red-500">{{ correctionForm.errors.requested_event_at }}</p>
-                </div>
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                            Event Date & Time <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            v-model="correctionForm.requested_event_at"
+                            type="datetime-local"
+                            required
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            :class="{ 'border-red-400': correctionForm.errors.requested_event_at }"
+                        />
+                        <p v-if="correctionForm.errors.requested_event_at" class="mt-1 text-[11px] text-red-500">{{ correctionForm.errors.requested_event_at }}</p>
+                    </div>
 
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                        Direction <span class="text-red-500">*</span>
-                    </label>
-                    <div class="flex gap-3">
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                            Direction <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex gap-3">
+                            <button
+                                type="button"
+                                @click="correctionForm.requested_direction = 'in'"
+                                :class="[
+                                    'flex-1 rounded-xl border px-4 py-2.5 text-[13px] font-bold transition-all flex items-center justify-center gap-2',
+                                    correctionForm.requested_direction === 'in'
+                                        ? 'border-primary bg-primary text-white shadow-glow-sm'
+                                        : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'
+                                ]"
+                            >
+                                <span class="material-symbols-outlined text-[16px]">login</span>
+                                Clock-In
+                            </button>
+                            <button
+                                type="button"
+                                @click="correctionForm.requested_direction = 'out'"
+                                :class="[
+                                    'flex-1 rounded-xl border px-4 py-2.5 text-[13px] font-bold transition-all flex items-center justify-center gap-2',
+                                    correctionForm.requested_direction === 'out'
+                                        ? 'border-primary bg-primary text-white shadow-glow-sm'
+                                        : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'
+                                ]"
+                            >
+                                <span class="material-symbols-outlined text-[16px]">logout</span>
+                                Clock-Out
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                            Reason <span class="text-red-500">*</span>
+                            <span class="ml-1 font-normal text-on-surface-variant/60">(min 8 characters)</span>
+                        </label>
+                        <textarea
+                            v-model="correctionForm.reason"
+                            required
+                            minlength="8"
+                            maxlength="500"
+                            rows="4"
+                            placeholder="Explain why a correction is needed…"
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': correctionForm.errors.reason }"
+                        />
+                        <div class="mt-1 flex items-center justify-between">
+                            <p v-if="correctionForm.errors.reason" class="text-[11px] text-red-500">{{ correctionForm.errors.reason }}</p>
+                            <span class="ml-auto text-[11px] text-on-surface-variant/50">{{ correctionForm.reason?.length ?? 0 }}/500</span>
+                        </div>
+                    </div>
+                </form>
+
+                <template #footer>
+                    <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
-                            @click="correctionForm.requested_direction = 'in'"
-                            :class="[
-                                'flex-1 rounded-xl border px-4 py-2.5 text-[13px] font-bold transition-all flex items-center justify-center gap-2',
-                                correctionForm.requested_direction === 'in'
-                                    ? 'border-primary bg-primary text-white shadow-glow-sm'
-                                    : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'
-                            ]"
+                            @click="showCorrection = false"
+                            class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
-                            <span class="material-symbols-outlined text-[16px]">login</span>
-                            Clock-In
+                            Cancel
                         </button>
                         <button
-                            type="button"
-                            @click="correctionForm.requested_direction = 'out'"
-                            :class="[
-                                'flex-1 rounded-xl border px-4 py-2.5 text-[13px] font-bold transition-all flex items-center justify-center gap-2',
-                                correctionForm.requested_direction === 'out'
-                                    ? 'border-primary bg-primary text-white shadow-glow-sm'
-                                    : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'
-                            ]"
+                            @click="submitCorrection"
+                            :disabled="correctionForm.processing"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
+                            style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
-                            <span class="material-symbols-outlined text-[16px]">logout</span>
-                            Clock-Out
+                            <span v-if="correctionForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                            <span>Submit Request</span>
                         </button>
                     </div>
-                </div>
+                </template>
+            </SlidePanel>
 
-                <div>
-                    <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
-                        Reason <span class="text-red-500">*</span>
-                        <span class="ml-1 font-normal text-on-surface-variant/60">(min 8 characters)</span>
-                    </label>
-                    <textarea
-                        v-model="correctionForm.reason"
-                        required
-                        minlength="8"
-                        maxlength="500"
-                        rows="4"
-                        placeholder="Explain why a correction is needed…"
-                        class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
-                        :class="{ 'border-red-400': correctionForm.errors.reason }"
-                    />
-                    <div class="mt-1 flex items-center justify-between">
-                        <p v-if="correctionForm.errors.reason" class="text-[11px] text-red-500">{{ correctionForm.errors.reason }}</p>
-                        <span class="ml-auto text-[11px] text-on-surface-variant/50">{{ correctionForm.reason?.length ?? 0 }}/500</span>
-                    </div>
-                </div>
-            </form>
-
-            <template #footer>
-                <div class="flex items-center justify-end gap-3">
-                    <button
-                        type="button"
-                        @click="showCorrection = false"
-                        class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        @click="submitCorrection"
-                        :disabled="correctionForm.processing"
-                        class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-sm hover:shadow-glow transition-shadow disabled:opacity-60"
-                        style="background:linear-gradient(135deg,#0d1452,#1a237e)"
-                    >
-                        <span v-if="correctionForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                        <span>Submit Request</span>
-                    </button>
-                </div>
-            </template>
-        </SlidePanel>
-
-    </AuthenticatedLayout>
+    </div>
 </template>
