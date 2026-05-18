@@ -43,7 +43,6 @@ const restoreSidebarScroll = () => {
 let removeInertiaBefore = null;
 
 onMounted(() => {
-    console.log('[NAVDIAG] Layout mounted at:', page.url);
     init();
     setTimeout(() => { mounted.value = true; }, 50);
     nextTick(restoreSidebarScroll);
@@ -53,10 +52,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
     saveSidebarScroll();
     if (typeof removeInertiaBefore === 'function') removeInertiaBefore();
-});
-
-watch(() => page.url, (now, prev) => {
-    console.log('[NAVDIAG] page.url:', prev, '->', now);
 });
 
 const can = (permission) =>
@@ -590,7 +585,6 @@ const quickActions = computed(() => [
                             <Link
                                 v-else
                                 :href="resolveHref(item)"
-                                @click="() => console.log('[NAVDIAG] sidebar click:', item.label, '->', resolveHref(item))"
                                 class="group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-150"
                                 :class="navItemClass(item)"
                                 :style="navItemStyle(item)"

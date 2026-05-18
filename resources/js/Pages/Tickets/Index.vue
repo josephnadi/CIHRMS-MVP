@@ -83,8 +83,6 @@ const selectedId       = ref(null);
 // Auto-open create panel when arriving via Quick Action (?new=1).
 // Strip the flag immediately so refresh + post-submit back() don't re-trigger
 // the panel and leave the backdrop stuck over the page.
-onMounted(() => console.log('[NAVDIAG] Tickets/Index mounted · tickets:', props.tickets?.data?.length));
-
 onMounted(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('new') === '1') {

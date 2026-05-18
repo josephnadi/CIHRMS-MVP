@@ -1,7 +1,7 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp, router } from '@inertiajs/vue3';
+import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
@@ -20,13 +20,10 @@ createInertiaApp({
     // page slot, so the sidebar/header don't unmount. That's the persistent layout.
     // Public pages (Welcome, Careers/Show, Auth/Login, etc.) intentionally omit
     // defineOptions and render their own shells.
-    resolve: (name) => {
-        console.log('[NAVDIAG] resolve:', name);
-        return resolvePageComponent(
-            `./Pages/${name}.vue`,
-            import.meta.glob('./Pages/**/*.vue'),
-        );
-    },
+    resolve: (name) => resolvePageComponent(
+        `./Pages/${name}.vue`,
+        import.meta.glob('./Pages/**/*.vue'),
+    ),
     setup({ el, App, props, plugin }) {
         return createApp({ render: () => h(App, props) })
             .use(plugin)
@@ -43,6 +40,3 @@ createInertiaApp({
         color: '#0d1452',
     },
 });
-
-router.on('start',   (e) => console.log('[NAVDIAG] visit start  :', e.detail.visit.url.pathname));
-router.on('success', (e) => console.log('[NAVDIAG] visit success:', e.detail.page.url, '· component:', e.detail.page.component));
