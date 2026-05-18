@@ -43,6 +43,7 @@ const restoreSidebarScroll = () => {
 let removeInertiaBefore = null;
 
 onMounted(() => {
+    console.log('[NAVDIAG] Layout mounted at:', page.url);
     init();
     setTimeout(() => { mounted.value = true; }, 50);
     nextTick(restoreSidebarScroll);
@@ -52,6 +53,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
     saveSidebarScroll();
     if (typeof removeInertiaBefore === 'function') removeInertiaBefore();
+});
+
+watch(() => page.url, (now, prev) => {
+    console.log('[NAVDIAG] page.url:', prev, '->', now);
 });
 
 const can = (permission) =>
@@ -108,6 +113,7 @@ const navSections = computed(() => {
                     },
                     { label: 'Governance',   route: 'modules.governance',   module: 'governance',  icon: 'account_balance',  visible: true },
                     { label: 'Assets',       route: 'modules.assets',       module: 'assets',      icon: 'inventory_2',      visible: true },
+                    { label: 'Documents',    route: 'documents.index',      module: 'documents',   icon: 'description',      visible: can('documents.view') },
                     {
                         label: 'Reports', icon: 'assessment', expandable: true, visible: can('reports.view'),
                         children: [
@@ -584,6 +590,7 @@ const quickActions = computed(() => [
                             <Link
                                 v-else
                                 :href="resolveHref(item)"
+                                @click="() => console.log('[NAVDIAG] sidebar click:', item.label, '->', resolveHref(item))"
                                 class="group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-150"
                                 :class="navItemClass(item)"
                                 :style="navItemStyle(item)"
@@ -779,14 +786,53 @@ const quickActions = computed(() => [
                             </template>
                         </Dropdown>
 
-                        <!-- Avatar -->
-                        <div class="ml-1 h-9 w-9 flex-shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-surface-container-lowest shadow-sm ring-1 ring-outline-variant/40 transition-all hover:ring-secondary/50">
-                            <img v-if="user?.avatar" :src="user.avatar" :alt="`${user.name} profile photo`" class="h-full w-full object-cover" />
-                            <div v-else class="flex h-full w-full items-center justify-center text-[11px] font-black text-white"
-                                 style="background:linear-gradient(135deg,#0d1452,#1a237e)">
-                                {{ user?.name?.charAt(0) }}
-                            </div>
-                        </div>
+                        <!-- Avatar with profile dropdown -->
+                        <Dropdown align="right" width="56">
+                            <template #trigger>
+                                <button type="button"
+                                        :title="user?.name"
+                                        :aria-label="`${user?.name ?? 'Account'} menu`"
+                                        class="ml-1 h-9 w-9 flex-shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-surface-container-lowest shadow-sm ring-1 ring-outline-variant/40 transition-all hover:ring-secondary/50 focus:outline-none focus:ring-2 focus:ring-secondary">
+                                    <img v-if="user?.avatar" :src="user.avatar" :alt="`${user.name} profile photo`" class="h-full w-full object-cover" />
+                                    <span v-else class="flex h-full w-full items-center justify-center text-[11px] font-black text-white"
+                                          style="background:linear-gradient(135deg,#0d1452,#1a237e)">
+                                        {{ user?.name?.charAt(0) }}
+                                    </span>
+                                </button>
+                            </template>
+                            <template #content>
+                                <div class="bg-surface-container-lowest dark:bg-surface-container-low overflow-hidden">
+                                    <!-- Identity strip -->
+                                    <div class="flex items-center gap-3 border-b border-outline-variant/40 px-4 py-3">
+                                        <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-white dark:ring-surface-container-lowest shadow-sm">
+                                            <img v-if="user?.avatar" :src="user.avatar" :alt="user.name" class="h-full w-full object-cover" />
+                                            <div v-else class="flex h-full w-full items-center justify-center text-[12px] font-black text-white"
+                                                 style="background:linear-gradient(135deg,#0d1452,#1a237e)">
+                                                {{ user?.name?.charAt(0) }}
+                                            </div>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="truncate text-[13px] font-bold text-on-surface">{{ user?.name }}</p>
+                                            <p class="truncate text-[11px] text-on-surface-variant">{{ user?.email }}</p>
+                                        </div>
+                                    </div>
+                                    <!-- Actions -->
+                                    <DropdownLink :href="route('profile.edit')" class="flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[17px] text-secondary">person</span>
+                                        My profile
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('notifications.channels.edit')" class="flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[17px] text-secondary">tune</span>
+                                        Notification channels
+                                    </DropdownLink>
+                                    <div class="my-1 border-t border-outline-variant/40"></div>
+                                    <DropdownLink :href="route('logout')" method="post" as="button" class="flex w-full items-center gap-2.5 text-red-600 hover:bg-red-500/[0.06]">
+                                        <span class="material-symbols-outlined text-[17px]">logout</span>
+                                        Sign out
+                                    </DropdownLink>
+                                </div>
+                            </template>
+                        </Dropdown>
                     </div>
                 </div>
 
@@ -820,19 +866,30 @@ const quickActions = computed(() => [
                 </Transition>
             </header>
 
-            <!-- Page Title Slot -->
-            <div v-if="$slots.header" class="flex-shrink-0 border-b border-outline-variant/50 bg-surface-container-lowest px-6 py-5 sm:px-8">
-                <slot name="header" />
-            </div>
+            <!-- Page-header strip ─────────────────────────────────────────
+                 Persistent-layout mount point. Each page Teleports its
+                 executive header into #page-header-mount; the CSS :empty
+                 rule below collapses the strip when no page is mounted yet
+                 or the page chose to omit a header. The Teleport pattern
+                 is what keeps the sidebar/header alive across navigations
+                 — Vue diffs the persistent layout and only re-renders this
+                 div's children instead of unmounting the whole shell. -->
+            <div id="page-header-mount" class="page-header-strip flex-shrink-0 border-b border-outline-variant/50 bg-surface-container-lowest px-6 py-5 sm:px-8"></div>
 
             <!-- Main (independently scrollable). tabindex="-1" + id makes
-                 SkipLink's anchor target focusable. -->
+                 SkipLink's anchor target focusable.
+                 The keyed inner div forces Vue to fully remount the page
+                 component whenever the Inertia URL changes — guarantees
+                 the slot's content swaps even if the layout's persistent
+                 instance reuses internal state across navigations. -->
             <main
                 id="main-content"
                 tabindex="-1"
                 class="main-scroll flex-1 overflow-y-auto p-5 sm:p-7 lg:p-8"
             >
-                <slot />
+                <div :key="page.url">
+                    <slot />
+                </div>
             </main>
         </div>
 
@@ -842,6 +899,11 @@ const quickActions = computed(() => [
 </template>
 
 <style>
+/* Collapse the page-header strip when no page has teleported anything into
+   it yet (initial paint between navigations). Keeps the layout from showing
+   an empty bordered band before the page's Teleport runs. */
+.page-header-strip:empty { display: none; }
+
 .main-scroll::-webkit-scrollbar { width: 10px; }
 .main-scroll::-webkit-scrollbar-track { background: transparent; }
 .main-scroll::-webkit-scrollbar-thumb {
