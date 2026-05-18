@@ -106,7 +106,15 @@ const navSections = computed(() => {
                             { label: 'Skills Matrix', route: 'learning.skills-matrix', module: 'learning-skills',  icon: 'grid_on',    visible: can('learning.manage') },
                         ],
                     },
-                    { label: 'Governance',   route: 'modules.governance',   module: 'governance',  icon: 'account_balance',  visible: true },
+                    {
+                        label: 'Governance', icon: 'account_balance', expandable: true, visible: true,
+                        children: [
+                            { label: 'Overview',         route: 'modules.governance',          module: 'governance',          icon: 'dashboard',  visible: true },
+                            { label: 'Manage',           route: 'governance.manage',           module: 'governance-manage',   icon: 'tune',       visible: can('governance.manage') },
+                            { label: 'Certifications',   route: 'governance.certifications.index', module: 'governance-certs',  icon: 'verified',   visible: true },
+                            { label: 'Incident Reports', route: 'incidents.index',             module: 'incidents',           icon: 'report',     visible: true },
+                        ],
+                    },
                     { label: 'Assets',       route: 'modules.assets',       module: 'assets',      icon: 'inventory_2',      visible: true },
                     { label: 'Documents',    route: 'documents.index',      module: 'documents',   icon: 'description',      visible: can('documents.view') },
                     {
@@ -492,6 +500,7 @@ const quickActions = computed(() => [
     { label: 'Record payment', icon: 'payments',        href: route('payments.index')   + '?new=1', visible: can('payroll.manage') },
     { label: 'Set a goal',     icon: 'track_changes',   href: route('performance.goals.index') + '?new=1', visible: can('performance.view') },
     { label: 'Export report',  icon: 'download',        href: route('reports.index'),               visible: can('reports.view') },
+    { label: 'Compose Incident', icon: 'edit_note', href: route('incidents.index') + '?new=1', visible: true },
 ].filter(i => i.visible));
 </script>
 
