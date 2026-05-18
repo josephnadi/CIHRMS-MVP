@@ -16,16 +16,20 @@ use App\Listeners\SendNotifications;
 use App\Events\PayrollRunApproved;
 use App\Listeners\GenerateStatutoryReturns;
 use App\Models\Department;
+use App\Models\Document;
 use App\Models\Employee;
 use App\Models\IdentityVerification;
+use App\Models\IncidentReport;
 use App\Models\LeaveRequest;
 use App\Models\Payment;
 use App\Models\PayrollRun;
 use App\Models\Position;
 use App\Models\Ticket;
 use App\Policies\DepartmentPolicy;
+use App\Policies\DocumentPolicy;
 use App\Policies\EmployeePolicy;
 use App\Policies\IdentityVerificationPolicy;
+use App\Policies\IncidentReportPolicy;
 use App\Policies\LeaveRequestPolicy;
 use App\Policies\PaymentPolicy;
 use App\Policies\PayrollRunPolicy;
@@ -173,6 +177,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
         Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
         Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
+        Gate::policy(IncidentReport::class,        IncidentReportPolicy::class);
         Gate::policy(\App\Models\OffboardingCase::class,     \App\Policies\OffboardingCasePolicy::class);
         Gate::policy(\App\Models\WhistleblowerReport::class, \App\Policies\WhistleblowerReportPolicy::class);
         Gate::policy(\App\Models\PerformanceContract::class, \App\Policies\PerformanceContractPolicy::class);
@@ -184,6 +189,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\BenefitEnrolment::class,    \App\Policies\BenefitsPolicy::class);
         Gate::policy(\App\Models\BenefitClaim::class,        \App\Policies\BenefitsPolicy::class);
         Gate::policy(\App\Models\Policy::class,              \App\Policies\GovernancePolicy::class);
+        Gate::policy(Document::class,                        DocumentPolicy::class);
 
         // ── Generic permission gate: $user->can('perm.slug') falls through to hasPermission() ──
         Gate::before(function ($user, string $ability) {
