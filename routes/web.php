@@ -6,6 +6,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\GovernanceController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LeaveRequestController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\PayrollRunController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\KioskController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\LoanAccountController;
@@ -58,7 +60,11 @@ Route::get('/', function () {
 });
 
 // Public API documentation (Stoplight Elements rendered from /api/v1/openapi.yaml)
-Route::get('/api/docs', [ApiDocsController::class, 'show'])->name('api.docs');
+// `api.docs` is the Inertia landing page; `api.docs.interactive` is the
+// full-bleed Stoplight reference (kept on a separate route so the landing
+// can iframe it without redirect).
+Route::get('/api/docs',         [ApiDocsController::class, 'show'])       ->name('api.docs');
+Route::get('/api/docs/explore', [ApiDocsController::class, 'interactive'])->name('api.docs.interactive');
 
 // PWA offline fallback (WS21) — served from a plain Blade view so it loads
 // without Inertia / Vite / authenticated state.
@@ -127,6 +133,16 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 // Public complaint tracking endpoint — lookup-by-reference, no auth required.
 Route::get('/complaints/track', [ComplaintController::class, 'track'])
     ->name('complaints.track');
+
+// Public attendance kiosk — designed for a shared/dedicated device (no auth).
+// Identifies employees by employee_no + name (later: face scan) and writes
+// clock events via AttendanceService with source=web_kiosk.
+Route::prefix('kiosk')->name('kiosk.')->middleware('throttle:60,1')->group(function () {
+    Route::get('/',        [KioskController::class, 'show'])->name('show');
+    Route::post('/verify', [KioskController::class, 'verify'])->name('verify');
+    Route::post('/clock',  [KioskController::class, 'clock'])->name('clock');
+    Route::post('/face',   [KioskController::class, 'clockByFace'])->name('face');
+});
 
 // ── Module entry points (sidebar links) ─────────────────────────────────────
 // Most route directly to a dedicated page; a few that don't have one yet fall
@@ -722,6 +738,20 @@ Route::middleware(['auth', 'audit'])->group(function () {
         });
     });
 
+    // ── Phase 5: Incident Reporting ──
+    Route::prefix('governance/incidents')->name('incidents.')->group(function () {
+        Route::get('/',                                  [\App\Http\Controllers\IncidentReportController::class, 'index'])    ->name('index');
+        Route::get('/{report}',                          [\App\Http\Controllers\IncidentReportController::class, 'show'])     ->name('show');
+        Route::post('/',                                 [\App\Http\Controllers\IncidentReportController::class, 'store'])    ->name('store');
+        Route::patch('/{report}',                        [\App\Http\Controllers\IncidentReportController::class, 'update'])   ->name('update');
+        Route::post('/{report}/assign',                  [\App\Http\Controllers\IncidentReportController::class, 'assign'])   ->name('assign');
+        Route::delete('/{report}/assign/{user}',         [\App\Http\Controllers\IncidentReportController::class, 'unassign']) ->name('unassign');
+        Route::post('/{report}/messages',                [\App\Http\Controllers\IncidentReportController::class, 'postMessage'])->name('messages.store');
+        Route::post('/{report}/close',                   [\App\Http\Controllers\IncidentReportController::class, 'close'])    ->name('close');
+        Route::post('/{report}/reopen',                  [\App\Http\Controllers\IncidentReportController::class, 'reopen'])   ->name('reopen');
+        Route::get('/attachments/{attachment}/download', [\App\Http\Controllers\IncidentReportController::class, 'downloadAttachment'])->name('attachments.download');
+    });
+
     // ── Phase 1: Two-factor auth ──
     Route::prefix('two-factor')->name('two-factor.')->group(function () {
         Route::get('/enroll',     [TwoFactorController::class, 'enroll'])        ->name('enroll');
@@ -741,6 +771,30 @@ Route::middleware(['auth', 'audit'])->group(function () {
     Route::get('/admin/integrations/{provider}/callback', [IntegrationController::class, 'callback'])
         ->middleware('permission:integrations.manage')
         ->name('admin.integrations.callback');
+
+    // Documents
+    Route::prefix('documents')->name('documents.')->group(function () {
+        Route::get('/',                            [DocumentController::class, 'index'])->name('index');
+        Route::post('/',                           [DocumentController::class, 'store'])->name('store');
+        // Static segments must be registered BEFORE `/{document}` so they
+        // don't collide with the UUID-bound parameter route.
+        Route::get('/users/search',                [DocumentController::class, 'searchUsers'])->name('users.search');
+        Route::get('/{document}',                  [DocumentController::class, 'show'])->name('show');
+        Route::post('/{document}/versions',        [DocumentController::class, 'addVersion'])->name('versions.store');
+        Route::post('/{document}/route',           [DocumentController::class, 'route'])->name('route');
+        Route::post('/{document}/withdraw',        [DocumentController::class, 'withdraw'])->name('withdraw');
+        Route::post('/{document}/archive',         [DocumentController::class, 'archive'])->name('archive');
+        Route::post('/{document}/annotations',     [DocumentController::class, 'annotate'])->name('annotations.store');
+        Route::delete('/{document}/annotations/{annotationId}', [DocumentController::class, 'removeAnnotation'])->name('annotations.destroy');
+        Route::post('/{document}/routes/{route}/act', [DocumentController::class, 'act'])->name('routes.act');
+        // `download` requires a valid signature (URL::temporarySignedRoute) —
+        // the show page mints fresh 5-min URLs and the user follows those.
+        // This stops anyone from sharing a permanent direct-download link.
+        Route::get('/{document}/download',         [DocumentController::class, 'download'])
+            ->middleware('signed')
+            ->name('download');
+        Route::post('/{document}/convert',         [DocumentController::class, 'convert'])->name('convert');
+    });
 });
 
 // ── Phase 4: SSO (WS19) ──
