@@ -177,7 +177,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IdentityVerification::class,  IdentityVerificationPolicy::class);
         Gate::policy(AttendanceRecord::class,      AttendancePolicy::class);
         Gate::policy(LoanAccount::class,           LoanAccountPolicy::class);
-        Gate::policy(IncidentReport::class,        IncidentReportPolicy::class);
+        Gate::policy(IncidentReport::class,            IncidentReportPolicy::class);
+        Gate::policy(\App\Models\IncidentReportAttachment::class, IncidentReportPolicy::class);
         Gate::policy(\App\Models\OffboardingCase::class,     \App\Policies\OffboardingCasePolicy::class);
         Gate::policy(\App\Models\WhistleblowerReport::class, \App\Policies\WhistleblowerReportPolicy::class);
         Gate::policy(\App\Models\PerformanceContract::class, \App\Policies\PerformanceContractPolicy::class);
@@ -245,25 +246,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\CertificationExpired::class, RecordAnalyticsEvent::class);
 
         // Incident Reporting — Notification listeners (Task 8)
-        Event::listen(
-            \App\Events\Incident\IncidentReportAssigned::class,
-            \App\Listeners\Incident\NotifyAssignee::class,
-        );
-        Event::listen(
-            \App\Events\Incident\IncidentReportUnassigned::class,
-            \App\Listeners\Incident\NotifyUnassigned::class,
-        );
-        Event::listen(
-            \App\Events\Incident\IncidentMessagePosted::class,
-            \App\Listeners\Incident\NotifyMessageRecipients::class,
-        );
-        Event::listen(
-            \App\Events\Incident\IncidentReportClosed::class,
-            \App\Listeners\Incident\NotifySubmitterOnClose::class,
-        );
-        Event::listen(
-            \App\Events\Incident\IncidentReportReopened::class,
-            \App\Listeners\Incident\NotifyCircleOnReopen::class,
-        );
+        // These are auto-discovered by Laravel 11's listener scanner (typed
+        // handle() parameters).  Explicit Event::listen() registrations here
+        // would double-register them, firing each listener twice per event.
     }
 }
