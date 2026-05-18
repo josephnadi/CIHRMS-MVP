@@ -243,5 +243,27 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\PolicyAcknowledged::class, RecordAnalyticsEvent::class);
         Event::listen(\App\Events\CertificationExpiring::class, RecordAnalyticsEvent::class);
         Event::listen(\App\Events\CertificationExpired::class, RecordAnalyticsEvent::class);
+
+        // Incident Reporting — Notification listeners (Task 8)
+        Event::listen(
+            \App\Events\Incident\IncidentReportAssigned::class,
+            \App\Listeners\Incident\NotifyAssignee::class,
+        );
+        Event::listen(
+            \App\Events\Incident\IncidentReportUnassigned::class,
+            \App\Listeners\Incident\NotifyUnassigned::class,
+        );
+        Event::listen(
+            \App\Events\Incident\IncidentMessagePosted::class,
+            \App\Listeners\Incident\NotifyMessageRecipients::class,
+        );
+        Event::listen(
+            \App\Events\Incident\IncidentReportClosed::class,
+            \App\Listeners\Incident\NotifySubmitterOnClose::class,
+        );
+        Event::listen(
+            \App\Events\Incident\IncidentReportReopened::class,
+            \App\Listeners\Incident\NotifyCircleOnReopen::class,
+        );
     }
 }
