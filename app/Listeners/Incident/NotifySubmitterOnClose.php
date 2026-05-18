@@ -18,7 +18,8 @@ class NotifySubmitterOnClose
             'type' => 'incident.closed',
             'data' => [
                 'incident_report_id' => $e->report->id,
-                'title' => $e->report->title,
+                'message' => $e->report->title,
+                'kind' => 'incident.closed',
                 'route' => 'incidents.show',
             ],
         ]);

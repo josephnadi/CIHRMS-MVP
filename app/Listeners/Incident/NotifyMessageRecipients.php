@@ -27,7 +27,8 @@ class NotifyMessageRecipients
                 'type' => 'incident.message',
                 'data' => [
                     'incident_report_id' => $report->id,
-                    'title' => $report->title,
+                    'message' => $report->title,
+                    'kind' => 'incident.message',
                     'route' => 'incidents.show',
                 ],
             ]);

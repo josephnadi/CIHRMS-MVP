@@ -24,7 +24,8 @@ class NotifyCircleOnReopen
                 'type' => 'incident.reopened',
                 'data' => [
                     'incident_report_id' => $report->id,
-                    'title' => $report->title,
+                    'message' => $report->title,
+                    'kind' => 'incident.reopened',
                     'route' => 'incidents.show',
                 ],
             ]);
