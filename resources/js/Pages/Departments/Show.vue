@@ -4,6 +4,8 @@ import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { useToast } from '@/composables/useToast';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     slug:         { type: String, required: true },   // 'it' | 'hr' | 'marketing' | 'finance'
     department:   { type: Object, default: null },    // optional real Department record
@@ -96,96 +98,95 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
 
 <template>
     <Head :title="`${portal.title} â€” CIHRMS`" />
+    <div data-page-root="true">
 
-    <AuthenticatedLayout :activeModule="activeModule || 'dept-' + slug">
-
-        <!-- Hero strip -->
-        <div class="mb-6 overflow-hidden rounded-3xl text-white"
-             style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">
-            <div class="relative px-7 py-7">
-                <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl"
-                     :style="`background:radial-gradient(circle,rgba(${portal.rgb},0.25),transparent 70%)`"></div>
-                <div class="relative flex flex-wrap items-center justify-between gap-5">
-                    <div class="flex items-center gap-5">
-                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl flex-shrink-0"
-                             :style="`background:rgba(${portal.rgb},0.2);border:1px solid rgba(${portal.rgb},0.3)`">
-                            <span class="material-symbols-outlined text-3xl"
-                                  :style="`color:${portal.accent};font-variation-settings:'FILL' 1`">{{ portal.icon }}</span>
+            <!-- Hero strip -->
+            <div class="mb-6 overflow-hidden rounded-3xl text-white"
+                 style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">
+                <div class="relative px-7 py-7">
+                    <div class="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full blur-3xl"
+                         :style="`background:radial-gradient(circle,rgba(${portal.rgb},0.25),transparent 70%)`"></div>
+                    <div class="relative flex flex-wrap items-center justify-between gap-5">
+                        <div class="flex items-center gap-5">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl flex-shrink-0"
+                                 :style="`background:rgba(${portal.rgb},0.2);border:1px solid rgba(${portal.rgb},0.3)`">
+                                <span class="material-symbols-outlined text-3xl"
+                                      :style="`color:${portal.accent};font-variation-settings:'FILL' 1`">{{ portal.icon }}</span>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-white/45 mb-1">Department Portal</p>
+                                <h1 class="text-[24px] font-black tracking-tight" v-html="portal.title"></h1>
+                                <p class="text-[12.5px] text-white/55">{{ portal.tagline }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-white/45 mb-1">Department Portal</p>
-                            <h1 class="text-[24px] font-black tracking-tight" v-html="portal.title"></h1>
-                            <p class="text-[12.5px] text-white/55">{{ portal.tagline }}</p>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
+                                  :style="`background:rgba(${portal.rgb},0.15);border:1px solid rgba(${portal.rgb},0.3)`">
+                                <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${portal.accent}`"></span>
+                                <span class="text-[10px] font-black uppercase tracking-widest" :style="`color:${portal.accent}`">Active</span>
+                            </span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
-                              :style="`background:rgba(${portal.rgb},0.15);border:1px solid rgba(${portal.rgb},0.3)`">
-                            <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${portal.accent}`"></span>
-                            <span class="text-[10px] font-black uppercase tracking-widest" :style="`color:${portal.accent}`">Active</span>
-                        </span>
+                </div>
+            </div>
+
+            <!-- KPI strip -->
+            <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div v-for="(k, i) in portal.kpis" :key="i"
+                    class="card-lift relative overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card">
+                    <div class="flex items-start justify-between">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl"
+                             :style="`background:${k.color}18;border:1px solid ${k.color}30`">
+                            <span class="material-symbols-outlined text-[18px]"
+                                  :style="`color:${k.color};font-variation-settings:'FILL' 1`">{{ k.icon }}</span>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/40">{{ k.sub }}</span>
                     </div>
+                    <p class="mt-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">{{ k.label }}</p>
+                    <p class="mt-0.5 text-[24px] font-black tracking-tight text-on-surface tabular-nums">{{ k.val }}</p>
                 </div>
             </div>
-        </div>
 
-        <!-- KPI strip -->
-        <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div v-for="(k, i) in portal.kpis" :key="i"
-                class="card-lift relative overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card">
-                <div class="flex items-start justify-between">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl"
-                         :style="`background:${k.color}18;border:1px solid ${k.color}30`">
-                        <span class="material-symbols-outlined text-[18px]"
-                              :style="`color:${k.color};font-variation-settings:'FILL' 1`">{{ k.icon }}</span>
+            <!-- Sections + quick links -->
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div v-for="s in portal.sections" :key="s.title"
+                     class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-card">
+                    <div class="mb-3 flex h-11 w-11 items-center justify-center rounded-xl"
+                         :style="`background:${portal.accent}15;border:1px solid ${portal.accent}30`">
+                        <span class="material-symbols-outlined text-[20px]" :style="`color:${portal.accent}`">{{ s.icon }}</span>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/40">{{ k.sub }}</span>
+                    <h3 class="text-[14px] font-bold text-on-surface" v-html="s.title"></h3>
+                    <p class="mt-1.5 text-[12.5px] leading-relaxed text-on-surface-variant" v-html="s.body"></p>
                 </div>
-                <p class="mt-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant/60">{{ k.label }}</p>
-                <p class="mt-0.5 text-[24px] font-black tracking-tight text-on-surface tabular-nums">{{ k.val }}</p>
             </div>
-        </div>
 
-        <!-- Sections + quick links -->
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div v-for="s in portal.sections" :key="s.title"
-                 class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-card">
-                <div class="mb-3 flex h-11 w-11 items-center justify-center rounded-xl"
-                     :style="`background:${portal.accent}15;border:1px solid ${portal.accent}30`">
-                    <span class="material-symbols-outlined text-[20px]" :style="`color:${portal.accent}`">{{ s.icon }}</span>
-                </div>
-                <h3 class="text-[14px] font-bold text-on-surface" v-html="s.title"></h3>
-                <p class="mt-1.5 text-[12.5px] leading-relaxed text-on-surface-variant" v-html="s.body"></p>
+            <!-- Cross-links -->
+            <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Link :href="route('employees.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                        <span class="material-symbols-outlined text-[19px]">badge</span>
+                    </span>
+                    <span class="text-[11.5px] font-black text-on-surface">Department Roster</span>
+                </Link>
+                <Link :href="route('tickets.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                        <span class="material-symbols-outlined text-[19px]">support_agent</span>
+                    </span>
+                    <span class="text-[11.5px] font-black text-on-surface">Service Desk</span>
+                </Link>
+                <Link :href="route('reports.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(255,215,0,0.14);color:#b88a08">
+                        <span class="material-symbols-outlined text-[19px]" style="font-variation-settings:'FILL' 1">assessment</span>
+                    </span>
+                    <span class="text-[11.5px] font-black text-on-surface">Reports</span>
+                </Link>
+                <button @click="comingSoon(portal.title.replace('&amp;','&') + ' settings')" type="button"
+                        class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-500/10 text-slate-600">
+                        <span class="material-symbols-outlined text-[19px]">tune</span>
+                    </span>
+                    <span class="text-[11.5px] font-black text-on-surface">Configure</span>
+                </button>
             </div>
-        </div>
-
-        <!-- Cross-links -->
-        <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Link :href="route('employees.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
-                    <span class="material-symbols-outlined text-[19px]">badge</span>
-                </span>
-                <span class="text-[11.5px] font-black text-on-surface">Department Roster</span>
-            </Link>
-            <Link :href="route('tickets.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
-                    <span class="material-symbols-outlined text-[19px]">support_agent</span>
-                </span>
-                <span class="text-[11.5px] font-black text-on-surface">Service Desk</span>
-            </Link>
-            <Link :href="route('reports.index')" class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl" style="background:rgba(255,215,0,0.14);color:#b88a08">
-                    <span class="material-symbols-outlined text-[19px]" style="font-variation-settings:'FILL' 1">assessment</span>
-                </span>
-                <span class="text-[11.5px] font-black text-on-surface">Reports</span>
-            </Link>
-            <button @click="comingSoon(portal.title.replace('&amp;','&') + ' settings')" type="button"
-                    class="card-lift flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-5 py-4 text-center hover:border-secondary/30 transition-colors">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-500/10 text-slate-600">
-                    <span class="material-symbols-outlined text-[19px]">tune</span>
-                </span>
-                <span class="text-[11.5px] font-black text-on-surface">Configure</span>
-            </button>
-        </div>
-    </AuthenticatedLayout>
+    </div>
 </template>

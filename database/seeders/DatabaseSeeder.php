@@ -30,6 +30,13 @@ class DatabaseSeeder extends Seeder
         // Roles + permissions catalog must exist before users are backfilled with role pivots.
         $this->call(RolePermissionSeeder::class);
 
+        // Documents module permissions (must run AFTER RolePermissionSeeder so the
+        // canonical role rows exist — this seeder attaches documents.* to them).
+        $this->call(DocumentPermissionsSeeder::class);
+
+        // Incidents module permissions (must run AFTER RolePermissionSeeder).
+        $this->call(IncidentPermissionsSeeder::class);
+
         // Phase 1 — Ghana statutory reference data + grades/positions + trustees.
         $this->call(GhanaStatutoryReferenceSeeder::class);
         $this->call(PensionTrusteeSeeder::class);

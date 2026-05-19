@@ -1,7 +1,6 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-
 const form = useForm({ tracking_code: '' });
 const submit = () => form.post(route('whistleblower.track.submit'));
 </script>

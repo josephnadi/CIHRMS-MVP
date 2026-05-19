@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -32,6 +33,9 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+
+    /** Computed attributes that serialise to JSON / Inertia by default. */
+    protected $appends = ['avatar'];
 
     /**
      * Legacy fallback table — mirror of \Database\Seeders\RolePermissionSeeder::ROLE_PERMS.
@@ -205,6 +209,37 @@ class User extends Authenticatable
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * Public-storage URL of the linked employee's avatar (or null).
+     * Surfaced to the Inertia layer as `auth.user.avatar` so the
+     * sidebar + top-right pill can render the photo without an
+     * extra round-trip.
+     *
+     * Returns null when `employee` isn't eager-loaded, instead of
+     * triggering a lazy-load query. This is the difference between a
+     * silent N+1 in dev and a 500 in production: `User` is appended
+     * with `avatar` (see $appends), so every JSON-serialized User
+     * fires this accessor — including User instances loaded via
+     * partial column selects like `with('user:id,name')` on related
+     * models (analytics events, employee.user, etc.), where the
+     * employee relation is never going to be loaded. Letting the
+     * accessor lazy-load there would either crash under strict mode
+     * or fan out one query per row.
+     *
+     * The authenticated user's employee IS preloaded in
+     * HandleInertiaRequests::share(), so `auth.user.avatar` is
+     * unaffected.
+     */
+    protected function avatar(): Attribute
+    {
+        return Attribute::get(function () {
+            if (! $this->relationLoaded('employee')) {
+                return null;
+            }
+            return $this->employee?->avatar_url;
+        })->shouldCache();
     }
 
     /** All roles assigned via the user_roles pivot. */

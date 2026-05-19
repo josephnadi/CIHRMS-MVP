@@ -13,11 +13,17 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.vue`,
-            import.meta.glob('./Pages/**/*.vue'),
-        ),
+    // Each authenticated page declares `defineOptions({ layout: AuthenticatedLayout })`
+    // in its <script setup>, which becomes a static `.layout` on the component.
+    // Inertia v2 then wraps the page in that layout via h(layout, props, () => page),
+    // and KEEPS the layout instance alive across navigations — Vue diffs only the
+    // page slot, so the sidebar/header don't unmount. That's the persistent layout.
+    // Public pages (Welcome, Careers/Show, Auth/Login, etc.) intentionally omit
+    // defineOptions and render their own shells.
+    resolve: (name) => resolvePageComponent(
+        `./Pages/${name}.vue`,
+        import.meta.glob('./Pages/**/*.vue'),
+    ),
     setup({ el, App, props, plugin }) {
         return createApp({ render: () => h(App, props) })
             .use(plugin)

@@ -18,90 +18,16 @@ const efficiencyNow = computed(() => props.spark.efficiency[props.spark.efficien
 <template>
     <div class="space-y-8 animate-reveal-up">
 
-        <!-- ─── Masthead strip ────────────────────────────────────── -->
-        <div class="es-masthead">
-            <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">TREASURY EDITION</span></span>
-            <span class="es-masthead-spacer"></span>
-            <span>{{ editionDate }}</span>
-            <span class="es-masthead-spacer"></span>
-            <span>Bulletin · Office of the CFO</span>
-            <span class="es-masthead-spacer"></span>
-            <span class="es-masthead-live">
-                <span class="es-dot" aria-hidden="true"></span>
-                Live · {{ efficiencyNow }}% efficiency
-            </span>
-        </div>
-
-        <!-- ─── Broadsheet hero ───────────────────────────────────── -->
-        <div class="es-broadsheet rounded-none">
-            <!-- LEAD column -->
-            <div class="es-broadsheet-lead">
-                <p class="es-eyebrow mb-6">From the Office of the CFO</p>
-                <h2 class="es-display text-[clamp(2.2rem,5vw,4.2rem)]">
-                    The books, balanced.
-                    <span class="es-display-italic block">The position, posted.</span>
-                </h2>
-                <p class="es-display-sub">
-                    Treasury, payroll, audit and statutory compliance — the institute's financial posture
-                    set in a single morning ledger. Revenue tracking +12% year-on-year, variance within tolerance.
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">account_balance</span>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">TREASURY</p>
+                </div>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Finance &amp; Treasury</h1>
+                <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                    Treasury, payroll, audit and statutory compliance — the institute's financial posture in one ledger.
                 </p>
-
-                <!-- Quick-action chips -->
-                <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                    <span class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">receipt_long</span>
-                        Approvals Queue
-                    </span>
-                    <span class="text-on-surface-variant/30">·</span>
-                    <span class="es-chip">
-                        <span class="material-symbols-outlined text-[15px]">payments</span>
-                        Payroll Cycle
-                    </span>
-                </div>
-            </div>
-
-            <!-- SIDEBAR column: flagship KPI — monthly revenue -->
-            <div class="es-broadsheet-sidebar">
-                <div class="es-stat-hero">
-                    <p class="es-stat-hero-label">Monthly Revenue</p>
-                    <p class="es-stat-hero-value">
-                        <span style="font-size:0.4em;color:rgb(var(--ct-on-surface-variant)/0.6);letter-spacing:0.05em;">GHS&nbsp;</span>{{ revenueNow }}<span style="font-size:0.5em;color:rgb(var(--ct-on-surface-variant)/0.55)">M</span>
-                    </p>
-                    <p class="es-stat-hero-caption">
-                        Recurring + project income · variance {{ varianceNow }}%
-                    </p>
-                    <span class="es-stat-hero-delta">
-                        <span class="material-symbols-outlined text-[13px]">trending_up</span>
-                        +12% YoY · sparkline below
-                    </span>
-                    <div class="mt-4 -mx-1">
-                        <Sparkline :data="spark.revenue" color="#205295" :width="180" :height="36" :stroke-width="1.8" label="Monthly Revenue" class="!block w-full"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── Supporting metrics strip ───────────────────────────── -->
-        <div class="es-stat-strip rounded-none">
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Budget Variance</p>
-                <p class="es-stat-cell-value">{{ varianceNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                <p class="es-stat-cell-caption">Under target · favourable</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Pending Payments</p>
-                <p class="es-stat-cell-value"><span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.5);letter-spacing:0.05em;">GHS&nbsp;</span>{{ pendingNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">K</span></p>
-                <p class="es-stat-cell-caption">18 invoices in queue</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Cost Efficiency</p>
-                <p class="es-stat-cell-value">{{ efficiencyNow }}<span style="font-size:0.55em;color:rgb(var(--ct-on-surface-variant)/0.55)">%</span></p>
-                <p class="es-stat-cell-caption">vs 90% target</p>
-            </div>
-            <div class="es-stat-cell">
-                <p class="es-stat-cell-label">Finance Staff</p>
-                <p class="es-stat-cell-value">22</p>
-                <p class="es-stat-cell-caption">Treasury &amp; audit team</p>
             </div>
         </div>
 

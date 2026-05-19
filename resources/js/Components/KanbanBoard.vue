@@ -257,21 +257,39 @@ const skeletonCounts = [3, 2, 4, 1];
                         </p>
                     </div>
 
-                    <!-- Cards -->
+                    <!-- Cards. Per-item draggability: `item.draggable === false` opts
+                         a single card out of drag (used by Tickets/Index to restrict
+                         status changes to the assignee + managers). The kebab "Move
+                         to…" menu is hidden for those cards too so the affordance
+                         stays honest. -->
                     <div
                         v-for="item in column.items"
                         :key="item.id ?? item"
-                        :draggable="interactive"
+                        :draggable="interactive && (item.draggable !== false)"
                         @dragstart="onDragStart($event, item, column.id)"
                         @dragend="onDragEnd"
                         class="relative rounded-xl bg-surface-container-lowest border border-outline-variant/50 p-3 pr-9 shadow-card hover:shadow-lifted hover:-translate-y-0.5 transition-all duration-200 group"
                         :class="[
-                            interactive ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+                            interactive && (item.draggable !== false) ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
                             draggingItemId === (item.id ?? item) ? 'opacity-40 ring-2 ring-secondary/40' : '',
                         ]"
                     >
-                        <!-- 3-dot kebab menu (top-right) -->
-                        <div v-if="interactive && otherColumns(column.id).length > 0" class="absolute top-2 right-2">
+                        <!-- Lock indicator — shown when this user can't drag this card.
+                             Sits in the same top-right slot the kebab uses for draggable
+                             cards, so the affordance stays consistent. Pointer-events
+                             off so the click still opens the drawer. -->
+                        <span
+                            v-if="interactive && item.draggable === false"
+                            class="absolute top-2 right-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-on-surface-variant/45 pointer-events-none"
+                            title="Read-only — only the assignee can change status"
+                            aria-label="Read-only card"
+                        >
+                            <span class="material-symbols-outlined text-[14px]">lock</span>
+                        </span>
+
+                        <!-- 3-dot kebab menu (top-right) — hidden when this item is
+                             locked out of moves via `item.draggable === false`. -->
+                        <div v-if="interactive && (item.draggable !== false) && otherColumns(column.id).length > 0" class="absolute top-2 right-2">
                             <button
                                 type="button"
                                 @click="toggleKebab(item.id ?? item, $event)"

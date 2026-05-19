@@ -11,7 +11,7 @@
  * are reaped and clients pull a fresh shell.
  */
 
-const CACHE_VERSION = 'cihrms-v1';
+const CACHE_VERSION = 'cihrms-v3';
 const SHELL_CACHE   = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE   = `${CACHE_VERSION}-assets`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
@@ -58,10 +58,19 @@ self.addEventListener('fetch', (event) => {
     // Same-origin only — never intercept cross-origin (e.g. Google Fonts).
     if (url.origin !== self.location.origin) return;
 
-    // Skip Inertia API + Laravel API — those should be live and respect auth.
+    // Skip API / Inertia AJAX / Livewire / Sanctum — these must be live.
+    // Inertia AJAX hits the SAME URLs as full navigations (e.g. /leave),
+    // so we can't filter by path. We filter by the marker headers Inertia
+    // sends instead: X-Inertia, X-Requested-With: XMLHttpRequest. Failing
+    // to skip these would let staleWhileRevalidate return a previously
+    // cached FULL-HTML response to an Inertia request expecting JSON —
+    // which silently makes navigation appear stuck (URL changes, content
+    // doesn't update). See https://inertiajs.com/manual-visits.
     if (url.pathname.startsWith('/api/') ||
         url.pathname.startsWith('/sanctum/') ||
-        url.pathname.startsWith('/livewire/')) return;
+        url.pathname.startsWith('/livewire/') ||
+        request.headers.get('X-Inertia') ||
+        request.headers.get('X-Requested-With') === 'XMLHttpRequest') return;
 
     // 1. Navigations → network-first, fall back to cached / offline shell.
     if (request.mode === 'navigate') {
@@ -116,7 +125,15 @@ async function staleWhileRevalidate(request, cacheName) {
     const cache  = await caches.open(cacheName);
     const cached = await cache.match(request);
     const networkPromise = fetch(request).then((resp) => {
-        if (resp.ok) cache.put(request, resp.clone());
+        // Defensive: NEVER cache HTML or JSON responses here. Those are page
+        // responses (Inertia JSON, Blade HTML) and must always be live —
+        // caching one and serving it to the wrong request type silently
+        // breaks navigation (URL changes, content doesn't). The X-Inertia
+        // header filter in the fetch handler is the primary defense; this
+        // check is a second line of defense if a future change opens a gap.
+        const ct = resp.headers.get('Content-Type') || '';
+        const isHtmlOrJson = ct.includes('text/html') || ct.includes('application/json');
+        if (resp.ok && !isHtmlOrJson) cache.put(request, resp.clone());
         return resp;
     }).catch(() => cached || new Response('', { status: 504 }));
     return cached || networkPromise;

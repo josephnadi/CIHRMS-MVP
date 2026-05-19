@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use App\Jobs\WriteAuditLog;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuditTrail
@@ -32,12 +34,7 @@ class AuditTrail
             return $response;
         }
 
-        $payload = collect($request->except(self::SENSITIVE_FIELDS))
-            ->map(fn (mixed $value): mixed => is_string($value) && mb_strlen($value) > 500
-                ? mb_substr($value, 0, 500).'...'
-                : $value
-            )
-            ->all();
+        $payload = $this->sanitize($request->except(self::SENSITIVE_FIELDS));
 
         WriteAuditLog::dispatch([
             'user_id'    => $request->user()->id,
@@ -51,5 +48,31 @@ class AuditTrail
         ]);
 
         return $response;
+    }
+
+    /**
+     * Recursively replace UploadedFile instances with serializable descriptors
+     * and truncate long strings. Queued jobs can't serialize UploadedFile.
+     */
+    private function sanitize(mixed $value): mixed
+    {
+        if ($value instanceof SymfonyUploadedFile) {
+            return [
+                '__file'   => true,
+                'name'     => $value instanceof UploadedFile ? $value->getClientOriginalName() : $value->getFilename(),
+                'mime'     => $value->getClientMimeType(),
+                'size'     => $value->getSize(),
+            ];
+        }
+
+        if (is_array($value)) {
+            return array_map(fn ($v) => $this->sanitize($v), $value);
+        }
+
+        if (is_string($value) && mb_strlen($value) > 500) {
+            return mb_substr($value, 0, 500).'...';
+        }
+
+        return $value;
     }
 }

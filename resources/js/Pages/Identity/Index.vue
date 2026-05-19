@@ -7,6 +7,8 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
+
+defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     verifications: Object,
     stats:         Object,
@@ -48,140 +50,73 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
 
 <template>
     <Head title="Ghana Card Verification" />
-    <AuthenticatedLayout :active-module="activeModule">
-        <template #header>
-            <section class="space-y-8">
-
-                <!-- ─── Masthead strip ────────────────────────────────────── -->
-                <div class="es-masthead">
-                    <span>CIHRM&nbsp;Ghana &nbsp;·&nbsp; <span class="es-masthead-edition">IDENTITY REGISTER · GHANA CARD</span></span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.date }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span>{{ editionLabel.edition }}</span>
-                    <span class="es-masthead-spacer"></span>
-                    <span class="es-masthead-live">
-                        <span class="es-dot" aria-hidden="true"></span>
-                        Live · NIA-aligned register
-                    </span>
-                </div>
-
-                <!-- ─── Broadsheet hero ───────────────────────────────────── -->
-                <div class="es-broadsheet rounded-none">
-                    <!-- LEAD column -->
-                    <div class="es-broadsheet-lead">
-                        <p class="es-eyebrow mb-6">Ghana Card · NIA-aligned register</p>
-                        <h2 class="es-display text-[clamp(2.4rem,5.5vw,4.6rem)]">
-                            Identity,
-                            <span class="es-display-italic block">verified.</span>
-                        </h2>
-                        <p class="es-display-sub">
-                            Conducted under the National Identification Authority Act, 2006 (Act&nbsp;750).
-                            Ghana Card numbers are stored only as a SHA-256 hash for lookup — never in cleartext —
-                            and payroll disbursement for every active staff member is gated on a current,
-                            verified record in this register.
+    <div data-page-root="true">
+            <Teleport to="#page-header-mount" defer>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">verified_user</span>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">IDENTITY REGISTER · GHANA CARD</p>
+                        </div>
+                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Ghana Card Verification</h1>
+                        <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
+                            NIA-aligned register under Act 750 · SHA-256 hashed lookup · payroll disbursement gated on verified records.
                         </p>
-
-                        <!-- Quick-action chips -->
-                        <div class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-                            <a href="#identity-verify" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">how_to_reg</span>
-                                Submit verification
-                            </a>
-                            <span class="text-on-surface-variant/30">·</span>
-                            <a href="#identity-register" class="es-chip">
-                                <span class="material-symbols-outlined text-[15px]">menu_book</span>
-                                View register
-                            </a>
-                        </div>
                     </div>
-
-                    <!-- SIDEBAR column: Verified headline -->
-                    <div class="es-broadsheet-sidebar">
-                        <div class="es-stat-hero">
-                            <p class="es-stat-hero-label">Verified employees</p>
-                            <p class="es-stat-hero-value">{{ (stats?.verified ?? 0).toLocaleString() }}</p>
-                            <p class="es-stat-hero-caption">
-                                Hash-matched against NIA · <span class="font-mono">{{ (stats?.unverified_employees ?? 0).toLocaleString() }}</span>
-                                still outside the payroll gate
-                            </p>
-                            <span class="es-stat-hero-delta">
-                                <span class="material-symbols-outlined text-[13px]">verified_user</span>
-                                Act 750 compliant
-                            </span>
-                        </div>
+                    <div class="flex items-center gap-2">
+                        <a href="#identity-verify"
+                           class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
+                           style="background:linear-gradient(135deg,#0d1452,#1a237e);">
+                            <span class="material-symbols-outlined text-[17px]">how_to_reg</span>
+                            Submit Verification
+                        </a>
                     </div>
                 </div>
+            </Teleport>
 
-                <!-- ─── Sub-metric strip ────────────────────────────────── -->
-                <div class="es-stat-strip rounded-none">
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Verified</p>
-                        <p class="es-stat-cell-value">{{ (stats?.verified ?? 0).toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Hash-matched against NIA</p>
-                    </div>
-                    <div class="es-stat-cell">
-                        <p class="es-stat-cell-label">Pending</p>
-                        <p class="es-stat-cell-value">{{ (stats?.pending ?? 0).toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Awaiting registrar review</p>
-                    </div>
-                    <div class="es-stat-cell es-stat-cell--down">
-                        <p class="es-stat-cell-label">Rejected</p>
-                        <p class="es-stat-cell-value">{{ rejectedCount.toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Rejected by NIA endpoint</p>
-                    </div>
-                    <div class="es-stat-cell es-stat-cell--down">
-                        <p class="es-stat-cell-label">Outside gate</p>
-                        <p class="es-stat-cell-value">{{ (stats?.unverified_employees ?? 0).toLocaleString() }}</p>
-                        <p class="es-stat-cell-caption">Active staff · payroll blocked</p>
-                    </div>
+            <div id="identity-verify" class="py-6 space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                    <h2 class="text-sm font-semibold mb-3">Submit a new verification</h2>
+                    <form @submit.prevent="submit" class="grid md:grid-cols-3 gap-3">
+                        <input v-model="form.employee_id" type="number" placeholder="Employee ID"
+                               class="rounded-lg border-slate-200 text-sm" required>
+                        <input v-model="form.ghana_card_number" placeholder="GHA-123456789-1"
+                               class="rounded-lg border-slate-200 text-sm" required>
+                        <PrimaryButton type="submit" :disabled="form.processing">Verify</PrimaryButton>
+                    </form>
+                    <p v-if="form.errors.ghana_card_number" class="text-rose-600 text-xs mt-2">{{ form.errors.ghana_card_number }}</p>
                 </div>
-            </section>
-        </template>
 
-        <div id="identity-verify" class="py-6 space-y-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-                <h2 class="text-sm font-semibold mb-3">Submit a new verification</h2>
-                <form @submit.prevent="submit" class="grid md:grid-cols-3 gap-3">
-                    <input v-model="form.employee_id" type="number" placeholder="Employee ID"
-                           class="rounded-lg border-slate-200 text-sm" required>
-                    <input v-model="form.ghana_card_number" placeholder="GHA-123456789-1"
-                           class="rounded-lg border-slate-200 text-sm" required>
-                    <PrimaryButton type="submit" :disabled="form.processing">Verify</PrimaryButton>
-                </form>
-                <p v-if="form.errors.ghana_card_number" class="text-rose-600 text-xs mt-2">{{ form.errors.ghana_card_number }}</p>
-            </div>
-
-            <div id="identity-register" class="bg-white rounded-2xl shadow-sm border border-slate-100">
-                <table class="w-full text-sm">
-                    <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
-                        <tr>
-                            <th class="px-5 py-3 text-left">Employee</th>
-                            <th class="px-5 py-3 text-left">Card</th>
-                            <th class="px-5 py-3 text-left">Provider</th>
-                            <th class="px-5 py-3 text-left">Status</th>
-                            <th class="px-5 py-3 text-left">Verified at</th>
-                            <th class="px-5 py-3 text-left">Expires</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr v-for="v in verifications.data" :key="v.id" class="hover:bg-slate-50">
-                            <td class="px-5 py-3">
-                                <div class="font-medium">{{ v.employee?.name ?? '—' }}</div>
-                                <div class="text-xs text-slate-500">{{ v.employee?.employee_no }}</div>
-                            </td>
-                            <td class="px-5 py-3 font-mono text-xs">{{ v.masked_card }}</td>
-                            <td class="px-5 py-3">{{ v.provider_label }}</td>
-                            <td class="px-5 py-3"><StatusBadge :status="v.status" :label="v.status_label" /></td>
-                            <td class="px-5 py-3">{{ v.verified_at ? new Date(v.verified_at).toLocaleDateString('en-GH') : '—' }}</td>
-                            <td class="px-5 py-3">{{ v.expires_at ? new Date(v.expires_at).toLocaleDateString('en-GH') : '—' }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="px-5 py-3 border-t border-slate-100">
-                    <Pagination :links="verifications?.meta?.links ?? []" />
+                <div id="identity-register" class="bg-white rounded-2xl shadow-sm border border-slate-100">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                            <tr>
+                                <th class="px-5 py-3 text-left">Employee</th>
+                                <th class="px-5 py-3 text-left">Card</th>
+                                <th class="px-5 py-3 text-left">Provider</th>
+                                <th class="px-5 py-3 text-left">Status</th>
+                                <th class="px-5 py-3 text-left">Verified at</th>
+                                <th class="px-5 py-3 text-left">Expires</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr v-for="v in verifications.data" :key="v.id" class="hover:bg-slate-50">
+                                <td class="px-5 py-3">
+                                    <div class="font-medium">{{ v.employee?.name ?? '—' }}</div>
+                                    <div class="text-xs text-slate-500">{{ v.employee?.employee_no }}</div>
+                                </td>
+                                <td class="px-5 py-3 font-mono text-xs">{{ v.masked_card }}</td>
+                                <td class="px-5 py-3">{{ v.provider_label }}</td>
+                                <td class="px-5 py-3"><StatusBadge :status="v.status" :label="v.status_label" /></td>
+                                <td class="px-5 py-3">{{ v.verified_at ? new Date(v.verified_at).toLocaleDateString('en-GH') : '—' }}</td>
+                                <td class="px-5 py-3">{{ v.expires_at ? new Date(v.expires_at).toLocaleDateString('en-GH') : '—' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="px-5 py-3 border-t border-slate-100">
+                        <Pagination :links="verifications?.meta?.links ?? []" />
+                    </div>
                 </div>
             </div>
-        </div>
-    </AuthenticatedLayout>
+    </div>
 </template>

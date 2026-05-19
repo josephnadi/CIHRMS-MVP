@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EmployeeStatus;
 use App\Enums\UserRole;
 use App\Events\EmployeeCreated;
 use App\Http\Requests\Employee\StoreDepartmentRequest;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Storage;
 
 class EmployeeService
 {
+    public function __construct(private readonly EmployeeIdentifierService $ids = new EmployeeIdentifierService()) {}
+
     public function create(StoreEmployeeRequest $request): Employee
     {
         return DB::transaction(function () use ($request) {
@@ -35,7 +38,7 @@ class EmployeeService
                 $user = User::create([
                     'name'     => $data['user_name'],
                     'email'    => $data['user_email'],
-                    'staff_id' => $data['staff_id'] ?? null,
+                    'staff_id' => $data['staff_id'] ?? $this->ids->nextStaffId(),
                     'password' => Hash::make($data['user_password']),
                     'role'     => $data['user_role'],
                 ]);
@@ -51,13 +54,16 @@ class EmployeeService
                 $userId = $user->id;
             }
 
-            $employee = Employee::create(array_merge(
-                collect($data)->except([
-                    'create_user', 'user_name', 'user_email',
-                    'user_role', 'user_password', 'staff_id',
-                ])->all(),
-                ['user_id' => $userId]
-            ));
+            $employeeData = collect($data)->except([
+                'create_user', 'user_name', 'user_email',
+                'user_role', 'user_password', 'staff_id',
+            ])->all();
+
+            if (empty($employeeData['employee_no'])) {
+                $employeeData['employee_no'] = $this->ids->nextEmployeeNo();
+            }
+
+            $employee = Employee::create(array_merge($employeeData, ['user_id' => $userId]));
 
             event(new EmployeeCreated($employee, $request->user()));
 
@@ -129,6 +135,85 @@ class EmployeeService
             ->latest()
             ->paginate($request->per_page ?? 20)
             ->withQueryString();
+    }
+
+    /**
+     * Aggregate workforce statistics for the Employees dashboard band.
+     * Honours the same RBAC visibility scope as list(), so a dept_head sees
+     * their slice and HR/super_admin see the whole institute.
+     */
+    public function stats(Request $request): array
+    {
+        $base = fn () => Employee::query()->visibleTo($request->user());
+
+        $statusRows = $base()
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $statusBreakdown = [
+            'active'     => (int) ($statusRows[EmployeeStatus::Active->value]     ?? 0),
+            'on_leave'   => (int) ($statusRows[EmployeeStatus::OnLeave->value]    ?? 0),
+            'inactive'   => (int) ($statusRows[EmployeeStatus::Inactive->value]   ?? 0),
+            'terminated' => (int) ($statusRows[EmployeeStatus::Terminated->value] ?? 0),
+        ];
+        $total = array_sum($statusBreakdown);
+
+        $genderRows = $base()
+            ->selectRaw("COALESCE(NULLIF(LOWER(gender), ''), 'unspecified') as g, COUNT(*) as count")
+            ->groupBy('g')
+            ->pluck('count', 'g');
+
+        $genderBreakdown = [
+            'male'        => (int) ($genderRows['male']   ?? $genderRows['m'] ?? 0),
+            'female'      => (int) ($genderRows['female'] ?? $genderRows['f'] ?? 0),
+            'unspecified' => $total
+                - (int) ($genderRows['male']   ?? $genderRows['m'] ?? 0)
+                - (int) ($genderRows['female'] ?? $genderRows['f'] ?? 0),
+        ];
+
+        $topRows = $base()
+            ->selectRaw('department_id, COUNT(*) as count')
+            ->whereNotNull('department_id')
+            ->groupBy('department_id')
+            ->orderByDesc('count')
+            ->limit(6)
+            ->get();
+
+        $deptLookup = Department::whereIn('id', $topRows->pluck('department_id'))
+            ->get(['id', 'name', 'code'])
+            ->keyBy('id');
+
+        $topDepartments = $topRows->map(fn ($row) => [
+            'id'    => $row->department_id,
+            'name'  => optional($deptLookup[$row->department_id] ?? null)->name ?? '—',
+            'code'  => optional($deptLookup[$row->department_id] ?? null)->code ?? '',
+            'count' => (int) $row->count,
+        ])->values()->all();
+
+        $assignedToTop  = array_sum(array_column($topDepartments, 'count'));
+        $remainder      = max(0, $total - $assignedToTop);
+
+        $now = now();
+        $tenureBreakdown = [
+            'under_1y'        => (clone $base())->where('hire_date', '>=', $now->copy()->subYear())->count(),
+            'one_to_three'    => (clone $base())->whereBetween('hire_date', [$now->copy()->subYears(3), $now->copy()->subYear()])->count(),
+            'three_to_five'   => (clone $base())->whereBetween('hire_date', [$now->copy()->subYears(5), $now->copy()->subYears(3)])->count(),
+            'over_five'       => (clone $base())->where('hire_date', '<', $now->copy()->subYears(5))->count(),
+        ];
+
+        $recentHires30d = $base()->where('hire_date', '>=', $now->copy()->subDays(30))->count();
+
+        return [
+            'total'             => $total,
+            'status'            => $statusBreakdown,
+            'gender'            => $genderBreakdown,
+            'top_departments'   => $topDepartments,
+            'other_departments' => $remainder,
+            'departments_count' => Department::count(),
+            'tenure'            => $tenureBreakdown,
+            'recent_hires_30d'  => $recentHires30d,
+        ];
     }
 
     public function find(int $id): Employee

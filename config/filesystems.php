@@ -60,6 +60,13 @@ return [
             'report' => false,
         ],
 
+        'incidents' => [
+            'driver'     => 'local',
+            'root'       => storage_path('app/incidents'),
+            'visibility' => 'private',
+            'throw'      => true,
+        ],
+
     ],
 
     /*

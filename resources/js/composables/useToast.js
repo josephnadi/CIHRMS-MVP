@@ -19,15 +19,16 @@ const SOUND_FOR_TYPE = {
     warning: 'warning',
 };
 
+// How long a toast stays on screen before auto-dismissing. The leave
+// animation is owned by the TransitionGroup in Toast.vue, so we just
+// splice the item out of the list and the transition handles the fade.
+const AUTO_DISMISS_MS = 3000;
+
 function push(type, message, opts = {}) {
     if (!message) return;
     const id = ++state._id;
-    state.list.push({ id, type, message, visible: false });
-    setTimeout(() => {
-        const t = state.list.find(t => t.id === id);
-        if (t) t.visible = true;
-    }, 16);
-    setTimeout(() => dismiss(id), 4000);
+    state.list.push({ id, type, message });
+    setTimeout(() => dismiss(id), AUTO_DISMISS_MS);
 
     // Fire sound effect unless the caller opts out
     if (opts.silent !== true) {
@@ -37,12 +38,13 @@ function push(type, message, opts = {}) {
 }
 
 function dismiss(id) {
-    const t = state.list.find(t => t.id === id);
-    if (!t) return;
-    t.visible = false;
-    setTimeout(() => {
-        state.list = state.list.filter(t => t.id !== id);
-    }, 350);
+    // Mutate the array in place so consumers that hold a reference to
+    // `state.list` (e.g. destructured into `const { toasts } = useToast()`)
+    // see the update. Reassigning `state.list = …` would replace the
+    // reference and leak the stale array to those consumers, which is
+    // exactly why the X button used to silently fail.
+    const idx = state.list.findIndex(t => t.id === id);
+    if (idx !== -1) state.list.splice(idx, 1);
 }
 
 export function useToast() {
