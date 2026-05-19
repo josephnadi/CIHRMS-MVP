@@ -195,18 +195,19 @@ const navSections = computed(() => {
         {
             title: '',
             items: [
-                { label: 'Dashboard',        route: 'dashboard',        module: 'overview',  icon: 'grid_view',      visible: true },
-                { label: 'My Profile',       route: 'profile.edit',     module: 'profile',   icon: 'person',         visible: true },
-                { label: 'Leave & Time-Off', route: 'modules.leave',    module: 'leave',     icon: 'calendar_today', visible: true },
-                { label: 'Benefits',         route: 'dashboard',        module: 'benefits',  icon: 'diversity_3',    visible: true },
-                { label: 'Learning & Dev',   route: 'learning.catalog', module: 'learning',  icon: 'school',         visible: true },
+                { label: 'Dashboard',        route: 'dashboard',        module: 'overview',   icon: 'grid_view',      visible: true },
+                { label: 'Tasks',            route: 'modules.tickets',  module: 'tickets',    icon: 'task_alt',       visible: true },
+                { label: 'Documents',        route: 'documents.index',  module: 'documents',  icon: 'description',    visible: can('documents.view') },
+                { label: 'Leave & Time-Off', route: 'modules.leave',    module: 'leave',      icon: 'calendar_today', visible: true },
+                { label: 'Benefits',         route: 'dashboard',        module: 'benefits',   icon: 'diversity_3',    visible: true },
+                { label: 'Learning & Dev',   route: 'learning.catalog', module: 'learning',   icon: 'school',         visible: true },
             ]
         },
         {
             title: 'Support',
             items: [
-                { label: 'Settings', route: 'profile.edit',    module: 'settings', icon: 'settings', visible: true },
-                { label: 'Support',  route: 'modules.tickets', module: 'tickets',  icon: 'help',     visible: true },
+                { label: 'My Profile', route: 'profile.edit', module: 'profile',  icon: 'person',   visible: true },
+                { label: 'Settings',   route: 'profile.edit', module: 'settings', icon: 'settings', visible: true },
             ]
         }
     ];

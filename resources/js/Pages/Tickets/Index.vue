@@ -159,8 +159,17 @@ const quickPriority = (ticket, priority) => {
 const onOutsideTicketPriorityClick = (e) => {
     if (! e.target.closest('.ticket-priority-menu')) priorityMenuFor.value = null;
 };
-onMounted(() => document.addEventListener('click', onOutsideTicketPriorityClick));
-onBeforeUnmount(() => document.removeEventListener('click', onOutsideTicketPriorityClick));
+const onOutsideAssigneeFilterClick = (e) => {
+    if (! e.target.closest('.tk-assignee-filter')) assigneeMenuOpen.value = false;
+};
+onMounted(() => {
+    document.addEventListener('click', onOutsideTicketPriorityClick);
+    document.addEventListener('click', onOutsideAssigneeFilterClick);
+});
+onBeforeUnmount(() => {
+    document.removeEventListener('click', onOutsideTicketPriorityClick);
+    document.removeEventListener('click', onOutsideAssigneeFilterClick);
+});
 
 // â”€â”€ View toggle (List | Board) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VIEW_STORAGE_KEY = 'cihrms.tickets.view';
@@ -229,10 +238,60 @@ const closeDrawer = () => { drawerTicket.value = null; };
 
 // Current user (used by the "Mine" quick filter)
 const currentUserId = computed(() => page.props.auth?.user?.id ?? null);
+const currentUser   = computed(() => page.props.auth?.user ?? null);
 
-// Apply quick-filter on top of server-paged data.
+// ── Assignee filter (profile chip + search) ────────────────────────────────
+// `assigneeFilter` holds the user id whose tickets the board should show.
+// Defaults to the current user's id so the page opens already focused on
+// "mine". `null` disables the filter. The small search input below the chip
+// looks up users from `props.staff` (server-provided directory) and writes
+// the chosen id into `assigneeFilter`.
+const assigneeFilter = ref(null);            // number | null — set to id to narrow
+const assigneeSearch = ref('');               // text in the search input
+const assigneeMenuOpen = ref(false);
+
+const selectedAssignee = computed(() => {
+    if (!assigneeFilter.value) return null;
+    if (assigneeFilter.value === currentUserId.value) return currentUser.value;
+    return (props.staff ?? []).find(u => u.id === assigneeFilter.value) ?? null;
+});
+
+const assigneeMatches = computed(() => {
+    const q = assigneeSearch.value.trim().toLowerCase();
+    if (!q) return (props.staff ?? []).slice(0, 8);
+    return (props.staff ?? [])
+        .filter(u => (u.name ?? '').toLowerCase().includes(q) || (u.email ?? '').toLowerCase().includes(q))
+        .slice(0, 8);
+});
+
+const setAssigneeFilter = (userId) => {
+    assigneeFilter.value = userId;
+    assigneeSearch.value = '';
+    assigneeMenuOpen.value = false;
+};
+
+const clearAssigneeFilter = () => {
+    assigneeFilter.value = null;
+    assigneeSearch.value = '';
+};
+
+// "Filter to me" shortcut — toggles between current user and clear.
+const toggleMineFilter = () => {
+    if (assigneeFilter.value === currentUserId.value) {
+        clearAssigneeFilter();
+    } else {
+        setAssigneeFilter(currentUserId.value);
+    }
+};
+
+// Apply quick-filter + assignee-filter on top of server-paged data.
 const filteredTickets = computed(() => {
-    const data = props.tickets?.data ?? [];
+    let data = props.tickets?.data ?? [];
+
+    if (assigneeFilter.value !== null) {
+        data = data.filter(t => t.assigned_to?.id === assigneeFilter.value);
+    }
+
     switch (quickFilter.value) {
         case 'mine':
             return data.filter(t => t.assigned_to?.id === currentUserId.value);
@@ -283,10 +342,17 @@ const swimlaneGroups = computed(() => {
 });
 
 // Kanban columns are derived per swimlane group at render time.
+// Each card gets a `draggable` flag the KanbanBoard reads to allow / lock
+// drag on a per-item basis. A user can only move a card when they are
+// either the assignee or hold `tickets.manage`. The backend policy is the
+// source of truth — this flag just makes the UI honest.
 function columnsFor(group) {
+    const meId = currentUserId.value;
     return STATUS_COLUMNS.map(col => ({
         ...col,
-        items: group.items.filter(t => t.status === col.id),
+        items: group.items
+            .filter(t => t.status === col.id)
+            .map(t => ({ ...t, draggable: canManage.value || (meId !== null && t.assigned_to?.id === meId) })),
     }));
 }
 
@@ -495,6 +561,93 @@ const ops = computed(() => {
                      Mirrors Atlassian's compact toolbar above a Jira board. -->
                 <div v-if="view === 'board'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest px-3 py-2.5 shadow-card flex flex-wrap items-center gap-3">
 
+                    <!-- ── Assignee filter (profile chip + search) ──
+                         A round chip showing the currently-filtered user; click it
+                         to expand a small popover with a search input that hunts
+                         the staff directory. Selecting a row narrows the board to
+                         that person's tickets. Clicking the chip when it shows
+                         "me" clears the filter. -->
+                    <div class="relative tk-assignee-filter">
+                        <!-- The chip itself -->
+                        <button
+                            type="button"
+                            @click="assigneeMenuOpen = !assigneeMenuOpen"
+                            class="tk-assignee-chip flex items-center gap-2 rounded-full border pl-1 pr-3 py-1 transition-colors"
+                            :class="assigneeFilter !== null
+                                ? 'border-secondary/40 bg-secondary/10 text-secondary'
+                                : 'border-outline-variant/60 bg-surface-container-low text-on-surface-variant hover:bg-surface-container'"
+                            :title="selectedAssignee ? `Showing tickets for ${selectedAssignee.name}` : 'Filter by assignee'"
+                        >
+                            <span class="flex h-6 w-6 items-center justify-center rounded-full overflow-hidden ring-1 ring-white shadow-sm"
+                                  :style="!selectedAssignee?.avatar ? 'background:linear-gradient(135deg,#0d1452,#1a237e)' : ''">
+                                <img v-if="selectedAssignee?.avatar" :src="selectedAssignee.avatar" :alt="selectedAssignee.name" class="h-full w-full object-cover" />
+                                <span v-else class="text-[10px] font-black text-white">
+                                    {{ (selectedAssignee?.name ?? currentUser?.name ?? '?').slice(0, 1).toUpperCase() }}
+                                </span>
+                            </span>
+                            <span class="text-[12px] font-bold tracking-tight">
+                                <template v-if="!selectedAssignee">Filter by person</template>
+                                <template v-else-if="selectedAssignee.id === currentUserId">Showing: me</template>
+                                <template v-else>Showing: {{ selectedAssignee.name }}</template>
+                            </span>
+                            <span v-if="assigneeFilter !== null" @click.stop="clearAssigneeFilter"
+                                  class="material-symbols-outlined text-[14px] -mr-1 opacity-70 hover:opacity-100"
+                                  title="Clear assignee filter">close</span>
+                            <span v-else class="material-symbols-outlined text-[14px] -mr-1 opacity-60">expand_more</span>
+                        </button>
+
+                        <!-- Popover: search + suggestions -->
+                        <Transition
+                            enter-active-class="transition duration-100 ease-out"
+                            enter-from-class="opacity-0 -translate-y-1 scale-95"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition duration-75 ease-in"
+                            leave-from-class="opacity-100"
+                            leave-to-class="opacity-0 scale-95"
+                        >
+                            <div v-if="assigneeMenuOpen" @click.stop
+                                 class="absolute left-0 top-10 z-30 w-72 rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-lifted overflow-hidden">
+                                <!-- "Show me" shortcut -->
+                                <button type="button" @click="toggleMineFilter"
+                                        class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold border-b border-outline-variant/40 hover:bg-secondary/5"
+                                        :class="assigneeFilter === currentUserId ? 'text-secondary bg-secondary/[0.04]' : 'text-on-surface'">
+                                    <span class="material-symbols-outlined text-[16px]">person</span>
+                                    Show only mine
+                                    <span v-if="assigneeFilter === currentUserId" class="ml-auto material-symbols-outlined text-[16px]">check</span>
+                                </button>
+
+                                <!-- Search input -->
+                                <div class="relative px-2.5 pt-2 pb-1.5">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[15px] text-on-surface-variant/50">search</span>
+                                    <input v-model="assigneeSearch"
+                                           placeholder="Search team by name…"
+                                           autofocus
+                                           class="w-full rounded-lg border border-outline-variant/60 bg-surface-container-low pl-7 pr-2 py-1.5 text-[12.5px] focus:border-secondary focus:ring-2 focus:ring-secondary/15" />
+                                </div>
+
+                                <!-- Suggestion list -->
+                                <ul class="max-h-60 overflow-y-auto py-1">
+                                    <li v-for="u in assigneeMatches" :key="u.id">
+                                        <button type="button" @click="setAssigneeFilter(u.id)"
+                                                class="w-full flex items-center gap-2 px-3 py-2 text-left text-[12.5px] hover:bg-secondary/[0.06] transition-colors"
+                                                :class="assigneeFilter === u.id ? 'bg-secondary/[0.06] text-secondary font-bold' : 'text-on-surface'">
+                                            <span class="flex h-6 w-6 items-center justify-center rounded-full overflow-hidden ring-1 ring-white shadow-sm"
+                                                  :style="!u.avatar ? 'background:linear-gradient(135deg,#0d1452,#1a237e)' : ''">
+                                                <img v-if="u.avatar" :src="u.avatar" :alt="u.name" class="h-full w-full object-cover" />
+                                                <span v-else class="text-[10px] font-black text-white">{{ (u.name ?? '?').slice(0, 1).toUpperCase() }}</span>
+                                            </span>
+                                            <span class="min-w-0 flex-1 truncate">{{ u.name }}</span>
+                                            <span v-if="assigneeFilter === u.id" class="material-symbols-outlined text-[16px]">check</span>
+                                        </button>
+                                    </li>
+                                    <li v-if="assigneeMatches.length === 0" class="px-3 py-3 text-center text-[11.5px] text-on-surface-variant/60 italic">
+                                        No team members match.
+                                    </li>
+                                </ul>
+                            </div>
+                        </Transition>
+                    </div>
+
                     <!-- Quick filters -->
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <button v-for="opt in [
@@ -682,7 +835,7 @@ const ops = computed(() => {
 
                             <KanbanBoard
                                 :columns="columnsFor(group)"
-                                :interactive="canManage"
+                                :interactive="true"
                                 @move="onTicketMove"
                                 @add="onColumnAdd"
                             >

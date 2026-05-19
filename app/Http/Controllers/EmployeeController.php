@@ -27,6 +27,7 @@ class EmployeeController extends Controller
         return Inertia::render('Employees/Index', [
             'employees'    => EmployeeResource::collection($this->employees->list($request)),
             'departments'  => DepartmentResource::collection($this->employees->listDepartments()),
+            'stats'        => $this->employees->stats($request),
             'filters'      => $request->only(['search', 'department_id', 'status']),
             'activeModule' => 'employees',
         ]);

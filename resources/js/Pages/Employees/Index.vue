@@ -737,14 +737,18 @@ const formatDate = (d) => {
                                 <p v-if="form.errors.user_email" class="mt-1 text-[11px] text-red-500">{{ form.errors.user_email }}</p>
                             </div>
                             <div>
-                                <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Staff ID</label>
+                                <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                                    Staff ID
+                                    <span class="ml-1 text-[10px] font-bold uppercase tracking-wider text-secondary">Auto</span>
+                                </label>
                                 <input
                                     v-model="form.staff_id"
                                     type="text"
-                                    placeholder="GH-XX-000"
-                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                    placeholder="Auto-generated (e.g. SID-000123)"
+                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                     :class="{ 'border-red-400': form.errors.staff_id }"
                                 />
+                                <p class="mt-1 text-[11px] text-on-surface-variant/70">Leave blank to auto-assign. Must be unique if set.</p>
                                 <p v-if="form.errors.staff_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.staff_id }}</p>
                             </div>
                         </div>
@@ -802,15 +806,18 @@ const formatDate = (d) => {
                         </div>
 
                         <div>
-                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee No <span class="text-red-500">*</span></label>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
+                                Employee No
+                                <span class="ml-1 text-[10px] font-bold uppercase tracking-wider text-secondary">Auto</span>
+                            </label>
                             <input
                                 v-model="form.employee_no"
                                 type="text"
-                                placeholder="GH-2024-001"
-                                required
+                                placeholder="Auto-generated (e.g. CIHRM-0042)"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 :class="{ 'border-red-400': form.errors.employee_no }"
                             />
+                            <p class="mt-1 text-[11px] text-on-surface-variant/70">Leave blank to auto-assign. Must be unique if set.</p>
                             <p v-if="form.errors.employee_no" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_no }}</p>
                         </div>
                     </div>

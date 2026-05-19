@@ -66,11 +66,20 @@ class Employee extends Model
         ];
     }
 
-    /** Public-storage URL of the uploaded avatar (or null). */
+    /**
+     * Public-storage URL of the uploaded avatar (or null).
+     *
+     * Returns a root-relative path (e.g. `/storage/avatars/foo.webp`) instead
+     * of `Storage::url()`'s absolute URL. Storage::url() bakes in APP_URL,
+     * which in development is often `http://localhost` while the dev server
+     * actually serves on `http://127.0.0.1:8000` — the browser then 404s
+     * against plain `localhost`. A root-relative URL just uses the current
+     * host, so it works in dev, prod, behind any reverse proxy, etc.
+     */
     public function avatarUrl(): Attribute
     {
         return Attribute::get(fn () => $this->avatar_path
-            ? Storage::disk('public')->url($this->avatar_path)
+            ? '/storage/'.ltrim($this->avatar_path, '/')
             : null);
     }
 

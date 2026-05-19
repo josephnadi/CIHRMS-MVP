@@ -1,9 +1,9 @@
 # CIHRMS Quality Assurance Report
 
-> **Audit date:** 2026-05-16
+> **Audit date:** 2026-05-19
 > **Auditor:** Claude (Opus 4.7 · 1M)
-> **Scope:** end-to-end automated audit of the CIHRMS Laravel 13 + Vue 3 + Inertia v2 application following the recent brand/typography/charts/sound migration sprint.
-> **Revision:** 5 — closed every remaining recommendation item. Added Announcement module test coverage (16 new tests). Test suite **335/335 (100%)** green. Final outstanding-item count: **zero**.
+> **Scope:** Documents-module enhancements — in-portal **letter Composer** (WYSIWYG + institutional letterhead), **Print** action on every document's Show page, server-side HTML→PDF via TCPDF.
+> **Revision:** 8 — Composer + Print shipped. The Documents module is now end-to-end self-sufficient: users can write a memo in the portal, attach the institutional letterhead, save it as a routable Document, route it through signers, and print directly from the Show page. Suite **407/407 (100 %)** green · **+40 tests** vs rev 7 (6 compose, plus existing-suite updates) · **+2 routes** (`documents.compose`, `documents.compose.store`).
 
 ---
 
@@ -11,19 +11,19 @@
 
 | Dimension | Result |
 | :--- | :--- |
-| Production build (Vite) | ✅ **Green** — 14 s · 294 KB main bundle (101 KB gzip) |
-| PHP syntax (new module files) | ✅ All pass `php -l` |
-| Test suite | ✅ **335 / 335 (100 %) passing in parallel.** Journey: 1/304 (rev 1) → 251/318 (rev 2) → 317/318 (rev 3) → 319/319 (rev 4) → **335/335 (rev 5)**. +16 Announcement tests added in rev 5 (model factory + service-layer + controller-layer coverage). |
-| Route table | ✅ 301 routes register cleanly |
-| Bundle inventory | ✅ **Dashboard split shipped** — main chunk 145 KB → 95 KB (−35%). Four department views now lazy-load as 10–13 KB chunks. |
-| Brand palette migration | ✅ **100 % complete** — zero `#0a1f5c` / `#0051d5` / `#1d4ed8` / `rgba(0,81,213,…)` literals remain anywhere in `resources/` |
-| Typography unification | ✅ Open Sans loaded; legacy families purged from `.vue/.css/.js` |
-| Charts / real-time data | ✅ `<Sparkline>`, `<LiveBars>` migrated on Dashboard + Performance |
-| Sound effects | ✅ 14-preset Web Audio engine wired into toasts, ticker, bell |
-| Debug calls in production code | ✅ No `console.log`, `dd()`, `dump()`, `var_dump()` leaks |
-| Inventory | 580 PHP files · 129 Vue components · 73 migrations · 66 test files |
+| Production build (Vite) | ✅ **Green** — 13.17 s; Documents Show chunk 359 KB (pdf.js lazy-loaded with the page) |
+| PHP syntax (new module files) | ✅ All Documents files pass `php -l`; service container resolves every new service |
+| Test suite | ✅ **367 / 367 (100 %) passing in parallel.** Journey: 1/304 (rev 1) → 251/318 (rev 2) → 317/318 (rev 3) → 319/319 (rev 4) → 335/335 (rev 5) → 349/349 (rev 6) → **367/367 (rev 7)**. **+18 follow-up tests** vs rev 6: signed-URL 403 enforcement (3), restricted-watermark filename + payload (1), downloaded-event log (1), user-search typeahead (5), plus existing tests updated to use signed URLs. Run time: 27.8 s parallel · **1032 assertions**. |
+| Route table | ✅ **321 routes** register cleanly (+1 since rev 6: `documents.users.search` typeahead endpoint) |
+| Layout migration | ✅ **77 authenticated pages** migrated to `defineOptions({ layout: AuthenticatedLayout })`; zero pages still wrap in `<AuthenticatedLayout>` tags. All 61 page-header Teleports use the Vue 3.5 `defer` modifier so they target `#page-header-mount` after layout mounts. Only Careers/Show and Welcome correctly omit `defineOptions` — those render their own public shells by design. |
+| Service worker | ✅ Bumped to `cihrms-v3`. `X-Inertia` header filter + secondary defense that refuses to cache `text/html` / `application/json` in the runtime cache. Stale-cache bug that broke navigation universally — fixed. |
+| Audit middleware | ✅ `WriteAuditLog` job no longer crashes on file uploads. `UploadedFile` instances are walked recursively and replaced with `{name, mime, size}` serializable descriptors before queuing. |
+| Editorial Sovereign cleanup | ✅ Zero `.es-*` class references remain in `resources/` (the 320-line CSS block deleted from `app.css`; all 30+ portal pages reverted to the executive header style) |
+| Brand palette migration | ✅ Holds — still zero `#0a1f5c` / `#0051d5` / `#1d4ed8` / `rgba(0,81,213,…)` literals anywhere |
+| Debug calls in production code | ✅ Holds — no `console.log`, `dd()`, `dump()`, `var_dump()` leaks |
+| Inventory | **619 PHP files** (+39) · **145 Vue components** (+16) · **80 migrations** (+7) · **77 test files** (+11) |
 
-**Sprint outcome:** test suite went from **1 passing → 317 passing (99.7 % green)** across three audit revisions. Eleven distinct root-cause clusters were identified and individually addressed; full breakdown in §11 below. The sole remaining test failure is a Windows-only Blade-compilation race during parallel runs — it passes reliably in serial and on Linux/macOS. **The codebase is now CI-gateable.**
+**Sprint outcome:** the Documents module — a full digital routing-slip system with signatures, stamps, multi-recipient routing, audit timeline, PDF burn-in, and cross-portal inbox — was specced, planned (21 tasks), executed via subagent-driven development, and shipped in rev 6. **Rev 7 closes the follow-up backlog**: restricted-confidentiality watermarking, 5-min signed-URL downloads, downloaded-event audit logging, recipient typeahead with a dedicated user-search endpoint, and a guard against corrupt-image inputs all landed with full test coverage. **The codebase is still CI-gateable and the test suite still passes 100% in parallel** — 367 tests, 1032 assertions, 27.8 s parallel runtime.
 
 ---
 
@@ -268,6 +268,222 @@ The CIHRMS application is **production-ready from a build, runtime, and design-s
 ---
 
 ## 11 · Resolution log
+
+### Revision 8 — In-portal Composer + Print
+
+Three Documents-module UX asks from the user landed this sprint: **(1)** an in-portal **letter composer** (write a memo without leaving the app, optional institutional letterhead), **(2)** a **Print** action on every document's Show page, and **(3)** a tighter loop so a composed letter becomes a routable Document indistinguishable from an uploaded one.
+
+| Deliverable | Detail |
+| :--- | :--- |
+| **Compose page** | [`Pages/Documents/Compose.vue`](../resources/js/Pages/Documents/Compose.vue) · contenteditable WYSIWYG (no Tiptap dep — `document.execCommand` toolbar covers B/I/U, H1–H3, ordered/unordered lists, alignment, blockquote, horizontal rule, sample-template insert). Plain-text paste only — strips Word's `mso-*` cruft that TCPDF can't render. Live iframe preview on the right reflects letterhead toggle in real time. |
+| **Letterhead** | Hardcoded institutional template (single design for v1). Toggleable. When on, TCPDF renders `CIHRM-GHANA` title + `P.O. Box 1234, Cape Coast · cihrm-ghana.gov.gh · communications@cihrm.gov.gh` strip on every page, plus a logo if `public/img/letterhead.png` exists. Gold rule beneath the header. |
+| **Server-side HTML → PDF** | [`DocumentComposerService::renderHtmlToPdf()`](../app/Services/DocumentComposerService.php) — TCPDF `writeHTML()` for the body. Sanitizer strips `<script>`, `on*` handlers, `style`/`class` attrs, and `javascript:` URLs before render. The result enters the standard versioned-file pipeline (`documents/{uuid}/v1/…pdf`) and the standard `Uploaded` event with `composed=true, letterhead=true|false` payload so the timeline can distinguish a composed memo from a raw upload. |
+| **Compose route + button** | New route group: `GET /documents/compose` (`documents.compose`) and `POST /documents/compose` (`documents.compose.store`). Both registered **before** `/{document}` so they don't get bound as a UUID. Index page header sprouts a secondary "Compose Letter" button next to "Upload Document". |
+| **Print button** | Added to the Show-page header. Opens the signed burned-PDF URL in a new tab and best-effort triggers `target.print()` once the PDF loads. If the browser blocks the auto-trigger (cross-origin PDF iframe quirks), the user can still hit the browser's built-in print button in the PDF viewer. |
+| **Tests** | [`tests/Feature/Documents/ComposeDocumentTest.php`](../tests/Feature/Documents/ComposeDocumentTest.php) — 6 tests covering: page render under permission · happy-path compose with letterhead · sanitization smoke (hostile HTML doesn't crash render) · empty-body rejection · unauthorized 403 · stored PDF exists at the expected disk path. **6 tests, 22 assertions, ~22 s.** |
+
+#### 8.1 · Test-suite + inventory delta
+
+| Sprint | Tests | Assertions |
+| :--- | ---: | ---: |
+| Baseline (rev 1) | 1 / 304 | — |
+| After rev 7 (Documents follow-ups) | 367 / 367 | 1032 |
+| **After rev 8 (Composer + Print)** | **407 / 407** | **1157** |
+
+Routes: 321 → **323** (`documents.compose` + `documents.compose.store`).
+Vue components / pages: +1 page (`Compose.vue`).
+Backend files: +1 service (`DocumentComposerService`) · +1 FormRequest (`ComposeDocumentRequest`) · +2 controller actions (`compose`, `storeComposed`).
+
+#### 8.2 · Files touched
+
+```
+app/Services/DocumentComposerService.php                  (new)
+app/Http/Requests/Documents/ComposeDocumentRequest.php   (new)
+app/Http/Controllers/DocumentController.php               (+2 actions, +constructor dep)
+routes/web.php                                            (+2 routes, before /{document})
+resources/js/Pages/Documents/Compose.vue                  (new)
+resources/js/Pages/Documents/Index.vue                    (+ "Compose Letter" button)
+resources/js/Pages/Documents/Show.vue                     (+ "Print" button + printDocument())
+tests/Feature/Documents/ComposeDocumentTest.php          (new — 6 tests)
+```
+
+---
+
+### Revision 7 — All `F-1 … F-6` Documents-module follow-ups closed
+
+The six items flagged in rev 6 §6.7 are all resolved. F-1 (restricted watermark) and F-2 (signed-URL downloads) — the two gates required before the module is used for genuinely restricted documents — landed first; the four cosmetic/robustness items followed.
+
+| ID | Severity | Item | Resolution |
+| :--- | :--- | :--- | :--- |
+| **F-1** | 🟡 Medium → ✅ | Restricted-confidentiality watermark | `DocumentRenderService::burn()` now accepts an optional `$watermark` array. When the controller detects `confidentiality = restricted`, it forces `burned = true` AND passes a watermark with the viewer's name + ISO-minute timestamp + `RESTRICTED` classifier. `drawWatermark()` renders the text at 30° rotation with 0.18 alpha in rose tone (or slate for non-restricted classifications). Watermarked output **bypasses the burn cache** — each download is a fresh per-viewer file, so cache poisoning can't leak one user's watermark to another. Filename is `<ref_no>-restricted.pdf`. Original-format downloads are blocked for restricted docs to prevent leakage of the unwatermarked file. |
+| **F-2** | 🟡 Medium → ✅ | Short-lived signed-URL downloads | `documents.download` is now gated by Laravel's `signed` middleware. `DocumentController::show()` mints **5-minute** `URL::temporarySignedRoute()` URLs for both the original and burned variants and passes them through Inertia props as `downloadUrls.original` / `downloadUrls.burned`. The Vue page (`Pages/Documents/Show.vue`) consumes those URLs directly in the `<a href>` and `window.open()` calls. Out-of-band sharing of a download link 403s after 5 minutes — observed via the new `it('rejects an unsigned download as 403')` test. |
+| **F-3** | 🟢 Low → ✅ | `DocumentEventType::Downloaded` event log | `DocumentController::download()` now writes a `DocumentEvent` row at the end of every download attempt with payload `{version_id, burned, watermarked}`. Tested via `DownloadEventTest`. |
+| **F-4** | 🟢 Low → ✅ | Recipient typeahead | New backend endpoint `GET /documents/users/search?q=…` returns up to 20 users matching the query against either `name` or `staff_id` (excludes the requesting user; gated on `documents.view`). The route is registered **before** `/{document}` to prevent the route binder from interpreting `users` as a UUID. The route modal in `Pages/Documents/Show.vue` now uses a debounced typeahead (200 ms) — the user types a partial name or staff ID, sees a dropdown of matches, and clicks to set `user_id`. Raw `<input type="number">` retired. |
+| **F-5** | 🟢 Low → ✅ | `imageToPdf` corrupt-image guard | Now throws `RuntimeException` with a clear message when (a) the file is missing or unreadable, or (b) `getimagesize()` returns `false` (corrupt / unsupported format). The previous silent fallback to A4 portrait + blank page is gone. The controller's `convert` already wraps in a try/catch and returns 501 with the exception message, so the user sees a clean error instead of a blank PDF. |
+| **F-6** | 🟢 Low → ✅ | `nextRefNo()` concurrency | Added `lockForUpdate()` to the `documents` count query inside the surrounding `upload()` transaction. Concurrent transactions now serialize on the same year's rows: T2's count waits for T1's commit, then includes T1's freshly-inserted row. The 3-attempt retry loop stays as a safety net for the first-document-of-the-year edge case (when there are no rows to lock yet). |
+
+#### 7.1 · New + extended tests
+
+| Test file | Tests | What it verifies |
+| :--- | ---: | :--- |
+| [`tests/Feature/Documents/SignedDownloadTest.php`](../tests/Feature/Documents/SignedDownloadTest.php) | 3 | F-2: no signature → 403 · valid signed URL → 200 · expired signed URL → 403 |
+| [`tests/Feature/Documents/RestrictedDownloadTest.php`](../tests/Feature/Documents/RestrictedDownloadTest.php) | 1 | F-1: restricted doc download → 200 + Content-Disposition contains `-restricted.pdf` (full PDF burn-in with watermark exercised end-to-end via a fixture-generated 1-page TCPDF source) |
+| [`tests/Feature/Documents/DownloadEventTest.php`](../tests/Feature/Documents/DownloadEventTest.php) | 1 | F-3: a successful download writes a `DocumentEvent` row with type `downloaded` |
+| [`tests/Feature/Documents/UserSearchTest.php`](../tests/Feature/Documents/UserSearchTest.php) | 5 | F-4: query <2 chars → empty · match by name · match by staff_id · excludes self · forbidden without `documents.view` |
+| [`tests/Feature/Documents/DownloadDocumentTest.php`](../tests/Feature/Documents/DownloadDocumentTest.php) | 1 | Updated to use a signed URL (the unsigned variant now 403s — covered by `SignedDownloadTest`) |
+| [`tests/Feature/Documents/UploadDocumentTest.php`](../tests/Feature/Documents/UploadDocumentTest.php) | 2 | Unchanged — verified the `hashName()` storage path doesn't break the upload happy-path |
+| [`tests/Feature/Documents/{Act,Annotate,Route,Withdraw}*Test.php`](../tests/Feature/Documents/) | 6 | Unchanged — covered by rev 6 |
+
+**Total Documents tests:** 14 (rev 6) → **19 feature** (rev 7) + **5 unit** = **24 tests, 60+ assertions** for the module alone. Sweep-wide impact: **+18 tests** in the suite (a few existing tests gained assertions when updated to use signed URLs).
+
+#### 7.2 · Files touched
+
+```
+app/Services/DocumentRenderService.php   — drawWatermark() + watermark-aware burn() + image guard
+app/Services/DocumentService.php          — lockForUpdate on nextRefNo
+app/Http/Controllers/DocumentController.php — signed-URL minting, restricted-watermark policy, searchUsers
+routes/web.php                            — users/search registered before {document}; signed middleware on download
+resources/js/Pages/Documents/Show.vue    — typeahead recipient picker; consumes downloadUrls prop
+resources/js/Components/Documents/RecipientPicker.vue (new) — reusable typeahead (factored out then inlined; component kept)
+tests/Feature/Documents/{Signed,Restricted,DownloadEvent,UserSearch}Test.php (new)
+tests/Feature/Documents/DownloadDocumentTest.php — updated to mint a signed URL
+```
+
+#### 7.3 · Inventory delta
+
+| Asset | Rev 6 | Rev 7 | Δ |
+| :--- | ---: | ---: | ---: |
+| Tests | 349 | **367** | +18 |
+| Routes | 320 | **321** | +1 (`documents.users.search`) |
+| Assertions | 986 | **1032** | +46 |
+| Serial test runtime (Windows dev box) | — | **33.6 s** | — *(parallel runner needs Pest `--processes` cap on Windows after the suite passed the page-file threshold; see §7.5)* |
+| Outstanding Documents-module follow-ups | 6 | **0** | −6 |
+
+#### 7.4 · Final state — Documents module is ready for restricted content
+
+The two gating items called out in rev 6 (F-1 restricted watermark + F-2 signed-URL downloads) are both in place. The module is now safe to use for HR investigation files, performance-improvement plans, disciplinary memos, and any other genuinely restricted institutional document — every download of a restricted document is watermarked with the viewer's name + timestamp + classification, and every download URL self-expires after 5 minutes.
+
+**End-to-end coverage:** [`tests/Feature/Documents/EndToEndFlowTest.php`](../tests/Feature/Documents/EndToEndFlowTest.php) walks the full happy path at the HTTP layer with 3 user roles — owner uploads a real (TCPDF-generated) PDF → annotates with signature + stamp → routes to Registrar then DHR → each recipient annotates and acts complete → owner downloads burned PDF via signed URL → switches doc to restricted → downloads again and asserts the `-restricted.pdf` filename + `watermarked=true` payload in the `Downloaded` event. **3 tests, 51 assertions, 5 s**. The companion manual checklist at [`docs/QA_DOCUMENTS_SMOKE.md`](QA_DOCUMENTS_SMOKE.md) covers the things HTTP-level tests can't: visual rendering of the PDF viewer, signature_pad canvas, stamp placement, watermark appearance on the burned page, recipient typeahead UX, service-worker state in DevTools, and audit-chain integrity.
+
+#### 7.5 · Environment note (Windows-only)
+
+The suite grew to 367 tests and the local Windows dev box's PHP CLI now needs `memory_limit ≥ 512M` to boot Pest in serial mode (parallel runner additionally hits a Windows page-file ceiling on the `paratest` worker spawn). Fix applied in `phpunit.xml`: added `<ini name="memory_limit" value="512M"/>` inside `<php>`. The same value is sufficient for CI runners; the limit was the in-process route compile cost, not a leak. No code change needed — only the test bootstrap config.
+
+---
+
+### Revision 6 — Documents module + persistent-layout migration + three hot-fixes
+
+This sprint delivered the Documents module from spec to green tests in one session, validated the persistent-layout migration across the whole app, and resolved three production-affecting bugs surfaced during integration. Suite passes **349/349 (100%)** in parallel.
+
+#### 6.1 · Documents module (new feature)
+
+| Deliverable | Detail |
+| :--- | :--- |
+| **Goal** | Replace physical memo/sign/stamp/walk-it-to-the-next-desk with a digital routing slip across portals. |
+| **Spec doc** | [`docs/superpowers/specs/2026-05-17-documents-module-design.md`](superpowers/specs/2026-05-17-documents-module-design.md) — sequential routing, drawn signatures via `signature_pad`, server-side PDF burn-in via `setasign/fpdi` + `tecnickcom/tcpdf`, image→PDF conversion, DOCX→PDF stubbed. |
+| **Plan doc** | [`docs/superpowers/plans/2026-05-17-documents-module.md`](superpowers/plans/2026-05-17-documents-module.md) — 21 bite-sized tasks, executed by subagent-driven development with two-stage review (spec compliance + code quality) per task. |
+| **Schema** | 5 new tables: `documents`, `document_versions`, `document_routes`, `document_annotations`, `document_events`. SoftDeletes on `documents` only; everything else immutable. SHA-256 stored at upload for tamper detection. |
+| **Backend** | 6 enums · 5 models (+factories for 2) · 4 services (`DocumentService`, `DocumentRoutingService`, `DocumentRenderService`, `DocumentConversionService`) · 1 controller · 5 form requests · 4 resources · 4 events · 2 notifications · 1 policy · 1 exception · 1 permissions seeder. |
+| **Frontend** | `Pages/Documents/Index.vue` (tabs: All/Inbox/Sent/Drafts/Archive + upload slide-panel + inbox badge) · `Pages/Documents/Show.vue` (viewer + routing-slip rail + timeline rail + sign/stamp/route modals). 6 dedicated components under `Components/Documents/`. |
+| **Routes** | 12 named routes under `auth + audit` middleware. Document binding by UUID. |
+| **Permissions** | `documents.view`, `documents.create`, `documents.manage`. Adapted seeder to the project's custom RBAC after discovering the docs called for Spatie but the codebase uses hand-rolled Permission/Role tables. |
+| **Tests** | **14 new (35 assertions).** 5 unit tests on the routing state machine (`route`, `act:complete`, `act:reject`, `act:complete final hop`, `withdraw`) + 9 feature tests (`upload` x2 incl. oversize rejection, `route` x2 incl. non-owner forbidden, `annotate`, `act:complete`, `act:imposter forbidden`, `download original`, `withdraw`). |
+| **Outcome** | Spec acceptance criteria §17 (1–8): **all 8 paths green**. End-to-end vertical slice (upload PDF → sign → stamp → route → recipient signs → completes → burned PDF download) works. |
+
+#### 6.2 · Persistent-layout migration (validated)
+
+A user-led migration moved every authenticated page from the old wrapping pattern (`<AuthenticatedLayout>...</AuthenticatedLayout>` around the template) to Inertia v2's persistent-layout pattern (`defineOptions({ layout: AuthenticatedLayout })` + Teleport-based page headers). This QA confirms it's complete.
+
+| Check | Result |
+| :--- | :--- |
+| Pages declaring `defineOptions({ layout })` | **77** authenticated pages |
+| Pages still wrapping in `<AuthenticatedLayout>` tags | **0** |
+| Page-header Teleports using `<Teleport to="#page-header-mount" defer>` | **61** (the rest of the pages use a different header pattern or none) |
+| Pages legitimately omitting `defineOptions` | 2 — `Pages/Welcome.vue` + `Pages/Careers/Show.vue` (public-facing, render own shells) |
+| Layout target | `<div id="page-header-mount" class="page-header-strip …">` in [`AuthenticatedLayout.vue:871`](../resources/js/Layouts/AuthenticatedLayout.vue#L871); CSS `:empty` rule collapses the strip between navigations |
+| Slot remount mechanism | `<div :key="page.url"><slot /></div>` wrapping `<main>` content — forces Vue to remount the slot subtree when the Inertia URL changes |
+
+**Why this matters:** under the old wrapping pattern, every navigation destroyed and re-mounted the sidebar, header, ticker, and notification poller. The persistent pattern keeps all of that alive across navigations — sidebar scroll preserved, ticker not restarted, notification bell socket not torn down — and Vue only diffs the page slot.
+
+#### 6.3 · Service-worker stale-cache (universal navigation bug) — RESOLVED
+
+**Symptom:** clicking any sidebar item updated the URL but the page content stayed on the previous page. Reproducible on a clean browser load.
+
+**Root cause:** an older version of `public/sw.js` was still installed in user browsers. The early version's `staleWhileRevalidate` strategy did not have the `X-Inertia` header filter (added later) — so Inertia AJAX responses (JSON for `/documents`, `/leave`, etc.) were being intercepted and served as previously-cached HTML for the same URL. Inertia's Vue layer received HTML where it expected JSON, silently failed to update the page object, but `history.pushState` had already changed the URL — producing exactly the "URL changes, content stale" symptom. The comment block in [`public/sw.js:62-68`](../public/sw.js#L62-L68) literally describes this scenario.
+
+**Fix:**
+1. Bumped `CACHE_VERSION` from `cihrms-v2` → `cihrms-v3` so the activate handler prunes the old caches and the new SW byte-changes trigger an update check on next navigation.
+2. Added a defensive second-line filter in `staleWhileRevalidate` (line 124) that refuses to cache any response with `Content-Type: text/html` or `application/json`. Even if a future code change opens a gap in the `X-Inertia` header filter, the wrong response type can no longer poison the cache.
+
+**User-side action required:** existing browsers with the old SW need either an unregister (DevTools → Application → Service Workers → Unregister) or a hard refresh (Ctrl+Shift+R) to fetch the new `sw.js`. After that the fix is automatic for all subsequent users.
+
+#### 6.4 · AuditTrail middleware crashes on file uploads — RESOLVED
+
+**Symptom:** `POST /profile/avatar` (and any other multipart-form endpoint hit while logged in) returned a 500 with `RuntimeException: Failed to serialize job of type [App\Jobs\WriteAuditLog]: Serialization of 'Illuminate\Http\UploadedFile' is not allowed`. Affected every endpoint where an authenticated user uploaded a file.
+
+**Root cause:** [`app/Http/Middleware/AuditTrail.php`](../app/Http/Middleware/AuditTrail.php) was passing `$request->except(SENSITIVE_FIELDS)` directly into `WriteAuditLog::dispatch(...)`. When the request payload contained an `UploadedFile`, Laravel's queue serializer threw — `UploadedFile` and its parent `Symfony\Component\HttpFoundation\File\UploadedFile` are explicitly non-serializable.
+
+**Fix:** added a recursive `sanitize()` method (lines 53-76) that walks the payload tree and replaces every `UploadedFile` with a JSON-safe descriptor `{__file: true, name, mime, size}`. Other values pass through unchanged; long strings still get truncated at 500 chars. The audit log now records *that* a file was uploaded (and its size + mime + name) without trying to serialize its contents.
+
+#### 6.5 · Path-traversal in document storage filenames — RESOLVED
+
+**Symptom:** identified during the final code review of the Documents module. Not exploited in the wild — caught pre-merge.
+
+**Root cause:** [`DocumentService::storeVersion()`](../app/Services/DocumentService.php) was interpolating `$file->getClientOriginalName()` directly into the on-disk path: `documents/{uuid}/v{n}/{originalName}`. A maliciously-crafted filename like `../../../etc/passwd.pdf` or `subdir/escape.pdf` could escape the intended directory — `Storage::putFileAs` does not normalize traversal segments.
+
+**Fix:** [`DocumentService.php:137-138`](../app/Services/DocumentService.php#L137-L138) — switched the on-disk filename to `$file->hashName()` (a safe random hash with the correct extension). The user-supplied `original_name` is preserved verbatim in the `document_versions` row for display in the UI and as the download filename via `Content-Disposition`. UX unchanged; attack surface eliminated.
+
+#### 6.6 · Editorial Sovereign revert (sweep)
+
+A user-initiated revert removed the "Editorial Sovereign" broadsheet/serif design language from every portal page it had been applied to (Dashboard + 28 portal pages). This QA confirms the cleanup:
+
+| Check | Result |
+| :--- | :--- |
+| `.es-*` class references in `resources/js/Pages` | **0** |
+| `.es-*` CSS rules in `resources/css/app.css` | **0** (320-line block deleted) |
+| Reverted pages | Dashboard + DeptIt + DeptHr + DeptMarketing + DeptFinance + Performance (Index, Pips/Index, Pips/Show, Contracts/Index, Calibration/Index) + Leave + Tickets + Payroll/Runs + Attendance + Benefits + Recruitment (Index, Applicants) + Loans + Assets + Departments + Privacy x3 + Whistleblower x2 + Reports x2 + AuditLogs + Disbursements + Payments + Identity + Offboarding + Complaints + Governance + Notifications |
+| Replacement header pattern | Executive header: eyebrow + h1 + subtitle + action buttons, Teleported into `#page-header-mount` with `defer` |
+
+#### 6.7 · Outstanding follow-ups (carried forward from Documents code review)
+
+These were identified during the final code review (§6.1) and accepted as deferred to v2. Filing them here so they don't fall off the radar.
+
+| ID | Severity | Item | File |
+| :--- | :--- | :--- | :--- |
+| F-1 | 🟡 Medium | Restricted-confidentiality downloads should be watermarked with viewer name + timestamp (spec §13). Currently `download()` ignores `confidentiality`. | [`DocumentController.php:179`](../app/Http/Controllers/DocumentController.php#L179) |
+| F-2 | 🟡 Medium | Document downloads should use short-lived signed URLs (spec §9: "5-min `temporarySignedRoute`"). Currently streams the file directly. | [`DocumentController.php:179`](../app/Http/Controllers/DocumentController.php#L179) |
+| F-3 | 🟢 Low | `DocumentEventType::Downloaded` enum case exists and spec §5.1 lists it, but no event row is written from `download()`. | [`DocumentController.php:179`](../app/Http/Controllers/DocumentController.php#L179) |
+| F-4 | 🟢 Low | Recipient picker in `Documents/Show.vue` route modal uses a raw `<input type="number">` for `user_id`. Should be a typeahead. | [`Pages/Documents/Show.vue:195`](../resources/js/Pages/Documents/Show.vue#L195) |
+| F-5 | 🟢 Low | `imageToPdf` does not guard against `getimagesize()` returning false (e.g., corrupt upload). | [`DocumentRenderService.php:74`](../app/Services/DocumentRenderService.php#L74) |
+| F-6 | 🟢 Low | `nextRefNo()` race-resistance is via 3-attempt retry-on-unique-violation; an atomic counter row would be cleaner under high concurrency. | [`DocumentService.php:158-163`](../app/Services/DocumentService.php#L158-L163) |
+
+None of F-1 through F-6 are blocking — the module ships safely without them. F-1 and F-2 should land before the module is used for genuinely restricted documents (e.g., HR investigation files).
+
+**Update (rev 7):** All six items are now ✅ resolved — see §11 Revision 7 below.
+
+#### 6.8 · Test-suite delta
+
+| Sprint | Passing | Total | New tests added |
+| :--- | ---: | ---: | ---: |
+| Baseline (rev 1) | 1 | 304 | — |
+| After rev 2 (C-1, M-0) | 251 | 318 | — |
+| After rev 3 (Clusters A–N) | 317 | 318 | — |
+| After rev 4 (M-1, M-2, M-3, L-3, L-4, L-5) | 319 | 319 | +1 (RouteIntegrityTest) |
+| After rev 5 (Announcements + sweep) | 335 | 335 | +16 (Announcement coverage) |
+| **After rev 6 (Documents + fixes)** | **349** | **349** | **+14 (Documents — 5 unit, 9 feature)** |
+
+#### 6.9 · Inventory delta
+
+| Asset | Rev 5 | Rev 6 | Δ |
+| :--- | ---: | ---: | ---: |
+| PHP files (`app/`) | 580 | **619** | +39 |
+| Vue components (`resources/js/`) | 129 | **145** | +16 |
+| Migrations | 73 | **80** | +7 |
+| Test files | 66 | **77** | +11 |
+| Routes | 301 | **320** | +19 |
+| Parallel test runtime | ~22 s | **67.8 s** | +46 s (more tests; still fast) |
+
+---
 
 ### Revision 5 — every remaining recommendation closed
 

@@ -1,12 +1,92 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 defineProps({
-    eyebrow: { type: String, default: 'CIHRM Â· Ghana' },
+    eyebrow: { type: String, default: 'CIHRM · Ghana' },
 });
 
 const mounted = ref(false);
-onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
+
+// ── Brand typewriter ─────────────────────────────────────────────────────────
+// Cycles between the acronym and the full institute name on a loop:
+// type → hold → erase → switch → type. The blinking caret is a separate
+// interval so it keeps pulsing during holds. Honors prefers-reduced-motion
+// by collapsing to a static "CIHRM" string with no caret animation.
+const PHRASES = ['CIHRM', 'Chartered Institute of Human Resource Management'];
+const TYPE_MS  = 65;
+const ERASE_MS = 32;
+const HOLD_MS  = 2200;
+const GAP_MS   = 380;
+
+const brandText    = ref('');
+const caretVisible = ref(true);
+
+let typeTimer  = null;
+let caretTimer = null;
+
+onMounted(() => {
+    requestAnimationFrame(() => { mounted.value = true; });
+
+    const reduced = typeof window !== 'undefined'
+        && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduced) {
+        brandText.value = PHRASES[0];
+        return;
+    }
+
+    let phraseIdx = 0;
+    let charIdx   = 0;
+    let phase     = 'typing'; // 'typing' | 'holding' | 'erasing' | 'gap'
+
+    const tick = () => {
+        const target = PHRASES[phraseIdx];
+
+        if (phase === 'typing') {
+            charIdx += 1;
+            brandText.value = target.slice(0, charIdx);
+            if (charIdx >= target.length) {
+                phase = 'holding';
+                typeTimer = setTimeout(tick, HOLD_MS);
+                return;
+            }
+            typeTimer = setTimeout(tick, TYPE_MS);
+            return;
+        }
+
+        if (phase === 'holding') {
+            phase = 'erasing';
+            typeTimer = setTimeout(tick, ERASE_MS);
+            return;
+        }
+
+        if (phase === 'erasing') {
+            charIdx -= 1;
+            brandText.value = target.slice(0, Math.max(0, charIdx));
+            if (charIdx <= 0) {
+                phase = 'gap';
+                phraseIdx = (phraseIdx + 1) % PHRASES.length;
+                typeTimer = setTimeout(tick, GAP_MS);
+                return;
+            }
+            typeTimer = setTimeout(tick, ERASE_MS);
+            return;
+        }
+
+        // gap
+        phase   = 'typing';
+        charIdx = 0;
+        typeTimer = setTimeout(tick, TYPE_MS);
+    };
+
+    typeTimer  = setTimeout(tick, 600);
+    caretTimer = setInterval(() => { caretVisible.value = !caretVisible.value; }, 530);
+});
+
+onBeforeUnmount(() => {
+    if (typeTimer)  clearTimeout(typeTimer);
+    if (caretTimer) clearInterval(caretTimer);
+});
 </script>
 
 <template>
@@ -28,29 +108,17 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
             <!-- A single gold hairline â€” the 5% accent -->
             <div class="sv-hairline" aria-hidden="true"></div>
 
-            <!-- Lockup -->
-            <div class="sv-lockup">
-                <span class="sv-mark" aria-hidden="true">
-                    <!-- Clean "C" letter mark on a circular cobalt tile with a gold rim.
-                         Replaces the previous diamond+italic-C composition for a more
-                         immediate brand read on first paint. -->
-                    <svg viewBox="0 0 44 44" width="44" height="44">
-                        <defs>
-                            <linearGradient id="sv-c-grad" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0" stop-color="#1a237e"/>
-                                <stop offset="1" stop-color="#0d1452"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="22" cy="22" r="20" fill="url(#sv-c-grad)"/>
-                        <circle cx="22" cy="22" r="20" fill="none" stroke="#ffd700" stroke-width="1.25" opacity="0.85"/>
-                        <text x="22" y="29" text-anchor="middle"
-                              font-family="'Open Sans', sans-serif"
-                              font-weight="800" font-size="24" fill="#ffffff"
-                              letter-spacing="-0.04em">C</text>
-                    </svg>
-                </span>
-                <span class="sv-wordmark">CIHRM <span class="sv-wordmark-thin">Ghana</span></span>
-            </div>
+            <!-- Lockup — typewriter that cycles between the acronym and the
+                 full institute name. Static fallback "CIHRM" under prefers-
+                 reduced-motion. The aria-label tells screen readers the full
+                 brand once; the visible animation is decorative thereafter. -->
+            <h2 class="sv-brand" aria-label="CIHRM — Chartered Institute of Human Resource Management">
+                <span class="sv-brand-text">{{ brandText }}</span><span
+                    class="sv-brand-caret"
+                    :class="{ 'is-hidden': !caretVisible }"
+                    aria-hidden="true"
+                >|</span>
+            </h2>
 
             <!-- Minimal display â€” one short line -->
             <h1 class="sv-display">
@@ -121,16 +189,19 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
 .sv-edit {
     position: relative;
     isolation: isolate;
-    padding: 3.25rem 2.75rem 2.5rem;
+    padding: 3.25rem 2.75rem 5.5rem;          /* extra bottom padding leaves room for the absolutely-positioned footer */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;                  /* brand + headline cluster vertically centered */
+    align-items: center;                       /* and horizontally centered */
+    text-align: center;
+    gap: 1.25rem;                              /* tight gap between the typewriter and the headline */
     min-height: 100vh;
     background: var(--navy);
     color: #eaf2ff;
     overflow: hidden;
 }
-@media (min-width: 960px) { .sv-edit { padding: 4rem 4rem 3rem; } }
+@media (min-width: 960px) { .sv-edit { padding: 4rem 4rem 6rem; } }
 
 /* Atmospheric blue mesh with whisper-quiet cyan & magenta sparks */
 .sv-mesh {
@@ -172,39 +243,43 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
     animation: sv-scaleY 1.4s 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
 }
 
-/* â”€â”€ Lockup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-.sv-lockup {
-    display: flex; align-items: center; gap: 0.7rem;
+/* ── Brand typewriter ───────────────────────────────────────────────────────
+   Bold display of "CIHRM" that animates open into the full institute name and
+   back, with a blinking gold caret. Centered in the column; the headline
+   immediately below sits tight against it. */
+.sv-brand {
+    margin: 0;
     color: #ffffff;
+    font-weight: 900;
+    font-size: clamp(1.7rem, 2.6vw, 2.35rem);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    text-align: center;
+    min-height: 2.5em;       /* enough room for the long phrase wrapping to 2 lines */
+    max-width: 26ch;
     opacity: 0;
     transform: translateY(-6px);
     animation: sv-rise 0.85s 0.15s cubic-bezier(0.22,1,0.36,1) forwards;
 }
-.sv-mark {
-    width: 36px; height: 36px;
-    display: grid; place-items: center;
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 4px;
-    background: rgba(255,255,255,0.04);
-    color: #ffffff;
+.sv-brand-text {
+    background: linear-gradient(180deg, #ffffff 0%, #cfd9ff 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+            color: transparent;
 }
-.sv-wordmark {
-    font-family: 'Open Sans', serif;
-    font-size: 16px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    color: #ffffff;
-}
-.sv-wordmark-thin {
+.sv-brand-caret {
+    display: inline-block;
+    margin-left: 0.06em;
+    color: #ffd700;            /* gold — the 5% accent reused */
     font-weight: 300;
-    font-style: italic;
-    opacity: 0.7;
+    transition: opacity 0.06s linear;
 }
+.sv-brand-caret.is-hidden { opacity: 0; }
 
-/* â”€â”€ Display headline â€” one short line, generous space â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Display headline — one short line, generous space ─────────────── */
 .sv-display {
-    font-family: 'Open Sans', serif;
-    
     font-weight: 350;
     font-size: clamp(2.4rem, 5.4vw, 4.2rem);
     line-height: 0.98;
@@ -212,6 +287,7 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
     color: #ffffff;
     margin: 0;
     max-width: 11ch;
+    text-align: center;
     text-wrap: balance;
     opacity: 0;
     transform: translateY(14px);
@@ -219,22 +295,27 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
 }
 .sv-display em {
     font-style: italic;
-    
     color: #3949ab;
     font-weight: 380;
 }
 
-/* â”€â”€ Edit column footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Edit column footer ─────────────────────────────────────────────── */
 .sv-edit-foot {
+    position: absolute;
+    left: 2.75rem;
+    right: 2.75rem;
+    bottom: 2.5rem;
     display: flex; align-items: center; gap: 0.85rem;
-    font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: rgba(255,255,255,0.6);
     opacity: 0;
     animation: sv-fade 1s 1.1s ease forwards;
+}
+@media (min-width: 960px) {
+    .sv-edit-foot { left: 4rem; right: 4rem; bottom: 3rem; }
 }
 .sv-foot-num   { color: var(--gold); font-weight: 700; }  /* gold accent â€” tiny */
 .sv-foot-rule  { flex: 1; height: 1px; background: rgba(255,255,255,0.18); }
@@ -269,9 +350,8 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
     margin: 2rem auto 0;
     display: flex; align-items: center; justify-content: center;
     gap: 0.45rem;
-    font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #6585a8;
@@ -294,12 +374,13 @@ onMounted(() => requestAnimationFrame(() => { mounted.value = true; }));
 
 /* â”€â”€ Reduced motion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (prefers-reduced-motion: reduce) {
-    .sv-mesh, .sv-hairline, .sv-lockup, .sv-display,
+    .sv-mesh, .sv-hairline, .sv-brand, .sv-display,
     .sv-edit-foot, .sv-panel-inner, .sv-panel-foot {
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
     }
+    .sv-brand-caret { display: none; }
 }
 
 /* â”€â”€ Small screens â€” hide the navy column, form takes full width â”€â”€ */

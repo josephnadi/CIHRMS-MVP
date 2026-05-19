@@ -89,3 +89,49 @@ test('employee without permissions cannot list employees', function () {
         ->get(route('employees.index'))
         ->assertForbidden();
 });
+
+test('HR can create an employee without providing employee_no or staff_id (both auto-assigned)', function () {
+    $this->actingAs($this->hr)
+        ->post(route('employees.store'), [
+            'create_user'   => true,
+            'user_name'     => 'Auto Generated',
+            'user_email'    => 'auto.gen@example.com',
+            'user_role'     => 'employee',
+            'user_password' => 'StrongP@ss1',
+            // staff_id and employee_no intentionally omitted
+            'department_id' => $this->dept->id,
+            'position'      => 'Analyst',
+            'hire_date'     => now()->subYear()->toDateString(),
+            'status'        => EmployeeStatus::Active->value,
+        ])
+        ->assertRedirect();
+
+    $user = User::where('email', 'auto.gen@example.com')->firstOrFail();
+    $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
+    expect($user->staff_id)->toStartWith('SID-');
+    expect($employee->employee_no)->toStartWith('CIHRM-');
+});
+
+test('auto-assigned employee_no is unique across two back-to-back creations', function () {
+    $payload = fn (string $email) => [
+        'create_user'   => true,
+        'user_name'     => 'Person ' . $email,
+        'user_email'    => $email,
+        'user_role'     => 'employee',
+        'user_password' => 'StrongP@ss1',
+        'department_id' => $this->dept->id,
+        'position'      => 'Analyst',
+        'hire_date'     => now()->subYear()->toDateString(),
+        'status'        => EmployeeStatus::Active->value,
+    ];
+
+    $this->actingAs($this->hr)->post(route('employees.store'), $payload('a@example.com'))->assertRedirect();
+    $this->actingAs($this->hr)->post(route('employees.store'), $payload('b@example.com'))->assertRedirect();
+
+    $nos = Employee::orderBy('id')->pluck('employee_no')->take(-2)->values();
+    $sids = User::whereIn('email', ['a@example.com', 'b@example.com'])->pluck('staff_id');
+
+    expect($nos->unique()->count())->toBe(2);
+    expect($sids->unique()->count())->toBe(2);
+});

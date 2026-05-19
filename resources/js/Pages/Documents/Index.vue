@@ -66,12 +66,19 @@ const tone = (status) => ({
                             Upload, route, sign and stamp documents across the institute.
                         </p>
                     </div>
-                    <button @click="showUpload = true"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
-                            style="background:linear-gradient(135deg,#0d1452,#1a237e);">
-                        <span class="material-symbols-outlined text-[17px]">upload_file</span>
-                        Upload Document
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <Link :href="route('documents.compose')"
+                              class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-[13px] font-black text-primary shadow-card transition-all hover:-translate-y-px hover:shadow-card-hover">
+                            <span class="material-symbols-outlined text-[17px]">edit_note</span>
+                            Compose Letter
+                        </Link>
+                        <button @click="showUpload = true"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e);">
+                            <span class="material-symbols-outlined text-[17px]">upload_file</span>
+                            Upload Document
+                        </button>
+                    </div>
                 </div>
             </Teleport>
 

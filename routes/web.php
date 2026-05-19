@@ -779,6 +779,9 @@ Route::middleware(['auth', 'audit'])->group(function () {
         // Static segments must be registered BEFORE `/{document}` so they
         // don't collide with the UUID-bound parameter route.
         Route::get('/users/search',                [DocumentController::class, 'searchUsers'])->name('users.search');
+        // In-portal composer (HTML → PDF with optional institutional letterhead).
+        Route::get('/compose',                     [DocumentController::class, 'compose'])->name('compose');
+        Route::post('/compose',                    [DocumentController::class, 'storeComposed'])->name('compose.store');
         Route::get('/{document}',                  [DocumentController::class, 'show'])->name('show');
         Route::post('/{document}/versions',        [DocumentController::class, 'addVersion'])->name('versions.store');
         Route::post('/{document}/route',           [DocumentController::class, 'route'])->name('route');

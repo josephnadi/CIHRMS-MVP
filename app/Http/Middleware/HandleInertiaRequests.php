@@ -20,7 +20,11 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        $user = $request->user();
+        // Eager-load the employee relation so the `avatar` accessor
+        // (which reads $this->employee->avatar_url) doesn't trigger a
+        // lazy query on every Inertia response. `loadMissing` is a
+        // no-op when the relation is already loaded.
+        $user = $request->user()?->loadMissing('employee');
 
         return [
             ...parent::share($request),

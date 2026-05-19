@@ -8,6 +8,7 @@ import SignaturePad from '@/Components/Documents/SignaturePad.vue';
 import StampPicker from '@/Components/Documents/StampPicker.vue';
 import RoutingSlipPanel from '@/Components/Documents/RoutingSlipPanel.vue';
 import TimelineRail from '@/Components/Documents/TimelineRail.vue';
+import RecipientPicker from '@/Components/Documents/RecipientPicker.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -15,14 +16,18 @@ const page = usePage();
 const currentUserId = computed(() => page.props.auth.user.id);
 
 const props = defineProps({
-    document:     Object,
-    activeModule: String,
+    document:      Object,
+    downloadUrls:  Object,
+    activeModule:  String,
 });
 
 const D = computed(() => props.document.data ?? props.document);
 
-const docUrl = computed(() => route('documents.download', { document: D.value.uuid, version: D.value.current_version?.version_no }));
-const downloadBurnedUrl = computed(() => route('documents.download', { document: D.value.uuid, burned: 1 }));
+// Signed-URL downloads minted server-side (5-min TTL). The `documents.download`
+// route is protected by `signed` middleware, so we must use the URLs the
+// controller hands us — calling route() directly here would produce 403s.
+const docUrl = computed(() => props.downloadUrls?.original ?? '#');
+const downloadBurnedUrl = computed(() => props.downloadUrls?.burned ?? '#');
 
 const pageSize  = ref({ width: 0, height: 0 });
 const currentPage = ref(1);
@@ -89,6 +94,21 @@ function downloadBurned() {
     window.open(downloadBurnedUrl.value, '_blank');
 }
 
+// Open the signed burned PDF in a new tab. Browsers' built-in PDF viewer
+// includes a Print button; users can hit Ctrl+P or use that toolbar. This
+// avoids the fragile iframe.print() route which behaves differently across
+// Chrome / Firefox / Safari for embedded PDFs.
+function printDocument() {
+    const target = window.open(downloadBurnedUrl.value, '_blank');
+    if (! target) return;
+    // Best-effort auto-trigger of the print dialog once the PDF loads.
+    // If the browser blocks (e.g., for cross-origin PDFs), the user can
+    // still click Print in the built-in viewer.
+    target.addEventListener?.('load', () => {
+        try { target.focus(); target.print(); } catch (e) { /* user prints manually */ }
+    });
+}
+
 const myActiveRoute = computed(() =>
     D.value.routes?.find(r => r.status === 'in_progress' && r.to_user?.id === currentUserId.value)
 );
@@ -123,6 +143,10 @@ const canWithdraw = computed(() => D.value.status === 'in_review' && D.value.own
                             </a>
                             <button @click="downloadBurned" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black flex items-center gap-2">
                                 <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span> Burned PDF
+                            </button>
+                            <button @click="printDocument" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black flex items-center gap-2"
+                                    title="Open the burned PDF and trigger the browser print dialog">
+                                <span class="material-symbols-outlined text-[16px]">print</span> Print
                             </button>
                             <button v-if="canRoute" @click="showRouteModal = true"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-black text-white shadow-glow-sm"
@@ -192,17 +216,16 @@ const canWithdraw = computed(() => D.value.status === 'in_review' && D.value.own
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary mb-1">Send to recipients in order</p>
                     <h2 class="text-lg font-black text-primary mb-3">Route document</h2>
                     <div class="space-y-2">
-                        <div v-for="(r, i) in routeForm.recipients" :key="i" class="flex items-center gap-2">
-                            <span class="w-7 text-center font-mono text-[12px] font-black">{{ i + 1 }}</span>
-                            <input v-model.number="r.user_id" type="number" placeholder="Staff user ID"
-                                   class="flex-1 rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                        <div v-for="(r, i) in routeForm.recipients" :key="i" class="flex items-start gap-2">
+                            <span class="w-7 text-center font-mono text-[12px] font-black pt-2">{{ i + 1 }}</span>
+                            <RecipientPicker v-model="r.user_id" />
                             <select v-model="r.action_required" class="rounded-lg border border-outline-variant px-2 py-2 text-[12px]">
                                 <option value="sign">Sign</option>
                                 <option value="review">Review</option>
                                 <option value="approve">Approve</option>
                                 <option value="acknowledge">Acknowledge</option>
                             </select>
-                            <button v-if="routeForm.recipients.length > 1" @click="removeRecipient(i)" class="text-rose-600 text-[14px]">✕</button>
+                            <button v-if="routeForm.recipients.length > 1" @click="removeRecipient(i)" class="text-rose-600 text-[14px] pt-2">✕</button>
                         </div>
                     </div>
                     <button @click="addRecipient" class="mt-2 text-[12px] font-black text-secondary">+ Add recipient</button>
