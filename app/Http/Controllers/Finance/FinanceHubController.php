@@ -18,6 +18,9 @@ class FinanceHubController extends Controller
 
     public function index(Request $request): Response
     {
-        return Inertia::render('Finance/Hub', $this->service->summaryFor($request->user()));
+        return Inertia::render('Finance/Hub', array_merge(
+            ['activeModule' => 'finance'],
+            $this->service->summaryFor($request->user()),
+        ));
     }
 }

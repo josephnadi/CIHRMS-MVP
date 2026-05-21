@@ -61,3 +61,24 @@ it('filters list by type and search', function () {
     $rows = $this->svc->list(['search' => 'SSNIT']);
     expect($rows->pluck('name')->contains(fn ($n) => str_contains($n, 'SSNIT')))->toBeTrue();
 });
+
+it('refuses to archive an account that has children', function () {
+    (new ChartOfAccountsSeeder())->run();
+    (new GlAccountBalanceSeeder())->run();
+
+    $parent = GlAccount::where('code', '1000')->firstOrFail();
+
+    expect(fn () => $this->svc->archive($parent))
+        ->toThrow(\DomainException::class, 'child accounts');
+});
+
+it('refuses to archive an account that has a linked bank account', function () {
+    (new ChartOfAccountsSeeder())->run();
+    (new GlAccountBalanceSeeder())->run();
+    (new \Database\Seeders\OrgBankAccountSeeder())->run();
+
+    $linked = GlAccount::where('code', '1100')->firstOrFail(); // GCB Operating, linked by the OrgBankAccountSeeder
+
+    expect(fn () => $this->svc->archive($linked))
+        ->toThrow(\DomainException::class, 'bank account');
+});

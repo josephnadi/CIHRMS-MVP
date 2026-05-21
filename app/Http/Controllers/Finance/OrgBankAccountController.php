@@ -28,9 +28,10 @@ class OrgBankAccountController extends Controller
         $banks = $this->service->list($filters);
 
         return Inertia::render('Finance/BankAccounts/Index', [
+            'activeModule' => 'finance-bank-accounts',
             'banks'        => OrgBankAccountResource::collection($banks),
             'filters'      => $filters,
-            'assetAccounts'=> GlAccount::ofType('asset')->orderBy('code')->get(['id', 'code', 'name']),
+            'assetAccounts'=> GlAccount::ofType('asset')->active()->orderBy('code')->get(['id', 'code', 'name']),
         ]);
     }
 

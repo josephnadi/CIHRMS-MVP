@@ -88,6 +88,15 @@ class ChartOfAccountsService
 
     public function archive(GlAccount $account): void
     {
+        // Preserve referential integrity for tree views and bank-account links.
+        // SoftDeletes does not trigger FK constraints, so we enforce in-app.
+        if ($account->children()->exists()) {
+            throw new \DomainException("Cannot archive {$account->code}: it has child accounts. Reparent or archive the children first.");
+        }
+        if ($account->bankAccount()->exists()) {
+            throw new \DomainException("Cannot archive {$account->code}: an organisational bank account is linked to it. Archive that bank account first.");
+        }
+
         $account->delete();
     }
 }
