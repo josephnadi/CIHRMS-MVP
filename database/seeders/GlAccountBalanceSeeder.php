@@ -18,9 +18,9 @@ class GlAccountBalanceSeeder extends Seeder
     {
         GlAccount::query()->chunk(100, function ($accounts) {
             foreach ($accounts as $account) {
-                GlAccountBalance::updateOrCreate(
+                GlAccountBalance::firstOrCreate(
                     ['gl_account_id' => $account->id],
-                    ['balance' => GlAccountBalance::where('gl_account_id', $account->id)->value('balance') ?? 0]
+                    ['balance' => 0]
                 );
             }
         });

@@ -24,8 +24,7 @@ class OrgBankAccountSeeder extends Seeder
     public function run(): void
     {
         foreach (self::BANKS as [$glCode, $bankName, $branch, $accountName, $accountNumber, $sortCode, $purpose]) {
-            $gl = GlAccount::where('code', $glCode)->first();
-            if (! $gl) continue;
+            $gl = GlAccount::where('code', $glCode)->firstOrFail();
 
             OrgBankAccount::updateOrCreate(
                 ['bank_name' => $bankName, 'account_number' => $accountNumber],
@@ -35,7 +34,7 @@ class OrgBankAccountSeeder extends Seeder
                     'account_name'    => $accountName,
                     'sort_code'       => $sortCode,
                     'currency'        => 'GHS',
-                    'purpose'         => $purpose->value,
+                    'purpose'         => $purpose,
                     'opening_balance' => 0,
                     'is_active'       => true,
                 ]

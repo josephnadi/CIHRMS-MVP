@@ -13,7 +13,10 @@ class ChartOfAccountsSeeder extends Seeder
     /**
      * NPO-flavored Ghana chart of accounts.
      * Structure: [code, name, type, parent_code|null].
-     * Children must follow their parents (single-pass build).
+     *
+     * ⚠ ORDER IS LOAD-BEARING: each child MUST appear after its parent in this array.
+     * Reordering without checking parent_code references will silently set parent_id to null,
+     * because the parent lookup map is built during the same iteration.
      */
     private const ACCOUNTS = [
         // Assets (1xxx)
