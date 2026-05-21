@@ -33,6 +33,23 @@ class DashboardController extends Controller
             abort(403, 'You do not have access to this department portal.');
         }
 
+        // Role-targeted bundles, computed lazily so we don't bill every role
+        // for everyone else's queries. Each is its own cache key inside the
+        // service (see DashboardService::STATS_TTL).
+        $role = $user->role instanceof \BackedEnum ? $user->role->value : (string) ($user->role ?? '');
+
+        $financeSnapshot = in_array($role, ['finance_officer', 'super_admin', 'hr_admin'], true)
+            ? $this->dashboard->getFinanceSnapshot()
+            : null;
+
+        $managerSnapshot = in_array($role, ['manager', 'dept_head'], true)
+            ? $this->dashboard->getManagerSnapshot($user)
+            : null;
+
+        $deptHeadSnapshot = $role === 'dept_head'
+            ? $this->dashboard->getDeptHeadSnapshot($user)
+            : null;
+
         return Inertia::render('Dashboard', [
             'activeModule'    => $module,
             'stats'           => $this->dashboard->getStats($user),
@@ -50,6 +67,9 @@ class DashboardController extends Controller
                 'applicants' => $this->dashboard->timeSeries('applicants', 30),
             ],
             'activityFeed'    => $this->dashboard->getRecentActivityFeed(12),
+            'financeSnapshot'  => $financeSnapshot,
+            'managerSnapshot'  => $managerSnapshot,
+            'deptHeadSnapshot' => $deptHeadSnapshot,
         ]);
     }
 }

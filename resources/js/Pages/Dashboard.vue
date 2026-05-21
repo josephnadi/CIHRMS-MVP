@@ -16,6 +16,14 @@ const DeptHr        = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptH
 const DeptMarketing = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptMarketing.vue'));
 const DeptFinance   = defineAsyncComponent(() => import('@/Pages/Dashboard/DeptFinance.vue'));
 
+// Role-specific overview components — each role that isn't 'employee' or
+// 'super_admin' / 'hr_admin' gets its own real-data dashboard. The catch-all
+// RoleOverview handles IT support, marketing, auditor, and any future role.
+const RoleFinance   = defineAsyncComponent(() => import('@/Pages/Dashboard/RoleFinance.vue'));
+const RoleManager   = defineAsyncComponent(() => import('@/Pages/Dashboard/RoleManager.vue'));
+const RoleDeptHead  = defineAsyncComponent(() => import('@/Pages/Dashboard/RoleDeptHead.vue'));
+const RoleOverview  = defineAsyncComponent(() => import('@/Pages/Dashboard/RoleOverview.vue'));
+
 const { success } = useToast();
 
 // Switch the active dashboard module via the URL query param so back/forward works.
@@ -37,6 +45,10 @@ const props = defineProps({
     sparkSeries:     { type: Object, default: () => ({}) },
     activityFeed:    { type: Array,  default: () => [] },
     activeModule:    String,
+    // Role-targeted bundles (only populated for the matching role; null otherwise)
+    financeSnapshot:  { type: Object, default: () => null },
+    managerSnapshot:  { type: Object, default: () => null },
+    deptHeadSnapshot: { type: Object, default: () => null },
 });
 
 const search = ref('');
@@ -1574,6 +1586,35 @@ const getStatusColor = (status) => {
                             </div>
                         </div>
                     </div>
+
+                    <!-- ─────────────────────────────────────────────────────── -->
+                    <!-- Role-specific overviews                                  -->
+                    <!--                                                          -->
+                    <!-- Each role that isn't `employee` (handled above) or       -->
+                    <!-- `super_admin`/`hr_admin` (handled below) gets a tailored -->
+                    <!-- dashboard. Order matters: dept_head before manager since -->
+                    <!-- a dept_head is also typically a line manager.            -->
+                    <!-- ─────────────────────────────────────────────────────── -->
+
+                    <RoleFinance v-if="$page.props.auth.user.role === 'finance_officer'"
+                                 :user="$page.props.auth.user"
+                                 :snapshot="financeSnapshot"
+                                 :stats="stats" />
+
+                    <RoleDeptHead v-else-if="$page.props.auth.user.role === 'dept_head'"
+                                  :user="$page.props.auth.user"
+                                  :dept-snapshot="deptHeadSnapshot"
+                                  :team-snapshot="managerSnapshot" />
+
+                    <RoleManager v-else-if="$page.props.auth.user.role === 'manager'"
+                                 :user="$page.props.auth.user"
+                                 :snapshot="managerSnapshot" />
+
+                    <RoleOverview v-else-if="['it_support', 'marketing', 'auditor'].includes($page.props.auth.user.role)"
+                                  :user="$page.props.auth.user"
+                                  :stats="stats"
+                                  :activity-feed="activityFeed"
+                                  :headcount-by-dept="headcountByDept" />
 
                     <!-- Admin / HR Executive Overview -->
                     <section v-if="['super_admin', 'hr_admin'].includes($page.props.auth.user.role)" class="space-y-8 animate-reveal-up">
