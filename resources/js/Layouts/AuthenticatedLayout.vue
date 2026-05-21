@@ -109,6 +109,7 @@ const navSections = computed(() => {
                     { label: 'Leave',        route: 'modules.leave',        module: 'leave',       icon: 'calendar_month', visible: true },
                     { label: 'Payroll',      route: 'modules.payroll',      module: 'payroll',     icon: 'payments',       visible: true },
                     { label: 'Loans',        route: 'loans.index',          module: 'loans',       icon: 'request_quote',  visible: can('loans.view') || can('loans.apply') },
+                    { label: 'Finance',       route: 'finance.hub',          module: 'finance',     icon: 'account_balance', visible: can('finance.hub') },
                     { label: 'Off-boarding', route: 'offboarding.index',    module: 'offboarding', icon: 'logout',         visible: can('offboarding.view') || can('offboarding.initiate') },
                     {
                         label: 'Performance', icon: 'monitoring', expandable: true, visible: can('performance.view'),
@@ -226,7 +227,7 @@ const navSections = computed(() => {
         return sections;
     }
 
-    return [
+    const sections = [
         {
             title: '',
             items: [
@@ -236,16 +237,30 @@ const navSections = computed(() => {
                 { label: 'Leave & Time-Off', route: 'modules.leave',    module: 'leave',      icon: 'calendar_today', visible: true },
                 { label: 'Benefits',         route: 'dashboard',        module: 'benefits',   icon: 'diversity_3',    visible: true },
                 { label: 'Learning & Dev',   route: 'learning.catalog', module: 'learning',   icon: 'school',         visible: true },
-            ]
+            ],
         },
-        {
-            title: 'Support',
-            items: [
-                { label: 'My Profile', route: 'profile.edit', module: 'profile',  icon: 'person',   visible: true },
-                { label: 'Settings',   route: 'profile.edit', module: 'settings', icon: 'settings', visible: true },
-            ]
-        }
     ];
+
+    if (can('finance.hub') || can('accounts.view') || can('bank_accounts.view')) {
+        sections.push({
+            title: 'Finance',
+            items: [
+                { label: 'Finance Hub',        route: 'finance.hub',                module: 'finance',                  icon: 'account_balance',         visible: can('finance.hub') },
+                { label: 'Chart of Accounts',  route: 'finance.accounts.index',     module: 'finance-accounts',         icon: 'account_tree',            visible: can('accounts.view') },
+                { label: 'Bank Accounts',      route: 'finance.bank-accounts.index',module: 'finance-bank-accounts',    icon: 'account_balance_wallet',  visible: can('bank_accounts.view') },
+            ],
+        });
+    }
+
+    sections.push({
+        title: 'Support',
+        items: [
+            { label: 'My Profile', route: 'profile.edit', module: 'profile',  icon: 'person',   visible: true },
+            { label: 'Settings',   route: 'profile.edit', module: 'settings', icon: 'settings', visible: true },
+        ],
+    });
+
+    return sections;
 });
 
 const isItemActive = (item) => {
