@@ -4,6 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Read-side balance cache, one row per gl_account. Uses gl_account_id as the primary key
+ * (no surrogate id) — the 1:1 relationship with gl_accounts is enforced at the schema level.
+ * `cascadeOnDelete` ensures balance rows vanish with their account. Only `updated_at` is
+ * tracked because rows are upserted (created once when the account is born, updated when
+ * journal posts mutate the balance) — there is no meaningful `created_at` distinct from
+ * the parent gl_account's creation.
+ */
 return new class extends Migration
 {
     public function up(): void

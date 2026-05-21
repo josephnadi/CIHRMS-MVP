@@ -4,6 +4,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * The institute's own bank accounts (operating, payroll, statutory escrow, etc.).
+ * Each row links to a `gl_accounts` row of type=asset that represents the cash position.
+ * `restrictOnDelete` on the FK protects against accidentally deleting a GL account that
+ * has a live bank-account registration. The (bank_name, account_number) composite is
+ * unique to prevent duplicate registrations of the same physical bank account.
+ */
 return new class extends Migration
 {
     public function up(): void
@@ -25,7 +32,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['bank_name', 'account_number']);
+            $table->unique(['bank_name', 'account_number'], 'org_bank_accounts_unique');
         });
     }
 
