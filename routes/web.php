@@ -413,6 +413,16 @@ Route::middleware(['auth', 'audit'])->group(function () {
     // AI assistant
     Route::post('/ai/employee-summary', [AiAssistantController::class, 'summary'])->name('ai.employee-summary');
 
+    // ── Internal chat (employee-to-employee messaging) ──
+    Route::prefix('chat')->name('chat.')->group(function () {
+        Route::get('/',                          [\App\Http\Controllers\ChatController::class, 'index'])->name('index');
+        Route::get('with/{other}',               [\App\Http\Controllers\ChatController::class, 'openWith'])->name('openWith');
+        Route::get('{conversation}',             [\App\Http\Controllers\ChatController::class, 'show'])->name('show');
+        Route::post('{conversation}/messages',   [\App\Http\Controllers\ChatController::class, 'send'])->name('send');
+        Route::get('{conversation}/poll',        [\App\Http\Controllers\ChatController::class, 'poll'])->name('poll');
+        Route::delete('messages/{message}',      [\App\Http\Controllers\ChatController::class, 'destroyMessage'])->name('messages.destroy');
+    });
+
     // ── Phase 1: Statutory Payroll Runs ──
     Route::prefix('payroll-runs')->name('payroll-runs.')->group(function () {
         Route::get('/',                       [PayrollRunController::class, 'index'])
