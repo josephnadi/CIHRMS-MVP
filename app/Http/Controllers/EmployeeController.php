@@ -8,8 +8,10 @@ use App\Http\Requests\Employee\StoreSkillRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
 use App\Http\Requests\Employee\UploadAvatarRequest;
 use App\Http\Requests\Employee\UploadDocumentRequest;
+use App\Http\Resources\BenefitPlanResource;
 use App\Http\Resources\DepartmentResource;
 use App\Http\Resources\EmployeeResource;
+use App\Models\BenefitPlan;
 use App\Models\Employee;
 use App\Models\EmployeeSkill;
 use App\Services\EmployeeService;
@@ -27,6 +29,9 @@ class EmployeeController extends Controller
         return Inertia::render('Employees/Index', [
             'employees'    => EmployeeResource::collection($this->employees->list($request)),
             'departments'  => DepartmentResource::collection($this->employees->listDepartments()),
+            'benefitPlans' => BenefitPlanResource::collection(
+                BenefitPlan::active()->orderBy('name')->get()
+            ),
             'stats'        => $this->employees->stats($request),
             'filters'      => $request->only(['search', 'department_id', 'status']),
             'activeModule' => 'employees',

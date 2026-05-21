@@ -42,7 +42,7 @@ const cediShort = (v) => {
     return n.toLocaleString('en-GH');
 };
 
-// â”€â”€ Analytics helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Analytics helpers ────────────────────────────────────────────────────────
 const A = computed(() => props.analytics ?? {});
 const totals = computed(() => A.value.totals ?? {});
 
@@ -80,7 +80,7 @@ const statusBreakdown = computed(() => {
 const totalStatusCount = computed(() => (A.value.statusBreakdown ?? []).reduce((s, d) => s + d.value, 0));
 const currencyMax = computed(() => Math.max(...(A.value.currencySplit ?? []).map(d => d.value), 1));
 
-// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tabs ─────────────────────────────────────────────────────────────────────
 const tab = ref(props.filters?.status === 'pending' ? 'pending' : 'all');
 
 const localFilters = reactive({
@@ -103,7 +103,7 @@ const switchTab = (next) => {
     applyFilters();
 };
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ────────────────────────────────────────────────────────────────────
 const data = computed(() => props.payments?.data ?? []);
 const stats = computed(() => ({
     total:     props.payments?.meta?.total ?? data.value.length,
@@ -112,7 +112,7 @@ const stats = computed(() => ({
     totalGhs:  data.value.reduce((sum, p) => sum + parseFloat(p.amount ?? 0), 0),
 }));
 
-// â”€â”€ Quick payment form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Quick payment form ───────────────────────────────────────────────────────
 const showCreatePanel = ref(false);
 
 // Auto-open the "Record Payment" panel when arriving via Quick Action (?new=1).
@@ -147,7 +147,7 @@ const submit = () => {
     });
 };
 
-// â”€â”€ Ghana payslip generator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Ghana payslip generator ─────────────────────────────────────────────────
 const showPayslipPanel = ref(false);
 const currentMonth = new Date().toISOString().slice(0, 7);
 
@@ -263,7 +263,7 @@ const submitPayslip = () => {
     });
 };
 
-// â”€â”€ Compliance deadlines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Compliance deadlines ─────────────────────────────────────────────────────
 const compliance = computed(() => {
     const today = new Date();
     const yr = today.getFullYear();
@@ -305,19 +305,19 @@ const toneClass = (tone) => ({
     overdue: 'border-red-200 dark:border-red-900/40 bg-red-50/60 dark:bg-red-950/20 text-red-700 dark:text-red-300',
 }[tone] ?? '');
 
-// â”€â”€ Mark paid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Mark paid ────────────────────────────────────────────────────────────────
 const markPaid = (id) => {
     router.patch(route('payments.paid', id), {}, { preserveScroll: true });
 };
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ──────────────────────────────────────────────────────────────────
 const formatCurrency = (amount, currency = 'GHS') => {
     if (amount == null) return `${currency} 0.00`;
     return `${currency} ${Number(amount).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -355,7 +355,7 @@ const formatDate = (d) => {
 
             <div class="space-y-6">
 
-                <!-- â”€â”€ GRA / SSNIT compliance strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── GRA / SSNIT compliance strip ──────────────────────────── -->
                 <div class="grid gap-3 md:grid-cols-2">
                     <div :class="['rounded-2xl border shadow-card p-4 flex items-center gap-4', toneClass(compliance.ssnit.tone)]">
                         <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/50 dark:bg-black/20 flex-shrink-0">
@@ -363,7 +363,7 @@ const formatDate = (d) => {
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-[10px] font-black uppercase tracking-[0.15em] opacity-80">SSNIT Tier-1 remittance</p>
-                            <p class="mt-0.5 text-[13px] font-bold">For {{ compliance.ssnit.obligation }} payroll Â· due {{ compliance.ssnit.deadline }}</p>
+                            <p class="mt-0.5 text-[13px] font-bold">For {{ compliance.ssnit.obligation }} payroll · due {{ compliance.ssnit.deadline }}</p>
                         </div>
                         <div class="text-right flex-shrink-0">
                             <p class="text-[20px] font-black tabular-nums leading-none">
@@ -382,7 +382,7 @@ const formatDate = (d) => {
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-[10px] font-black uppercase tracking-[0.15em] opacity-80">PAYE remittance (GRA)</p>
-                            <p class="mt-0.5 text-[13px] font-bold">For {{ compliance.paye.obligation }} payroll Â· due {{ compliance.paye.deadline }}</p>
+                            <p class="mt-0.5 text-[13px] font-bold">For {{ compliance.paye.obligation }} payroll · due {{ compliance.paye.deadline }}</p>
                         </div>
                         <div class="text-right flex-shrink-0">
                             <p class="text-[20px] font-black tabular-nums leading-none">
@@ -396,7 +396,7 @@ const formatDate = (d) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Hero analytics row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Hero analytics row ────────────────────────────────────── -->
                 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
                     <!-- This month -->
@@ -472,7 +472,7 @@ const formatDate = (d) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Charts row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Charts row ────────────────────────────────────────────── -->
                 <div class="grid gap-4 lg:grid-cols-3">
 
                     <!-- Monthly volume area chart -->
@@ -582,14 +582,14 @@ const formatDate = (d) => {
                                         <span class="h-2 w-2 rounded-full flex-shrink-0" :style="`background:${seg.color}`"></span>
                                         <span class="font-semibold text-on-surface truncate">{{ seg.label }}</span>
                                     </div>
-                                    <span class="font-mono font-bold text-on-surface-variant flex-shrink-0">{{ seg.value }} Â· {{ seg.pct }}%</span>
+                                    <span class="font-mono font-bold text-on-surface-variant flex-shrink-0">{{ seg.value }} · {{ seg.pct }}%</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- â”€â”€ Insight row: top earners + currency split â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Insight row: top earners + currency split ─────────────── -->
                 <div class="grid gap-4 lg:grid-cols-3">
 
                     <!-- Top earners -->
@@ -627,7 +627,7 @@ const formatDate = (d) => {
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <p class="text-[13px] font-bold text-on-surface truncate">{{ emp.name }}</p>
-                                    <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.department ?? 'â€”' }} Â· {{ emp.count }} payments</p>
+                                    <p class="text-[10px] text-on-surface-variant/70 truncate">{{ emp.department ?? '—' }} · {{ emp.count }} payments</p>
                                 </div>
                                 <div class="text-right flex-shrink-0">
                                     <p class="text-[14px] font-black font-mono text-on-surface tabular-nums">{{ formatCurrency(emp.total) }}</p>
@@ -822,7 +822,7 @@ const formatDate = (d) => {
                         >
                             <option value="" disabled>Select employee</option>
                             <option v-for="emp in employees" :key="emp.id" :value="emp.id">
-                                {{ emp.name }} Â· {{ emp.employee_no }}
+                                {{ emp.name }} · {{ emp.employee_no }}
                             </option>
                         </select>
                         <p v-if="form.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_id }}</p>
@@ -893,7 +893,7 @@ const formatDate = (d) => {
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Ghana payslip generator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Ghana payslip generator ───────────────────────────────────── -->
             <SlidePanel :open="showPayslipPanel" title="Generate Ghana Payslip" size="xl" @close="showPayslipPanel = false">
 
                 <div class="grid lg:grid-cols-2 gap-0 h-full">
@@ -911,7 +911,7 @@ const formatDate = (d) => {
                                     :class="{ 'border-red-400': payslipForm.errors.employee_id }"
                                 >
                                     <option value="" disabled>Select employee</option>
-                                    <option v-for="emp in employees" :key="emp.id" :value="emp.id">{{ emp.name }} Â· {{ emp.employee_no }}</option>
+                                    <option v-for="emp in employees" :key="emp.id" :value="emp.id">{{ emp.name }} · {{ emp.employee_no }}</option>
                                 </select>
                                 <p v-if="payslipForm.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors.employee_id }}</p>
                             </div>
@@ -1056,7 +1056,7 @@ const formatDate = (d) => {
                     <div class="p-6 overflow-y-auto canvas-scroll" style="background:linear-gradient(180deg,rgba(26, 35, 126,0.04),transparent)">
                         <div class="inline-flex items-center gap-1.5 rounded-full bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 px-2.5 py-0.5 mb-3">
                             <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                            <span class="text-[9px] font-black uppercase tracking-widest text-green-700 dark:text-green-400">Live preview Â· GRA 2025 rates</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-green-700 dark:text-green-400">Live preview · GRA 2025 rates</span>
                         </div>
 
                         <h3 class="text-[15px] font-bold text-on-surface mb-1">Payslip Preview</h3>
@@ -1071,7 +1071,7 @@ const formatDate = (d) => {
                                     <span class="font-mono text-on-surface">{{ formatCurrency(payslipPreview.basic) }}</span>
                                 </div>
                                 <div v-for="(a, i) in payslipPreview.allowances" :key="`pa-${i}`" v-show="a.amount > 0" class="flex justify-between">
-                                    <span class="text-on-surface-variant">{{ a.label || 'â€”' }}</span>
+                                    <span class="text-on-surface-variant">{{ a.label || '—' }}</span>
                                     <span class="font-mono text-on-surface">{{ formatCurrency(a.amount) }}</span>
                                 </div>
                                 <div class="flex justify-between border-t border-outline-variant/40 pt-1.5 mt-2 font-bold">
@@ -1104,7 +1104,7 @@ const formatDate = (d) => {
                                 <div class="mt-2 space-y-1 pl-4 border-l-2 border-secondary/30">
                                     <div v-for="(b, i) in payslipPreview.paye.bands" :key="`bd-${i}`" class="flex justify-between text-[10px]">
                                         <span class="text-on-surface-variant">
-                                            {{ b.upper === null ? 'Above ' + b.lower.toFixed(2) : b.lower.toFixed(2) + 'â€“' + b.upper.toFixed(2) }}
+                                            {{ b.upper === null ? 'Above ' + b.lower.toFixed(2) : b.lower.toFixed(2) + '—' + b.upper.toFixed(2) }}
                                             <span class="font-bold text-on-surface">@ {{ (b.rate * 100).toFixed(1) }}%</span>
                                         </span>
                                         <span class="font-mono text-on-surface-variant">GHS {{ b.tax.toFixed(2) }}</span>
@@ -1126,7 +1126,7 @@ const formatDate = (d) => {
                                     <span class="font-mono text-amber-700 dark:text-amber-400">âˆ’{{ formatCurrency(payslipPreview.tier3) }}</span>
                                 </div>
                                 <div v-for="(d, i) in payslipPreview.voluntary" :key="`pv-${i}`" v-show="d.amount > 0" class="flex justify-between">
-                                    <span class="text-on-surface-variant">{{ d.label || 'â€”' }}</span>
+                                    <span class="text-on-surface-variant">{{ d.label || '—' }}</span>
                                     <span class="font-mono text-amber-700 dark:text-amber-400">âˆ’{{ formatCurrency(d.amount) }}</span>
                                 </div>
                             </div>

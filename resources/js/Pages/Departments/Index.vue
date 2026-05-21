@@ -247,7 +247,7 @@ const goToEmployees = (deptId) => {
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             Department Code <span class="text-red-500">*</span>
-                            <span class="ml-1 font-normal text-on-surface-variant/60">(2â€“10 chars)</span>
+                            <span class="ml-1 font-normal text-on-surface-variant/60">(2—10 chars)</span>
                         </label>
                         <input
                             v-model="form.code"
@@ -266,7 +266,7 @@ const goToEmployees = (deptId) => {
                         <textarea
                             v-model="form.description"
                             rows="3"
-                            placeholder="Brief description of this department's purposeâ€¦"
+                            placeholder="Brief description of this department's purpose…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                         />
                     </div>

@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Enums\DisbursementChannel;
 use App\Services\Disbursement\BatchDisbursementService;
+use App\Services\Disbursement\GhIpssBatchFileBuilder;
 use App\Services\Disbursement\Providers\AirtelTigoProvider;
+use App\Services\Disbursement\Providers\GhIpssAchProvider;
 use App\Services\Disbursement\Providers\MtnMomoProvider;
 use App\Services\Disbursement\Providers\VodafoneCashProvider;
 use Illuminate\Support\ServiceProvider;
@@ -17,6 +19,13 @@ class DisbursementServiceProvider extends ServiceProvider
             $providers = [];
 
             $cfg = config('disbursement.providers');
+
+            if (! empty($cfg['ghipss_ach']['enabled'])) {
+                $providers[DisbursementChannel::GhipssAch->value] = new GhIpssAchProvider(
+                    sponsorSortCode: (string) ($cfg['ghipss_ach']['sponsor_sort_code'] ?? ''),
+                    originatorName:  (string) ($cfg['ghipss_ach']['originator_name']   ?? ''),
+                );
+            }
 
             if (! empty($cfg['mtn_momo']['enabled'])) {
                 $providers[DisbursementChannel::MtnMomo->value] = new MtnMomoProvider(
@@ -45,6 +54,15 @@ class DisbursementServiceProvider extends ServiceProvider
             }
 
             return new BatchDisbursementService($providers);
+        });
+
+        $this->app->singleton(GhIpssBatchFileBuilder::class, function ($app) {
+            $cfg = config('disbursement.providers.ghipss_ach', []);
+            return new GhIpssBatchFileBuilder(
+                sponsorSortCode: (string) ($cfg['sponsor_sort_code'] ?? ''),
+                originatorName:  (string) ($cfg['originator_name']   ?? ''),
+                disk:            (string) ($cfg['output_disk']       ?? 'local'),
+            );
         });
     }
 }

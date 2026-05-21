@@ -24,10 +24,10 @@ const canManage = computed(() => {
     return perms.includes('*') || perms.includes('performance.manage');
 });
 
-// â”€â”€ Active segment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Active segment ────────────────────────────────────────────────────────────
 const activeSegment = ref('my');   // 'my' | 'team' | 'org'
 
-// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filters ───────────────────────────────────────────────────────────────────
 const localFilters = reactive({
     search:      props.filters?.search      ?? '',
     employee_id: props.filters?.employee_id ?? '',
@@ -62,11 +62,11 @@ const hasActiveFilters = computed(() =>
     !!(localFilters.search || localFilters.employee_id || localFilters.cycle_id || localFilters.status)
 );
 
-// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Data ──────────────────────────────────────────────────────────────────────
 const goalList  = computed(() => props.goals?.data ?? []);
 const cycleList = computed(() => props.cycles?.data ?? props.cycles ?? []);
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ─────────────────────────────────────────────────────────────────────
 const stats = computed(() => {
     const data = goalList.value;
     const active    = data.filter(g => g.status === 'active');
@@ -84,7 +84,7 @@ const stats = computed(() => {
     };
 });
 
-// â”€â”€ Hero stat card config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Hero stat card config ─────────────────────────────────────────────────────
 // Hero cards — disciplined palette. Avg Achievement is the institutional
 // performance metric the page exists for, so it gets the 5% gold accent.
 const heroCards = computed(() => [
@@ -118,7 +118,7 @@ const heroCards = computed(() => [
     },
 ]);
 
-// â”€â”€ New goal panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── New goal panel ─────────────────────────────────────────────────────────────
 const showAddPanel = ref(false);
 
 // Auto-open the new-goal panel when arriving via Quick Action (?new=1).
@@ -161,7 +161,7 @@ const submitGoal = () => {
     });
 };
 
-// â”€â”€ Check-in panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Check-in panel ─────────────────────────────────────────────────────────────
 const showCheckinPanel = ref(false);
 const checkinGoal      = ref(null);
 const checkinForm = useForm({
@@ -190,7 +190,7 @@ const submitCheckin = () => {
     });
 };
 
-// â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Delete ─────────────────────────────────────────────────────────────────────
 const showDeleteDialog = ref(false);
 const selectedId       = ref(null);
 
@@ -209,7 +209,7 @@ const doDelete = () => {
     });
 };
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ────────────────────────────────────────────────────────────────────
 const moodMeta = {
     green: { color: '#059669', icon: 'sentiment_very_satisfied', label: 'On track' },
     amber: { color: '#d97706', icon: 'sentiment_neutral',        label: 'At risk'  },
@@ -227,7 +227,7 @@ const STATUS_TONE = {
 const statusTone = (s) => STATUS_TONE[s] ?? STATUS_TONE.draft;
 
 const formatDate = (d) =>
-    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”';
+    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const relativeDate = (iso) => {
     if (!iso) return null;
@@ -322,7 +322,7 @@ const sparkPath = (values) => {
 
             <div class="p-6 space-y-6 animate-reveal-up">
 
-                <!-- â”€â”€ Hero stat strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Hero stat strip ──────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div
                         v-for="(card, i) in heroCards"
@@ -348,7 +348,7 @@ const sparkPath = (values) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Segment control + Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Segment control + Filters ───────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
                     <!-- Segment control: My / Team / Org -->
                     <div class="flex items-center rounded-xl border border-outline-variant/70 bg-surface-container-low p-0.5 gap-0.5">
@@ -367,7 +367,7 @@ const sparkPath = (values) => {
                     </div>
 
                     <div class="flex-1 min-w-[180px] max-w-xs">
-                        <SearchInput v-model="localFilters.search" placeholder="Search goalsâ€¦" />
+                        <SearchInput v-model="localFilters.search" placeholder="Search goals…" />
                     </div>
 
                     <select
@@ -412,7 +412,7 @@ const sparkPath = (values) => {
                     </button>
                 </div>
 
-                <!-- â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Empty state ──────────────────────────────────────────────── -->
                 <div v-if="goalList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                     <EmptyState
                         title="No goals found"
@@ -432,7 +432,7 @@ const sparkPath = (values) => {
                     </EmptyState>
                 </div>
 
-                <!-- â”€â”€ Goal cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Goal cards ───────────────────────────────────────────────── -->
                 <div v-else class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     <div
                         v-for="(goal, i) in goalList"
@@ -458,8 +458,8 @@ const sparkPath = (values) => {
                                     >{{ initials(goal.employee?.name) }}</div>
                                     <div class="min-w-0">
                                         <p class="text-[11px] font-semibold text-on-surface-variant/70 truncate">
-                                            {{ goal.employee?.name ?? 'â€”' }}
-                                            <span v-if="goal.cycle?.name" class="text-on-surface-variant/40"> Â· {{ goal.cycle.name }}</span>
+                                            {{ goal.employee?.name ?? '—' }}
+                                            <span v-if="goal.cycle?.name" class="text-on-surface-variant/40"> · {{ goal.cycle.name }}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -484,7 +484,7 @@ const sparkPath = (values) => {
                                 {{ goal.description }}
                             </p>
 
-                            <!-- Progress track â”€â”€â”€â”€ -->
+                            <!-- Progress track ──── -->
                             <div class="mb-4">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <span class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Progress</span>
@@ -523,7 +523,7 @@ const sparkPath = (values) => {
                                 </div>
                             </div>
 
-                            <!-- Last check-in snippet â”€â”€â”€â”€ -->
+                            <!-- Last check-in snippet ──── -->
                             <div
                                 v-if="goal.last_checkin"
                                 class="flex items-center gap-2 rounded-xl border border-outline-variant/40 bg-surface-container/40 px-3 py-2 mb-4"
@@ -535,7 +535,7 @@ const sparkPath = (values) => {
                                 <div class="min-w-0 flex-1">
                                     <p class="text-[11px] text-on-surface-variant/80 leading-snug">
                                         <span class="font-bold text-on-surface">{{ moodMeta[goal.last_checkin.mood ?? 'green'].label }}</span>
-                                        <span class="mx-1 text-on-surface-variant/40">Â·</span>
+                                        <span class="mx-1 text-on-surface-variant/40">·</span>
                                         Last update {{ relativeDate(goal.last_checkin.recorded_at) }}
                                     </p>
                                 </div>
@@ -548,7 +548,7 @@ const sparkPath = (values) => {
                                 class="flex items-center gap-2 rounded-xl border border-dashed border-outline-variant/40 px-3 py-2 mb-4 text-[11px] text-on-surface-variant/40 italic"
                             >
                                 <span class="material-symbols-outlined text-[16px]">history_toggle_off</span>
-                                No check-ins yet â€” click to record the first one
+                                No check-ins yet — click to record the first one
                             </div>
 
                             <!-- Due date strip -->
@@ -580,17 +580,17 @@ const sparkPath = (values) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Pagination ────────────────────────────────────────────────── -->
                 <div v-if="goals?.links?.length > 3" class="flex items-center justify-between rounded-2xl bg-surface-container-lowest border border-outline-variant/50 px-4 py-3 shadow-card">
                     <p class="text-[12px] text-on-surface-variant">
-                        Showing <span class="font-semibold text-on-surface">{{ goals.meta?.from }}</span> â€“ <span class="font-semibold text-on-surface">{{ goals.meta?.to }}</span>
+                        Showing <span class="font-semibold text-on-surface">{{ goals.meta?.from }}</span> — <span class="font-semibold text-on-surface">{{ goals.meta?.to }}</span>
                         of <span class="font-semibold text-on-surface">{{ goals.meta?.total }}</span>
                     </p>
                     <Pagination :links="goals.links" />
                 </div>
             </div>
 
-            <!-- â”€â”€ New Goal SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── New Goal SlidePanel ──────────────────────────────────────────── -->
             <SlidePanel :open="showAddPanel" title="New Goal" size="lg" @close="showAddPanel = false">
                 <form @submit.prevent="submitGoal" class="space-y-5 p-6">
 
@@ -659,7 +659,7 @@ const sparkPath = (values) => {
                             </select>
                         </div>
                         <div>
-                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Weight (0â€“100)</label>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Weight (0—100)</label>
                             <input v-model="form.weight" type="number" min="0" max="100" placeholder="20"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
@@ -713,10 +713,10 @@ const sparkPath = (values) => {
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Check-in SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Check-in SlidePanel ──────────────────────────────────────────── -->
             <SlidePanel
                 :open="showCheckinPanel"
-                :title="checkinGoal ? `Check-in Â· ${checkinGoal.title}` : 'Check-in'"
+                :title="checkinGoal ? `Check-in · ${checkinGoal.title}` : 'Check-in'"
                 size="md"
                 @close="showCheckinPanel = false"
             >
@@ -731,7 +731,7 @@ const sparkPath = (values) => {
                             >{{ initials(checkinGoal.employee?.name) }}</div>
                             <div class="min-w-0 flex-1">
                                 <p class="text-[13px] font-bold text-on-surface leading-snug">{{ checkinGoal.title }}</p>
-                                <p class="text-[11px] text-on-surface-variant/70 mt-0.5">{{ checkinGoal.employee?.name }} Â· target {{ checkinGoal.target_value ?? 'â€”' }} {{ checkinGoal.unit }}</p>
+                                <p class="text-[11px] text-on-surface-variant/70 mt-0.5">{{ checkinGoal.employee?.name }} · target {{ checkinGoal.target_value ?? '—' }} {{ checkinGoal.unit }}</p>
                             </div>
                         </div>
                         <!-- Inline progress bar in the context card -->

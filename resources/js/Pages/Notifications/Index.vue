@@ -84,7 +84,7 @@ const FILTERS = [
 </script>
 
 <template>
-    <Head title="Notifications â€” CIHRMS" />
+    <Head title="Notifications — CIHRMS" />
     <div data-page-root="true">
 
             <!-- Executive header -->
@@ -200,7 +200,7 @@ const FILTERS = [
                 <EmptyState
                     v-else
                     title="No notifications"
-                    :description="filterMode === 'unread' ? 'You\'re all caught up.' : 'Nothing here yet â€” you\'ll see new system activity as it happens.'"
+                    :description="filterMode === 'unread' ? 'You\'re all caught up.' : 'Nothing here yet — you\'ll see new system activity as it happens.'"
                     icon="notifications_off"
                 />
 

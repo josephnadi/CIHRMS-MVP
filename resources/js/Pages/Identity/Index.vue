@@ -1,11 +1,12 @@
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import BiometricCapture from '@/Components/Identity/BiometricCapture.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -19,9 +20,31 @@ const props = defineProps({
 const form = useForm({
     employee_id: '',
     ghana_card_number: '',
+    evidence: null,
 });
 
-const submit = () => form.post(route('identity.store'), { preserveScroll: true });
+const showCapture = ref(false);
+const capturedName = ref('');
+
+function onBiometricCaptured(file) {
+    form.evidence = file;
+    capturedName.value = file.name;
+    showCapture.value = false;
+}
+
+function clearCapture() {
+    form.evidence = null;
+    capturedName.value = '';
+}
+
+const submit = () => form.post(route('identity.store'), {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+        form.reset();
+        capturedName.value = '';
+    },
+});
 
 // ── Editorial-Sovereign masthead label ───────────────────────────
 // Volume = year offset from CIHRM-GH platform inception (2023).
@@ -84,8 +107,36 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                                class="rounded-lg border-slate-200 text-sm" required>
                         <PrimaryButton type="submit" :disabled="form.processing">Verify</PrimaryButton>
                     </form>
+
+                    <!-- Biometric evidence: live capture or file upload. The captured JPEG flows
+                         into form.evidence; backend stores it under identity_evidence/ and
+                         pins it to the IdentityVerification row for audit. -->
+                    <div class="mt-3 flex items-center gap-2 flex-wrap">
+                        <button type="button" @click="showCapture = true"
+                                class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50 transition-colors">
+                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">photo_camera</span>
+                            Capture biometric photo
+                        </button>
+                        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-600">
+                            <span class="rounded-lg border border-slate-200 px-3 py-2 font-bold hover:bg-slate-50 transition-colors">
+                                Or upload scan
+                            </span>
+                            <input type="file" accept=".jpg,.jpeg,.png,.pdf" class="hidden"
+                                   @change="(e) => { form.evidence = e.target.files[0]; capturedName = e.target.files[0]?.name ?? ''; }" />
+                        </label>
+                        <span v-if="capturedName"
+                              class="inline-flex items-center gap-1.5 rounded-lg bg-secondary/[0.06] border border-secondary/30 px-2.5 py-1 text-[11px] font-bold text-secondary">
+                            <span class="material-symbols-outlined text-[12px]">verified</span>
+                            {{ capturedName }}
+                            <button type="button" @click="clearCapture" class="ml-1 hover:text-rose-600">×</button>
+                        </span>
+                    </div>
+
                     <p v-if="form.errors.ghana_card_number" class="text-rose-600 text-xs mt-2">{{ form.errors.ghana_card_number }}</p>
+                    <p v-if="form.errors.evidence" class="text-rose-600 text-xs mt-1">{{ form.errors.evidence }}</p>
                 </div>
+
+                <BiometricCapture :open="showCapture" @captured="onBiometricCaptured" @close="showCapture = false" />
 
                 <div id="identity-register" class="bg-white rounded-2xl shadow-sm border border-slate-100">
                     <table class="w-full text-sm">

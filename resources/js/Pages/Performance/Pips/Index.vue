@@ -21,7 +21,7 @@ const canManage = computed(() => {
     return perms.includes('*') || perms.includes('performance.manage');
 });
 
-// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filters ───────────────────────────────────────────────────────────────────
 const localFilters = reactive({
     status: props.filters?.status ?? '',
 });
@@ -32,7 +32,7 @@ const applyFilters = () => {
     }, { preserveState: true, replace: true });
 };
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ─────────────────────────────────────────────────────────────────────
 const pipList = computed(() => props.pips?.data ?? []);
 
 const inProgress = computed(() => pipList.value.filter(p => p.status === 'in_progress').length);
@@ -45,7 +45,7 @@ const statCards = computed(() => [
     { label: 'Terminated (YTD)',      value: props.stats?.terminated_ytd ?? 0, icon: 'person_off',      rgb: '220,38,38'  },
 ]);
 
-// â”€â”€ New PIP panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── New PIP panel ─────────────────────────────────────────────────────────────
 const showAddPanel = ref(false);
 
 const form = useForm({
@@ -74,7 +74,7 @@ const submitPip = () => {
     });
 };
 
-// â”€â”€ Status config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Status config ─────────────────────────────────────────────────────────────
 // Status config — borders aligned with brand palette where appropriate.
 // in_progress = cobalt (action). extended = magenta (people-side process).
 const statusConfig = {
@@ -91,7 +91,7 @@ const statusConfig = {
 
 const getStatusCfg = (status) => statusConfig[status] ?? { pill: 'bg-surface-container text-on-surface-variant', border: '#9ca3af', label: status };
 
-// â”€â”€ Progress helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Progress helpers ──────────────────────────────────────────────────────────
 const daysElapsed = (openedOn, targetEnd) => {
     if (!openedOn) return 0;
     const start = new Date(openedOn).getTime();
@@ -120,7 +120,7 @@ const progressColor = (pip) => {
     return '#1a237e';
 };
 
-// â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Avatar helpers ────────────────────────────────────────────────────────────
 // Avatar gradient pool — disciplined cool family
 const gradients = [
     'linear-gradient(135deg,#0d1452,#1a237e)',
@@ -138,7 +138,7 @@ const initials = (name) => {
 };
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
@@ -216,7 +216,7 @@ const outcomeMix = computed(() => {
 
             <div class="space-y-6">
 
-                <!-- â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Stat cards ─────────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div
                         v-for="(card, i) in statCards"
@@ -241,7 +241,7 @@ const outcomeMix = computed(() => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Filter strip ───────────────────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
                     <select
                         v-model="localFilters.status"
@@ -253,8 +253,8 @@ const outcomeMix = computed(() => {
                         <option value="in_progress">In Progress</option>
                         <option value="extended">Extended</option>
                         <option value="succeeded">Succeeded</option>
-                        <option value="failed_demoted">Failed â€” Demoted</option>
-                        <option value="failed_terminated">Failed â€” Terminated</option>
+                        <option value="failed_demoted">Failed — Demoted</option>
+                        <option value="failed_terminated">Failed — Terminated</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
 
@@ -268,7 +268,7 @@ const outcomeMix = computed(() => {
                     </button>
                 </div>
 
-                <!-- â”€â”€ PIP cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── PIP cards ───────────────────────────────────────────────── -->
                 <div v-if="pipList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                     <EmptyState
                         title="No PIPs found"
@@ -310,10 +310,10 @@ const outcomeMix = computed(() => {
                                         :style="`background:${avatarGradient(pip.employee?.id)}`"
                                     >{{ initials(pip.employee?.name) }}</div>
                                     <div class="min-w-0">
-                                        <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ pip.employee?.name ?? 'â€”' }}</p>
+                                        <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ pip.employee?.name ?? '—' }}</p>
                                         <p class="text-[11px] text-on-surface-variant/60 leading-tight">
                                             {{ pip.employee?.employee_no }}
-                                            <span v-if="pip.employee?.department" class="ml-1">Â· {{ pip.employee.department }}</span>
+                                            <span v-if="pip.employee?.department" class="ml-1">· {{ pip.employee.department }}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -399,7 +399,7 @@ const outcomeMix = computed(() => {
                     <p class="text-[12px] text-on-surface-variant">
                         Showing
                         <span class="font-semibold text-on-surface">{{ pips.meta?.from }}</span>
-                        â€“
+                        —
                         <span class="font-semibold text-on-surface">{{ pips.meta?.to }}</span>
                         of
                         <span class="font-semibold text-on-surface">{{ pips.meta?.total }}</span>
@@ -408,7 +408,7 @@ const outcomeMix = computed(() => {
                 </div>
             </div>
 
-            <!-- â”€â”€ Open PIP SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Open PIP SlidePanel ────────────────────────────────────────── -->
             <SlidePanel
                 :open="showAddPanel"
                 title="Open Performance Improvement Plan"
@@ -420,7 +420,7 @@ const outcomeMix = computed(() => {
                     <div class="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4">
                         <div class="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-rose-700 mb-1">
                             <span class="material-symbols-outlined text-[15px]">warning</span>
-                            HR Action â€” Sensitive
+                            HR Action — Sensitive
                         </div>
                         <p class="text-[12px] text-on-surface-variant/70">
                             Opening a PIP is a formal process under Labour Act Â§63. Ensure manager conversation has occurred and documentation is complete.
@@ -443,7 +443,7 @@ const outcomeMix = computed(() => {
                             <input
                                 v-model="form.mentor_id"
                                 type="number"
-                                placeholder="Optional â€” mentor employee ID"
+                                placeholder="Optional — mentor employee ID"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
                         </div>

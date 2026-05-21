@@ -21,7 +21,10 @@ return new class extends Migration
         Schema::create('data_subject_requests', function (Blueprint $table) {
             $table->id();
             $table->string('reference', 32)->unique();                 // DSR-2026-00001
-            $table->foreignId('subject_user_id')->constrained('users')->cascadeOnDelete();
+            // Nullable: public submissions from ex-employees / failed applicants who
+            // don't have a CIHRMS login. When null, subject is identified by
+            // (subject_email + subject_full_name) and verified via emailed token.
+            $table->foreignId('subject_user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('request_type', 32);                        // access | rectification | …
             $table->string('status', 32)->default('submitted');
 

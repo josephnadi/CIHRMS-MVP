@@ -162,4 +162,76 @@ class DataSubjectRequestService
         $count = DataSubjectRequest::whereYear('created_at', $year)->count() + 1;
         return sprintf('DSR-%04d-%05d', $year, $count);
     }
+
+    /**
+     * Public submission — for subjects who don't have a CIHRMS account.
+     * Stays in `pending_verification` until they click the emailed magic
+     * link. Until then it's invisible to the DPO queue, so spammers can't
+     * flood the queue without owning the inbox.
+     */
+    public function submitPublic(
+        string $email,
+        string $fullName,
+        DataSubjectRequestType $type,
+        string $statement,
+        ?string $rectificationDetails = null,
+        ?string $objectionPurpose = null,
+    ): DataSubjectRequest {
+        $now   = now();
+        $token = bin2hex(random_bytes(32)); // 64-char hex
+
+        $req = DataSubjectRequest::create([
+            'reference'              => $this->nextReference(),
+            'subject_user_id'        => null,
+            'subject_email'          => strtolower(trim($email)),
+            'subject_full_name'      => trim($fullName),
+            'verification_token'     => $token,
+            'verified_at'            => null,
+            'request_type'           => $type->value,
+            'status'                 => DataSubjectRequestStatus::PendingVerification->value,
+            'subject_statement'      => $statement,
+            'rectification_details'  => $rectificationDetails,
+            'objection_purpose'      => $objectionPurpose,
+            'submitted_at'           => $now,
+            // The 30-day SLA clock starts only AFTER verification — set the
+            // target now from submission time, but the practical clock starts
+            // when verify() runs and the status flips to Submitted.
+            'target_completion_date' => $now->copy()->addDays(self::SLA_DAYS)->toDateString(),
+        ]);
+        $req->appendAuditEntry('public_submitted', null, [
+            'email'     => $req->subject_email,
+            'full_name' => $req->subject_full_name,
+        ]);
+
+        return $req;
+    }
+
+    /**
+     * Verify a public submission via the emailed token. On success:
+     *   - status moves PendingVerification → Submitted (joins the DPO queue)
+     *   - verified_at is stamped
+     *   - the 30-day SLA clock is reset from now (not submission time)
+     *   - DataSubjectRequestSubmitted event fires for analytics + DPO ping
+     */
+    public function verifyPublic(string $token): ?DataSubjectRequest
+    {
+        $req = DataSubjectRequest::where('verification_token', $token)
+            ->where('status', DataSubjectRequestStatus::PendingVerification->value)
+            ->first();
+
+        if (! $req) return null;
+
+        $now = now();
+        $req->update([
+            'status'                 => DataSubjectRequestStatus::Submitted->value,
+            'verified_at'            => $now,
+            'submitted_at'           => $now, // reset SLA clock to verification moment
+            'target_completion_date' => $now->copy()->addDays(self::SLA_DAYS)->toDateString(),
+        ]);
+        $req->appendAuditEntry('verified_by_token', null);
+
+        event(new DataSubjectRequestSubmitted($req->fresh()));
+
+        return $req->fresh();
+    }
 }

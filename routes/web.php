@@ -144,6 +144,19 @@ Route::prefix('kiosk')->name('kiosk.')->middleware('throttle:60,1')->group(funct
     Route::post('/face',   [KioskController::class, 'clockByFace'])->name('face');
 });
 
+// ── Public DPA 2012 (Act 843) data-subject portal ──────────────────────────
+// Any data subject — including ex-employees + failed applicants without a
+// CIHRMS login — can file an Access / Erasure / Rectification / Portability
+// request. Email verification gates the DPO queue against spam submissions.
+Route::prefix('dpa')->name('dpa.')->middleware('throttle:10,1')->group(function () {
+    Route::get('/',                [\App\Http\Controllers\PublicDpaController::class, 'form'])->name('form');
+    Route::post('/',               [\App\Http\Controllers\PublicDpaController::class, 'submit'])->name('submit');
+    Route::get('/confirmation',    [\App\Http\Controllers\PublicDpaController::class, 'confirmation'])->name('confirmation');
+    Route::get('/verify',          [\App\Http\Controllers\PublicDpaController::class, 'verify'])->name('verify');
+    Route::get('/track',           [\App\Http\Controllers\PublicDpaController::class, 'trackForm'])->name('track');
+    Route::post('/track',          [\App\Http\Controllers\PublicDpaController::class, 'track'])->name('track.submit');
+});
+
 // ── Module entry points (sidebar links) ─────────────────────────────────────
 // Most route directly to a dedicated page; a few that don't have one yet fall
 // back to a dashboard redirect via the closure below.
@@ -170,7 +183,7 @@ Route::middleware(['auth', 'verified'])->prefix('modules')->name('modules.')->gr
 // Department portals (one route, one Vue page, slug-driven)
 Route::middleware(['auth', 'verified'])->prefix('departments')->name('departments.')->group(function () {
     Route::get('portal/{slug}', [\App\Http\Controllers\StaticPageController::class, 'department'])
-        ->whereIn('slug', ['it', 'hr', 'marketing', 'finance'])
+        ->whereIn('slug', ['it', 'hr', 'marketing', 'finance', 'membership', 'pcp', 'cpd', 'administration'])
         ->name('portal');
 });
 
@@ -418,6 +431,10 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('permission:payroll.approve')->name('mark-paid');
         Route::get('{run}/returns/{returnId}',[PayrollRunController::class, 'downloadReturn'])
             ->middleware('permission:statutory.export')->name('return-download');
+        Route::get('{run}/ippd-export',       [PayrollRunController::class, 'downloadIppd'])
+            ->middleware('permission:statutory.export')->name('ippd-export');
+        Route::get('{run}/gifmis-export',     [PayrollRunController::class, 'downloadGifmis'])
+            ->middleware('permission:statutory.export')->name('gifmis-export');
     });
 
     // ── Phase 1: Establishment (Positions) ──

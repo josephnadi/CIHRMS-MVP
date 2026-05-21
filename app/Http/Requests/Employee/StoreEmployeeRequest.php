@@ -29,6 +29,12 @@ class StoreEmployeeRequest extends FormRequest
             // be unique across the users table.
             'staff_id'      => ['nullable', 'string', 'max:50', 'unique:users,staff_id'],
 
+            // Optional benefit enrolments to apply at creation time. The
+            // service enrols the new employee in each active plan and the
+            // monthly premium is computed from each plan's contribution %.
+            'benefit_plan_ids'   => ['sometimes', 'array'],
+            'benefit_plan_ids.*' => ['integer', 'exists:benefit_plans,id'],
+
             // ── Employee row ──
             'department_id' => ['nullable', 'integer', 'exists:departments,id'],
             'manager_id'    => ['nullable', 'integer', 'exists:employees,id'],

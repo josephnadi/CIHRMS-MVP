@@ -138,7 +138,7 @@ const reportCategories = computed(() => {
 
             <div class="space-y-6">
 
-                <!-- â”€â”€ Report cards with live preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Report cards with live preview ──────────────────────────── -->
                 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <button
                         v-for="report in reportTypes"
@@ -214,7 +214,7 @@ const reportCategories = computed(() => {
                     </button>
                 </div>
 
-                <!-- â”€â”€ Detailed preview + export panel for selected report â”€â”€â”€â”€â”€ -->
+                <!-- ── Detailed preview + export panel for selected report ───── -->
                 <div v-if="selectedReport" class="grid gap-4 lg:grid-cols-3">
 
                     <!-- Visual preview -->
@@ -229,7 +229,7 @@ const reportCategories = computed(() => {
                                 </div>
                                 <div>
                                     <h3 class="text-[16px] font-bold text-on-surface">{{ selectedReport.label }}</h3>
-                                    <p class="text-[11px] text-on-surface-variant">Preview Â· top breakdown</p>
+                                    <p class="text-[11px] text-on-surface-variant">Preview · top breakdown</p>
                                 </div>
                             </div>
                             <div class="text-right">

@@ -12,6 +12,23 @@ import { useDark } from '@/composables/useDark';
 const showingNavigationDropdown = ref(false);
 const mounted = ref(false);
 const page = usePage();
+
+// ── Desktop sidebar collapse ─────────────────────────────────────────────────
+// State persisted to localStorage so the choice survives Inertia navigation
+// and page reloads. Defaults to open.
+const SIDEBAR_OPEN_KEY = 'cihrms.sidebar.open';
+const readSidebarOpen = () => {
+    if (typeof window === 'undefined') return true;
+    try {
+        const raw = window.localStorage.getItem(SIDEBAR_OPEN_KEY);
+        return raw === null ? true : raw === '1';
+    } catch (e) { return true; }
+};
+const sidebarOpen = ref(readSidebarOpen());
+const toggleSidebar = () => {
+    sidebarOpen.value = !sidebarOpen.value;
+    try { window.localStorage.setItem(SIDEBAR_OPEN_KEY, sidebarOpen.value ? '1' : '0'); } catch (e) {}
+};
 const permissions = computed(() => page.props.auth?.permissions ?? []);
 const user = computed(() => page.props.auth?.user);
 
@@ -42,16 +59,30 @@ const restoreSidebarScroll = () => {
 
 let removeInertiaBefore = null;
 
+const onSidebarShortcut = (e) => {
+    // Ctrl/Cmd + B toggles the desktop sidebar. Ignored when the user is
+    // typing into an input/textarea/contenteditable so it doesn't hijack
+    // common text-editing shortcuts.
+    if (!(e.ctrlKey || e.metaKey) || e.key?.toLowerCase() !== 'b') return;
+    const t = e.target;
+    const tag = (t?.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || t?.isContentEditable) return;
+    e.preventDefault();
+    toggleSidebar();
+};
+
 onMounted(() => {
     init();
     setTimeout(() => { mounted.value = true; }, 50);
     nextTick(restoreSidebarScroll);
     removeInertiaBefore = router.on('before', saveSidebarScroll);
+    window.addEventListener('keydown', onSidebarShortcut);
 });
 
 onBeforeUnmount(() => {
     saveSidebarScroll();
     if (typeof removeInertiaBefore === 'function') removeInertiaBefore();
+    window.removeEventListener('keydown', onSidebarShortcut);
 });
 
 const can = (permission) =>
@@ -128,14 +159,18 @@ const navSections = computed(() => {
             }
         ];
 
-        // Department portals â€” each child shows only when the user holds the matching `portal.*` permission.
+        // Department portals — each child shows only when the user holds the matching `portal.*` permission.
         // The whole Departments group hides if the user can see no portal at all.
         // Each portal renders its own dedicated Departments/Show.vue page (slug-driven).
         const portalChildren = [
-            { label: 'IT & Technology', route: 'departments.portal', routeParams: { slug: 'it' },        module: 'dept-it',        icon: 'computer',               visible: can('portal.it') },
-            { label: 'Human Resources', route: 'departments.portal', routeParams: { slug: 'hr' },        module: 'dept-hr',        icon: 'people',                 visible: can('portal.hr') },
-            { label: 'Marketing',       route: 'departments.portal', routeParams: { slug: 'marketing' }, module: 'dept-marketing', icon: 'campaign',               visible: can('portal.marketing') },
-            { label: 'Finance',         route: 'departments.portal', routeParams: { slug: 'finance' },   module: 'dept-finance',   icon: 'account_balance_wallet', visible: can('portal.finance') },
+            { label: 'IT & Technology', route: 'departments.portal', routeParams: { slug: 'it' },             module: 'dept-it',             icon: 'computer',               visible: can('portal.it') },
+            { label: 'Human Resources', route: 'departments.portal', routeParams: { slug: 'hr' },             module: 'dept-hr',             icon: 'people',                 visible: can('portal.hr') },
+            { label: 'Marketing',       route: 'departments.portal', routeParams: { slug: 'marketing' },      module: 'dept-marketing',      icon: 'campaign',               visible: can('portal.marketing') },
+            { label: 'Finance',         route: 'departments.portal', routeParams: { slug: 'finance' },        module: 'dept-finance',        icon: 'account_balance_wallet', visible: can('portal.finance') },
+            { label: 'Membership',      route: 'departments.portal', routeParams: { slug: 'membership' },     module: 'dept-membership',     icon: 'card_membership',        visible: can('portal.membership') },
+            { label: 'PCP',             route: 'departments.portal', routeParams: { slug: 'pcp' },            module: 'dept-pcp',            icon: 'verified',               visible: can('portal.pcp') },
+            { label: 'CPD',             route: 'departments.portal', routeParams: { slug: 'cpd' },            module: 'dept-cpd',            icon: 'school',                 visible: can('portal.cpd') },
+            { label: 'Administration',  route: 'departments.portal', routeParams: { slug: 'administration' }, module: 'dept-administration', icon: 'admin_panel_settings',   visible: can('portal.administration') },
         ];
         if (portalChildren.some(c => c.visible)) {
             sections.push({
@@ -233,7 +268,7 @@ const isItemActive = (item) => {
         return route().current(item.route);
     }
 
-    // 2. Module-prop match â€” fallback for dashboard sub-modules and any item
+    // 2. Module-prop match — fallback for dashboard sub-modules and any item
     //    that doesn't declare a specific route.
     if (currentModule !== undefined && currentModule !== null) {
         return item.module === currentModule;
@@ -259,8 +294,8 @@ const resolveHref = (item) => {
     return item.routeParams ? route(item.route, item.routeParams) : route(item.route);
 };
 
-// â”€â”€ Expandable sidebar groups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Default-expanded groups (initial state only â€” auto-expand on active child
+// ── Expandable sidebar groups ─────────────────────────────────────────────────
+// Default-expanded groups (initial state only — auto-expand on active child
 // will keep things open when the user navigates into a child route).
 // Start collapsed; user-toggled state persists across navigations via
 // sessionStorage. The watcher below still auto-expands a group when one of
@@ -342,7 +377,7 @@ const roleLabel = computed(() => {
     return map[user.value?.role] ?? 'Staff';
 });
 
-// â”€â”€ Theme-aware sidebar computed styles â”€â”€
+// ── Theme-aware sidebar computed styles ──
 const sidebarStyle = computed(() => isDark.value
     ? { background: '#0d1452', borderColor: 'rgba(255,255,255,0.06)' }
     : { background: '#ffffff', borderColor: 'rgba(198,198,205,0.5)' }
@@ -475,7 +510,7 @@ const logoutClass = computed(() => isDark.value
     : 'text-on-surface-variant/60 hover:text-red-600 hover:bg-red-500/[0.08] hover:border-red-500/20'
 );
 
-// â”€â”€ App switcher (apps grid) â€” permission-gated, links to dedicated module pages â”€â”€
+// ── App switcher (apps grid) — permission-gated, links to dedicated module pages ──
 const appSwitcherItems = computed(() => [
     { label: 'Overview',    icon: 'grid_view',      href: route('dashboard'),                  module: 'overview',    color: '#0d1452', rgb: '26, 35, 126',   visible: true },
     { label: 'Employees',   icon: 'badge',          href: route('employees.index'),            module: 'employees',   color: '#1a237e', rgb: '57, 73, 171', visible: can('employees.view') || can('employees.manage') },
@@ -492,7 +527,7 @@ const appSwitcherItems = computed(() => [
 const isAppActive = (item) => page.props.activeModule === item.module
     || (item.module === 'overview' && (!page.props.activeModule || page.props.activeModule === 'overview'));
 
-// â”€â”€ Quick Actions â€” items that land on a page with a creation flow â”€â”€
+// ── Quick Actions — items that land on a page with a creation flow ──
 // Each href appends `?new=1` so the target page can auto-open its create slide-panel.
 const quickActions = computed(() => [
     { label: 'Request leave',  icon: 'event_available', href: route('leave.index')      + '?new=1', visible: can('leave.request') },
@@ -514,9 +549,10 @@ const quickActions = computed(() => [
         <!-- WCAG 4.1.3 Status Messages — global polite + assertive live regions. -->
         <AriaLiveAnnouncer />
 
-        <!-- â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Sidebar ─────────────────────────────────────── -->
         <aside
-            class="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col border-r lg:flex"
+            class="sidebar-collapsible fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col border-r lg:flex"
+            :class="{ 'sidebar-collapsed': !sidebarOpen }"
             :style="sidebarStyle"
         >
             <!-- Ambient glow behind logo -->
@@ -550,7 +586,7 @@ const quickActions = computed(() => [
                     <div class="space-y-0.5">
                         <template v-for="item in section.items.filter(n => n.visible)" :key="item.label">
 
-                            <!-- â”€â”€ Expandable group (Performance, Learning, Departments) â”€â”€ -->
+                            <!-- ── Expandable group (Performance, Learning, Departments) ── -->
                             <template v-if="item.expandable">
                                 <button
                                     @click="toggleGroup(item.label)"
@@ -591,7 +627,7 @@ const quickActions = computed(() => [
                                 </Transition>
                             </template>
 
-                            <!-- â”€â”€ Regular nav link â”€â”€ -->
+                            <!-- ── Regular nav link ── -->
                             <Link
                                 v-else
                                 :href="resolveHref(item)"
@@ -644,10 +680,13 @@ const quickActions = computed(() => [
             </div>
         </aside>
 
-        <!-- â”€â”€ Main Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-        <div class="flex h-screen flex-col lg:ml-[248px]">
+        <!-- ── Main Content ──────────────────────────────────── -->
+        <div
+            class="main-shift flex h-screen flex-col"
+            :class="sidebarOpen ? 'lg:ml-[248px]' : 'lg:ml-0'"
+        >
 
-            <!-- Announcement ticker â€” runs across the very top of the page -->
+            <!-- Announcement ticker — runs across the very top of the page -->
             <AnnouncementTicker />
 
             <!-- Header -->
@@ -663,12 +702,26 @@ const quickActions = computed(() => [
                         <span class="material-symbols-outlined text-xl">{{ showingNavigationDropdown ? 'close' : 'menu' }}</span>
                     </button>
 
+                    <!-- Desktop sidebar toggle -->
+                    <button
+                        class="hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant transition-all duration-200 hover:bg-surface-container-low hover:border-secondary/30 hover:text-secondary lg:flex"
+                        :title="sidebarOpen ? 'Collapse sidebar (Ctrl+B)' : 'Open sidebar (Ctrl+B)'"
+                        :aria-label="sidebarOpen ? 'Collapse sidebar' : 'Open sidebar'"
+                        :aria-expanded="sidebarOpen"
+                        @click="toggleSidebar"
+                    >
+                        <span class="material-symbols-outlined text-xl transition-transform duration-300"
+                              :style="sidebarOpen ? '' : 'transform:rotate(180deg);'">
+                            {{ sidebarOpen ? 'menu_open' : 'menu' }}
+                        </span>
+                    </button>
+
                     <!-- Search -->
                     <div class="relative hidden flex-1 max-w-xl lg:block">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50 pointer-events-none">search</span>
                         <input
                             type="text"
-                            placeholder="Search employees, IDs, departmentsâ€¦"
+                            placeholder="Search employees, IDs, departments…"
                             class="w-full rounded-full border border-outline-variant/60 bg-surface-container-low/60 dark:bg-surface-container-low/80 py-2.5 pl-11 pr-5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 transition-all duration-200 focus:outline-none focus:border-secondary/40 focus:ring-4 focus:ring-secondary/8 focus:bg-surface-container-lowest"
                         />
                     </div>
@@ -680,7 +733,7 @@ const quickActions = computed(() => [
                         <!-- Notifications -->
                         <NotificationBell />
 
-                        <!-- â”€â”€ Dark / Light toggle â”€â”€ -->
+                        <!-- ── Dark / Light toggle ── -->
                         <button
                             @click="toggle"
                             class="theme-toggle text-on-surface-variant"
@@ -725,7 +778,7 @@ const quickActions = computed(() => [
                             <template #content>
                                 <div class="p-3 bg-surface-container-lowest dark:bg-surface-container-low">
                                     <p class="px-1 pb-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant/60">
-                                        Apps Â· {{ appSwitcherItems.length }}
+                                        Apps · {{ appSwitcherItems.length }}
                                     </p>
                                     <div class="grid grid-cols-3 gap-1.5">
                                         <Link
@@ -917,4 +970,28 @@ const quickActions = computed(() => [
     background-clip: padding-box;
 }
 .main-scroll::-webkit-scrollbar-thumb:hover { background-color: rgba(100, 116, 139, 0.45); background-clip: padding-box; }
+
+/* ── Sidebar collapse/expand animation ─────────────────────────────────────
+   Slides the sidebar off-screen on collapse, shrinks the main content's left
+   margin in lockstep so nothing jumps. Single easing curve on both keeps the
+   two surfaces visually attached during the motion. */
+.sidebar-collapsible {
+    transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 320ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+.sidebar-collapsed {
+    transform: translateX(-100%);
+    box-shadow: none;
+    pointer-events: none;
+}
+.main-shift {
+    transition: margin-left 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Respect reduced-motion preferences (WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-collapsible,
+    .main-shift { transition-duration: 0.01ms; }
+}
 </style>

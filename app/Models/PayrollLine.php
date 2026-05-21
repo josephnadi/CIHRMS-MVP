@@ -54,6 +54,16 @@ class PayrollLine extends Model
         return $this->belongsTo(Payment::class);
     }
 
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(Position::class);
+    }
+
+    public function grade(): BelongsTo
+    {
+        return $this->belongsTo(Grade::class);
+    }
+
     public function scopeCalculated(Builder $query): Builder
     {
         return $query->where('status', 'calculated');

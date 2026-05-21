@@ -14,12 +14,12 @@ const props = defineProps({
     activeModule: String,
 });
 
-// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Data ──────────────────────────────────────────────────────────────────────
 const employees = computed(() => props.matrix?.employees ?? []);
 const skills    = computed(() => props.matrix?.skills    ?? []);
 const matrix    = computed(() => props.matrix?.matrix    ?? {});
 
-// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filters ───────────────────────────────────────────────────────────────────
 const localFilters = reactive({
     search:      '',
     department:  '',
@@ -60,7 +60,7 @@ const allDepartments = computed(() => {
 
 const showOnlyTopSkills = ref(true);
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ─────────────────────────────────────────────────────────────────────
 const coveragePct = computed(() => {
     if (!employees.value.length) return 0;
     const covered = employees.value.filter(e => (e.skill_count ?? 0) > 0).length;
@@ -78,7 +78,7 @@ const criticalCoverage = computed(() => {
     return skills.value.length > 0 ? Math.round(((skills.value.length - critCount) / skills.value.length) * 100) : 0;
 });
 
-// â”€â”€ Add Skill SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Add Skill SlidePanel ──────────────────────────────────────────────────────
 const showAddSkill = ref(false);
 const skillForm = useForm({
     name:     '',
@@ -87,13 +87,13 @@ const skillForm = useForm({
 });
 
 const submitSkill = () => {
-    // Placeholder â€” route may not exist yet; fire a PATCH to a graceful endpoint
+    // Placeholder — route may not exist yet; fire a PATCH to a graceful endpoint
     // In production wire to learning.skills.store
     showAddSkill.value = false;
     skillForm.reset();
 };
 
-// â”€â”€ Cell level rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Cell level rendering ──────────────────────────────────────────────────────
 // Numeric level 1-5 (from skills relation) â†’ colour intensity using cobalt
 const numericLevel = (val) => {
     // Accept both string labels and numbers
@@ -149,7 +149,7 @@ const renderCell = (val) => {
     return { bg: c.bg, fg: c.fg, label: String(c.level), title: val };
 };
 
-// â”€â”€ Export (placeholder) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Export (placeholder) ──────────────────────────────────────────────────────
 const exportMatrix = () => {
     // Build CSV
     const headers = ['Employee', 'Department', 'Position', ...filteredSkills.value.map(s => s.name), 'Total Skills'];
@@ -174,7 +174,7 @@ const exportMatrix = () => {
 <template>
     <Head title="Skills Matrix" />
     <div data-page-root="true">
-            <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Header ─────────────────────────────────────────────────────── -->
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
@@ -210,7 +210,7 @@ const exportMatrix = () => {
 
             <div class="space-y-6 animate-reveal-up">
 
-                <!-- â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Stat cards ─────────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div
                         v-for="(s, i) in [
@@ -234,10 +234,10 @@ const exportMatrix = () => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Filter strip ───────────────────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
                     <div class="flex-1 min-w-[200px] max-w-sm">
-                        <SearchInput v-model="localFilters.search" placeholder="Search employees by name, roleâ€¦" />
+                        <SearchInput v-model="localFilters.search" placeholder="Search employees by name, role…" />
                     </div>
 
                     <select
@@ -250,7 +250,7 @@ const exportMatrix = () => {
                     </select>
 
                     <div class="flex-1 min-w-[160px] max-w-xs">
-                        <SearchInput v-model="localFilters.skillSearch" placeholder="Filter skillsâ€¦" />
+                        <SearchInput v-model="localFilters.skillSearch" placeholder="Filter skills…" />
                     </div>
 
                     <!-- Show only top 15 toggle -->
@@ -283,7 +283,7 @@ const exportMatrix = () => {
                     </button>
                 </div>
 
-                <!-- â”€â”€ Matrix + Legend layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Matrix + Legend layout ─────────────────────────────────── -->
                 <div class="flex gap-5 items-start">
 
                     <!-- Matrix table -->
@@ -300,12 +300,12 @@ const exportMatrix = () => {
                                                 Employee
                                             </th>
 
-                                            <!-- Skill columns â€” rotated headers -->
+                                            <!-- Skill columns — rotated headers -->
                                             <th
                                                 v-for="s in filteredSkills"
                                                 :key="s.name"
                                                 class="px-1.5 py-3 text-center align-bottom whitespace-nowrap"
-                                                :title="`${s.name} â€” ${s.count ?? 0} employee(s)`"
+                                                :title="`${s.name} — ${s.count ?? 0} employee(s)`"
                                             >
                                                 <div class="inline-block rotate-[-40deg] origin-bottom-left pb-1">
                                                     <span class="text-[10px] font-black uppercase tracking-[0.06em] text-on-surface-variant/70">{{ s.name }}</span>
@@ -331,7 +331,7 @@ const exportMatrix = () => {
                                                 <p class="font-bold text-on-surface text-[12.5px] leading-tight">{{ emp.name }}</p>
                                                 <p class="text-[10.5px] text-on-surface-variant/60 truncate">
                                                     {{ emp.position ?? '' }}
-                                                    <span v-if="emp.department" class="text-on-surface-variant/40"> Â· {{ emp.department }}</span>
+                                                    <span v-if="emp.department" class="text-on-surface-variant/40"> · {{ emp.department }}</span>
                                                 </p>
                                             </td>
 
@@ -345,10 +345,10 @@ const exportMatrix = () => {
                                                     <span
                                                         class="inline-flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-black transition-transform hover:scale-110"
                                                         :style="`background:${renderCell(matrix[emp.id][s.name]).bg};color:${renderCell(matrix[emp.id][s.name]).fg}`"
-                                                        :title="`${emp.name} Â· ${s.name}: ${renderCell(matrix[emp.id][s.name]).title}`"
+                                                        :title="`${emp.name} · ${s.name}: ${renderCell(matrix[emp.id][s.name]).title}`"
                                                     >{{ renderCell(matrix[emp.id][s.name]).label }}</span>
                                                 </div>
-                                                <span v-else class="text-on-surface-variant/15 text-[14px]">Â·</span>
+                                                <span v-else class="text-on-surface-variant/15 text-[14px]">·</span>
                                             </td>
 
                                             <!-- Total skills (sticky right) -->
@@ -379,7 +379,7 @@ const exportMatrix = () => {
                             <div class="flex items-center justify-between border-t border-outline-variant/40 px-5 py-3 bg-surface-container/30">
                                 <p class="text-[11px] text-on-surface-variant/70">
                                     Showing <span class="font-bold text-on-surface">{{ filteredEmployees.length }}</span> of
-                                    <span class="font-bold text-on-surface">{{ employees.length }}</span> employees Â·
+                                    <span class="font-bold text-on-surface">{{ employees.length }}</span> employees ·
                                     <span class="font-bold text-on-surface">{{ filteredSkills.length }}</span> skills displayed
                                 </p>
                                 <button
@@ -413,18 +413,18 @@ const exportMatrix = () => {
                         </div>
                     </div>
 
-                    <!-- â”€â”€ Legend sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                    <!-- ── Legend sidebar ─────────────────────────────────────── -->
                     <aside class="flex-shrink-0 w-52 space-y-4 rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card sticky top-6">
                         <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Proficiency Scale</p>
 
                         <div class="space-y-2">
                             <div v-for="(item, level) in {
-                                'Not assessed':  { bg: 'rgba(100,116,139,0.08)', fg: '#94a3b8', dot: 'Â·' },
-                                'Level 1 â€“ Novice':       { bg: 'rgba(26, 35, 126,0.10)', fg: '#1a237e', dot: '1' },
-                                'Level 2 â€“ Developing':   { bg: 'rgba(26, 35, 126,0.25)', fg: '#1a237e', dot: '2' },
-                                'Level 3 â€“ Proficient':   { bg: 'rgba(26, 35, 126,0.50)', fg: '#1a237e', dot: '3' },
-                                'Level 4 â€“ Advanced':     { bg: 'rgba(26, 35, 126,0.75)', fg: '#eff6ff', dot: '4' },
-                                'Level 5 â€“ Expert':       { bg: 'rgba(26, 35, 126,0.95)', fg: '#ffffff', dot: '5' },
+                                'Not assessed':  { bg: 'rgba(100,116,139,0.08)', fg: '#94a3b8', dot: '·' },
+                                'Level 1 — Novice':       { bg: 'rgba(26, 35, 126,0.10)', fg: '#1a237e', dot: '1' },
+                                'Level 2 — Developing':   { bg: 'rgba(26, 35, 126,0.25)', fg: '#1a237e', dot: '2' },
+                                'Level 3 — Proficient':   { bg: 'rgba(26, 35, 126,0.50)', fg: '#1a237e', dot: '3' },
+                                'Level 4 — Advanced':     { bg: 'rgba(26, 35, 126,0.75)', fg: '#eff6ff', dot: '4' },
+                                'Level 5 — Expert':       { bg: 'rgba(26, 35, 126,0.95)', fg: '#ffffff', dot: '5' },
                             }" :key="level"
                                  class="flex items-center gap-2.5">
                                 <span
@@ -467,7 +467,7 @@ const exportMatrix = () => {
                     </aside>
                 </div>
 
-                <!-- â”€â”€ Coverage summary bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Coverage summary bar ───────────────────────────────────── -->
                 <div v-if="employees.length" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-5 shadow-card">
                     <div class="flex items-center justify-between mb-3">
                         <div>
@@ -490,7 +490,7 @@ const exportMatrix = () => {
 
             </div>
 
-            <!-- â”€â”€ Add Skill to Catalogue SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Add Skill to Catalogue SlidePanel ─────────────────────────── -->
             <SlidePanel
                 :open="showAddSkill"
                 title="Add Skill to Catalogue"
@@ -540,7 +540,7 @@ const exportMatrix = () => {
                         <textarea
                             v-model="skillForm.description"
                             rows="3"
-                            placeholder="Brief description of this skill and how it's assessedâ€¦"
+                            placeholder="Brief description of this skill and how it's assessed…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                         />
                     </div>

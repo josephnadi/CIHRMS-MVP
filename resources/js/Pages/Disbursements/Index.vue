@@ -86,7 +86,7 @@ const channelClass = (c) => ({
             <div class="py-6 space-y-6">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <StatCard label="Pending"        :value="stats.pending" />
-                    <StatCard label="Sent â€” awaiting settlement" :value="stats.sent" tone="warn" />
+                    <StatCard label="Sent — awaiting settlement" :value="stats.sent" tone="warn" />
                     <StatCard label="Settled"        :value="stats.settled" tone="success" />
                     <StatCard label="Failed"         :value="stats.failed" tone="danger" />
                     <StatCard label="MoMo settled (YTD)" :value="cedi(stats.momo_total)" class="md:col-span-2" />
@@ -140,7 +140,7 @@ const channelClass = (c) => ({
                                 :class="d.status === 'failed' ? 'bg-rose-50/40' : 'hover:bg-surface-container-low/60'">
                                 <td class="px-5 py-3 font-mono text-xs">{{ d.run?.reference }}</td>
                                 <td class="px-5 py-3">
-                                    <div class="font-medium">{{ d.employee?.name ?? 'â€”' }}</div>
+                                    <div class="font-medium">{{ d.employee?.name ?? '—' }}</div>
                                     <div class="text-xs text-on-surface-variant/60 font-mono">{{ d.beneficiary_account }}</div>
                                 </td>
                                 <td class="px-5 py-3">
@@ -150,14 +150,14 @@ const channelClass = (c) => ({
                                 <td class="px-5 py-3 text-right">{{ cedi(d.gross_amount) }}</td>
                                 <td class="px-5 py-3 text-right text-xs">
                                     <span v-if="d.e_levy > 0">{{ cedi(d.e_levy) }}</span>
-                                    <span v-else class="text-on-surface-variant/40">â€”</span>
+                                    <span v-else class="text-on-surface-variant/40">—</span>
                                 </td>
                                 <td class="px-5 py-3 text-right font-semibold">{{ cedi(d.net_to_recipient) }}</td>
                                 <td class="px-5 py-3">
                                     <StatusBadge :status="d.status" :label="d.status_label" />
                                     <p v-if="d.failure_reason" class="text-xs text-rose-700 mt-1">{{ d.failure_reason }}</p>
                                 </td>
-                                <td class="px-5 py-3 font-mono text-xs">{{ d.provider_reference ?? 'â€”' }}</td>
+                                <td class="px-5 py-3 font-mono text-xs">{{ d.provider_reference ?? '—' }}</td>
                             </tr>
                         </tbody>
                     </table>

@@ -16,9 +16,18 @@ defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     employees:    Object, // paginated: { data: [], links: [], meta: { total, from, to } }
     departments:  { type: [Object, Array], default: () => [] }, // Resource collection {data:[…]} or bare array
+    benefitPlans: { type: [Object, Array], default: () => [] }, // active plans for the create panel
     stats:        { type: Object, default: () => ({}) },
     filters:      Object, // { search, department_id, status }
     activeModule: String,
+});
+
+// Normalise benefitPlans the same way departments are handled.
+const benefitPlans = computed(() => {
+    const b = props.benefitPlans;
+    if (Array.isArray(b)) return b;
+    if (b && Array.isArray(b.data)) return b.data;
+    return [];
 });
 
 // Normalise departments — controller wraps it in a Resource collection
@@ -30,7 +39,7 @@ const departments = computed(() => {
     return [];
 });
 
-// â”€â”€ Filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filter state ─────────────────────────────────────────────────────────────
 const localFilters = reactive({
     search:        props.filters?.search        ?? '',
     department_id: props.filters?.department_id ?? '',
@@ -56,7 +65,7 @@ watch(() => localFilters.search, () => {
     searchTimer = setTimeout(applyFilters, 380);
 });
 
-// â”€â”€ Panels / dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Panels / dialogs ─────────────────────────────────────────────────────────
 const showAddPanel     = ref(false);
 const showDeptPanel    = ref(false);
 const showDeleteDialog = ref(false);
@@ -80,7 +89,7 @@ onMounted(() => {
     }
 });
 
-// â”€â”€ Add Employee form (creates User + Employee in one POST) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Add Employee form (creates User + Employee in one POST) ──────────────────
 const form = useForm({
     create_user:   true,
     user_name:     '',
@@ -95,7 +104,15 @@ const form = useForm({
     hire_date:     '',
     phone:         '',
     status:        'active',
+    benefit_plan_ids: [],
 });
+
+const togglePlan = (id) => {
+    const idx = form.benefit_plan_ids.indexOf(id);
+    if (idx === -1) form.benefit_plan_ids.push(id);
+    else form.benefit_plan_ids.splice(idx, 1);
+};
+const formatGhs = (n) => 'GHS ' + Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const submitEmployee = () => {
     // Close the panel first so the backdrop animates out before Inertia's
@@ -115,7 +132,7 @@ const submitEmployee = () => {
     });
 };
 
-// â”€â”€ Add Department form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Add Department form ──────────────────────────────────────────────────────
 const deptForm = useForm({
     name:        '',
     code:        '',
@@ -132,7 +149,7 @@ const submitDepartment = () => {
     });
 };
 
-// â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Delete ───────────────────────────────────────────────────────────────────
 const confirmDelete = (id, event) => {
     event.stopPropagation();
     selectedId.value = id;
@@ -278,7 +295,7 @@ const initials = (name) => {
 };
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -408,69 +425,69 @@ const formatDate = (d) => {
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
                         <!-- STATUS MIX -->
-                        <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-5 shadow-card">
-                            <div class="flex items-center justify-between gap-3 mb-4">
+                        <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3.5 shadow-card">
+                            <div class="flex items-center justify-between gap-3 mb-2.5">
                                 <div>
-                                    <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">
-                                        <span class="material-symbols-outlined text-[14px]" style="color:#1a237e;font-variation-settings:'FILL' 1">workspaces</span>
+                                    <div class="flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-[0.18em] text-secondary/80">
+                                        <span class="material-symbols-outlined text-[12px]" style="color:#1a237e;font-variation-settings:'FILL' 1">workspaces</span>
                                         Status Mix
                                     </div>
-                                    <h3 class="mt-1 text-[14px] font-bold text-on-surface leading-tight">Live workforce standing</h3>
+                                    <h3 class="mt-0.5 text-[12px] font-bold text-on-surface leading-tight">Live workforce standing</h3>
                                 </div>
-                                <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface-variant/60 tabular-nums">n = {{ totalHeadcount }}</span>
+                                <span class="text-[9.5px] font-bold uppercase tracking-[0.16em] text-on-surface-variant/60 tabular-nums">n = {{ totalHeadcount }}</span>
                             </div>
 
-                            <div v-if="totalHeadcount === 0" class="py-8 text-center text-[12px] text-on-surface-variant/60">
+                            <div v-if="totalHeadcount === 0" class="py-5 text-center text-[12px] text-on-surface-variant/60">
                                 No workforce data visible at this scope.
                             </div>
-                            <div v-else class="flex items-center gap-5">
+                            <div v-else class="flex items-center gap-3.5">
                                 <MultiDonut
                                     :segments="statusSegments"
-                                    :size="168"
-                                    :stroke="16"
+                                    :size="116"
+                                    :stroke="11"
                                     center-label="On Roll"
                                 />
-                                <ul class="flex-1 space-y-2 min-w-0">
-                                    <li v-for="seg in statusSegments" :key="seg.key" class="flex items-center gap-2.5">
-                                        <span class="h-2.5 w-2.5 flex-shrink-0 rounded-sm" :style="`background:${seg.color}`"></span>
-                                        <span class="flex-1 text-[12.5px] font-semibold text-on-surface truncate">{{ seg.label }}</span>
-                                        <span class="text-[12.5px] font-black tabular-nums text-on-surface">{{ seg.value }}</span>
-                                        <span class="text-[10.5px] font-bold tabular-nums text-on-surface-variant/60 w-9 text-right">{{ pctOf(seg.value) }}%</span>
+                                <ul class="flex-1 space-y-1 min-w-0">
+                                    <li v-for="seg in statusSegments" :key="seg.key" class="flex items-center gap-2">
+                                        <span class="h-2 w-2 flex-shrink-0 rounded-sm" :style="`background:${seg.color}`"></span>
+                                        <span class="flex-1 text-[11.5px] font-semibold text-on-surface truncate">{{ seg.label }}</span>
+                                        <span class="text-[11.5px] font-black tabular-nums text-on-surface">{{ seg.value }}</span>
+                                        <span class="text-[10px] font-bold tabular-nums text-on-surface-variant/60 w-8 text-right">{{ pctOf(seg.value) }}%</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
 
                         <!-- DEPARTMENT DISTRIBUTION -->
-                        <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-5 shadow-card">
-                            <div class="flex items-center justify-between gap-3 mb-4">
+                        <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-3.5 shadow-card">
+                            <div class="flex items-center justify-between gap-3 mb-2.5">
                                 <div>
-                                    <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">
-                                        <span class="material-symbols-outlined text-[14px]" style="color:#1a237e;font-variation-settings:'FILL' 1">corporate_fare</span>
+                                    <div class="flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-[0.18em] text-secondary/80">
+                                        <span class="material-symbols-outlined text-[12px]" style="color:#1a237e;font-variation-settings:'FILL' 1">corporate_fare</span>
                                         Department Distribution
                                     </div>
-                                    <h3 class="mt-1 text-[14px] font-bold text-on-surface leading-tight">Where headcount sits</h3>
+                                    <h3 class="mt-0.5 text-[12px] font-bold text-on-surface leading-tight">Where headcount sits</h3>
                                 </div>
-                                <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface-variant/60 tabular-nums">Top {{ Math.min(6, (stats?.top_departments?.length ?? 0)) }}</span>
+                                <span class="text-[9.5px] font-bold uppercase tracking-[0.16em] text-on-surface-variant/60 tabular-nums">Top {{ Math.min(6, (stats?.top_departments?.length ?? 0)) }}</span>
                             </div>
 
-                            <div v-if="departmentSegments.length === 0" class="py-8 text-center text-[12px] text-on-surface-variant/60">
+                            <div v-if="departmentSegments.length === 0" class="py-5 text-center text-[12px] text-on-surface-variant/60">
                                 No department assignments yet.
                             </div>
-                            <div v-else class="flex items-center gap-5">
+                            <div v-else class="flex items-center gap-3.5">
                                 <MultiDonut
                                     :segments="departmentSegments"
-                                    :size="168"
-                                    :stroke="16"
+                                    :size="116"
+                                    :stroke="11"
                                     :center-value="(stats?.top_departments?.length ?? 0) + (stats?.other_departments ? 1 : 0)"
                                     center-label="Divisions"
                                 />
-                                <ul class="flex-1 space-y-2 min-w-0">
-                                    <li v-for="seg in departmentSegments" :key="seg.key" class="flex items-center gap-2.5">
-                                        <span class="h-2.5 w-2.5 flex-shrink-0 rounded-sm" :style="`background:${seg.color}`"></span>
-                                        <span class="flex-1 text-[12.5px] font-semibold text-on-surface truncate">{{ seg.label }}</span>
-                                        <span class="text-[12.5px] font-black tabular-nums text-on-surface">{{ seg.value }}</span>
-                                        <span class="text-[10.5px] font-bold tabular-nums text-on-surface-variant/60 w-9 text-right">{{ pctOf(seg.value) }}%</span>
+                                <ul class="flex-1 space-y-1 min-w-0">
+                                    <li v-for="seg in departmentSegments" :key="seg.key" class="flex items-center gap-2">
+                                        <span class="h-2 w-2 flex-shrink-0 rounded-sm" :style="`background:${seg.color}`"></span>
+                                        <span class="flex-1 text-[11.5px] font-semibold text-on-surface truncate">{{ seg.label }}</span>
+                                        <span class="text-[11.5px] font-black tabular-nums text-on-surface">{{ seg.value }}</span>
+                                        <span class="text-[10px] font-bold tabular-nums text-on-surface-variant/60 w-8 text-right">{{ pctOf(seg.value) }}%</span>
                                     </li>
                                 </ul>
                             </div>
@@ -533,7 +550,7 @@ const formatDate = (d) => {
                     </button>
                 </div>
 
-                <!-- â”€â”€ Employee table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Employee table ──────────────────────────────────────────────── -->
                 <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
 
                     <div v-if="employees?.data?.length === 0" class="p-12">
@@ -691,7 +708,7 @@ const formatDate = (d) => {
                 </div>
             </div>
 
-            <!-- â”€â”€ Add Employee SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Add Employee SlidePanel ──────────────────────────────────────── -->
             <SlidePanel
                 :open="showAddPanel"
                 title="Add Employee"
@@ -865,6 +882,57 @@ const formatDate = (d) => {
                             </select>
                         </div>
                     </div>
+
+                    <!-- Benefits block — gold-tinted (compensation context) -->
+                    <div v-if="benefitPlans.length" class="rounded-2xl border border-brand-gold/20 bg-brand-gold/[0.04] p-4 space-y-3 relative overflow-hidden">
+                        <div class="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full" style="background:radial-gradient(circle,rgba(255,215,0,0.10),transparent 70%)"></div>
+                        <div class="relative flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-brand-gold-deep">
+                                <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">verified_user</span>
+                                Benefits enrolment
+                            </div>
+                            <span class="text-[10.5px] font-bold tabular-nums text-on-surface-variant/60">{{ form.benefit_plan_ids.length }} selected</span>
+                        </div>
+                        <p class="text-[11px] text-on-surface-variant/70 leading-snug">
+                            Enrol the new hire in one or more active benefit plans. Each plan's monthly premium will be auto-computed from its contribution % and appear in their portal.
+                        </p>
+
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <label
+                                v-for="plan in benefitPlans"
+                                :key="plan.id"
+                                class="group cursor-pointer rounded-xl border bg-surface-container-lowest p-3 transition-all duration-200 hover:border-brand-gold/50 hover:shadow-card-hover"
+                                :class="form.benefit_plan_ids.includes(plan.id)
+                                    ? 'border-brand-gold/60 bg-brand-gold/[0.06] shadow-card-hover'
+                                    : 'border-outline-variant/60'"
+                            >
+                                <div class="flex items-start gap-2.5">
+                                    <input
+                                        type="checkbox"
+                                        :value="plan.id"
+                                        :checked="form.benefit_plan_ids.includes(plan.id)"
+                                        @change="togglePlan(plan.id)"
+                                        class="mt-0.5 h-4 w-4 rounded border-outline-variant text-brand-gold focus:ring-brand-gold/30"
+                                    />
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[12.5px] font-bold text-on-surface truncate">{{ plan.name }}</p>
+                                        <p class="mt-0.5 text-[10.5px] font-medium text-on-surface-variant/70 truncate">
+                                            <span class="font-mono">{{ plan.code }}</span>
+                                            <span v-if="plan.type"> · {{ plan.type }}</span>
+                                            <span v-if="plan.provider"> · {{ plan.provider }}</span>
+                                        </p>
+                                        <p class="mt-1 text-[11px] font-semibold text-brand-gold-deep tabular-nums">
+                                            {{ formatGhs(plan.monthly_cost) }}<span class="text-on-surface-variant/60 font-medium"> / month</span>
+                                            <span v-if="plan.employee_contribution_percentage > 0" class="ml-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/55">
+                                                {{ plan.employee_contribution_percentage }}% employee
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <p v-if="form.errors['benefit_plan_ids.0']" class="text-[11px] text-red-500">{{ form.errors['benefit_plan_ids.0'] }}</p>
+                    </div>
                 </form>
 
                 <template #footer>
@@ -890,7 +958,7 @@ const formatDate = (d) => {
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Add Department SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Add Department SlidePanel ────────────────────────────────────── -->
             <SlidePanel
                 :open="showDeptPanel"
                 title="Add Department"
@@ -914,7 +982,7 @@ const formatDate = (d) => {
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             Department Code <span class="text-red-500">*</span>
-                            <span class="ml-1 font-normal text-on-surface-variant/60">(2â€“10 chars, uppercase)</span>
+                            <span class="ml-1 font-normal text-on-surface-variant/60">(2—10 chars, uppercase)</span>
                         </label>
                         <input
                             v-model="deptForm.code"
@@ -933,7 +1001,7 @@ const formatDate = (d) => {
                         <textarea
                             v-model="deptForm.description"
                             rows="3"
-                            placeholder="Brief description of this departmentâ€¦"
+                            placeholder="Brief description of this department…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                         />
                     </div>
@@ -962,7 +1030,7 @@ const formatDate = (d) => {
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Delete confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Delete confirmation ───────────────────────────────────────────── -->
             <ConfirmDialog
                 :open="showDeleteDialog"
                 title="Delete Employee"

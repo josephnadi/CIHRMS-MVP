@@ -14,7 +14,7 @@ const props = defineProps({
 
 const { comingSoon } = useToast();
 
-// â”€â”€ Per-portal branding + KPI templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Per-portal branding + KPI templates ──────────────────────────────
 // Portal palettes — aligned with the sidebar SIDEBAR_ICON_COLORS map:
 // IT=cyan, HR=magenta, Marketing=soft-sky, Finance=blue-family. Fixes a
 // prior bug in Marketing where accent was cobalt but rgb was violet.
@@ -34,7 +34,7 @@ const PORTALS = {
         sections: [
             { icon: 'dns',           title: 'Infrastructure', body: 'Production cluster running 99.97% uptime over the last 30 days. Active workloads spread across 3 availability zones.' },
             { icon: 'security',      title: 'Security Posture', body: 'No active incidents. Last penetration test passed Apr 2026. EDR deployed across 1,212 endpoints.' },
-            { icon: 'integration_instructions', title: 'Integrations', body: 'Slack, Microsoft 365, Zoho CRM, WhatsApp Business â€” all green.' },
+            { icon: 'integration_instructions', title: 'Integrations', body: 'Slack, Microsoft 365, Zoho CRM, WhatsApp Business — all green.' },
         ],
     },
     hr: {
@@ -68,7 +68,7 @@ const PORTALS = {
             { label: 'Conversion',     val: '5.2%',  sub: 'lead â†’ meeting',color: '#d97706', icon: 'percent' },
         ],
         sections: [
-            { icon: 'rocket_launch', title: 'Active Campaigns', body: '3 institutional campaigns running. Top performer: "Charter Anniversary Series" â€” 1.2M impressions.' },
+            { icon: 'rocket_launch', title: 'Active Campaigns', body: '3 institutional campaigns running. Top performer: "Charter Anniversary Series" — 1.2M impressions.' },
             { icon: 'palette',       title: 'Brand Assets',     body: 'Updated logo system rolled out to 6 product surfaces. Asset library: 412 files, 22 contributors.' },
             { icon: 'forum',         title: 'External Channels',body: 'LinkedIn 18.4K followers (+340 this month). Press mentions: 7 institutional features.' },
         ],
@@ -97,7 +97,7 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
 </script>
 
 <template>
-    <Head :title="`${portal.title} â€” CIHRMS`" />
+    <Head :title="`${portal.title} — CIHRMS`" />
     <div data-page-root="true">
 
             <!-- Hero strip -->

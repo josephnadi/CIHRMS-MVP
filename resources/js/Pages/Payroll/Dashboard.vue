@@ -15,13 +15,13 @@ const props = defineProps({
     activeModule: String,
 });
 
-// â”€â”€ Ghana currency formatter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Ghana currency formatter ──────────────────────────────────────────────────
 const ghs = (n) => {
     if (n == null || isNaN(n)) return 'GHS 0.00';
     return 'GHS ' + Number(n).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-// â”€â”€ Deadline countdowns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Deadline countdowns ───────────────────────────────────────────────────────
 const today = new Date();
 
 function daysUntil(dayOfMonth) {
@@ -58,7 +58,7 @@ const nextMonth = computed(() => {
     return d.toLocaleString('en-GH', { month: 'long', year: 'numeric' });
 });
 
-// â”€â”€ Current run helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Current run helpers ───────────────────────────────────────────────────────
 const runGradient = computed(() => {
     const map = {
         draft:      'from-slate-600 to-slate-700',
@@ -79,7 +79,7 @@ const runAction = computed(() => {
     return map[props.currentRun?.status] ?? map.draft;
 });
 
-// â”€â”€ Quick links â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Quick links ───────────────────────────────────────────────────────────────
 const quickLinks = [
     { label: 'Salary Structures', icon: 'account_tree',    route: 'payroll.salary-structures', color: 'text-blue-500',   bg: 'bg-blue-500/10'   },
     { label: 'Salary Bands',      icon: 'bar_chart',        route: 'payroll.salary-bands',      color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -87,7 +87,7 @@ const quickLinks = [
     { label: 'Statutory Reports', icon: 'description',      route: 'payroll.statutory-reports', color: 'text-green-500',  bg: 'bg-green-500/10'  },
 ];
 
-// â”€â”€ Live sync: Inertia partial reload every 15â€“20s (random) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Live sync: Inertia partial reload every 15—20s (random) ─────────────────
 const lastSync  = ref(Date.now());
 const isSyncing = ref(false);
 const nowTick   = ref(Date.now());
@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
                         </p>
                     </div>
                     <div class="flex items-center gap-2.5">
-                        <!-- Live sync pill â€” pulses while reloading, otherwise shows seconds since last refresh -->
+                        <!-- Live sync pill — pulses while reloading, otherwise shows seconds since last refresh -->
                         <div class="flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
                              :class="isSyncing
                                 ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800/40 dark:text-blue-300'
@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
                             <span class="h-1.5 w-1.5 rounded-full"
                                   :class="isSyncing ? 'bg-blue-500 animate-pulse' : 'bg-green-500 live-dot'"></span>
                             <span class="text-[10px] font-black uppercase tracking-widest">
-                                {{ isSyncing ? 'Syncingâ€¦' : `Live Â· ${syncAgoLabel}` }}
+                                {{ isSyncing ? 'Syncing…' : `Live · ${syncAgoLabel}` }}
                             </span>
                         </div>
                         <Link
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
 
             <div class="space-y-7 animate-reveal-up">
 
-                <!-- â”€â”€ Deadline countdown widgets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Deadline countdown widgets ──────────────────────────────── -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- SSNIT Deadline -->
                     <div
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Current payroll run card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Current payroll run card ────────────────────────────────── -->
                 <div v-if="currentRun" class="overflow-hidden rounded-2xl border border-outline-variant/50 shadow-card">
                     <!-- Gradient header -->
                     <div :class="['bg-gradient-to-r px-7 py-5 text-white', runGradient]">
@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Stats row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Stats row ──────────────────────────────────────────────── -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard
                         icon="pending_actions"
@@ -297,7 +297,7 @@ onBeforeUnmount(() => {
                     />
                 </div>
 
-                <!-- â”€â”€ Quick links â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Quick links ─────────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <Link
                         v-for="link in quickLinks"
@@ -313,7 +313,7 @@ onBeforeUnmount(() => {
                     </Link>
                 </div>
 
-                <!-- â”€â”€ Run history table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Run history table ────────────────────────────────────────── -->
                 <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest overflow-hidden">
                     <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/40">
                         <div class="flex items-center gap-3">
@@ -359,14 +359,14 @@ onBeforeUnmount(() => {
                                     <td class="px-4 py-3.5 text-right text-on-surface-variant">{{ run.headcount?.toLocaleString() }}</td>
                                     <td class="px-4 py-3.5 text-right font-semibold text-on-surface">{{ ghs(run.gross) }}</td>
                                     <td class="px-4 py-3.5 text-right text-red-600 dark:text-red-400 font-medium">
-                                        {{ run.deductions ? '- ' + ghs(run.deductions) : 'â€”' }}
+                                        {{ run.deductions ? '- ' + ghs(run.deductions) : '—' }}
                                     </td>
                                     <td class="px-4 py-3.5 text-right font-bold text-secondary">{{ ghs(run.net) }}</td>
                                     <td class="px-4 py-3.5 text-center">
                                         <StatusBadge :status="run.status" type="payment" />
                                     </td>
                                     <td class="px-4 py-3.5 text-on-surface-variant text-[12px]">
-                                        {{ run.approved_at ? new Date(run.approved_at).toLocaleDateString('en-GH') : 'â€”' }}
+                                        {{ run.approved_at ? new Date(run.approved_at).toLocaleDateString('en-GH') : '—' }}
                                     </td>
                                     <td class="px-4 py-3.5 text-right">
                                         <div class="flex items-center justify-end gap-1.5">

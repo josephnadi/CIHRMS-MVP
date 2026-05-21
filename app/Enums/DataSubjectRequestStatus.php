@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum DataSubjectRequestStatus: string
 {
+    case PendingVerification = 'pending_verification'; // public submission, awaiting email-token click
     case Submitted          = 'submitted';
     case Acknowledged       = 'acknowledged';      // DPO has assigned + started work
     case InReview           = 'in_review';
@@ -17,6 +18,7 @@ enum DataSubjectRequestStatus: string
     public function label(): string
     {
         return match ($this) {
+            self::PendingVerification => 'Pending Email Verification',
             self::Submitted          => 'Submitted',
             self::Acknowledged       => 'Acknowledged',
             self::InReview           => 'In Review',

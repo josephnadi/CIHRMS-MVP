@@ -26,7 +26,7 @@ const canManage = computed(() => {
     return perms.includes('*') || perms.includes('tickets.manage');
 });
 
-// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filters ──────────────────────────────────────────────────────────────────
 const localFilters = reactive({
     search:      props.filters?.search      ?? '',
     status:      props.filters?.status      ?? '',
@@ -64,7 +64,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ────────────────────────────────────────────────────────────────────
 const stats = computed(() => {
     const data = props.tickets?.data ?? [];
     return {
@@ -75,7 +75,7 @@ const stats = computed(() => {
     };
 });
 
-// â”€â”€ Panels / dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Panels / dialogs ─────────────────────────────────────────────────────────
 const showAddPanel     = ref(false);
 const showDeleteDialog = ref(false);
 const selectedId       = ref(null);
@@ -128,7 +128,7 @@ const doDelete = () => {
     });
 };
 
-// â”€â”€ Inline status / assignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Inline status / assignment ───────────────────────────────────────────────
 const quickAssign = (ticket, userId) => {
     router.patch(route('tickets.update', ticket.id), {
         status:      ticket.status,
@@ -171,9 +171,9 @@ onBeforeUnmount(() => {
     document.removeEventListener('click', onOutsideAssigneeFilterClick);
 });
 
-// â”€â”€ View toggle (List | Board) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── View toggle (List | Board) ───────────────────────────────────────────────
 const VIEW_STORAGE_KEY = 'cihrms.tickets.view';
-const view = ref('board'); // default per request â€” Kanban first
+const view = ref('board'); // default per request — Kanban first
 
 onMounted(() => {
     try {
@@ -369,7 +369,7 @@ const kanbanColumns = computed(() => STATUS_COLUMNS.map(col => ({
     items: (props.tickets?.data ?? []).filter(t => t.status === col.id),
 })));
 
-// Optimistic move handler â€” fires PATCH and lets Inertia reload props
+// Optimistic move handler — fires PATCH and lets Inertia reload props
 const onTicketMove = ({ itemId, toColumnId }) => {
     const ticket = (props.tickets?.data ?? []).find(t => t.id === itemId);
     if (!ticket) return;
@@ -386,7 +386,7 @@ const onColumnAdd = (_columnId) => {
     showAddPanel.value = true;
 };
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ──────────────────────────────────────────────────────────────────
 const priorityClasses = {
     critical: 'bg-red-500/15 text-red-600 dark:text-red-400',
     high:     'bg-orange-500/15 text-orange-600 dark:text-orange-400',
@@ -951,7 +951,7 @@ const ops = computed(() => {
                     </p>
                 </div>
 
-                <!-- â”€â”€ List view (table) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── List view (table) ───────────────────────────────────────── -->
                 <div v-else class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
 
                     <div v-if="tickets?.data?.length === 0" class="p-12">
@@ -1132,7 +1132,7 @@ const ops = computed(() => {
                         <textarea
                             v-model="form.description"
                             rows="5"
-                            placeholder="Provide detailed information about the issue, steps to reproduce, and expected outcomeâ€¦"
+                            placeholder="Provide detailed information about the issue, steps to reproduce, and expected outcome…"
                             required
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                             :class="{ 'border-red-400': form.errors.description }"

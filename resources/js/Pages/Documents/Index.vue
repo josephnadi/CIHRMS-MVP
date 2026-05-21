@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
+import Scanner from '@/Components/Documents/Scanner.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -32,13 +33,35 @@ function search() {
 }
 
 const showUpload = ref(false);
+const showScanner = ref(false);
+const scanFileName = ref('');
 const form = useForm({ title: '', description: '', confidentiality: 'internal', file: null, tags: [] });
 
 function submit() {
     form.post(route('documents.store'), {
         forceFormData: true,
-        onSuccess: () => { showUpload.value = false; form.reset(); },
+        onSuccess: () => {
+            showUpload.value = false;
+            scanFileName.value = '';
+            form.reset();
+        },
     });
+}
+
+/**
+ * Scanner returned a captured JPEG. Attach it to the upload form, open the
+ * standard upload panel so the user can title/describe the scan, then close
+ * the scanner. The actual POST goes through the same /documents endpoint —
+ * no separate "scanned doc" pipeline needed.
+ */
+function onScanCaptured(file) {
+    form.file = file;
+    scanFileName.value = file.name;
+    if (!form.title) {
+        form.title = `Scan · ${new Date().toLocaleDateString('en-GB')}`;
+    }
+    showScanner.value = false;
+    showUpload.value = true;
 }
 
 const tone = (status) => ({
@@ -72,6 +95,12 @@ const tone = (status) => ({
                             <span class="material-symbols-outlined text-[17px]">edit_note</span>
                             Compose Letter
                         </Link>
+                        <button @click="showScanner = true"
+                                class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-[13px] font-black text-primary shadow-card transition-all hover:-translate-y-px hover:shadow-card-hover"
+                                title="Use the device camera to scan paper documents">
+                            <span class="material-symbols-outlined text-[17px]">document_scanner</span>
+                            Scan
+                        </button>
                         <button @click="showUpload = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
                                 style="background:linear-gradient(135deg,#0d1452,#1a237e);">
@@ -144,16 +173,19 @@ const tone = (status) => ({
                 <form @submit.prevent="submit" enctype="multipart/form-data" class="space-y-4">
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Title</label>
-                        <input v-model="form.title" required maxlength="255" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                        <input v-model="form.title" required maxlength="255" aria-label="Document title"
+                               class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
                         <p v-if="form.errors.title" class="text-rose-600 text-xs mt-1">{{ form.errors.title }}</p>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Description</label>
-                        <textarea v-model="form.description" rows="3" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]"></textarea>
+                        <textarea v-model="form.description" rows="3" aria-label="Document description"
+                                  class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]"></textarea>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Confidentiality</label>
-                        <select v-model="form.confidentiality" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                        <select v-model="form.confidentiality" aria-label="Confidentiality level"
+                                class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                             <option value="internal">Internal</option>
                             <option value="confidential">Confidential</option>
                             <option value="restricted">Restricted</option>
@@ -161,7 +193,19 @@ const tone = (status) => ({
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">File (PDF, DOCX, PNG, JPG · ≤ 25 MB)</label>
-                        <input type="file" required accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
+                        <div v-if="scanFileName"
+                             class="mb-2 flex items-center justify-between gap-2 rounded-lg border border-secondary/30 bg-secondary/[0.06] px-3 py-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="material-symbols-outlined text-[16px] text-secondary">document_scanner</span>
+                                <span class="text-[12px] font-bold text-on-surface truncate">{{ scanFileName }}</span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-secondary/80">from scanner</span>
+                            </div>
+                            <button type="button" @click="() => { scanFileName = ''; form.file = null; }"
+                                    class="text-[11px] font-bold text-on-surface-variant hover:text-rose-600 transition-colors">
+                                Remove
+                            </button>
+                        </div>
+                        <input v-if="!scanFileName" type="file" required accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
                                @change="(e) => form.file = e.target.files[0]"
                                class="w-full text-[12px]" />
                         <p v-if="form.errors.file" class="text-rose-600 text-xs mt-1">{{ form.errors.file }}</p>
@@ -176,5 +220,8 @@ const tone = (status) => ({
                     </div>
                 </form>
             </SlidePanel>
+
+            <!-- Camera-based scanner. Captures a JPEG and hands it to the upload form. -->
+            <Scanner :open="showScanner" @captured="onScanCaptured" @close="showScanner = false" />
     </div>
 </template>

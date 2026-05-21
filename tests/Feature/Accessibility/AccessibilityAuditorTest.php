@@ -90,6 +90,21 @@ it('audits the live project tree without crashing', function () {
     expect($findings)->toBeArray();
 });
 
+it('the live project tree has zero error-severity WCAG findings', function () {
+    // Hard lock: any new `error` finding fails the build. Warnings are
+    // permitted for now — see docs/accessibility/conformance.md for the
+    // testing methodology + known limitations.
+    $errors = collect((new AccessibilityAuditor())->audit(base_path()))
+        ->where('severity', 'error')
+        ->values()
+        ->all();
+
+    expect($errors)->toBe([], implode("\n", array_map(
+        fn ($f) => "  WCAG {$f['wcag']} {$f['rule']} at {$f['file']}:{$f['line']}",
+        $errors,
+    )));
+});
+
 it('artisan a11y:audit runs against the project tree', function () {
     $exit = Illuminate\Support\Facades\Artisan::call('a11y:audit', ['--json' => true]);
     expect($exit)->toBeIn([0, 1]); // success or a known finding-failure

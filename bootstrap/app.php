@@ -23,6 +23,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ForcePasswordChange::class,
         ]);
 
+        // CSRF cannot apply to the SAML ACS — the IdP POSTs the assertion
+        // directly to our endpoint, so it has no way to include a Laravel
+        // CSRF token. Signature verification (via onelogin/php-saml in
+        // SamlSsoAdapter) is what protects this route instead.
+        $middleware->validateCsrfTokens(except: [
+            'auth/sso/*/callback',
+        ]);
+
         $middleware->alias([
             'role'              => \App\Http\Middleware\EnsureRole::class,
             'permission'        => \App\Http\Middleware\EnsurePermission::class,

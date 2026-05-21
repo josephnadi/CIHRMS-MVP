@@ -338,7 +338,9 @@ class PayrollService
             'paid_at' => now(),
         ]);
 
-        return $run->fresh();
+        $fresh = $run->fresh();
+        \App\Events\PayrollRunPaid::dispatch($fresh);
+        return $fresh;
     }
 
     private function skipLine(PayrollRun $run, Employee $employee, string $reason): void

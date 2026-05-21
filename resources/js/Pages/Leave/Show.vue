@@ -34,15 +34,15 @@ const TYPE_META = {
 function metaFor(type) { return TYPE_META[type] ?? { color: '#64748b', icon: 'event', rgb: '100,116,139' }; }
 
 function fmt(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GH', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 }
 function fmtShort(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 function fmtDateTime(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleString('en-GH', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -134,7 +134,7 @@ const timeline = computed(() => {
 </script>
 
 <template>
-    <Head :title="`Leave Request â€” ${lr?.type_label ?? ''}`" />
+    <Head :title="`Leave Request — ${lr?.type_label ?? ''}`" />
     <div data-page-root="true">
 
             <!-- Breadcrumbs -->
@@ -214,7 +214,7 @@ const timeline = computed(() => {
                                 </div>
                                 <div class="flex-1">
                                     <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/55">Working Days</p>
-                                    <p class="text-[18px] font-black tabular-nums text-on-surface">{{ lr?.duration_days ?? 'â€”' }} days</p>
+                                    <p class="text-[18px] font-black tabular-nums text-on-surface">{{ lr?.duration_days ?? '—' }} days</p>
                                 </div>
                             </div>
                         </div>
@@ -264,7 +264,7 @@ const timeline = computed(() => {
                                 {{ initials(lr.employee.name ?? lr.employee.employee_no) }}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="text-[14px] font-bold text-on-surface truncate">{{ lr.employee.name ?? 'â€”' }}</p>
+                                <p class="text-[14px] font-bold text-on-surface truncate">{{ lr.employee.name ?? '—' }}</p>
                                 <p class="text-[11px] text-on-surface-variant/60">{{ lr.employee.employee_no }}</p>
                                 <p v-if="lr.employee.position" class="text-[11px] text-on-surface-variant/60 truncate">{{ lr.employee.position }}</p>
                             </div>
@@ -343,7 +343,7 @@ const timeline = computed(() => {
                                 {{ actionType === 'approved' ? 'Approve Leave Request' : 'Reject Leave Request' }}
                             </h3>
                             <p class="text-[13px] text-on-surface-variant text-center mt-1 mb-5">
-                                {{ lr?.employee?.name ?? 'Employee' }} â€” {{ lr?.type_label }}, {{ lr?.duration_days }} days
+                                {{ lr?.employee?.name ?? 'Employee' }} — {{ lr?.type_label }}, {{ lr?.duration_days }} days
                             </p>
 
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1.5">

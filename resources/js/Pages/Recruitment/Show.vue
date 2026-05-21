@@ -18,7 +18,7 @@ const canManage = computed(() => {
     return perms.includes('*') || perms.includes('recruitment.manage');
 });
 
-// â”€â”€ Send-offer flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Send-offer flow ──────────────────────────────────────────────────────────
 const offerApplicant = ref(null);
 const offerForm = useForm({
     salary:     '',
@@ -223,7 +223,7 @@ const initials = (name) => {
                 </div>
             </div>
 
-            <!-- â”€â”€ Send-offer modal â”€â”€ -->
+            <!-- ── Send-offer modal ── -->
             <Teleport to="body">
                 <div
                     v-if="offerApplicant"

@@ -19,6 +19,19 @@ return [
     | manual handling of that channel for the period (e.g. provider outage).
     */
     'providers' => [
+        'ghipss_ach' => [
+            // Always-on; GhIPSS is the bank-rail default. Disable only during
+            // sponsor-bank outages, where the operator generates manually.
+            'enabled'           => env('GHIPSS_ENABLED', true),
+            // The sponsor bank's GhIPSS sort code — printed in the originator
+            // column of the bulk-payment file. Format: 5-7 digits per BoG.
+            'sponsor_sort_code' => env('GHIPSS_SPONSOR_SORT_CODE', '000000'),
+            // Name printed in the beneficiary's bank statement narration.
+            'originator_name'   => env('GHIPSS_ORIGINATOR_NAME', 'CIHRM GHANA'),
+            // Storage disk for the generated bulk files. Production should use
+            // an S3-style disk with object-lock for non-repudiation.
+            'output_disk'       => env('GHIPSS_OUTPUT_DISK', 'local'),
+        ],
         'mtn_momo' => [
             'enabled'          => env('MOMO_MTN_ENABLED', false),
             'base_url'         => env('MOMO_MTN_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),

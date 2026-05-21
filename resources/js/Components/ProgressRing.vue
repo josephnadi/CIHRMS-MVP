@@ -135,7 +135,7 @@ const fontSize = computed(() => {
                 />
             </g>
 
-            <!-- Center label â€” NOT rotated (in its own group at normal orientation) -->
+            <!-- Center label — NOT rotated (in its own group at normal orientation) -->
             <text
                 v-if="displayText"
                 :x="center"

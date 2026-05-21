@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Offer of Employment â€” {{ $applicant->name }}</title>
+    <title>Offer of Employment — {{ $applicant->name }}</title>
     <style>
         @page  { margin: 30mm 25mm; }
         body   { font-family: DejaVu Sans, sans-serif; font-size: 11pt; color: #1d1f25; line-height: 1.55; }
@@ -22,8 +22,8 @@
 </head>
 <body>
     <div class="head">
-        <h1>CIHRM Ghana â€” Offer of Employment</h1>
-        <div class="meta">Issued {{ now()->format('d M Y') }} Â· Confidential</div>
+        <h1>CIHRM Ghana — Offer of Employment</h1>
+        <div class="meta">Issued {{ now()->format('d M Y') }} · Confidential</div>
     </div>
 
     <p>Dear {{ $applicant->name }},</p>
@@ -34,7 +34,7 @@
     </p>
 
     <table class="terms">
-        <tr><td class="k">Position</td><td>{{ $job?->title ?? 'â€”' }}</td></tr>
+        <tr><td class="k">Position</td><td>{{ $job?->title ?? '—' }}</td></tr>
         <tr><td class="k">Reporting to</td><td>{{ $job?->department?->name ?? 'HR' }}</td></tr>
         @if ($salary)
             <tr><td class="k">Annual gross</td><td>GHS {{ number_format((float) $salary, 2) }}</td></tr>

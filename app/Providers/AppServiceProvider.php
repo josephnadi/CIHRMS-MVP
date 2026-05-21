@@ -82,6 +82,36 @@ class AppServiceProvider extends ServiceProvider
         // Phase 1 — Statutory payroll engine + establishment + identity + 2FA
         $this->app->singleton(PayrollService::class);
         $this->app->singleton(StatutoryReturnGenerator::class);
+
+        // Phase 3 — Bank-change two-factor confirmation. Service is bound
+        // explicitly because its constructor takes the active SmsProvider,
+        // which the container needs help resolving from `messaging.php`.
+        $this->app->singleton(\App\Services\BankChangeRequestService::class, function ($app) {
+            return new \App\Services\BankChangeRequestService(
+                $app->make(\App\Services\Messaging\Sms\Contracts\SmsProvider::class),
+            );
+        });
+
+        // Phase 2 — Oracle IPPD2/IPPD3 export. Construction needs the MDA
+        // code + output disk from config, so we bind it explicitly rather
+        // than letting Reflection-based auto-resolve fail on the strings.
+        $this->app->singleton(\App\Services\Payroll\Ippd\IppdExporter::class, function () {
+            return new \App\Services\Payroll\Ippd\IppdExporter(
+                mdaCode: (string) config('payroll.ippd.mda_code', 'CIHRMS'),
+                disk:    (string) config('payroll.ippd.output_disk', 'local'),
+            );
+        });
+
+        // Phase 2 — GIFMIS journal-voucher exporter. GL-code map pulled from
+        // config so each MDA can override their chart-of-accounts entries
+        // via env without forking the service.
+        $this->app->singleton(\App\Services\Payroll\Gifmis\GifmisJournalExporter::class, function () {
+            return new \App\Services\Payroll\Gifmis\GifmisJournalExporter(
+                costCentre: (string) config('payroll.gifmis.cost_centre', '0000-00-00'),
+                glCodes:    (array)  config('payroll.gifmis.gl_codes', []),
+                disk:       (string) config('payroll.gifmis.output_disk', 'local'),
+            );
+        });
         $this->app->singleton(PositionService::class);
         $this->app->singleton(StepIncrementService::class);
         $this->app->singleton(IdentityVerificationService::class);
@@ -219,6 +249,11 @@ class AppServiceProvider extends ServiceProvider
         // Phase 3 — Approval also materialises disbursement instructions
         // (HR/Finance then dispatches them explicitly via the UI).
         Event::listen(PayrollRunApproved::class, \App\Listeners\MaterialiseDisbursements::class);
+
+        // Phase 2 — When a run is actually paid (not just approved), auto-mint
+        // the GIFMIS journal voucher so the state accountant has the sub-ledger
+        // file waiting. Gated on payroll.gifmis.auto_mint_on_paid (off by default).
+        Event::listen(\App\Events\PayrollRunPaid::class, \App\Listeners\MintGifmisJournal::class);
 
         // Wave 10 — UploadPayslipToCloud is auto-discovered via its typed PayslipGenerated parameter.
 

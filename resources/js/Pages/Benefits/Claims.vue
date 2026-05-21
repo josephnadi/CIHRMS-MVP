@@ -81,7 +81,7 @@ const statusTone = {
         <div v-if="deciding" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="deciding = null">
             <div class="bg-surface-container-lowest rounded-2xl p-6 max-w-md w-full shadow-2xl">
                 <h3 class="text-lg font-black text-primary mb-2">{{ decideForm.status === 'approved' ? 'Approve' : (decideForm.status === 'rejected' ? 'Reject' : 'Mark Paid') }} Claim</h3>
-                <p class="text-sm text-on-surface-variant mb-4">{{ deciding.claim_reference }} Â· {{ deciding.currency }} {{ deciding.amount.toFixed(2) }}</p>
+                <p class="text-sm text-on-surface-variant mb-4">{{ deciding.claim_reference }} · {{ deciding.currency }} {{ deciding.amount.toFixed(2) }}</p>
                 <form @submit.prevent="submitDecide" class="space-y-3">
                     <div><label class="text-[11px] font-bold text-on-surface-variant">Notes{{ decideForm.status === 'rejected' ? ' (required)' : '' }}</label><textarea v-model="decideForm.notes" aria-label="Decision notes" :required="decideForm.status === 'rejected'" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
                     <div class="flex gap-2 justify-end">

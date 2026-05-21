@@ -1,32 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Sso;
 
 use App\Enums\SsoLoginOutcome;
 use App\Models\SsoIdentityProvider;
 use App\Services\Sso\Contracts\SsoAdapter;
 use Illuminate\Support\Str;
+use OneLogin\Saml2\Auth as OneLoginAuth;
+use OneLogin\Saml2\Utils as OneLoginUtils;
+use Throwable;
 
 /**
- * SAML 2.0 SP adapter (production-grade scaffolding — wire to a SAML library
- * in deployment).
+ * SAML 2.0 SP adapter — library-backed.
  *
- * Why a stub: a correct SAML implementation needs XML-DSIG signature
- * verification, NameID format negotiation, AssertionConsumerService binding,
- * encrypted-assertion decryption and IdP metadata discovery — all of which
- * are best done by a mature library (`simplesamlphp/simplesamlphp` or
- * `onelogin/php-saml`) rather than re-implemented here.
+ * Drives `onelogin/php-saml` for signature verification, NameID extraction,
+ * audience validation, and NotOnOrAfter expiry. The library's strict mode is
+ * enabled via `config/sso.php` so any signature, audience, or timing failure
+ * causes the assertion to be rejected before this class sees the attributes.
  *
- * This adapter:
- *   - Generates an AuthnRequest URL (HTTP-Redirect binding) with relay state.
- *   - Accepts a POSTed SAML response and pulls the NameID and Attributes.
- *   - Does NOT verify the XML signature in this stub — TODO before prod.
- *
- * Replace the body of `handleCallback()` with `OneLogin\Saml2\Auth::processResponse()`
- * (or equivalent) when wiring the chosen library.
+ * Replaces the original stub which extracted the NameID via DOMXPath without
+ * verifying the XML-DSIG envelope. The new implementation never accepts an
+ * unverified response.
  */
 class SamlSsoAdapter implements SsoAdapter
 {
+    public function __construct(private readonly SamlConfigBuilder $builder = new SamlConfigBuilder()) {}
+
     public function type(): string
     {
         return 'saml';
@@ -34,101 +35,149 @@ class SamlSsoAdapter implements SsoAdapter
 
     public function initiate(SsoIdentityProvider $provider, string $intendedUrl): array
     {
-        $cfg = $provider->config ?? [];
-        $relayState = Str::random(40);
+        $settings = $this->builder->for($provider);
+        $auth     = $this->makeAuth($settings);
 
-        // Minimal AuthnRequest URL — real SAML libs build & deflate-base64 the
-        // XML and append it to the IdP SSO URL.
-        $authnRequest = $this->buildAuthnRequest($cfg['entity_id'] ?? config('app.url'), $this->acsUrl($provider));
-        $samlRequest  = base64_encode(gzdeflate($authnRequest));
-
-        $params = http_build_query([
-            'SAMLRequest' => $samlRequest,
-            'RelayState'  => $relayState,
-        ]);
+        // `login(returnTo, ..., stay=true)` returns the redirect URL instead
+        // of issuing it — we need the URL so the caller can stash session
+        // state alongside it.
+        $redirectUrl  = $auth->login($intendedUrl, [], false, false, true);
+        $lastRequestId = $auth->getLastRequestID();
 
         return [
-            'redirect_url' => ($cfg['sso_url'] ?? '') . '?' . $params,
+            'redirect_url' => $redirectUrl,
             'session'      => [
-                'relay_state' => $relayState,
-                'intended'    => $intendedUrl,
+                'last_request_id' => $lastRequestId,
+                'intended'        => $intendedUrl,
+                // Kept for backward-compat with the prior stub's session shape.
+                'relay_state'     => Str::random(40),
             ],
         ];
     }
 
     public function handleCallback(SsoIdentityProvider $provider, array $callback, array $session): SsoAuthResult
     {
-        // TODO production: replace with onelogin/php-saml or simplesamlphp parse + signature verify.
-        $samlResponseB64 = (string) ($callback['SAMLResponse'] ?? '');
-        $relayState      = (string) ($callback['RelayState']  ?? '');
-
-        if ($samlResponseB64 === '') {
+        $samlResponse = (string) ($callback['SAMLResponse'] ?? '');
+        if ($samlResponse === '') {
             return SsoAuthResult::failure(SsoLoginOutcome::ProvidersError, 'Missing SAMLResponse');
         }
-        if (($session['relay_state'] ?? null) !== $relayState) {
-            return SsoAuthResult::failure(SsoLoginOutcome::InvalidState, 'RelayState mismatch');
-        }
 
-        $xml = base64_decode($samlResponseB64);
-        if ($xml === false) {
-            return SsoAuthResult::failure(SsoLoginOutcome::ProvidersError, 'Cannot decode SAMLResponse');
-        }
+        try {
+            $settings = $this->builder->for($provider);
+            $auth     = $this->makeAuth($settings);
 
-        // ⚠️ Stub-only parsing: extracts NameID + Attribute statements WITHOUT
-        // signature verification. Replace before any production use.
-        $doc = new \DOMDocument();
-        if (! @$doc->loadXML($xml)) {
-            return SsoAuthResult::failure(SsoLoginOutcome::ProvidersError, 'Malformed SAML XML');
-        }
-
-        $xp = new \DOMXPath($doc);
-        $xp->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
-
-        $nameId = $xp->evaluate('string(//saml:Subject/saml:NameID)');
-        if ($nameId === '') {
-            return SsoAuthResult::failure(SsoLoginOutcome::ClaimMissing, 'NameID absent');
-        }
-
-        $claims = [];
-        foreach ($xp->query('//saml:Attribute') ?: [] as $attr) {
-            $name = $attr->getAttribute('Name');
-            $vals = [];
-            foreach ($xp->query('./saml:AttributeValue', $attr) ?: [] as $v) {
-                $vals[] = trim($v->textContent);
+            // Inject the response into the library's request context. The
+            // library normally reads it from $_POST; we have it in $callback
+            // so we feed it through the same env var it inspects.
+            $_POST['SAMLResponse'] = $samlResponse;
+            if (isset($callback['RelayState'])) {
+                $_POST['RelayState'] = $callback['RelayState'];
             }
-            $claims[$name] = count($vals) === 1 ? $vals[0] : $vals;
+
+            $auth->processResponse($session['last_request_id'] ?? null);
+
+            $errors = $auth->getErrors();
+            if (! empty($errors)) {
+                return $this->mapErrorsToOutcome($errors, $auth->getLastErrorReason());
+            }
+
+            if (! $auth->isAuthenticated()) {
+                return SsoAuthResult::failure(SsoLoginOutcome::ProvidersError, $auth->getLastErrorReason() ?: 'Not authenticated');
+            }
+
+            $nameId = (string) $auth->getNameId();
+            if ($nameId === '') {
+                return SsoAuthResult::failure(SsoLoginOutcome::ClaimMissing, 'NameID absent');
+            }
+
+            $claims = $this->flattenAttributes((array) $auth->getAttributes());
+
+            // SAML attribute names vary by IdP — accept the common short forms
+            // plus the WS-Federation full URIs Microsoft Entra emits, plus the
+            // LDAP-style OIDs older SAMLv2 IdPs use.
+            $email = $this->pickClaim($claims, [
+                'email', 'emailaddress', 'mail',
+                'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+                'urn:oid:0.9.2342.19200300.100.1.3',
+            ]);
+            $name  = $this->pickClaim($claims, [
+                'displayName', 'name', 'givenName', 'cn',
+                'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name',
+                'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
+                'urn:oid:2.16.840.1.113730.3.1.241',
+                'urn:oid:2.5.4.42',
+            ]);
+
+            return SsoAuthResult::ok(
+                subject: $nameId,
+                email:   is_string($email) ? $email : null,
+                name:    is_string($name)  ? $name  : null,
+                claims:  $claims,
+            );
+        } catch (Throwable $e) {
+            // Any uncaught library exception means we treat the assertion as
+            // untrustworthy — don't leak internals to the user.
+            return SsoAuthResult::failure(SsoLoginOutcome::ProvidersError, 'SAML processing failed: '.$e->getMessage());
+        } finally {
+            unset($_POST['SAMLResponse'], $_POST['RelayState']);
+        }
+    }
+
+    /**
+     * Library factory — overridable in tests via the builder hook. Also sets
+     * the Host header to the canonical app URL so the ACS-URL match check
+     * passes when running behind a reverse proxy.
+     */
+    protected function makeAuth(array $settings): OneLoginAuth
+    {
+        OneLoginUtils::setSelfHost(parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost');
+        OneLoginUtils::setSelfProtocol(str_starts_with((string) config('app.url'), 'https') ? 'https' : 'http');
+
+        return new OneLoginAuth($settings);
+    }
+
+    /**
+     * Map onelogin's error codes to our SsoLoginOutcome enum. The library
+     * surfaces the cause through `getErrors()` (high-level codes) plus
+     * `getLastErrorReason()` (free-text). We branch on substrings of either
+     * because the codes were not stable across library versions.
+     */
+    private function mapErrorsToOutcome(array $errors, ?string $reason): SsoAuthResult
+    {
+        $needle = strtolower(implode(' ', $errors).' '.($reason ?? ''));
+
+        if (str_contains($needle, 'signature') || str_contains($needle, 'invalid_response_signature') || str_contains($needle, 'invalid_assertion_signature')) {
+            return SsoAuthResult::failure(SsoLoginOutcome::SignatureInvalid, $reason ?: 'Signature invalid');
+        }
+        if (str_contains($needle, 'notonorafter') || str_contains($needle, 'expired') || str_contains($needle, 'session_expired')) {
+            return SsoAuthResult::failure(SsoLoginOutcome::AssertionExpired, $reason ?: 'Assertion expired');
+        }
+        if (str_contains($needle, 'audience') || str_contains($needle, 'audience_restriction')) {
+            return SsoAuthResult::failure(SsoLoginOutcome::AudienceMismatch, $reason ?: 'Audience mismatch');
         }
 
-        $email = $claims['email'] ?? $claims['emailaddress'] ?? null;
-        $name  = $claims['displayName'] ?? $claims['name'] ?? $claims['givenName'] ?? null;
-
-        return SsoAuthResult::ok(
-            subject: $nameId,
-            email:   is_string($email) ? $email : null,
-            name:    is_string($name)  ? $name  : null,
-            claims:  $claims,
-        );
+        return SsoAuthResult::failure(SsoLoginOutcome::ProvidersError, $reason ?: implode('; ', $errors));
     }
 
-    private function buildAuthnRequest(string $entityId, string $acsUrl): string
+    /**
+     * onelogin returns each attribute as an array (even single-valued ones).
+     * Collapse those into scalars so downstream code can read them naturally
+     * via `$claims['email']` rather than `$claims['email'][0]`.
+     */
+    private function flattenAttributes(array $attrs): array
     {
-        $id     = '_' . bin2hex(random_bytes(16));
-        $issued = gmdate('Y-m-d\TH:i:s\Z');
-        return <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<samlp:AuthnRequest
-    xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
-    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-    ID="{$id}" Version="2.0" IssueInstant="{$issued}"
-    ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-    AssertionConsumerServiceURL="{$acsUrl}">
-    <saml:Issuer>{$entityId}</saml:Issuer>
-</samlp:AuthnRequest>
-XML;
+        $out = [];
+        foreach ($attrs as $key => $values) {
+            $out[$key] = is_array($values) && count($values) === 1 ? $values[0] : $values;
+        }
+        return $out;
     }
 
-    private function acsUrl(SsoIdentityProvider $provider): string
+    private function pickClaim(array $claims, array $candidateKeys): mixed
     {
-        return url('/auth/sso/' . $provider->slug . '/callback');
+        foreach ($candidateKeys as $k) {
+            if ($k !== '' && isset($claims[$k])) return $claims[$k];
+        }
+        return null;
     }
 }

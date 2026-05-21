@@ -38,3 +38,14 @@ Schedule::command('assets:regenerate-depreciation')->monthlyOn(1, '02:00')->with
 
 // Governance: daily certification-expiry reminders at 08:00
 Schedule::command('governance:certification-reminders')->dailyAt('08:00')->withoutOverlapping();
+
+// Tamper-evident audit chain — verified daily; super_admins notified on any
+// mismatch. Runs at 03:00 so it lands after the day's writes but well before
+// office hours; a broken chain is a security incident, and we want a human
+// alert waiting in the inbox by the time HR walks in.
+Schedule::command('audit:verify-chain --notify')->dailyAt('03:00')->withoutOverlapping();
+
+// Ghana Card re-verification reminder — flags employees whose 12-month NIA
+// validity expires within 30 days. Sends one notification per expiring row;
+// HR sees the upcoming queue, the employee gets the inbox nudge.
+Schedule::command('identity:expiring --window=30')->dailyAt('07:30')->withoutOverlapping();

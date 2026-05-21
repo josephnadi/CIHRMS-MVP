@@ -14,7 +14,7 @@ const props = defineProps({
 const a = computed(() => props.analytics ?? {});
 const kpis = computed(() => a.value.kpis ?? {});
 
-// â”€â”€ Live sync: random 15â€“20s Inertia partial reload of analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Live sync: random 15—20s Inertia partial reload of analytics ─────────
 const lastSync  = ref(Date.now());
 const isSyncing = ref(false);
 const nowTick   = ref(Date.now());
@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
     if (_reloadTimer) clearTimeout(_reloadTimer);
 });
 
-// â”€â”€ SVG line/area chart helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SVG line/area chart helpers ──────────────────────────────────────────────
 const w = 720, h = 220, pad = 30;
 
 const linePath = (data, key = 'value') => {
@@ -96,7 +96,7 @@ const pointPositions = (data, key = 'value') => {
     }));
 };
 
-// â”€â”€ Donut chart helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Donut chart helpers ──────────────────────────────────────────────────────
 const donutSegments = (data) => {
     if (!data?.length) return [];
     const total = data.reduce((s, d) => s + (d.value ?? 0), 0);
@@ -128,7 +128,7 @@ const donutColor = (i) => {
 
 const totalLeave = computed(() => (a.value.leaveTypeSplit ?? []).reduce((s, d) => s + d.value, 0));
 
-// â”€â”€ Horizontal bar (department efficiency) helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Horizontal bar (department efficiency) helpers ───────────────────────────
 const efficiencyColor = (score) => {
     if (score >= 80) return '#059669';
     if (score >= 60) return '#3949ab';
@@ -136,7 +136,7 @@ const efficiencyColor = (score) => {
     return '#dc2626';
 };
 
-// â”€â”€ Vertical bar (headcount / hires / tickets) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Vertical bar (headcount / hires / tickets) ───────────────────────────────
 const barMax = (data, key = 'value') => Math.max(...(data ?? []).map(d => d[key] ?? 0), 1);
 
 const formatNum = (n) => (n ?? 0).toLocaleString('en-GH');
@@ -192,7 +192,7 @@ const editionLabel = computed(() => {
 
             <div class="space-y-6">
 
-                <!-- â”€â”€ Row 1: Hires trend + Department efficiency â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Row 1: Hires trend + Department efficiency ──────────────── -->
                 <div class="grid gap-6 lg:grid-cols-3">
 
                     <!-- Hires trend (line+area) -->
@@ -254,7 +254,7 @@ const editionLabel = computed(() => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Row 2: Department efficiency + Leave type donut â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Row 2: Department efficiency + Leave type donut ─────────── -->
                 <div class="grid gap-6 lg:grid-cols-3">
 
                     <!-- Department efficiency (horizontal bars) -->
@@ -340,7 +340,7 @@ const editionLabel = computed(() => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Row 3: Headcount by dept + Top performers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Row 3: Headcount by dept + Top performers ───────────────── -->
                 <div class="grid gap-6 lg:grid-cols-3">
 
                     <!-- Headcount by department (bars) -->
@@ -401,7 +401,7 @@ const editionLabel = computed(() => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Row 4: Ticket trend + Leave volume side by side â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Row 4: Ticket trend + Leave volume side by side ─────────── -->
                 <div class="grid gap-6 lg:grid-cols-2">
 
                     <!-- Ticket trend -->

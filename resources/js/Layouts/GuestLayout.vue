@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
         <SkipLink />
         <AriaLiveAnnouncer />
 
-        <!-- â”€â”€ Editorial column (left) Â· DEEP NAVY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Editorial column (left) · DEEP NAVY ─────────────────────── -->
         <aside class="sv-edit">
 
             <!-- Atmospheric mesh: navy base + faint cyan/magenta sparks -->
@@ -105,8 +105,15 @@ onBeforeUnmount(() => {
             <!-- Grain overlay -->
             <div class="sv-grain" aria-hidden="true"></div>
 
-            <!-- A single gold hairline â€” the 5% accent -->
+            <!-- A single gold hairline — the 5% accent -->
             <div class="sv-hairline" aria-hidden="true"></div>
+
+            <!-- Institutional logo — sits above the typewriter lockup. -->
+            <img
+                src="/cihrm-logo.png"
+                alt="CIHRM Ghana — Chartered Institute of Human Resource Management"
+                class="sv-logo"
+            />
 
             <!-- Lockup — typewriter that cycles between the acronym and the
                  full institute name. Static fallback "CIHRM" under prefers-
@@ -120,30 +127,30 @@ onBeforeUnmount(() => {
                 >|</span>
             </h2>
 
-            <!-- Minimal display â€” one short line -->
+            <!-- Minimal display — one short line -->
             <h1 class="sv-display">
                 Workforce, <em>registered.</em>
             </h1>
 
             <!-- Bottom institutional strip -->
             <footer class="sv-edit-foot">
-                <span class="sv-foot-num">NÂ° 2026</span>
+                <span class="sv-foot-num">N° 2026</span>
                 <span class="sv-foot-rule"></span>
                 <span class="sv-foot-label">{{ eyebrow }}</span>
             </footer>
         </aside>
 
-        <!-- â”€â”€ Form panel (right) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Form panel (right) ─────────────────────────────────────── -->
         <main id="main-content" tabindex="-1" class="sv-panel">
             <div class="sv-panel-inner">
                 <slot />
             </div>
 
             <footer class="sv-panel-foot">
-                <span>Â© MMXXVI Â· CIHRM Ghana</span>
-                <span class="sv-foot-dot">Â·</span>
+                <span>© MMXXVI · CIHRM Ghana</span>
+                <span class="sv-foot-dot">·</span>
                 <a href="#" class="sv-foot-link">Charter</a>
-                <span class="sv-foot-dot">Â·</span>
+                <span class="sv-foot-dot">·</span>
                 <a href="#" class="sv-foot-link">Privacy</a>
             </footer>
         </main>
@@ -151,12 +158,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Sovereign Precision Â· auth shell
-   Deep navy left (#0d1452) Â· clean ivory-white right.
+/* ────────────────────────────────────────────────────────────────────
+   Sovereign Precision · auth shell
+   Deep navy left (#0d1452) · clean ivory-white right.
    Gold appears only as ONE hairline + the CTA shimmer = ~5% of pixels.
-   Cyan/magenta are atmospheric sparks in the mesh â€” barely there.
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   Cyan/magenta are atmospheric sparks in the mesh — barely there.
+──────────────────────────────────────────────────────────────────── */
 
 .sv-shell {
     --navy:        #0d1452;
@@ -185,7 +192,7 @@ onBeforeUnmount(() => {
     .sv-shell { grid-template-columns: 1.1fr 1fr; }
 }
 
-/* â”€â”€ Editorial column (left) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Editorial column (left) ────────────────────────────────────── */
 .sv-edit {
     position: relative;
     isolation: isolate;
@@ -241,6 +248,24 @@ onBeforeUnmount(() => {
     transform-origin: top;
     transform: scaleY(0);
     animation: sv-scaleY 1.4s 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* ── Institutional logo ────────────────────────────────────────────────────
+   Sits above the typewriter lockup. Light-tinted on the navy backdrop so the
+   navy logo stays visible — we invert + brighten so the strokes read white
+   while keeping the original PNG asset. */
+.sv-logo {
+    display: block;
+    margin: 0 auto 1.1rem;
+    width: clamp(160px, 22vw, 220px);
+    height: auto;
+    opacity: 0;
+    transform: translateY(-8px);
+    animation: sv-rise 0.85s 0.05s cubic-bezier(0.22,1,0.36,1) forwards;
+    filter: brightness(0) invert(1);   /* recolours the navy logo to white */
+}
+@media (prefers-reduced-motion: reduce) {
+    .sv-logo { opacity: 1 !important; transform: none !important; animation: none !important; }
 }
 
 /* ── Brand typewriter ───────────────────────────────────────────────────────
@@ -317,11 +342,11 @@ onBeforeUnmount(() => {
 @media (min-width: 960px) {
     .sv-edit-foot { left: 4rem; right: 4rem; bottom: 3rem; }
 }
-.sv-foot-num   { color: var(--gold); font-weight: 700; }  /* gold accent â€” tiny */
+.sv-foot-num   { color: var(--gold); font-weight: 700; }  /* gold accent — tiny */
 .sv-foot-rule  { flex: 1; height: 1px; background: rgba(255,255,255,0.18); }
 .sv-foot-label { color: rgba(255,255,255,0.85); }
 
-/* â”€â”€ Form panel (right) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Form panel (right) ─────────────────────────────────────────── */
 .sv-panel {
     position: relative;
     background: #ffffff;
@@ -367,12 +392,12 @@ onBeforeUnmount(() => {
 }
 .sv-foot-link:hover { color: #0d1452; border-bottom-color: #1a237e; }
 
-/* â”€â”€ Animations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Animations ─────────────────────────────────────────────────── */
 @keyframes sv-rise   { to { opacity: 1; transform: translateY(0); } }
 @keyframes sv-fade   { to { opacity: 1; } }
 @keyframes sv-scaleY { to { transform: scaleY(1); } }
 
-/* â”€â”€ Reduced motion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Reduced motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     .sv-mesh, .sv-hairline, .sv-brand, .sv-display,
     .sv-edit-foot, .sv-panel-inner, .sv-panel-foot {
@@ -383,7 +408,7 @@ onBeforeUnmount(() => {
     .sv-brand-caret { display: none; }
 }
 
-/* â”€â”€ Small screens â€” hide the navy column, form takes full width â”€â”€ */
+/* ── Small screens — hide the navy column, form takes full width ── */
 @media (max-width: 959px) {
     .sv-edit { display: none; }
     .sv-panel { min-height: 100vh; padding: 3rem 1.75rem; }

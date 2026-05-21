@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="WhatsApp">
+  <circle cx="32" cy="32" r="30" fill="#25D366"/>
+  <!-- Speech bubble tail -->
+  <path d="M14 50 L20 39 L28 45 Z" fill="#25D366"/>
+  <!-- Phone handset glyph (white) -->
+  <path d="M40 44 c-9 0 -16 -7 -16 -16 c0 -1.4 1.1 -2.5 2.5 -2.5 h3 c1 0 1.9 0.6 2.3 1.6 l1.4 3.7 c0.4 1 0.1 2.1 -0.7 2.7 l-1.6 1.3 c1.9 3.5 4.7 6.3 8.2 8.2 l1.3 -1.6 c0.6 -0.8 1.7 -1.1 2.7 -0.7 l3.7 1.4 c1 0.4 1.6 1.3 1.6 2.3 v3 c0 1.4 -1.1 2.5 -2.5 2.5 z"
+        fill="#FFFFFF"/>
+</svg>

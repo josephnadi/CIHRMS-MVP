@@ -13,7 +13,7 @@ import { computed, ref, watch, onMounted } from 'vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
-// â”€â”€ Props â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Props ─────────────────────────────────────────────────────────────────────
 const props = defineProps({
     leaves:       Object,  // paginated leave-request collection
     balances:     Array,   // [{ type, label, total_days, used_days, remaining }]
@@ -29,12 +29,12 @@ const props = defineProps({
 // keeps script and template aligned without forcing a controller change.
 const requests = computed(() => props.leaves);
 
-// â”€â”€ Auth / role â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Auth / role ───────────────────────────────────────────────────────────────
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const isHR = computed(() => ['hr_admin', 'super_admin'].includes(user.value?.role));
 
-// â”€â”€ Ghana leave types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Ghana leave types ─────────────────────────────────────────────────────────
 // Leave type palette — disciplined Sovereign Precision colors.
 // annual=cobalt (action), maternity=magenta (people/family), paternity=cyan,
 // study=cyan (learning), sick=amber (medical alarm — semantic, retained),
@@ -77,7 +77,7 @@ const balanceTint = (type) => {
     return '';
 };
 
-// â”€â”€ Employee view: apply leave panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Employee view: apply leave panel ─────────────────────────────────────────
 const showApplyPanel   = ref(false);
 
 // Auto-open the leave request panel when navigated to via Quick Action (?new=1).
@@ -137,7 +137,7 @@ function openDetail(req) {
     showDetailPanel.value = true;
 }
 
-// â”€â”€ Manager/HR view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Manager/HR view ───────────────────────────────────────────────────────────
 const activeTab = ref('pending');
 const hrTabs = computed(() => [
     { value: 'pending', label: 'Pending Approvals', icon: 'pending_actions', count: props.pendingCount ?? 0 },
@@ -225,12 +225,12 @@ function urgencyClass(days) {
 
 // Formatted date
 function fmtDate(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function fmtDateShort(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short' });
 }
 
@@ -398,10 +398,10 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
 </script>
 
 <template>
-    <Head title="Leave Management â€” CIHRMS" />
+    <Head title="Leave Management — CIHRMS" />
     <div data-page-root="true">
 
-            <!-- â”€â”€ EMPLOYEE / MANAGER VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── EMPLOYEE / MANAGER VIEW ──────────────────────────────────────── -->
             <template v-if="!isHR">
 
                 <!-- ─── Executive header ─────────────────────── -->
@@ -520,11 +520,11 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                     <td class="px-5 py-3.5 text-on-surface font-medium">{{ fmtDateShort(req.end_date) }}</td>
                                     <td class="px-4 py-3.5 text-center">
                                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-container text-[11px] font-black text-on-surface-variant">
-                                            {{ req.days_count ?? 'â€”' }}
+                                            {{ req.days_count ?? '—' }}
                                         </span>
                                     </td>
                                     <td class="px-5 py-3.5 hidden md:table-cell">
-                                        <span class="text-on-surface-variant/70 line-clamp-1 max-w-[180px] block">{{ req.reason ?? 'â€”' }}</span>
+                                        <span class="text-on-surface-variant/70 line-clamp-1 max-w-[180px] block">{{ req.reason ?? '—' }}</span>
                                     </td>
                                     <td class="px-5 py-3.5">
                                         <StatusBadge :status="req.status" type="leave" />
@@ -559,7 +559,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
             </template><!-- END employee view -->
 
 
-            <!-- â”€â”€ HR / ADMIN VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── HR / ADMIN VIEW ────────────────────────────────────────────────── -->
             <template v-else>
 
                 <!-- ─── Executive header (HR) ─────────────────── -->
@@ -599,7 +599,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                 <!-- Tab content -->
                 <div class="rounded-b-2xl bg-surface-container-lowest border border-outline-variant/50 border-t-0 shadow-card overflow-hidden">
 
-                    <!-- â”€â”€ PENDING APPROVALS â”€â”€ -->
+                    <!-- ── PENDING APPROVALS ── -->
                     <template v-if="activeTab === 'pending'">
                         <div class="max-h-[calc(100vh-460px)] min-h-[260px] overflow-auto">
                             <table class="w-full text-[13px]">
@@ -645,7 +645,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                         <!-- Dates -->
                                         <td class="px-5 py-3.5">
                                             <span class="font-medium text-on-surface">{{ fmtDateShort(req.start_date) }}</span>
-                                            <span class="mx-1 text-on-surface-variant/40">â€“</span>
+                                            <span class="mx-1 text-on-surface-variant/40">—</span>
                                             <span class="font-medium text-on-surface">{{ fmtDateShort(req.end_date) }}</span>
                                         </td>
                                         <!-- Days count -->
@@ -693,7 +693,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         </div>
                     </template>
 
-                    <!-- â”€â”€ ALL REQUESTS â”€â”€ -->
+                    <!-- ── ALL REQUESTS ── -->
                     <template v-else-if="activeTab === 'all'">
                         <!-- Filter bar -->
                         <div class="border-b border-outline-variant/40 bg-surface-container-low/50 px-5 py-4">
@@ -785,7 +785,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                             >{{ leaveTypeLabel(req.type) }}</span>
                                         </td>
                                         <td class="px-5 py-3.5 hidden md:table-cell text-on-surface-variant">
-                                            {{ fmtDateShort(req.start_date) }} â€“ {{ fmtDateShort(req.end_date) }}
+                                            {{ fmtDateShort(req.start_date) }} — {{ fmtDateShort(req.end_date) }}
                                         </td>
                                         <td class="px-4 py-3.5 text-center">
                                             <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-container text-[11px] font-black text-on-surface-variant">
@@ -844,7 +844,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         </div>
                     </template>
 
-                    <!-- â”€â”€ CALENDAR TAB â”€â”€ -->
+                    <!-- ── CALENDAR TAB ── -->
                     <template v-else-if="activeTab === 'calendar'">
                         <div class="p-5">
                             <!-- Calendar nav -->
@@ -1031,7 +1031,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                             v-model="leaveForm.reason"
                             :class="inputCls + ' resize-none'"
                             rows="3"
-                            placeholder="Brief reason for your leave requestâ€¦"
+                            placeholder="Brief reason for your leave request…"
                             required
                         ></textarea>
                         <p v-if="leaveForm.errors.reason" class="mt-1 text-[12px] text-red-500">{{ leaveForm.errors.reason }}</p>
@@ -1106,7 +1106,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         </div>
                         <div class="rounded-xl bg-surface-container-low p-3">
                             <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-1">Working Days</p>
-                            <p class="text-[22px] font-black text-on-surface tabular-nums">{{ selectedRequest.days_count ?? 'â€”' }}</p>
+                            <p class="text-[22px] font-black text-on-surface tabular-nums">{{ selectedRequest.days_count ?? '—' }}</p>
                         </div>
                         <div class="rounded-xl bg-surface-container-low p-3">
                             <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-1">Applied On</p>
@@ -1262,7 +1262,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                     {{ actionType === 'approved' ? 'Approve Leave Request' : 'Reject Leave Request' }}
                                 </h3>
                                 <p class="text-[13px] text-on-surface-variant text-center mt-1 mb-5">
-                                    {{ actionTarget?.employee_name }} â€” {{ leaveTypeLabel(actionTarget?.type) }},
+                                    {{ actionTarget?.employee_name }} — {{ leaveTypeLabel(actionTarget?.type) }},
                                     {{ actionTarget?.days_count }} days
                                 </p>
 
@@ -1273,7 +1273,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                         v-model="actionComment"
                                         :class="inputCls + ' resize-none'"
                                         rows="3"
-                                        :placeholder="actionType === 'approved' ? 'Any notes for the employeeâ€¦' : 'Reason for rejectionâ€¦'"
+                                        :placeholder="actionType === 'approved' ? 'Any notes for the employee…' : 'Reason for rejection…'"
                                     ></textarea>
                                 </div>
 

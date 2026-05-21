@@ -102,7 +102,7 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
                                 <tr v-for="l in (lines?.data ?? lines ?? [])" :key="l.id"
                                     :class="l.status === 'skipped' ? 'bg-amber-50' : 'hover:bg-slate-50'">
                                     <td class="px-4 py-2">
-                                        <div class="font-medium">{{ l.employee?.name ?? 'â€”' }}</div>
+                                        <div class="font-medium">{{ l.employee?.name ?? '—' }}</div>
                                         <div class="text-xs text-slate-500">{{ l.employee?.employee_no }}</div>
                                     </td>
                                     <td class="px-4 py-2">{{ l.grade_code }} / {{ l.step }}</td>
@@ -125,7 +125,7 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
                              class="px-5 py-4 flex items-center justify-between">
                             <div>
                                 <div class="font-medium">{{ rt.kind_label }}</div>
-                                <div class="text-xs text-slate-500">{{ rt.record_count }} records Â· {{ cedi(rt.total_amount) }}</div>
+                                <div class="text-xs text-slate-500">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
                             </div>
                             <a :href="route('payroll-runs.return-download', { run: R.id, returnId: rt.id })"
                                class="text-blue-600 hover:underline text-sm">Download</a>

@@ -18,7 +18,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Enrol Â· CIHRM Ghana" />
+        <Head title="Enrol · CIHRM Ghana" />
 
         <header class="auth-folio">
             <span class="auth-folio-num">02</span>
@@ -70,7 +70,7 @@ const submit = () => {
                 <input id="password" type="password"
                        v-model="form.password"
                        autocomplete="new-password" required
-                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                       placeholder="••••••••••••"
                        class="field-input" />
                 <p v-if="form.errors.password" class="field-error">{{ form.errors.password }}</p>
             </div>
@@ -83,7 +83,7 @@ const submit = () => {
                 <input id="password_confirmation" type="password"
                        v-model="form.password_confirmation"
                        autocomplete="new-password" required
-                       placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                       placeholder="••••••••••••"
                        class="field-input" />
                 <p v-if="form.errors.password_confirmation" class="field-error">{{ form.errors.password_confirmation }}</p>
             </div>
@@ -122,7 +122,7 @@ const submit = () => {
 </template>
 
 <style scoped>
-/* Page-specific overrides only â€” the rest lives in app.css */
+/* Page-specific overrides only — the rest lives in app.css */
 .auth-consent {
     margin: 0.4rem 0 0;
     font-family: 'Open Sans', serif;

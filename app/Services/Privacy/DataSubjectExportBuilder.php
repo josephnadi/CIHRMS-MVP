@@ -60,6 +60,26 @@ class DataSubjectExportBuilder
         // Audit footprint
         $files[] = $this->writeJson("{$workDir}/12-audit_log_entries.json", $this->auditEntries($subject));
 
+        // Companion CSVs — Act 843 §17(2) implies a portable format; CSV is
+        // the lowest-common-denominator format every data subject can open
+        // in Excel/Numbers/LibreOffice without help from us. Each JSON file
+        // gets a flat-CSV counterpart with the same basename.
+        foreach ($files as $jsonFile) {
+            if (! str_ends_with($jsonFile, '.json')) continue;
+            $csvFile = substr($jsonFile, 0, -5) . '.csv';
+            $rows = json_decode((string) @file_get_contents($jsonFile), true) ?? [];
+            $this->writeCsv($csvFile, $rows);
+        }
+
+        // Re-list working directory so the manifest covers both JSON + CSV.
+        $files = [];
+        foreach (new \DirectoryIterator($workDir) as $entry) {
+            if ($entry->isFile() && in_array($entry->getExtension(), ['json', 'csv'], true)) {
+                $files[] = $entry->getPathname();
+            }
+        }
+        sort($files);
+
         // Cover sheet
         $manifest = $this->writeManifest("{$workDir}/MANIFEST.md", $files, $subject);
         $files[] = $manifest;
@@ -255,6 +275,60 @@ class DataSubjectExportBuilder
         $lines[] = '- **Other users\' personal data** that the subject may have viewed in the course of their role is not included; this export contains data ABOUT the subject only.';
 
         file_put_contents($path, implode("\n", $lines));
+        return $path;
+    }
+
+    /**
+     * Flatten a nested JSON payload into a CSV. Three cases:
+     *
+     *   1. A list of objects ([{k:v}, {k:v}, …]) → one header row + one data
+     *      row per object. Headers are the union of all keys.
+     *   2. A single associative array ({k:v, …})        → two-column key/value CSV.
+     *   3. Anything else (scalar, empty)                → empty CSV (header only).
+     *
+     * Nested arrays/objects inside cells are JSON-encoded so the CSV stays
+     * one-row-per-record. Commas/newlines/quotes are escaped via `fputcsv`.
+     */
+    private function writeCsv(string $path, mixed $data): string
+    {
+        $fp = fopen($path, 'w');
+
+        if (is_array($data) && ! empty($data) && array_is_list($data) && is_array($data[0])) {
+            // List of records → header + data rows
+            $headers = [];
+            foreach ($data as $row) {
+                if (is_array($row)) {
+                    foreach (array_keys($row) as $k) {
+                        if (! in_array($k, $headers, true)) $headers[] = $k;
+                    }
+                }
+            }
+            fputcsv($fp, $headers);
+            foreach ($data as $row) {
+                $line = [];
+                foreach ($headers as $h) {
+                    $v = $row[$h] ?? null;
+                    $line[] = is_scalar($v) || $v === null ? (string) ($v ?? '')
+                                                            : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+                fputcsv($fp, $line);
+            }
+        } elseif (is_array($data) && ! empty($data)) {
+            // Single associative payload → key/value pairs
+            fputcsv($fp, ['field', 'value']);
+            foreach ($data as $k => $v) {
+                fputcsv($fp, [
+                    (string) $k,
+                    is_scalar($v) || $v === null ? (string) ($v ?? '')
+                                                  : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                ]);
+            }
+        } else {
+            // Empty / unknown shape
+            fputcsv($fp, ['(no data)']);
+        }
+
+        fclose($fp);
         return $path;
     }
 
