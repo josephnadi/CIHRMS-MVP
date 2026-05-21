@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\GlAccountType;
 use App\Enums\OrgBankAccountPurpose;
 use App\Models\GlAccount;
@@ -52,6 +54,7 @@ it('creates an org bank account linked to a GL account', function () {
     expect($bank->purpose)->toBe(OrgBankAccountPurpose::Operating);
     expect((float) $bank->opening_balance)->toBe(50000.00);
     expect($bank->glAccount->id)->toBe($gl->id);
+    expect($gl->fresh()->bankAccount->id)->toBe($bank->id);
 });
 
 it('balance row uses gl_account_id as the primary key', function () {
@@ -61,4 +64,6 @@ it('balance row uses gl_account_id as the primary key', function () {
     expect($bal->getKeyName())->toBe('gl_account_id');
     expect($bal->incrementing)->toBeFalse();
     expect((float) $bal->balance)->toBe(1234.56);
+    expect($gl->fresh()->balance->gl_account_id)->toBe($gl->id);
+    expect($bal->fresh()->account->id)->toBe($gl->id);
 });
