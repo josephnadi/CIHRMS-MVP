@@ -43,6 +43,7 @@ use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Finance\ChartOfAccountsController;
+use App\Http\Controllers\Finance\OrgBankAccountController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
 use App\Http\Controllers\Webhooks\WebhookController;
 use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
@@ -837,14 +838,14 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::delete('accounts/{account}', [ChartOfAccountsController::class, 'destroy'])->name('accounts.destroy');
         });
 
-        // OrgBankAccountController wired in Task 9
+        // OrgBankAccountController wired in Task 8
         Route::middleware('permission:bank_accounts.view')->group(function () {
-            Route::get('bank-accounts', fn () => abort(404))->name('bank-accounts.index');
+            Route::get('bank-accounts', [OrgBankAccountController::class, 'index'])->name('bank-accounts.index');
         });
         Route::middleware('permission:bank_accounts.manage')->group(function () {
-            Route::post('bank-accounts',                fn () => abort(404))->name('bank-accounts.store');
-            Route::patch('bank-accounts/{bankAccount}', fn () => abort(404))->name('bank-accounts.update');
-            Route::delete('bank-accounts/{bankAccount}',fn () => abort(404))->name('bank-accounts.destroy');
+            Route::post('bank-accounts',                  [OrgBankAccountController::class, 'store'])->name('bank-accounts.store');
+            Route::patch('bank-accounts/{bankAccount}',   [OrgBankAccountController::class, 'update'])->name('bank-accounts.update');
+            Route::delete('bank-accounts/{bankAccount}',  [OrgBankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
         });
     });
 });
