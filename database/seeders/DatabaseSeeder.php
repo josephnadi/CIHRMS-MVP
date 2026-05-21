@@ -30,6 +30,12 @@ class DatabaseSeeder extends Seeder
         // Roles + permissions catalog must exist before users are backfilled with role pivots.
         $this->call(RolePermissionSeeder::class);
 
+        // Finance F1 — chart of accounts, bank accounts, zero balances.
+        // Order matters: chart first (bank accounts reference GL codes), balances last.
+        $this->call(ChartOfAccountsSeeder::class);
+        $this->call(OrgBankAccountSeeder::class);
+        $this->call(GlAccountBalanceSeeder::class);
+
         // Documents module permissions (must run AFTER RolePermissionSeeder so the
         // canonical role rows exist — this seeder attaches documents.* to them).
         $this->call(DocumentPermissionsSeeder::class);
