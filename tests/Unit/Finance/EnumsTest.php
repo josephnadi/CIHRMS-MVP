@@ -18,3 +18,9 @@ it('GL account type labels are non-empty', function () {
         expect($case->label())->toBeString()->not->toBeEmpty();
     }
 });
+
+it('org bank account purpose labels are non-empty', function () {
+    foreach (OrgBankAccountPurpose::cases() as $case) {
+        expect($case->label())->toBeString()->not->toBeEmpty();
+    }
+});
