@@ -46,7 +46,7 @@ it('hub cash position equals the sum of active bank account opening balances', f
     // Seed includes 3 banks at zero opening balance.
     $this->actingAs($finance)
         ->get('/finance')
-        ->assertInertia(fn ($p) => $p->where('cashPosition', 0.0));
+        ->assertInertia(fn ($p) => $p->where('cashPosition', fn ($v) => (float) $v === 0.0));
 
     // Now bump one bank's opening_balance and re-test.
     $bank = \App\Models\OrgBankAccount::first();
@@ -57,5 +57,5 @@ it('hub cash position equals the sum of active bank account opening balances', f
 
     $this->actingAs($finance)
         ->get('/finance')
-        ->assertInertia(fn ($p) => $p->where('cashPosition', 100000.0));
+        ->assertInertia(fn ($p) => $p->where('cashPosition', fn ($v) => (float) $v === 100000.0));
 });

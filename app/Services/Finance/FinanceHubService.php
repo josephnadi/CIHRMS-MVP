@@ -38,6 +38,10 @@ class FinanceHubService
 
     private function cashPosition(): float
     {
+        // NOTE: F1 uses opening_balance as a static proxy for cash position. Once F2's
+        // journal-posting engine lands, this should sum gl_account_balances.balance for
+        // accounts where org_bank_accounts.gl_account_id is set, which will reflect
+        // real-time cash after every payroll disbursement and receipt.
         return (float) OrgBankAccount::active()->sum('opening_balance');
     }
 
@@ -61,7 +65,7 @@ class FinanceHubService
     private function nextPayroll(): ?array
     {
         $run = PayrollRun::query()
-            ->whereIn('status', $this->payrollPendingStatuses())
+            ->whereIn('status', $this->payrollPreApprovalStatuses())
             ->orderBy('period_start')
             ->first();
 
@@ -94,7 +98,7 @@ class FinanceHubService
     private function pendingApprovals(): array
     {
         return [
-            'payroll_runs' => PayrollRun::whereIn('status', $this->payrollPendingStatuses())->count(),
+            'payroll_runs' => PayrollRun::whereIn('status', $this->payrollPreApprovalStatuses())->count(),
             'loans'        => LoanAccount::whereIn('status', $this->loanPendingStatuses())->count(),
         ];
     }
@@ -102,16 +106,16 @@ class FinanceHubService
     private function statutoryCompliance(): array
     {
         $latest = StatutoryReturn::query()
-            ->orderBy('kind')
-            ->orderByDesc('period_end')
+            ->with('run:id,period_end')
             ->get()
+            ->sortByDesc(fn ($r) => optional($r->run)->period_end)
             ->unique('kind')
             ->values();
 
         return $latest
             ->map(fn (StatutoryReturn $r) => [
                 'kind'       => $r->kind instanceof \BackedEnum ? $r->kind->value : (string) $r->kind,
-                'period_end' => $r->period_end?->format('Y-m-d'),
+                'period_end' => $r->run?->period_end?->format('Y-m-d'),
                 // StatutoryReturn has no `status` column; derive from submitted_at
                 'status'     => $r->submitted_at ? 'submitted' : 'pending',
             ])
@@ -119,10 +123,10 @@ class FinanceHubService
     }
 
     /**
-     * PayrollRunStatus cases that represent runs still being prepared or awaiting approval.
-     * No 'Pending' case exists — the enum uses Draft / Calculating / Calculated.
+     * PayrollRunStatus cases that represent runs still being prepared or awaiting approval
+     * (pre-approval stage). No 'Pending' case exists — the enum uses Draft / Calculating / Calculated.
      */
-    private function payrollPendingStatuses(): array
+    private function payrollPreApprovalStatuses(): array
     {
         return [
             PayrollRunStatus::Draft->value,
