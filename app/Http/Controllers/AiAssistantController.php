@@ -3,31 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Services\Ai\EmployeeSummaryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class AiAssistantController extends Controller
 {
+    public function __construct(private readonly EmployeeSummaryService $summaries) {}
+
     public function summary(Request $request): JsonResponse
     {
         $data = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
-            'prompt' => ['nullable', 'string', 'max:1000'],
+            'prompt'      => ['nullable', 'string', 'max:1000'],
         ]);
 
         $employee = Employee::with('department')->findOrFail($data['employee_id']);
-        $focus = $data['prompt'] ?? 'overall profile';
 
-        // MVP-friendly AI placeholder that can be swapped with an LLM provider.
-        $summary = sprintf(
-            'AI Summary (%s): %s works as %s in %s. Status: %s. Recommended next action: schedule a manager check-in and review leave balance.',
-            $focus,
-            $employee->employee_no,
-            $employee->position,
-            $employee->department?->name ?? 'No Department',
-            $employee->status
-        );
+        try {
+            $reply = $this->summaries->summarise($employee, $data['prompt'] ?? null);
+        } catch (Throwable $e) {
+            report($e);
 
-        return response()->json(['summary' => $summary]);
+            return response()->json([
+                'summary' => null,
+                'error'   => 'AI assistant is currently unavailable. Please try again later.',
+            ], 503);
+        }
+
+        return response()->json([
+            'summary' => $reply->text,
+            'model'   => $reply->model,
+            'usage'   => [
+                'input_tokens'           => $reply->inputTokens,
+                'output_tokens'          => $reply->outputTokens,
+                'cache_read_tokens'      => $reply->cacheReadTokens,
+                'cache_creation_tokens'  => $reply->cacheCreationTokens,
+            ],
+        ]);
     }
 }

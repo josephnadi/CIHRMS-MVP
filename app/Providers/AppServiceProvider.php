@@ -169,6 +169,43 @@ class AppServiceProvider extends ServiceProvider
 
         // Phase 5 — Governance
         $this->app->singleton(\App\Services\GovernanceService::class);
+
+        // Phase 4 — AI assistant. The LlmProvider binding resolves to either
+        // the real Anthropic SDK or a deterministic fake based on config/ai.php.
+        // The fake is also used whenever AI_ENABLED=false so the controller
+        // never has to special-case "AI is off" — it just gets a canned reply.
+        $this->app->singleton(\App\Services\Ai\Contracts\LlmProvider::class, function () {
+            $enabled = (bool) config('ai.enabled', false);
+            $driver  = (string) config('ai.driver', 'anthropic');
+
+            if (! $enabled || $driver === 'fake') {
+                return new \App\Services\Ai\Providers\FakeLlmProvider();
+            }
+
+            if ($driver === 'anthropic') {
+                $cfg = (array) config('ai.providers.anthropic', []);
+                $key = (string) ($cfg['api_key'] ?? '');
+
+                // Misconfigured tenant — fall back to the fake rather than
+                // 500-ing every summary request. The fake reply is clearly
+                // labeled so operators see they need to set ANTHROPIC_API_KEY.
+                if ($key === '') {
+                    return new \App\Services\Ai\Providers\FakeLlmProvider();
+                }
+
+                return new \App\Services\Ai\Providers\AnthropicLlmProvider(
+                    apiKey:    $key,
+                    model:     (string) ($cfg['model'] ?? 'claude-haiku-4-5'),
+                    maxTokens: (int)    ($cfg['max_tokens'] ?? 400),
+                    timeout:   (int)    ($cfg['timeout'] ?? 20),
+                );
+            }
+
+            return new \App\Services\Ai\Providers\FakeLlmProvider();
+        });
+
+        $this->app->singleton(\App\Services\Ai\PiiRedactor::class);
+        $this->app->singleton(\App\Services\Ai\EmployeeSummaryService::class);
     }
 
     public function boot(): void
