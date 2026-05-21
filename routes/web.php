@@ -43,6 +43,7 @@ use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Finance\ChartOfAccountsController;
+use App\Http\Controllers\Finance\FinanceHubController;
 use App\Http\Controllers\Finance\OrgBankAccountController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
 use App\Http\Controllers\Webhooks\WebhookController;
@@ -824,9 +825,9 @@ Route::middleware(['auth', 'audit'])->group(function () {
     // must still reach the list endpoints, so each resource group carries its
     // own per-permission middleware.
     Route::prefix('finance')->name('finance.')->group(function () {
-        // FinanceHubController wired in Task 8
+        // FinanceHubController wired in Task 9
         Route::middleware('permission:finance.hub')->group(function () {
-            Route::get('/', fn () => abort(404))->name('hub');
+            Route::get('/', [FinanceHubController::class, 'index'])->name('hub');
         });
 
         Route::middleware('permission:accounts.view')->group(function () {
