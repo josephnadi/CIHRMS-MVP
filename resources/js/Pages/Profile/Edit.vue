@@ -29,19 +29,22 @@ const tabs = [
     { value: 'profile',   label: 'Profile',   icon: 'person'         },
     { value: 'leave',     label: 'My Leave',  icon: 'calendar_month' },
     { value: 'pay',       label: 'My Pay',    icon: 'payments'       },
+    { value: 'benefits',  label: 'Benefits',  icon: 'verified_user'  },
     { value: 'documents', label: 'Documents', icon: 'folder'         },
     { value: 'tickets',   label: 'Tickets',   icon: 'support_agent'  },
     { value: 'security',  label: 'Security',  icon: 'lock'           },
 ];
+
+const myBenefits = computed(() => emp.value?.benefit_enrolments ?? []);
 const activeTab = ref('profile');
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ──────────────────────────────────────────────────────────────
 function fmt(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 function fmtMoney(amt, ccy = 'GHS') {
-    if (amt == null) return 'â€”';
+    if (amt == null) return '—';
     return ccy + ' ' + Number(amt).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function initials(name) {
@@ -63,7 +66,7 @@ function avatarColor(name) {
     return AVATAR_GRADIENTS[Math.abs(h) % AVATAR_GRADIENTS.length];
 }
 
-// â”€â”€ Avatar upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Avatar upload ────────────────────────────────────────────────────────
 const avatarInput = ref(null);
 function pickAvatar() { avatarInput.value?.click(); }
 function uploadAvatar(e) {
@@ -77,7 +80,7 @@ function uploadAvatar(e) {
     });
 }
 
-// â”€â”€ Personal info form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Personal info form ───────────────────────────────────────────────────
 const personalForm = useForm({
     phone:         emp.value?.phone         ?? '',
     gender:        emp.value?.gender        ?? '',
@@ -89,7 +92,7 @@ function savePersonal() {
     personalForm.patch(route('profile.personal'), { preserveScroll: true });
 }
 
-// â”€â”€ Account (name + email) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Account (name + email) ───────────────────────────────────────────────
 const accountForm = useForm({
     name:  user.value?.name  ?? '',
     email: user.value?.email ?? '',
@@ -98,7 +101,7 @@ function saveAccount() {
     accountForm.patch(route('profile.update'), { preserveScroll: true });
 }
 
-// â”€â”€ Emergency contact form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Emergency contact form ───────────────────────────────────────────────
 const emergencyForm = useForm({
     emergency_contact_name:         emp.value?.emergency_contact_name         ?? '',
     emergency_contact_phone:        emp.value?.emergency_contact_phone        ?? '',
@@ -108,7 +111,7 @@ function saveEmergency() {
     emergencyForm.patch(route('profile.emergency'), { preserveScroll: true });
 }
 
-// â”€â”€ Bank form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Bank form ────────────────────────────────────────────────────────────
 const bankForm = useForm({
     bank_name:    emp.value?.bank_name    ?? '',
     bank_account: emp.value?.bank_account ?? '',
@@ -117,7 +120,7 @@ function saveBank() {
     bankForm.patch(route('profile.bank'), { preserveScroll: true });
 }
 
-// â”€â”€ Password form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Password form ────────────────────────────────────────────────────────
 const passwordForm = useForm({
     current_password:      '',
     password:              '',
@@ -130,7 +133,7 @@ function savePassword() {
     });
 }
 
-// â”€â”€ Skill add â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Skill add ────────────────────────────────────────────────────────────
 const skillForm = useForm({ name: '', level: 'intermediate', expires_at: '' });
 function addSkill() {
     if (!emp.value?.id) return;
@@ -145,7 +148,7 @@ function removeSkill(skill) {
     router.delete(route('employees.skills.destroy', [emp.value.id, skill.id]), { preserveScroll: true });
 }
 
-// â”€â”€ Leave balance helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Leave balance helpers ────────────────────────────────────────────────
 const TYPE_META = {
     annual:    { color: '#1a237e', icon: 'beach_access' },
     sick:      { color: '#d97706', icon: 'medical_services' },
@@ -161,15 +164,15 @@ const balances = computed(() => props.leaveBalances?.data ?? props.leaveBalances
 const inputCls = 'w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all';
 const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1.5';
 
-// â”€â”€ No employee record yet (legacy users) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── No employee record yet (legacy users) ────────────────────────────────
 const hasEmployee = computed(() => !!emp.value);
 </script>
 
 <template>
-    <Head title="My Portal â€” CIHRMS" />
+    <Head title="My Portal — CIHRMS" />
     <div data-page-root="true">
 
-            <!-- â”€â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ─── Hero card ──────────────────────────────────────────────────── -->
             <div class="mb-6 overflow-hidden rounded-3xl border border-outline-variant/50 bg-surface-container-lowest shadow-card">
                 <div class="relative h-24 w-full overflow-hidden" style="background:linear-gradient(135deg,#070b3a,#0d1452,#1c1f3a);">
                     <!-- 5% gold hairline (single accent moment on the page) -->
@@ -200,7 +203,7 @@ const hasEmployee = computed(() => !!emp.value);
                             <h1 class="text-[24px] font-black tracking-tight text-on-surface leading-tight">{{ user?.name }}</h1>
                             <p class="mt-0.5 text-[13.5px] text-on-surface-variant">
                                 {{ emp?.position ?? 'Account holder' }}
-                                <span v-if="emp?.department?.name" class="mx-1.5 text-on-surface-variant/40">Â·</span>
+                                <span v-if="emp?.department?.name" class="mx-1.5 text-on-surface-variant/40">·</span>
                                 <span v-if="emp?.department?.name">{{ emp.department.name }}</span>
                             </p>
                             <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -224,7 +227,7 @@ const hasEmployee = computed(() => !!emp.value);
                             <div class="h-10 w-px bg-outline-variant/40"></div>
                             <div class="text-center">
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/55 mb-0.5">Tenure</p>
-                                <p class="text-[13px] font-bold text-on-surface">{{ emp.tenure_years ? emp.tenure_years + 'y' : 'â€”' }}</p>
+                                <p class="text-[13px] font-bold text-on-surface">{{ emp.tenure_years ? emp.tenure_years + 'y' : '—' }}</p>
                             </div>
                             <div class="h-10 w-px bg-outline-variant/40"></div>
                             <div class="text-center">
@@ -236,7 +239,7 @@ const hasEmployee = computed(() => !!emp.value);
                 </div>
             </div>
 
-            <!-- â”€â”€â”€ Flash success â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ─── Flash success ──────────────────────────────────────────────── -->
             <div v-if="$page.props.flash?.success" class="mb-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3">
                 <p class="text-[12.5px] font-bold text-emerald-700 dark:text-emerald-400">
                     <span class="material-symbols-outlined text-[15px] align-middle mr-1" style="font-variation-settings:'FILL' 1">check_circle</span>
@@ -244,7 +247,7 @@ const hasEmployee = computed(() => !!emp.value);
                 </p>
             </div>
 
-            <!-- â”€â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ─── Tabs ───────────────────────────────────────────────────────── -->
             <div class="mb-5">
                 <TabBar :tabs="tabs" v-model="activeTab" />
             </div>
@@ -296,7 +299,7 @@ const hasEmployee = computed(() => !!emp.value);
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label :class="labelCls">Phone</label>
-                                <input v-model="personalForm.phone" aria-label="Phone number" type="tel" :class="inputCls" placeholder="+233 â€¦" />
+                                <input v-model="personalForm.phone" aria-label="Phone number" type="tel" :class="inputCls" placeholder="+233 …" />
                             </div>
                             <div>
                                 <label :class="labelCls">Gender</label>
@@ -315,7 +318,7 @@ const hasEmployee = computed(() => !!emp.value);
                             </div>
                             <div>
                                 <label :class="labelCls">National ID</label>
-                                <input v-model="personalForm.national_id" aria-label="National ID (Ghana Card)" :class="inputCls" placeholder="GHA-â€¦" />
+                                <input v-model="personalForm.national_id" aria-label="National ID (Ghana Card)" :class="inputCls" placeholder="GHA-…" />
                             </div>
                         </div>
                         <div>
@@ -346,7 +349,7 @@ const hasEmployee = computed(() => !!emp.value);
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label :class="labelCls">Phone</label>
-                                <input v-model="emergencyForm.emergency_contact_phone" aria-label="Emergency contact phone" type="tel" :class="inputCls" placeholder="+233 â€¦" />
+                                <input v-model="emergencyForm.emergency_contact_phone" aria-label="Emergency contact phone" type="tel" :class="inputCls" placeholder="+233 …" />
                             </div>
                             <div>
                                 <label :class="labelCls">Relationship</label>
@@ -523,6 +526,51 @@ const hasEmployee = computed(() => !!emp.value);
             </div>
 
             <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 BENEFITS TAB
+            -->
+            <div v-if="activeTab === 'benefits'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
+                <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
+                    <div>
+                        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand-gold-deep">
+                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">verified_user</span>
+                            My Benefits
+                        </div>
+                        <h3 class="mt-0.5 text-[14px] font-bold text-on-surface">Plans you're enrolled in</h3>
+                    </div>
+                    <Link v-if="myBenefits.length" :href="route('benefits.index')"
+                          class="text-[11.5px] font-bold text-secondary hover:text-secondary/80 transition-colors">
+                        Open Benefits module →
+                    </Link>
+                </div>
+
+                <div v-if="!myBenefits.length" class="p-10 text-center">
+                    <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">verified_user</span>
+                    <p class="mt-2 text-[13px] text-on-surface-variant">You're not enrolled in any benefit plans yet.</p>
+                    <p class="mt-1 text-[11px] text-on-surface-variant/60">HR can enrol you from the Benefits module.</p>
+                </div>
+                <ul v-else class="divide-y divide-outline-variant/30">
+                    <li v-for="enr in myBenefits" :key="enr.id" class="flex items-start gap-3 p-4">
+                        <span class="material-symbols-outlined mt-0.5 flex-shrink-0 text-[20px] text-brand-gold-deep" style="font-variation-settings:'FILL' 1">verified_user</span>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-baseline gap-2">
+                                <p class="text-[13px] font-bold text-on-surface truncate">{{ enr.plan?.name ?? '—' }}</p>
+                                <span v-if="enr.plan?.code" class="text-[10.5px] font-mono text-on-surface-variant/60">{{ enr.plan.code }}</span>
+                            </div>
+                            <p class="mt-0.5 text-[11.5px] font-medium text-on-surface-variant/70">
+                                <span v-if="enr.plan?.type">{{ enr.plan.type }}</span>
+                                <span v-if="enr.plan?.provider"> · {{ enr.plan.provider }}</span>
+                                <span> · Effective from {{ fmt(enr.effective_from) }}</span>
+                            </p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-[12.5px] font-black tabular-nums text-on-surface">{{ fmtMoney(enr.monthly_premium) }}</p>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">{{ enr.status }}</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!--
                  DOCUMENTS TAB
             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <div v-if="activeTab === 'documents'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
@@ -539,7 +587,7 @@ const hasEmployee = computed(() => !!emp.value);
                             </div>
                             <div class="min-w-0">
                                 <p class="text-[13.5px] font-bold text-on-surface truncate">{{ d.title }}</p>
-                                <p class="text-[11px] text-on-surface-variant/55">{{ fmt(d.created_at) }} Â· {{ d.mime_type }}</p>
+                                <p class="text-[11px] text-on-surface-variant/55">{{ fmt(d.created_at) }} · {{ d.mime_type }}</p>
                             </div>
                         </div>
                         <a :href="`/storage/${d.file_path}`" target="_blank"
@@ -620,7 +668,7 @@ const hasEmployee = computed(() => !!emp.value);
                         Danger Zone
                     </h3>
                     <p class="text-[12.5px] text-on-surface-variant/70 leading-relaxed mb-4">
-                        Deleting your account is permanent. All your records â€” leave history, documents, ticket trail â€” will be removed. Contact HR before proceeding.
+                        Deleting your account is permanent. All your records — leave history, documents, ticket trail — will be removed. Contact HR before proceeding.
                     </p>
                     <form @submit.prevent="router.delete(route('profile.destroy'), { data: { password: $event.target.password.value } })" class="flex items-end gap-3">
                         <div class="flex-1 max-w-xs">

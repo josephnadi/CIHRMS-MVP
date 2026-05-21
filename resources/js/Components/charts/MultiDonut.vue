@@ -112,7 +112,7 @@ const arcs = computed(() => {
     pointer-events: none;
 }
 .multi-donut__num {
-    font-size: 30px;
+    font-size: 22px;
     font-weight: 900;
     letter-spacing: -0.03em;
     color: rgb(15, 23, 42);
@@ -120,11 +120,11 @@ const arcs = computed(() => {
 }
 .dark .multi-donut__num { color: rgb(241, 245, 249); }
 .multi-donut__lbl {
-    margin-top: 6px;
-    font-size: 9px;
+    margin-top: 4px;
+    font-size: 8px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     color: rgba(15, 23, 42, 0.45);
 }
 .dark .multi-donut__lbl { color: rgba(241, 245, 249, 0.40); }

@@ -105,8 +105,8 @@ const vacatePosition = (p) => {
                                 <td class="px-5 py-3 font-mono text-xs">{{ p.code }}</td>
                                 <td class="px-5 py-3 font-medium">{{ p.title }}</td>
                                 <td class="px-5 py-3">{{ p.grade?.code }}</td>
-                                <td class="px-5 py-3">{{ p.department?.name ?? 'â€”' }}</td>
-                                <td class="px-5 py-3">{{ p.cost_center ?? 'â€”' }}</td>
+                                <td class="px-5 py-3">{{ p.department?.name ?? '—' }}</td>
+                                <td class="px-5 py-3">{{ p.cost_center ?? '—' }}</td>
                                 <td class="px-5 py-3">{{ p.funding_source_label }}</td>
                                 <td class="px-5 py-3"><StatusBadge :status="p.status" :label="p.status_label" /></td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">

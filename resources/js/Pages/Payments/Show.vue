@@ -55,7 +55,7 @@ const formatCurrency = (amount, currency = 'GHS') => {
 };
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -280,14 +280,14 @@ const formatDate = (d) => {
                             <div class="flex items-start gap-2">
                                 <span class="material-symbols-outlined text-[16px] text-amber-600 mt-0.5">event_upcoming</span>
                                 <div>
-                                    <p class="font-bold text-on-surface">SSNIT â€” by 14th</p>
+                                    <p class="font-bold text-on-surface">SSNIT — by 14th</p>
                                     <p class="text-on-surface-variant">Tier 1 employee + employer share, plus Tier 2, due to SSNIT/NPRA by the 14th of the following month.</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-2">
                                 <span class="material-symbols-outlined text-[16px] text-red-600 mt-0.5">event_upcoming</span>
                                 <div>
-                                    <p class="font-bold text-on-surface">PAYE â€” by 15th</p>
+                                    <p class="font-bold text-on-surface">PAYE — by 15th</p>
                                     <p class="text-on-surface-variant">File monthly PAYE return and remit via GRA taxpayers portal by the 15th of the following month.</p>
                                 </div>
                             </div>

@@ -48,7 +48,16 @@ class StaticPageController extends Controller
     public function department(Request $request, string $slug): Response
     {
         // Map sidebar slug → a Department code so we can show real members later.
-        $codeMap = ['it' => 'IT', 'hr' => 'HR', 'marketing' => 'MKT', 'finance' => 'FIN'];
+        $codeMap = [
+            'it'             => 'IT',
+            'hr'             => 'HR',
+            'marketing'      => 'MKT',
+            'finance'        => 'FIN',
+            'membership'     => 'MEM',
+            'pcp'            => 'PCP',
+            'cpd'            => 'CPD',
+            'administration' => 'ADM',
+        ];
         $code = $codeMap[$slug] ?? null;
 
         $department = $code

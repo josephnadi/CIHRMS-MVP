@@ -46,7 +46,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                     </div>
                     <h2 class="text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Notification Channels</h2>
                     <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                        Pick where CIHRMS contacts you. WhatsApp is opt-in only â€” Meta requires explicit consent before we can send template messages.
+                        Pick where CIHRMS contacts you. WhatsApp is opt-in only — Meta requires explicit consent before we can send template messages.
                     </p>
                 </div>
             </Teleport>
@@ -107,7 +107,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                             class="w-full max-w-xs rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px] font-mono"
                         />
                         <p v-if="form.whatsapp_phone && !phoneOk" class="mt-1 text-[11px] text-amber-600">
-                            Use international format with country code (8â€“15 digits, optional leading +).
+                            Use international format with country code (8—15 digits, optional leading +).
                         </p>
                     </div>
 

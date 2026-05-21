@@ -158,7 +158,7 @@ const TOOLS = [
                 </div>
                 <div class="flex items-center gap-2">
                     <label class="flex items-center gap-2 rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black cursor-pointer">
-                        <input type="checkbox" v-model="form.letterhead" class="h-4 w-4 accent-secondary" />
+                        <input type="checkbox" v-model="form.letterhead" aria-label="Attach institutional letterhead" class="h-4 w-4 accent-secondary" />
                         <span class="material-symbols-outlined text-[16px]">badge</span>
                         Attach letterhead
                     </label>
@@ -187,7 +187,7 @@ const TOOLS = [
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Confidentiality</label>
-                            <select v-model="form.confidentiality" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                            <select v-model="form.confidentiality" aria-label="Confidentiality level" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                                 <option value="internal">Internal</option>
                                 <option value="confidential">Confidential</option>
                                 <option value="restricted">Restricted</option>

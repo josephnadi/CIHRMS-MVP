@@ -17,17 +17,17 @@ const props = defineProps({
     activeModule: String,
 });
 
-// â”€â”€ Auth permissions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Auth permissions ────────────────────────────────────────────────────────
 const page = usePage();
 
-// â”€â”€ Filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filter state ────────────────────────────────────────────────────────────
 const localFilters = reactive({
     search:   props.filters?.search   ?? '',
     category: props.filters?.category ?? '',
     format:   props.filters?.format   ?? '',
 });
 
-// Active tag chips (client-side only â€” refine against server-provided tags if needed)
+// Active tag chips (client-side only — refine against server-provided tags if needed)
 const activeTagFilters = ref([]);
 
 const applyFilters = () => {
@@ -60,7 +60,7 @@ const hasFilters = computed(() =>
     localFilters.search || localFilters.category || localFilters.format || activeTagFilters.value.length,
 );
 
-// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Data ────────────────────────────────────────────────────────────────────
 const list = computed(() => props.courses?.data ?? []);
 
 // Collect all unique tags from the visible list for chip cloud
@@ -84,7 +84,7 @@ const filteredList = computed(() => {
     );
 });
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ───────────────────────────────────────────────────────────────────
 const stats = computed(() => ({
     total:       props.courses?.meta?.total ?? list.value.length,
     published:   list.value.filter(c => c.is_published).length,
@@ -92,7 +92,7 @@ const stats = computed(() => ({
     hours:       Math.round(list.value.reduce((s, c) => s + (c.duration_minutes ?? 0), 0) / 60),
 }));
 
-// â”€â”€ Course detail slide-panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Course detail slide-panel ────────────────────────────────────────────────
 const selectedCourse   = ref(null);
 const showDetailPanel  = ref(false);
 
@@ -101,13 +101,13 @@ const openCourseDetail = (course) => {
     showDetailPanel.value = true;
 };
 
-// â”€â”€ Enrol â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Enrol ───────────────────────────────────────────────────────────────────
 const enrol = (course, event) => {
     event?.stopPropagation();
     router.post(route('learning.courses.enrol', course.id), {}, { preserveScroll: true });
 };
 
-// â”€â”€ Publish / Delete (HR/LD) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Publish / Delete (HR/LD) ─────────────────────────────────────────────────
 const togglePublish = (c, event) => {
     event?.stopPropagation();
     if (!c.is_published) {
@@ -121,7 +121,7 @@ const removeCourse = (c, event) => {
     router.delete(route('learning.courses.destroy', c.id), { preserveScroll: true });
 };
 
-// â”€â”€ Create Course SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Create Course SlidePanel ─────────────────────────────────────────────────
 const showCreate = ref(false);
 
 const createForm = useForm({
@@ -161,7 +161,7 @@ const submitCreate = () => {
     });
 };
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ──────────────────────────────────────────────────────────────────
 const categories = [
     { v: '',            l: 'All categories' },
     { v: 'technical',   l: 'Technical' },
@@ -211,7 +211,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
 <template>
     <Head title="Course Catalogue" />
     <div data-page-root="true">
-            <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Header ────────────────────────────────────────────────────── -->
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
@@ -300,11 +300,11 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     </div>
                 </div>
 
-                <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Filter strip ───────────────────────────────────────────── -->
                 <div class="space-y-3">
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="flex-1 min-w-[200px] max-w-sm">
-                            <SearchInput v-model="localFilters.search" placeholder="Search courses, providersâ€¦" />
+                            <SearchInput v-model="localFilters.search" placeholder="Search courses, providers…" />
                         </div>
 
                         <select
@@ -348,7 +348,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     </div>
                 </div>
 
-                <!-- â”€â”€ Course grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Course grid ─────────────────────────────────────────────── -->
                 <div v-if="filteredList.length" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                     <article
                         v-for="(c, i) in filteredList"
@@ -504,7 +504,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <p class="text-[12px] text-on-surface-variant">
                         Showing
                         <span class="font-semibold text-on-surface">{{ courses.meta?.from }}</span>
-                        â€“
+                        —
                         <span class="font-semibold text-on-surface">{{ courses.meta?.to }}</span>
                         of
                         <span class="font-semibold text-on-surface">{{ courses.meta?.total }}</span>
@@ -513,7 +513,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                 </div>
             </div>
 
-            <!-- â”€â”€ Course Detail SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Course Detail SlidePanel ──────────────────────────────────── -->
             <SlidePanel
                 :open="showDetailPanel"
                 :title="selectedCourse?.title ?? 'Course Detail'"
@@ -622,7 +622,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Publish Course SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Publish Course SlidePanel ─────────────────────────────────── -->
             <SlidePanel
                 :open="showCreate"
                 title="Publish New Course"
@@ -760,7 +760,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span v-if="createForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                            {{ createForm.processing ? 'Publishingâ€¦' : 'Publish Course' }}
+                            {{ createForm.processing ? 'Publishing…' : 'Publish Course' }}
                         </button>
                     </div>
                 </template>

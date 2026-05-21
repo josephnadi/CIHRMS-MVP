@@ -24,10 +24,10 @@ const canManage   = computed(() => {
     return perms.includes('*') || perms.includes('performance.manage');
 });
 
-// â”€â”€ View tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── View tab ──────────────────────────────────────────────────────────────────
 const activeTab = ref('reviewee');  // 'reviewee' | 'reviewer' | 'all'
 
-// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filters ───────────────────────────────────────────────────────────────────
 const localFilters = reactive({
     cycle_id: props.filters?.cycle_id ?? '',
     type:     props.filters?.type     ?? '',
@@ -43,11 +43,11 @@ const applyFilters = () => {
     }, { preserveState: true, replace: true });
 };
 
-// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Data ──────────────────────────────────────────────────────────────────────
 const reviewList = computed(() => props.reviews?.data ?? []);
 const cycleList  = computed(() => props.cycles?.data ?? props.cycles ?? []);
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ─────────────────────────────────────────────────────────────────────
 const stats = computed(() => {
     const data = reviewList.value;
     return {
@@ -68,7 +68,7 @@ const heroCards = computed(() => [
     { label: 'Completed',               value: stats.value.acknowledged, icon: 'task_alt',          rgb: '5,150,105'  },
 ]);
 
-// â”€â”€ Rating distribution for HR view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Rating distribution for HR view ──────────────────────────────────────────
 const ratingDist = computed(() => {
     const bins = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
     reviewList.value.forEach(r => {
@@ -85,7 +85,7 @@ const ratingDist = computed(() => {
     }));
 });
 
-// â”€â”€ New review panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── New review panel ──────────────────────────────────────────────────────────
 const showAddPanel = ref(false);
 const form = useForm({
     cycle_id:           props.activeCycle?.id ?? '',
@@ -116,7 +116,7 @@ const submitReview = () => {
     });
 };
 
-// â”€â”€ New cycle panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── New cycle panel ───────────────────────────────────────────────────────────
 const showCyclePanel = ref(false);
 const cycleForm = useForm({
     name:               '',
@@ -137,7 +137,7 @@ const submitCycle = () => {
     });
 };
 
-// â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Actions ───────────────────────────────────────────────────────────────────
 const submitDraft = (review) => {
     router.patch(route('performance.reviews.submit', review.id), {}, { preserveScroll: true });
 };
@@ -151,7 +151,7 @@ const closeCycle = (cycle) => {
     router.patch(route('performance.cycles.close', cycle.id), {}, { preserveScroll: true });
 };
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ────────────────────────────────────────────────────────────────────
 const TYPE_META = {
     self:       { label: 'Self',        rgb: '13, 20, 82',   icon: 'person'             },  // navy
     manager:    { label: 'Manager',     rgb: '26, 35, 126',  icon: 'manage_accounts'    },  // cobalt
@@ -191,7 +191,7 @@ const actionLabel = (r) => {
 };
 
 const formatDate = (d) =>
-    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”';
+    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const relativeDate = (iso) => {
     if (!iso) return null;
@@ -203,7 +203,7 @@ const relativeDate = (iso) => {
     return formatDate(iso);
 };
 
-const renderRating = (v) => v == null ? 'â€”' : Number(v).toFixed(1);
+const renderRating = (v) => v == null ? '—' : Number(v).toFixed(1);
 
 const isMine     = (r) => r.reviewer?.id === currentUser.value?.id || r.reviewer_id === currentUser.value?.id;
 const canSubmit  = (r) => r.status === 'draft'      && (canManage.value || isMine(r));
@@ -240,7 +240,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         </div>
                         <h2 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">Performance Reviews</h2>
                         <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                            Self, manager, peer and 360Â° reviews â€” tracked across cycles.
+                            Self, manager, peer and 360° reviews — tracked across cycles.
                             <span v-if="activeCycle" class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
                                 Active: {{ activeCycle.name }}
                             </span>
@@ -283,7 +283,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
             <div class="p-6 space-y-6 animate-reveal-up">
 
-                <!-- â”€â”€ Hero stat strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Hero stat strip ──────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div
                         v-for="(card, i) in heroCards"
@@ -307,7 +307,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     </div>
                 </div>
 
-                <!-- â”€â”€ Rating distribution bar (HR view) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Rating distribution bar (HR view) ──────────────────────── -->
                 <div v-if="canManage && reviewList.length > 0" class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-3">Rating Distribution (Overall)</p>
                     <div class="flex items-end gap-2 h-14">
@@ -319,7 +319,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     </div>
                 </div>
 
-                <!-- â”€â”€ Cycles strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Cycles strip ─────────────────────────────────────────────── -->
                 <div v-if="cycleList.length" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5">
                     <div class="flex items-center justify-between mb-4">
                         <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Review Cycles</p>
@@ -358,7 +358,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                                         {{ c.goals_count ?? 0 }}
                                     </span>
                                     <span class="ml-auto text-[10px] text-on-surface-variant/50">
-                                        {{ formatDate(c.starts_at) }} â€“ {{ formatDate(c.ends_at) }}
+                                        {{ formatDate(c.starts_at) }} — {{ formatDate(c.ends_at) }}
                                     </span>
                                 </div>
                                 <button
@@ -374,7 +374,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     </div>
                 </div>
 
-                <!-- â”€â”€ Tab nav + filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Tab nav + filters ─────────────────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
                     <!-- Tab control -->
                     <div class="flex items-center rounded-xl border border-outline-variant/70 bg-surface-container-low p-0.5 gap-0.5">
@@ -426,7 +426,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     </select>
                 </div>
 
-                <!-- â”€â”€ Review cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Review cards ──────────────────────────────────────────────── -->
                 <div v-if="reviewList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                     <EmptyState
                         title="No reviews yet"
@@ -478,7 +478,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                                     :style="`background:${avatarGrad(r.employee_id)}`"
                                 >{{ initials(r.employee?.name) }}</div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-[14px] font-black text-on-surface truncate">{{ r.employee?.name ?? 'â€”' }}</p>
+                                    <p class="text-[14px] font-black text-on-surface truncate">{{ r.employee?.name ?? '—' }}</p>
                                     <p class="text-[11px] text-on-surface-variant/60 truncate">{{ r.employee?.department ?? r.employee?.employee_no ?? '' }}</p>
                                 </div>
                                 <!-- Relationship pill + reviewer -->
@@ -486,13 +486,13 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                                     <div
                                         class="h-7 w-7 rounded-full flex items-center justify-center text-[9px] font-black text-white ring-2 ring-surface-container-lowest"
                                         :style="`background:${avatarGrad((r.reviewer?.id ?? 0) + 3)}`"
-                                        :title="`Reviewer: ${r.reviewer?.name ?? 'â€”'}`"
+                                        :title="`Reviewer: ${r.reviewer?.name ?? '—'}`"
                                     >{{ initials(r.reviewer?.name) }}</div>
-                                    <span class="text-[10px] font-semibold text-on-surface-variant/60">{{ r.reviewer?.name ?? 'â€”' }}</span>
+                                    <span class="text-[10px] font-semibold text-on-surface-variant/60">{{ r.reviewer?.name ?? '—' }}</span>
                                 </div>
                             </div>
 
-                            <!-- Workflow progress strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                            <!-- Workflow progress strip ─────────── -->
                             <div class="rounded-xl bg-surface-container/50 p-3">
                                 <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60 mb-2">Workflow</p>
                                 <div class="flex items-center gap-0">
@@ -578,17 +578,17 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     </div>
                 </div>
 
-                <!-- â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Pagination ────────────────────────────────────────────────── -->
                 <div v-if="reviews?.links?.length > 3" class="flex items-center justify-between rounded-2xl bg-surface-container-lowest border border-outline-variant/50 px-4 py-3 shadow-card">
                     <p class="text-[12px] text-on-surface-variant">
-                        Showing <span class="font-semibold text-on-surface">{{ reviews.meta?.from }}</span> â€“ <span class="font-semibold text-on-surface">{{ reviews.meta?.to }}</span>
+                        Showing <span class="font-semibold text-on-surface">{{ reviews.meta?.from }}</span> — <span class="font-semibold text-on-surface">{{ reviews.meta?.to }}</span>
                         of <span class="font-semibold text-on-surface">{{ reviews.meta?.total }}</span>
                     </p>
                     <Pagination :links="reviews.links" />
                 </div>
             </div>
 
-            <!-- â”€â”€ New Review SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── New Review SlidePanel ──────────────────────────────────────── -->
             <SlidePanel :open="showAddPanel" title="New Review" size="lg" @close="showAddPanel = false">
                 <form @submit.prevent="submitReview" class="space-y-5 p-6">
                     <div class="grid grid-cols-2 gap-4">
@@ -633,7 +633,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     </div>
 
                     <div class="rounded-xl border border-outline-variant/60 bg-surface-container/40 p-4 space-y-4">
-                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant/70">Ratings (1.0 â€“ 5.0)</p>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant/70">Ratings (1.0 — 5.0)</p>
                         <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Overall</label>
@@ -667,7 +667,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Additional Comments</label>
-                        <textarea v-model="form.comments" rows="4" placeholder="Any further context or examplesâ€¦"
+                        <textarea v-model="form.comments" rows="4" placeholder="Any further context or examples…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
                     </div>
                 </form>
@@ -686,7 +686,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ New Cycle SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── New Cycle SlidePanel ───────────────────────────────────────── -->
             <SlidePanel :open="showCyclePanel" title="New Review Cycle" size="md" @close="showCyclePanel = false">
                 <form @submit.prevent="submitCycle" class="space-y-5 p-6">
                     <div>

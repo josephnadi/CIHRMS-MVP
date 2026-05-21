@@ -8,26 +8,26 @@ import TabBar from '@/Components/TabBar.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
-    loan:         Object, // LoanAccountResource (possibly wrapped in { data: â€¦ })
+    loan:         Object, // LoanAccountResource (possibly wrapped in { data: … })
     repayments:   Object, // LoanRepaymentResource collection
     activeModule: String,
 });
 
-// â”€â”€ Unwrap resource wrappers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Unwrap resource wrappers ──────────────────────────────────────────────────
 const L = computed(() => props.loan?.data ?? props.loan ?? {});
 const repayList = computed(() => props.repayments?.data ?? props.repayments ?? []);
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct  = (v) => `${(Number(v || 0) * 100).toFixed(1)}%`;
 
 const formatDate = (d) => {
-    if (!d) return 'â€“';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatPeriod = (p) => {
-    if (!p) return 'â€“';
+    if (!p) return '—';
     const [yr, mo] = String(p).split('-');
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return `${months[parseInt(mo, 10) - 1]} ${yr}`;
@@ -38,7 +38,7 @@ const currentPeriod = (() => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 })();
 
-// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tabs ──────────────────────────────────────────────────────────────────────
 const activeTab = ref('schedule');
 const tabs = [
     { label: 'Schedule',    value: 'schedule'   },
@@ -46,7 +46,7 @@ const tabs = [
     { label: 'Audit',       value: 'audit'      },
 ];
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ─────────────────────────────────────────────────────────────────────
 const monthsRemaining = computed(() => {
     const unpaid = repayList.value.filter(r => r.status !== 'paid').length;
     return unpaid;
@@ -58,7 +58,7 @@ const repayPct = computed(() => {
     return Math.min(100, Math.round((paid / L.value.total_repayable) * 100));
 });
 
-// â”€â”€ Approve / Reject â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Approve / Reject ──────────────────────────────────────────────────────────
 const decideForm  = useForm({ decision: 'approve', reason: '' });
 const showReject  = ref(false);
 
@@ -71,11 +71,11 @@ const reject  = () => {
     });
 };
 
-// â”€â”€ Disburse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Disburse ──────────────────────────────────────────────────────────────────
 const disburseForm = useForm({ first_repayment_period: '' });
 const disburse     = () => disburseForm.post(route('loans.disburse', L.value.id), { preserveScroll: true });
 
-// â”€â”€ Repayment status row styling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Repayment status row styling ──────────────────────────────────────────────
 const rowClass = (r) => {
     if (r.status === 'paid')        return 'bg-emerald-50/30 dark:bg-emerald-950/10';
     if (r.due_period === currentPeriod) return 'bg-blue-50/40 dark:bg-blue-950/15';
@@ -86,7 +86,7 @@ const rowClass = (r) => {
 <template>
     <Head :title="`Loan ${L.reference ?? ''}`" />
     <div data-page-root="true">
-            <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Header ─────────────────────────────────────────────────────────── -->
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
@@ -100,8 +100,8 @@ const rowClass = (r) => {
                             <h2 class="text-[1.5rem] font-black tracking-tight text-on-surface leading-tight">Loan Detail</h2>
                             <p class="mt-0.5 text-[13px] text-on-surface-variant">
                                 <span class="font-mono">{{ L.reference }}</span>
-                                <span class="mx-1.5 text-on-surface-variant/40">Â·</span>
-                                {{ L.employee?.name ?? 'â€“' }}
+                                <span class="mx-1.5 text-on-surface-variant/40">·</span>
+                                {{ L.employee?.name ?? '—' }}
                             </p>
                         </div>
                     </div>
@@ -111,7 +111,7 @@ const rowClass = (r) => {
 
             <div class="space-y-6">
 
-                <!-- â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Hero card ───────────────────────────────────────────────────── -->
                 <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-6 shadow-card">
                     <div class="flex flex-wrap items-start gap-6">
 
@@ -124,7 +124,7 @@ const rowClass = (r) => {
                                 <div>
                                     <p class="font-mono text-[18px] font-black text-on-surface tracking-tight">{{ L.reference }}</p>
                                     <p class="text-[13px] text-on-surface-variant">
-                                        {{ L.product?.data?.name ?? L.product?.name ?? 'â€“' }}
+                                        {{ L.product?.data?.name ?? L.product?.name ?? '—' }}
                                         <span v-if="L.booked_interest_rate" class="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black tracking-wider"
                                               style="background:rgba(26, 35, 126,0.1);color:#1a237e">
                                             {{ (L.booked_interest_rate * 100).toFixed(1) }}% p.a.
@@ -135,11 +135,11 @@ const rowClass = (r) => {
                             <div class="flex flex-wrap gap-2 mt-3">
                                 <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1 text-[12px] font-semibold text-secondary">
                                     <span class="material-symbols-outlined text-[14px]">person</span>
-                                    {{ L.employee?.name ?? 'â€“' }}
+                                    {{ L.employee?.name ?? '—' }}
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1 text-[12px] font-semibold text-on-surface-variant border border-outline-variant/60">
                                     <span class="material-symbols-outlined text-[14px]">badge</span>
-                                    {{ L.employee?.employee_no ?? 'â€“' }}
+                                    {{ L.employee?.employee_no ?? '—' }}
                                 </span>
                             </div>
                         </div>
@@ -176,11 +176,11 @@ const rowClass = (r) => {
                                 :style="`width:${repayPct}%`"
                             ></div>
                         </div>
-                        <p class="text-[11px] text-on-surface-variant">{{ L.installments_paid }} installments paid Â· {{ monthsRemaining }} remaining</p>
+                        <p class="text-[11px] text-on-surface-variant">{{ L.installments_paid }} installments paid · {{ monthsRemaining }} remaining</p>
                     </div>
                 </div>
 
-                <!-- â”€â”€ 4 Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── 4 Stat cards ────────────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div class="rounded-2xl border border-outline-variant/50 shadow-card p-4 bg-surface-container-lowest"
                          style="border-left:3px solid rgba(26, 35, 126,0.5)">
@@ -205,7 +205,7 @@ const rowClass = (r) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ HR / Finance action bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── HR / Finance action bar ────────────────────────────────────── -->
                 <div v-if="L.can?.approve || L.can?.disburse" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-5 shadow-card space-y-4">
                     <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">HR / Finance Actions</p>
 
@@ -251,7 +251,7 @@ const rowClass = (r) => {
                         <textarea
                             v-model="decideForm.reason"
                             rows="3"
-                            placeholder="Provide a clear reason for rejectionâ€¦"
+                            placeholder="Provide a clear reason for rejection…"
                             class="w-full rounded-xl border border-red-300/60 bg-white dark:bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
                         ></textarea>
                         <div class="flex items-center gap-3">
@@ -280,10 +280,10 @@ const rowClass = (r) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
                 <TabBar :tabs="tabs" v-model="activeTab" />
 
-                <!-- â”€â”€ SCHEDULE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── SCHEDULE TAB ─────────────────────────────────────────────────── -->
                 <div v-show="activeTab === 'schedule'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
                     <div v-if="repayList.length === 0" class="p-12 text-center">
                         <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">schedule</span>
@@ -327,7 +327,7 @@ const rowClass = (r) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ REPAYMENTS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── REPAYMENTS TAB ──────────────────────────────────────────────── -->
                 <div v-show="activeTab === 'repayments'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
                     <div v-if="repayList.filter(r => r.paid_amount > 0 || r.status === 'paid').length === 0" class="p-12 text-center">
                         <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">payments</span>
@@ -365,7 +365,7 @@ const rowClass = (r) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ AUDIT TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── AUDIT TAB ────────────────────────────────────────────────────── -->
                 <div v-show="activeTab === 'audit'" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
                     <!-- Metadata card -->
                     <div class="grid sm:grid-cols-2 gap-5">
@@ -373,7 +373,7 @@ const rowClass = (r) => {
                             <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-3">Application</p>
                             <div class="flex justify-between text-[13px]">
                                 <span class="text-on-surface-variant">Applied by</span>
-                                <span class="font-semibold text-on-surface">{{ L.applicant?.name ?? 'â€“' }}</span>
+                                <span class="font-semibold text-on-surface">{{ L.applicant?.name ?? '—' }}</span>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <span class="text-on-surface-variant">Applied at</span>
@@ -381,14 +381,14 @@ const rowClass = (r) => {
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <span class="text-on-surface-variant">Purpose</span>
-                                <span class="font-semibold text-on-surface text-right max-w-[200px]">{{ L.purpose || 'â€“' }}</span>
+                                <span class="font-semibold text-on-surface text-right max-w-[200px]">{{ L.purpose || '—' }}</span>
                             </div>
                         </div>
                         <div class="space-y-3">
                             <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-3">Approval / Disbursement</p>
                             <div class="flex justify-between text-[13px]">
                                 <span class="text-on-surface-variant">Approved by</span>
-                                <span class="font-semibold text-on-surface">{{ L.approver?.name ?? 'â€“' }}</span>
+                                <span class="font-semibold text-on-surface">{{ L.approver?.name ?? '—' }}</span>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <span class="text-on-surface-variant">Approved at</span>

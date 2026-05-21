@@ -3,19 +3,25 @@
 namespace App\Console\Commands;
 
 use App\Models\AuditLog;
+use App\Models\User;
+use App\Notifications\AuditChainBroken;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Re-hashes every audit_logs row in chain_position order and compares each
  * computed digest to the persisted `row_hash` (and `previous_hash`).
  *
  * Exits 0 on success, non-zero on first mismatch — suitable for cron alerts.
+ * With `--notify`, also dispatches `AuditChainBroken` to every `super_admin`
+ * so a real human sees the incident even if no one is watching the exit code.
  */
 class VerifyAuditChain extends Command
 {
     protected $signature = 'audit:verify-chain
-                            {--limit=0 : Stop after N rows (0 = no limit)}
-                            {--from=0  : Resume from this chain_position}';
+                            {--limit=0   : Stop after N rows (0 = no limit)}
+                            {--from=0    : Resume from this chain_position}
+                            {--notify    : Notify super_admins on failure}';
 
     protected $description = 'Verify the tamper-evident audit log hash chain.';
 
@@ -70,6 +76,15 @@ class VerifyAuditChain extends Command
                 $row->id,
                 $broken['reason'],
             ));
+
+            if ($this->option('notify')) {
+                $recipients = User::query()->where('role', 'super_admin')->get();
+                if ($recipients->isNotEmpty()) {
+                    Notification::send($recipients, AuditChainBroken::from($row, $broken['reason'], $checked));
+                    $this->warn(sprintf('Notified %d super_admin(s).', $recipients->count()));
+                }
+            }
+
             return self::FAILURE;
         }
 

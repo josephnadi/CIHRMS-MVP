@@ -160,7 +160,7 @@ const reports = computed(() => props.reports?.data ?? []);
                     <div class="flex flex-wrap gap-2">
                         <label v-for="c in [['grievance','Grievance'],['improvement','Improvement Suggestion'],['safety','Workplace Safety'],['other','Other']]"
                                :key="c[0]" class="cursor-pointer">
-                            <input type="radio" v-model="form.category" :value="c[0]" class="sr-only" />
+                            <input type="radio" v-model="form.category" :value="c[0]" :aria-label="c[1]" class="sr-only" />
                             <span :class="['inline-flex rounded-full border px-3 py-1.5 text-[12px] font-semibold',
                                            form.category === c[0]
                                               ? 'bg-secondary/10 border-secondary/40 text-secondary'

@@ -18,17 +18,17 @@ const props = defineProps({
     activeModule: String,
 });
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct  = (v) => Math.round((Number(v) || 0) * 100) + '%';
 
 const formatDate = (d) => {
-    if (!d) return 'â€“';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const relativeLWD = (dateStr) => {
-    if (!dateStr) return 'â€“';
+    if (!dateStr) return '—';
     const diff = Math.floor((new Date(dateStr).getTime() - Date.now()) / 86400000);
     if (diff === 0)   return 'Today';
     if (diff === 1)   return 'Tomorrow';
@@ -86,7 +86,7 @@ const exitTypeColor = (type) => ({
     abscondment:       'rgba(220,38,38,0.12)',
 })[type] ?? 'rgba(100,116,139,0.12)';
 
-// â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Filters ───────────────────────────────────────────────────────────────────
 const localFilters = reactive({
     status:    props.filters?.status    ?? '',
     exit_type: props.filters?.exit_type ?? '',
@@ -135,7 +135,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-// â”€â”€ Initiate panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Initiate panel ────────────────────────────────────────────────────────────
 const showPanel = ref(false);
 const form = useForm({
     employee_id:        '',
@@ -197,12 +197,12 @@ const submitCase = () => form.post(route('offboarding.store'), {
 
             <div class="space-y-8">
 
-                <!-- â”€â”€ Filter strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Filter strip ─────────────────────────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
                     <div class="flex-1 min-w-[200px] max-w-xs">
                         <SearchInput
                             v-model="localFilters.q"
-                            placeholder="Search reference or employeeâ€¦"
+                            placeholder="Search reference or employee…"
                         />
                     </div>
 
@@ -246,7 +246,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                     </button>
                 </div>
 
-                <!-- â”€â”€ Case card grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Case card grid ────────────────────────────────────────────────── -->
                 <div v-if="(cases?.data?.length ?? 0) === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                     <EmptyState
                         title="No off-boarding cases found"
@@ -283,10 +283,10 @@ const submitCase = () => form.post(route('offboarding.store'), {
                                 {{ initials(c.employee?.name) }}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ c.employee?.name ?? 'â€“' }}</p>
+                                <p class="text-[14px] font-bold text-on-surface leading-tight truncate">{{ c.employee?.name ?? '—' }}</p>
                                 <p class="text-[11px] text-on-surface-variant/60 leading-tight truncate">
                                     {{ c.employee?.department ?? '' }}
-                                    <span v-if="c.employee?.employee_no"> Â· {{ c.employee.employee_no }}</span>
+                                    <span v-if="c.employee?.employee_no"> · {{ c.employee.employee_no }}</span>
                                 </p>
                             </div>
                             <StatusBadge :status="c.status" :label="c.status_label" />
@@ -358,7 +358,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                     <p class="text-[12px] text-on-surface-variant">
                         Showing
                         <span class="font-semibold text-on-surface">{{ cases.meta?.from }}</span>
-                        â€“
+                        —
                         <span class="font-semibold text-on-surface">{{ cases.meta?.to }}</span>
                         of
                         <span class="font-semibold text-on-surface">{{ cases.meta?.total }}</span>
@@ -367,7 +367,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                 </div>
             </div>
 
-            <!-- â”€â”€ Initiate Off-boarding SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Initiate Off-boarding SlidePanel ──────────────────────────────── -->
             <SlidePanel
                 :open="showPanel"
                 title="Initiate Off-boarding Case"
@@ -451,7 +451,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <textarea
                             v-model="form.reason"
                             rows="3"
-                            placeholder="Briefly describe the circumstancesâ€¦"
+                            placeholder="Briefly describe the circumstances…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                         ></textarea>
                     </div>

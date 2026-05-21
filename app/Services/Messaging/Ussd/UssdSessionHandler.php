@@ -7,10 +7,13 @@ use App\Enums\UssdState;
 use App\Models\Employee;
 use App\Models\LeaveBalance;
 use App\Models\PayrollLine;
+use App\Models\PendingBankChange;
 use App\Models\StaffPhonePin;
 use App\Models\UssdSession;
 use App\Models\WhistleblowerReport;
 use App\Services\Attendance\AttendanceService;
+use App\Services\BankChangeRequestService;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -36,7 +39,10 @@ use Illuminate\Support\Str;
  */
 class UssdSessionHandler
 {
-    public function __construct(private readonly AttendanceService $attendance) {}
+    public function __construct(
+        private readonly AttendanceService $attendance,
+        private readonly BankChangeRequestService $bankChanges,
+    ) {}
 
     /**
      * Handle a single USSD step. `text` is the cumulative path Hubtel uses —
@@ -80,6 +86,8 @@ class UssdSessionHandler
             $state === UssdState::PayslipMenu       => $this->renderPayslip($session),
             $state === UssdState::LeaveBalance      => $this->renderLeaveBalance($session),
             $state === UssdState::ClockMenu         => $this->onClockMenu($session, $input),
+            $state === UssdState::BankChangeCode    => $this->onBankChangeCode($session, $input),
+            $state === UssdState::BankChangeChoice  => $this->onBankChangeChoice($session, $input),
             $state === UssdState::WhistleblowerCode => $this->onWhistleblowerCode($session, $input),
             default                                  => $this->end('Service unavailable. Try later.'),
         };
@@ -148,6 +156,7 @@ class UssdSessionHandler
             '2' => $this->showLeaveBalance($session),
             '3' => $this->clockEvent($session, 'in'),
             '4' => $this->clockEvent($session, 'out'),
+            '5' => $this->promptBankChangeCode($session),
             default => $this->end('Invalid option.'),
         };
     }
@@ -247,7 +256,115 @@ class UssdSessionHandler
     private function mainMenu(Employee $employee): string
     {
         $name = $employee->user?->name ?? $employee->employee_no;
-        return "Hi {$name}\n1. Latest payslip\n2. Leave balance\n3. Clock in\n4. Clock out";
+        return "Hi {$name}\n1. Latest payslip\n2. Leave balance\n3. Clock in\n4. Clock out\n5. Confirm bank change";
+    }
+
+    // ── Bank-change confirmation ───────────────────────────────────────────
+    // After HR (or the subject) files a bank-account change via the web,
+    // SMS goes to the employee with a 6-digit code. They dial back in, pick
+    // option 5, enter the code, then approve or reject.
+
+    private function promptBankChangeCode(UssdSession $session): string
+    {
+        $pending = PendingBankChange::pending()
+            ->where('employee_id', $session->employee_id)
+            ->latest('id')
+            ->first();
+
+        if (! $pending) {
+            return $this->end('No pending bank change to confirm.');
+        }
+
+        $session->update(['state' => UssdState::BankChangeCode->value]);
+        $session->pushContext('bank_change_id', $pending->id);
+        return $this->cont("Enter the 6-digit code we SMS'd you:");
+    }
+
+    private function onBankChangeCode(UssdSession $session, string $input): string
+    {
+        $pendingId = (int) ($session->context['bank_change_id'] ?? 0);
+        $pending   = $pendingId ? PendingBankChange::find($pendingId) : null;
+
+        if (! $pending || $pending->status !== 'pending') {
+            return $this->end('This bank change is no longer pending.');
+        }
+        if ($pending->isExpired()) {
+            $pending->update(['status' => 'expired']);
+            return $this->end('Code expired. Request a new change.');
+        }
+        if (! $pending->verifyCode(trim($input))) {
+            $pending->increment('failed_attempts');
+            return $this->end('Wrong code.');
+        }
+
+        // Code is right — show a confirmation screen with the masked new
+        // account so the subject is sure THEY are the one approving it.
+        $masked = $this->maskAccount((string) $pending->new_bank_account);
+        $session->update(['state' => UssdState::BankChangeChoice->value]);
+
+        return $this->cont(
+            "Apply bank change to {$pending->new_bank_name}\n"
+            . "Acct: {$masked}\n"
+            . "1. Approve\n2. Reject"
+        );
+    }
+
+    private function onBankChangeChoice(UssdSession $session, string $input): string
+    {
+        $pendingId = (int) ($session->context['bank_change_id'] ?? 0);
+        $pending   = $pendingId ? PendingBankChange::find($pendingId) : null;
+
+        if (! $pending || $pending->status !== 'pending') {
+            return $this->end('This bank change is no longer pending.');
+        }
+
+        try {
+            if ($input === '1') {
+                // The service verifies the code again on confirm() — feed it
+                // the code we already validated above by re-reading from a
+                // fresh confirmation. To avoid double-handling, we apply the
+                // change directly here since the code has already cleared.
+                $this->applyConfirmedChange($pending);
+                return $this->end('Bank change applied. Payroll will use the new account.');
+            }
+            if ($input === '2') {
+                $this->bankChanges->reject($pending, 'Subject rejected via USSD');
+                return $this->end('Bank change rejected. HR will be notified.');
+            }
+        } catch (DomainException $e) {
+            return $this->end($e->getMessage());
+        }
+
+        return $this->end('Invalid option.');
+    }
+
+    /**
+     * Apply a code-verified change directly without re-verifying the code
+     * (the BankChangeCode state already cleared it). Mirrors the body of
+     * BankChangeRequestService::confirm() minus the code check.
+     */
+    private function applyConfirmedChange(PendingBankChange $pending): void
+    {
+        DB::transaction(function () use ($pending) {
+            $pending->employee->update([
+                'bank_name'      => $pending->new_bank_name,
+                'bank_account'   => $pending->new_bank_account,
+                'bank_sort_code' => $pending->new_bank_sort_code,
+            ]);
+            $pending->update([
+                'status'       => 'applied',
+                'confirmed_at' => now(),
+                'applied_at'   => now(),
+            ]);
+        });
+    }
+
+    /** Show only the last 4 digits of an account number on a USSD screen. */
+    private function maskAccount(string $account): string
+    {
+        $digits = preg_replace('/\D+/', '', $account) ?? '';
+        $tail   = mb_substr($digits, -4);
+        return $tail !== '' ? str_repeat('*', max(0, mb_strlen($digits) - 4)) . $tail : '****';
     }
 
     private function resolveSession(string $sessionId, string $phone, string $shortcode): UssdSession

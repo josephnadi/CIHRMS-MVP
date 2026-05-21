@@ -5,7 +5,7 @@ import { size as offlineQueueSize, flush as flushOfflineQueue } from '@/composab
 
 const { canInstall, install, updateReady, applyUpdate, isStandalone } = usePwa();
 
-// â”€â”€ Install banner state (dismissable, persists across reloads) â”€â”€â”€â”€â”€â”€
+// ── Install banner state (dismissable, persists across reloads) ──────
 const STORAGE_KEY = 'cihrms.pwa.install.dismissedAt';
 const dismissed = ref(false);
 const showInstall = computed(() =>
@@ -22,7 +22,7 @@ const onInstall = async () => {
     if (outcome === 'dismissed') dismiss();
 };
 
-// â”€â”€ Offline status + queue badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Offline status + queue badge ─────────────────────────────────────
 const online = ref(navigator.onLine);
 const queuedCount = ref(0);
 
@@ -53,7 +53,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!-- â”€â”€ Install banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── Install banner ───────────────────────────────────────────── -->
     <div v-if="showInstall" class="pwa-banner pwa-banner-install" role="status" aria-live="polite">
         <span class="material-symbols-outlined pwa-icon">install_mobile</span>
         <div class="pwa-body">
@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
         </div>
     </div>
 
-    <!-- â”€â”€ Update-available toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── Update-available toast ───────────────────────────────────── -->
     <div v-if="updateReady" class="pwa-banner pwa-banner-update" role="alert">
         <span class="material-symbols-outlined pwa-icon">system_update</span>
         <div class="pwa-body">
@@ -76,7 +76,7 @@ onBeforeUnmount(() => {
         <button type="button" class="pwa-btn pwa-btn-primary" @click="applyUpdate">Reload</button>
     </div>
 
-    <!-- â”€â”€ Offline / queued-sync indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── Offline / queued-sync indicator ──────────────────────────── -->
     <div v-if="!online" class="pwa-banner pwa-banner-offline" role="status" aria-live="polite">
         <span class="pwa-pulse" aria-hidden="true"></span>
         <div class="pwa-body">

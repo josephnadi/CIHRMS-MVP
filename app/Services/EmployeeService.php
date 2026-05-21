@@ -13,6 +13,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeSkill;
+use App\Models\BenefitPlan;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -25,7 +26,10 @@ use Illuminate\Support\Facades\Storage;
 
 class EmployeeService
 {
-    public function __construct(private readonly EmployeeIdentifierService $ids = new EmployeeIdentifierService()) {}
+    public function __construct(
+        private readonly EmployeeIdentifierService $ids = new EmployeeIdentifierService(),
+        private readonly ?BenefitsService $benefits = null,
+    ) {}
 
     public function create(StoreEmployeeRequest $request): Employee
     {
@@ -57,6 +61,7 @@ class EmployeeService
             $employeeData = collect($data)->except([
                 'create_user', 'user_name', 'user_email',
                 'user_role', 'user_password', 'staff_id',
+                'benefit_plan_ids',
             ])->all();
 
             if (empty($employeeData['employee_no'])) {
@@ -64,6 +69,17 @@ class EmployeeService
             }
 
             $employee = Employee::create(array_merge($employeeData, ['user_id' => $userId]));
+
+            // Enrol the new employee in any selected benefit plans. Premium is
+            // derived from the plan's contribution % so HR doesn't have to enter
+            // it manually for each new hire.
+            $planIds = $data['benefit_plan_ids'] ?? [];
+            if ($this->benefits && ! empty($planIds)) {
+                $effective = $employee->hire_date ?? now();
+                foreach (BenefitPlan::whereIn('id', $planIds)->active()->get() as $plan) {
+                    $this->benefits->enrol($plan, $employee, $effective, actor: $request->user());
+                }
+            }
 
             event(new EmployeeCreated($employee, $request->user()));
 
@@ -226,6 +242,7 @@ class EmployeeService
             'documents',
             'skills',
             'reports.user',
+            'benefitEnrolments.plan',
         ])->findOrFail($id);
     }
 

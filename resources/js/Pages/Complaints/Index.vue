@@ -24,10 +24,10 @@ const canManage = computed(() => {
     return perms.includes('*') || perms.includes('complaints.manage');
 });
 
-// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tabs ─────────────────────────────────────────────────────────────────────
 const tab = ref(canManage.value ? 'queue' : 'submit');
 
-// â”€â”€ Submit form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Submit form ──────────────────────────────────────────────────────────────
 const form = useForm({
     submitted_by: '',
     details:      '',
@@ -50,14 +50,14 @@ const submit = () => {
     });
 };
 
-// â”€â”€ Track form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Track form ───────────────────────────────────────────────────────────────
 const trackRef = ref('');
 const doTrack = () => {
     if (!trackRef.value.trim()) return;
     router.get(route('complaints.track'), { reference: trackRef.value.trim() });
 };
 
-// â”€â”€ Status filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Status filter ────────────────────────────────────────────────────────────
 const statusFilter = ref(props.filters?.status ?? '');
 
 const applyFilter = () => {
@@ -66,7 +66,7 @@ const applyFilter = () => {
     }, { preserveState: true, replace: true });
 };
 
-// â”€â”€ Inline status update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Inline status update ─────────────────────────────────────────────────────
 const updateStatus = (complaint, newStatus) => {
     router.patch(route('complaints.updateStatus', complaint.id), { status: newStatus }, {
         preserveScroll: true,
@@ -81,14 +81,14 @@ const reassign = (complaint, userId) => {
     );
 };
 
-// â”€â”€ Detail panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Detail panel ─────────────────────────────────────────────────────────────
 const selected = ref(null);
 
 const openDetail = (complaint) => {
     selected.value = complaint;
 };
 
-// â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stats ────────────────────────────────────────────────────────────────────
 const stats = computed(() => {
     const data = props.complaints?.data ?? [];
     return {
@@ -118,7 +118,7 @@ const editionLabel = computed(() => {
 });
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 </script>
@@ -184,7 +184,7 @@ const formatDate = (d) => {
                     </button>
                 </div>
 
-                <!-- â”€â”€ Submit tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Submit tab ────────────────────────────────────────────────── -->
                 <div v-if="tab === 'submit'" class="max-w-2xl">
                     <div v-if="submittedRef" class="rounded-2xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 p-6">
                         <div class="flex items-start gap-3">
@@ -234,7 +234,7 @@ const formatDate = (d) => {
                                 <textarea
                                     v-model="form.details"
                                     rows="8"
-                                    placeholder="Provide a clear and detailed account of your complaint. Include dates, locations, persons involved, and any relevant contextâ€¦"
+                                    placeholder="Provide a clear and detailed account of your complaint. Include dates, locations, persons involved, and any relevant context…"
                                     required
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                                     :class="{ 'border-red-400': form.errors.details }"
@@ -258,7 +258,7 @@ const formatDate = (d) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Track tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Track tab ─────────────────────────────────────────────────── -->
                 <div v-if="tab === 'track'" class="max-w-xl">
                     <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
                         <h3 class="text-[14px] font-bold text-on-surface mb-1">Track Your Complaint</h3>
@@ -286,7 +286,7 @@ const formatDate = (d) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Management queue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Management queue ──────────────────────────────────────────── -->
                 <div v-if="tab === 'queue' && canManage" class="space-y-6">
 
                     <!-- Stats — Total Complaints gets gold (institutional governance oversight) -->

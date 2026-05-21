@@ -15,6 +15,8 @@ enum UssdState: string
     case PayslipMenu       = 'payslip_menu';
     case LeaveBalance      = 'leave_balance';
     case ClockMenu         = 'clock_menu';
+    case BankChangeCode    = 'bank_change_code';     // awaiting 6-digit confirmation code
+    case BankChangeChoice  = 'bank_change_choice';   // confirm / reject after code is correct
     case WhistleblowerCode = 'whistleblower_code';
     case WhistleblowerStatus = 'whistleblower_status';
     case Terminated        = 'terminated';

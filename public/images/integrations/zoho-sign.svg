@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Zoho Sign">
+  <rect width="64" height="64" rx="14" fill="#FFFFFF" stroke="#E5E5E5"/>
+  <!-- Document outline -->
+  <path d="M18 10 H38 L48 20 V52 c0 1.1 -0.9 2 -2 2 H18 c-1.1 0 -2 -0.9 -2 -2 V12 c0 -1.1 0.9 -2 2 -2 Z"
+        fill="#FFF3F3" stroke="#E42528" stroke-width="2"/>
+  <path d="M38 10 V20 H48" fill="none" stroke="#E42528" stroke-width="2"/>
+  <!-- Signature stroke -->
+  <path d="M22 40 c4 -8 9 -8 12 -2 c3 6 8 6 10 0"
+        fill="none" stroke="#E42528" stroke-width="2.4" stroke-linecap="round"/>
+  <line x1="22" y1="48" x2="44" y2="48" stroke="#F9B21D" stroke-width="2" stroke-linecap="round"/>
+</svg>

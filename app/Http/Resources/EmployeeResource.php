@@ -91,6 +91,22 @@ class EmployeeResource extends JsonResource
                 'status'      => $p->status?->value,
                 'paid_at'     => $p->paid_at?->toISOString(),
             ])),
+            'benefit_enrolments' => $this->whenLoaded('benefitEnrolments', fn () => $this->benefitEnrolments->map(fn ($e) => [
+                'id'              => $e->id,
+                'status'          => is_object($e->status) ? $e->status->value : $e->status,
+                'enrolled_at'     => $e->enrolled_at?->toDateString(),
+                'effective_from'  => $e->effective_from?->toDateString(),
+                'effective_to'    => $e->effective_to?->toDateString(),
+                'monthly_premium' => $e->monthly_premium,
+                'plan'            => $e->plan ? [
+                    'id'           => $e->plan->id,
+                    'name'         => $e->plan->name,
+                    'code'         => $e->plan->code,
+                    'type'         => $e->plan->type,
+                    'provider'     => $e->plan->provider,
+                    'monthly_cost' => $e->plan->monthly_cost,
+                ] : null,
+            ])),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

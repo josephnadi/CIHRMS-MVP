@@ -29,11 +29,11 @@ watch(selectedCycle, (val) => {
     }, { preserveState: true, replace: true });
 });
 
-// Cells are returned ordered by service: potential (highâ†’low) Ã— performance (lowâ†’high)
+// Cells are returned ordered by service: potential (highâ†’low) × performance (lowâ†’high)
 const cells = computed(() => props.matrix?.cells ?? []);
 
-// â”€â”€ Cell metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// The grid renders as a 3Ã—3 matrix: rows = potential (high, medium, low), cols = performance (low, medium, high)
+// ── Cell metadata ─────────────────────────────────────────────────────────────
+// The grid renders as a 3×3 matrix: rows = potential (high, medium, low), cols = performance (low, medium, high)
 const CELL_META = {
     high_low:      {
         label:       'Enigma',
@@ -111,7 +111,7 @@ const CELL_META = {
 
 const meta = (key) => CELL_META[key] ?? CELL_META.medium_medium;
 
-// â”€â”€ Grid layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Grid layout ───────────────────────────────────────────────────────────────
 // Rows: potential (high â†’ medium â†’ low)
 // Cols: performance (low â†’ medium â†’ high)
 const GRID_ROWS = ['high', 'medium', 'low'];
@@ -121,7 +121,7 @@ const cellAt = (potential, performance) =>
     cells.value.find(c => c.potential === potential && c.performance === performance)
     ?? { key: `${potential}_${performance}`, potential, performance, count: 0, employees: [] };
 
-// â”€â”€ Cell detail slide panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Cell detail slide panel ────────────────────────────────────────────────────
 const activeCellKey  = ref(null);
 const showCellPanel  = ref(false);
 
@@ -136,7 +136,7 @@ const openCell = (cell) => {
     showCellPanel.value  = true;
 };
 
-// â”€â”€ Bucket totals for legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Bucket totals for legend ───────────────────────────────────────────────────
 const buckets = computed(() => {
     const star  = ['high_high', 'medium_high', 'low_high'];
     const inv   = ['high_medium', 'high_low', 'medium_medium'];
@@ -152,7 +152,7 @@ const buckets = computed(() => {
     ];
 });
 
-// â”€â”€ Avatar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Avatar helpers ─────────────────────────────────────────────────────────────
 // Avatar gradient pool — disciplined cool family
 const GRADIENTS = [
     'linear-gradient(135deg,#0d1452,#1a237e)',
@@ -184,9 +184,9 @@ const initials = (name) => {
                         </div>
                         <h2 class="mt-1 text-[1.6rem] font-black tracking-tight text-on-surface leading-tight">9-Box Talent Matrix</h2>
                         <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
-                            Performance Ã— Potential. Bucketed from submitted review ratings.
+                            Performance × Potential. Bucketed from submitted review ratings.
                             <span v-if="matrix?.cycle" class="ml-2 inline-flex items-center rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary">
-                                {{ matrix.cycle.name }} Â· {{ matrix.total }} placed
+                                {{ matrix.cycle.name }} · {{ matrix.total }} placed
                             </span>
                         </p>
                     </div>
@@ -223,7 +223,7 @@ const initials = (name) => {
 
             <div class="p-6 space-y-6 animate-reveal-up">
 
-                <!-- â”€â”€ No data state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── No data state ─────────────────────────────────────────────── -->
                 <div v-if="!matrix?.cycle" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-16">
                     <EmptyState
                         title="No active review cycle"
@@ -245,7 +245,7 @@ const initials = (name) => {
 
                 <template v-else>
 
-                    <!-- â”€â”€ Bucket summary cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                    <!-- ── Bucket summary cards ────────────────────────────────── -->
                     <div class="grid grid-cols-3 gap-4">
                         <div
                             v-for="(bkt, i) in buckets"
@@ -262,7 +262,7 @@ const initials = (name) => {
                         </div>
                     </div>
 
-                    <!-- â”€â”€ The 9-box grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                    <!-- ── The 9-box grid ─────────────────────────────────────── -->
                     <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden shadow-card">
                         <!-- Column headers: Performance axis -->
                         <div class="border-b border-outline-variant/40 bg-surface-container/40 px-5 py-3">
@@ -388,7 +388,7 @@ const initials = (name) => {
                 </template>
             </div>
 
-            <!-- â”€â”€ Cell Detail SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Cell Detail SlidePanel ─────────────────────────────────────── -->
             <SlidePanel
                 :open="showCellPanel"
                 :title="activeMeta.label"
@@ -416,9 +416,9 @@ const initials = (name) => {
                         <p class="text-[12px] text-on-surface-variant/80 leading-relaxed">{{ activeMeta.description }}</p>
                         <div class="mt-2 flex items-center gap-3 text-[11px] text-on-surface-variant/60">
                             <span>Performance: <strong class="text-on-surface capitalize">{{ activeCell.performance }}</strong></span>
-                            <span class="text-outline-variant">Â·</span>
+                            <span class="text-outline-variant">·</span>
                             <span>Potential: <strong class="text-on-surface capitalize">{{ activeCell.potential }}</strong></span>
-                            <span class="text-outline-variant">Â·</span>
+                            <span class="text-outline-variant">·</span>
                             <span class="font-bold" :style="`color:rgb(${activeMeta.tint})`">{{ activeCell.count }} employees</span>
                         </div>
                     </div>
@@ -455,14 +455,14 @@ const initials = (name) => {
                                     <p
                                         class="text-[16px] font-black font-mono tabular-nums"
                                         :style="`color:rgb(${activeMeta.tint})`"
-                                    >{{ emp.avg_perf?.toFixed(1) ?? 'â€”' }}</p>
+                                    >{{ emp.avg_perf?.toFixed(1) ?? '—' }}</p>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-[9px] font-black uppercase tracking-wider text-on-surface-variant/50">Pot</p>
                                     <p
                                         class="text-[16px] font-black font-mono tabular-nums"
                                         :style="`color:rgb(${activeMeta.tint})`"
-                                    >{{ emp.avg_pot?.toFixed(1) ?? 'â€”' }}</p>
+                                    >{{ emp.avg_pot?.toFixed(1) ?? '—' }}</p>
                                 </div>
                             </div>
                         </div>

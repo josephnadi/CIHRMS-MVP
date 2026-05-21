@@ -8,14 +8,14 @@ const items = computed(() => page.props.announcementTicker ?? []);
 const sfx   = useSound();
 let knownIds = new Set();
 
-// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── State ─────────────────────────────────────────────────────────
 const paused       = ref(false);
 const dismissed    = ref(false);
 const refreshing   = ref(false);
 const lastSyncedAt = ref(new Date());
 const pulse        = ref(0); // bumps when items change â†’ triggers content fade
 
-// â”€â”€ Polling: every 60s, partial-reload only the ticker payload â”€â”€â”€â”€
+// ── Polling: every 60s, partial-reload only the ticker payload ────
 const POLL_MS = 60_000;
 let pollHandle = null;
 
@@ -86,7 +86,7 @@ watch(
 );
 onMounted(() => { knownIds = new Set(items.value.map(i => i.id)); });
 
-// â”€â”€ Visual helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Visual helpers ────────────────────────────────────────────────
 const speedSec = computed(() => Math.max(32, items.value.length * 7));
 
 // Friendly "synced 2m ago" label
@@ -137,7 +137,7 @@ const typeAccent = (type) => ({
              @mouseenter="paused = true"
              @mouseleave="paused = false">
 
-            <!-- Leading label chip Â· navy with pulsing gold "live" dot -->
+            <!-- Leading label chip · navy with pulsing gold "live" dot -->
             <div class="tk-label">
                 <span class="tk-live" aria-hidden="true">
                     <span class="tk-live-dot" :class="{ 'tk-live-dot--spin': refreshing }"></span>
@@ -220,7 +220,7 @@ const typeAccent = (type) => ({
 </template>
 
 <style scoped>
-/* â”€â”€â”€ Shell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Shell ────────────────────────────────────────────────────────── */
 .tk-shell {
     position: relative;
     display: flex;
@@ -247,7 +247,7 @@ const typeAccent = (type) => ({
     z-index: 0;
 }
 
-/* â”€â”€â”€ Leading label Â· navy chip with gold "live" pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Leading label · navy chip with gold "live" pulse ─────────────── */
 .tk-label {
     position: relative;
     display: flex;
@@ -315,7 +315,7 @@ const typeAccent = (type) => ({
     100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* â”€â”€â”€ Viewport + marquee â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Viewport + marquee ──────────────────────────────────────────── */
 .tk-viewport {
     position: relative;
     flex: 1;
@@ -350,7 +350,7 @@ const typeAccent = (type) => ({
 .tk-cross-enter-from,
 .tk-cross-leave-to     { opacity: 0; }
 
-/* â”€â”€â”€ Item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Item ───────────────────────────────────────────────────────── */
 .tk-item {
     position: relative;
     display: inline-flex;
@@ -406,7 +406,7 @@ const typeAccent = (type) => ({
 .tk-fade--left  { left: 0;  background: linear-gradient(90deg,  #1a237e, transparent); }
 .tk-fade--right { right: 0; background: linear-gradient(270deg, #3949ab, transparent); }
 
-/* â”€â”€â”€ Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Controls ───────────────────────────────────────────────────── */
 .tk-ctl {
     display: flex;
     align-items: center;
@@ -448,14 +448,14 @@ const typeAccent = (type) => ({
     to { transform: rotate(360deg); }
 }
 
-/* â”€â”€â”€ Reduced motion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Reduced motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     .tk-track     { animation: none; }
     .tk-live-ring { animation: none; }
     .tk-spin      { animation: none; }
 }
 
-/* â”€â”€â”€ Small screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Small screens ──────────────────────────────────────────────── */
 @media (max-width: 640px) {
     .tk-label-text { display: none; }
     .tk-label      { padding: 0 10px 0 8px; gap: 6px; }

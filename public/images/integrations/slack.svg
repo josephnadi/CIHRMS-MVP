@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Slack">
+  <!-- Four-colour interlocking bars in Slack's canonical palette. -->
+  <g>
+    <rect x="6"  y="26" width="22" height="9" rx="4.5" fill="#36C5F0"/>
+    <rect x="36" y="26" width="22" height="9" rx="4.5" fill="#2EB67D"/>
+    <rect x="26" y="6"  width="9" height="22" rx="4.5" fill="#ECB22E"/>
+    <rect x="26" y="36" width="9" height="22" rx="4.5" fill="#E01E5A"/>
+  </g>
+  <g>
+    <circle cx="10.5" cy="30.5" r="4.5" fill="#36C5F0"/>
+    <circle cx="30.5" cy="10.5" r="4.5" fill="#ECB22E"/>
+    <circle cx="53.5" cy="30.5" r="4.5" fill="#2EB67D"/>
+    <circle cx="30.5" cy="53.5" r="4.5" fill="#E01E5A"/>
+  </g>
+</svg>

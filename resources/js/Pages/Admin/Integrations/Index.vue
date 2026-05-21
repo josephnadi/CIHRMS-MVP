@@ -75,7 +75,7 @@ const filters = [
     { key: 'esign',       label: 'e-Sign' },
 ];
 
-const fmtDate = (s) => s ? new Date(s).toLocaleString() : 'â€”';
+const fmtDate = (s) => s ? new Date(s).toLocaleString() : '—';
 
 const statusPill = (status) => {
     const map = {
@@ -264,7 +264,7 @@ const statusPill = (status) => {
                                 </span>
                                 <span class="text-[12px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70">{{ capability }}</span>
                             </div>
-                            <span class="text-[12px] font-mono text-on-surface">{{ provider ?? 'â€”' }}</span>
+                            <span class="text-[12px] font-mono text-on-surface">{{ provider ?? '—' }}</span>
                         </div>
                     </div>
                 </section>
@@ -306,8 +306,8 @@ const statusPill = (status) => {
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
                                     <span class="font-mono text-[12px] font-bold text-on-surface">{{ e.event_type }}</span>
-                                    <span class="text-[11px] text-on-surface-variant/70">Â·</span>
-                                    <span class="text-[11px] text-on-surface-variant">{{ e.integration?.display_name ?? 'â€”' }}</span>
+                                    <span class="text-[11px] text-on-surface-variant/70">·</span>
+                                    <span class="text-[11px] text-on-surface-variant">{{ e.integration?.display_name ?? '—' }}</span>
                                 </div>
                                 <p v-if="e.error" class="mt-0.5 text-[11px] text-red-600 line-clamp-1">{{ e.error }}</p>
                             </div>

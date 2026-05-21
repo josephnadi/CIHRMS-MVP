@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Google">
+  <!-- Stylised 4-colour ring + bar — recognisable Google palette without copying the trademarked glyph. -->
+  <g fill="none" stroke-width="9" stroke-linecap="butt">
+    <path d="M32 8 A24 24 0 0 1 56 32"  stroke="#EA4335"/>
+    <path d="M56 32 A24 24 0 0 1 32 56" stroke="#FBBC04"/>
+    <path d="M32 56 A24 24 0 0 1 8 32"  stroke="#34A853"/>
+    <path d="M8 32 A24 24 0 0 1 32 8"   stroke="#4285F4"/>
+  </g>
+  <rect x="32" y="28" width="20" height="9" fill="#4285F4"/>
+</svg>

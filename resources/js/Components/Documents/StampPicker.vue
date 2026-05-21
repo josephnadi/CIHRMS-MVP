@@ -39,8 +39,10 @@ const customColor = ref('#cc0000');
                 <p class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Custom</p>
                 <div class="flex items-center gap-2">
                     <input v-model="customText" placeholder="STAMP TEXT" maxlength="20"
+                           aria-label="Custom stamp text"
                            class="flex-1 rounded-lg border border-outline-variant text-[13px] px-3 py-2 font-bold uppercase" />
-                    <input v-model="customColor" type="color" class="rounded-lg border border-outline-variant w-10 h-10" />
+                    <input v-model="customColor" type="color" aria-label="Custom stamp colour"
+                           class="rounded-lg border border-outline-variant w-10 h-10" />
                     <button :disabled="! customText.trim()"
                             @click="emit('stamp', { text: customText.trim().toUpperCase(), color: customColor })"
                             class="rounded-lg px-3 py-2 text-[12px] font-black text-white disabled:opacity-40"

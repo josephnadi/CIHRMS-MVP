@@ -14,20 +14,20 @@ const props = defineProps({
     activeModule:   String,
 });
 
-// â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Auth ──────────────────────────────────────────────────────────────────────
 const page = usePage();
 const authUser = computed(() => page.props.auth?.user ?? null);
 const userName = computed(() => authUser.value?.name ?? 'Learner');
 const firstName = computed(() => userName.value.split(' ')[0]);
 
-// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Data ──────────────────────────────────────────────────────────────────────
 const enrolments     = computed(() => props.enrolments?.data     ?? []);
 const certifications = computed(() => props.certifications?.data ?? []);
 
 const inProgress  = computed(() => enrolments.value.filter(e => e.status !== 'completed' && e.status_label?.toLowerCase() !== 'completed'));
 const completed   = computed(() => enrolments.value.filter(e => e.status === 'completed' || e.status_label?.toLowerCase() === 'completed'));
 
-// â”€â”€ Progress modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Progress modal ────────────────────────────────────────────────────────────
 const progressEnrolment = ref(null);
 const progressForm      = useForm({ progress_pct: 0, final_score: '' });
 
@@ -44,7 +44,7 @@ const submitProgress = () => {
     });
 };
 
-// â”€â”€ Add-cert SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Add-cert SlidePanel ───────────────────────────────────────────────────────
 const showAddCert = ref(false);
 const certForm = useForm({
     employee_id:      null,
@@ -71,7 +71,7 @@ const submitCert = () => {
     });
 };
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const progressColor = (pct) => {
     if ((pct ?? 0) >= 80) return '#059669';
     if ((pct ?? 0) >= 40) return '#1a237e';
@@ -88,7 +88,7 @@ const expiryTone = (days) => {
 };
 
 const formatDate = (d) => {
-    if (!d) return 'â€“';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
@@ -113,7 +113,7 @@ const ringProps = (pct, r = 28) => {
 <template>
     <Head title="My Learning" />
     <div data-page-root="true">
-            <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Header ─────────────────────────────────────────────────────── -->
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
@@ -150,7 +150,7 @@ const ringProps = (pct, r = 28) => {
 
             <div class="space-y-6 animate-reveal-up">
 
-                <!-- â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Hero card ──────────────────────────────────────────────── -->
                 <div
                     class="relative rounded-2xl overflow-hidden p-6 md:p-8"
                     style="background:linear-gradient(135deg,#0d1452,#1a237e,#1e5f9c)"
@@ -166,7 +166,7 @@ const ringProps = (pct, r = 28) => {
                                 Welcome back, {{ firstName }}
                             </h3>
                             <p class="mt-1 text-[13px] text-white/70">
-                                Keep the momentum going â€” every course brings you closer to your next milestone.
+                                Keep the momentum going — every course brings you closer to your next milestone.
                             </p>
                         </div>
 
@@ -196,12 +196,12 @@ const ringProps = (pct, r = 28) => {
                     >
                         <span class="material-symbols-outlined text-[18px] text-amber-300" style="font-variation-settings:'FILL' 1">warning</span>
                         <p class="text-[12px] font-semibold text-amber-100">
-                            {{ stats.expiring }} certification{{ stats.expiring === 1 ? '' : 's' }} expiring within 60 days â€” renew soon.
+                            {{ stats.expiring }} certification{{ stats.expiring === 1 ? '' : 's' }} expiring within 60 days — renew soon.
                         </p>
                     </div>
                 </div>
 
-                <!-- â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Stat cards ─────────────────────────────────────────────── -->
                 <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <div
                         v-for="(s, i) in [
@@ -225,7 +225,7 @@ const ringProps = (pct, r = 28) => {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Active enrolments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Active enrolments ──────────────────────────────────────── -->
                 <section>
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Active Enrolments</h3>
@@ -265,7 +265,7 @@ const ringProps = (pct, r = 28) => {
                                         :style="`background:${e.status_color}1a;color:${e.status_color}`"
                                     >{{ e.status_label }}</span>
 
-                                    <h4 class="text-[14px] font-black text-on-surface leading-tight line-clamp-2">{{ e.course?.title ?? 'â€“' }}</h4>
+                                    <h4 class="text-[14px] font-black text-on-surface leading-tight line-clamp-2">{{ e.course?.title ?? '—' }}</h4>
                                     <p v-if="e.course?.provider" class="mt-0.5 font-mono text-[10.5px] text-on-surface-variant/60">{{ e.course.provider }}</p>
 
                                     <!-- Meta chips -->
@@ -330,7 +330,7 @@ const ringProps = (pct, r = 28) => {
                     </div>
                 </section>
 
-                <!-- â”€â”€ Recommended for you (placeholder section) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Recommended for you (placeholder section) ──────────────── -->
                 <section>
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Recommended for You</h3>
@@ -349,7 +349,7 @@ const ringProps = (pct, r = 28) => {
                     </div>
                 </section>
 
-                <!-- â”€â”€ Certifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Certifications ─────────────────────────────────────────── -->
                 <section>
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Certifications Earned</h3>
@@ -434,7 +434,7 @@ const ringProps = (pct, r = 28) => {
                     </div>
                 </section>
 
-                <!-- â”€â”€ Completed courses (compact) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Completed courses (compact) ────────────────────────────── -->
                 <section v-if="completed.length">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Completed Courses</h3>
@@ -456,7 +456,7 @@ const ringProps = (pct, r = 28) => {
                                     </span>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h4 class="text-[13px] font-bold text-on-surface truncate">{{ e.course?.title ?? 'â€“' }}</h4>
+                                    <h4 class="text-[13px] font-bold text-on-surface truncate">{{ e.course?.title ?? '—' }}</h4>
                                     <p class="text-[11px] text-on-surface-variant/60 mt-0.5">
                                         {{ e.course?.provider ?? '' }}
                                         <span v-if="e.final_score" class="ml-2 text-emerald-600 font-bold">Score: {{ e.final_score }}%</span>
@@ -484,10 +484,10 @@ const ringProps = (pct, r = 28) => {
 
             </div>
 
-            <!-- â”€â”€ Update Progress SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Update Progress SlidePanel ────────────────────────────────── -->
             <SlidePanel
                 :open="!!progressEnrolment"
-                :title="progressEnrolment ? `Update Progress Â· ${progressEnrolment.course?.title ?? 'Course'}` : 'Update Progress'"
+                :title="progressEnrolment ? `Update Progress · ${progressEnrolment.course?.title ?? 'Course'}` : 'Update Progress'"
                 size="md"
                 @close="progressEnrolment = null"
             >
@@ -578,7 +578,7 @@ const ringProps = (pct, r = 28) => {
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Add External Certification SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Add External Certification SlidePanel ─────────────────────── -->
             <SlidePanel
                 :open="showAddCert"
                 title="Add External Certification"
@@ -649,7 +649,7 @@ const ringProps = (pct, r = 28) => {
                             v-model="certForm.verification_url"
                             type="url"
                             maxlength="255"
-                            placeholder="https://verify.example.com/â€¦"
+                            placeholder="https://verify.example.com/…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                         />
                     </div>

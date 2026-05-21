@@ -16,6 +16,9 @@ class DataSubjectRequest extends Model
 
     protected $fillable = [
         'reference', 'subject_user_id', 'request_type', 'status',
+        // Public-submission columns — populated when the subject has no User
+        // row (ex-employee whose account was purged, failed applicant).
+        'subject_email', 'subject_full_name', 'verification_token', 'verified_at',
         'subject_statement', 'rectification_details', 'objection_purpose',
         'submitted_at', 'target_completion_date',
         'acknowledged_at', 'completed_at',
@@ -24,6 +27,12 @@ class DataSubjectRequest extends Model
         'export_path', 'export_sha256', 'export_generated_at',
         'tombstone_log', 'audit_trail',
     ];
+
+    /**
+     * `verification_token` is sensitive — never expose to the DPO admin
+     * view since it would let them impersonate the subject's tracking page.
+     */
+    protected $hidden = ['verification_token'];
 
     protected function casts(): array
     {
@@ -35,9 +44,22 @@ class DataSubjectRequest extends Model
             'acknowledged_at'        => 'datetime',
             'completed_at'           => 'datetime',
             'export_generated_at'    => 'datetime',
+            'verified_at'            => 'datetime',
             'tombstone_log'          => 'array',
             'audit_trail'            => 'array',
         ];
+    }
+
+    /** Public submissions (no User row) — pre-verification stage. */
+    public function isPublic(): bool
+    {
+        return $this->subject_user_id === null;
+    }
+
+    /** Has the public subject clicked the emailed magic link yet? */
+    public function isVerified(): bool
+    {
+        return $this->verified_at !== null;
     }
 
     public function subject(): BelongsTo

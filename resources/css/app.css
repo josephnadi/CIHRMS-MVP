@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* â”€â”€â”€ Design Token CSS Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─── Design Token CSS Variables ─────────────────────────
    RGB triplet format so Tailwind opacity modifiers work:
    bg-background/80  â†’  rgb(var(--ct-background) / 0.8)
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+─────────────────────────────────────────────────────────── */
 :root {
     /* Surface */
     --ct-background:      244 246 249;   /* #f4f6f9 */
-    --ct-surface-lowest:  255 255 255;   /* #ffffff  â€“ cards */
-    --ct-surface-low:     242 244 246;   /* #f2f4f6  â€“ table heads, inputs */
-    --ct-surface:         236 238 240;   /* #eceef0  â€“ hover */
+    --ct-surface-lowest:  255 255 255;   /* #ffffff  — cards */
+    --ct-surface-low:     242 244 246;   /* #f2f4f6  — table heads, inputs */
+    --ct-surface:         236 238 240;   /* #eceef0  — hover */
     --ct-surface-high:    230 232 234;   /* #e6e8ea */
     --ct-surface-highest: 224 227 229;   /* #e0e3e5 */
 
@@ -32,13 +32,13 @@
     --ct-on-primary: 255 255 255;        /* #ffffff */
 }
 
-/* â”€â”€ Dark mode token overrides â”€â”€ */
+/* ── Dark mode token overrides ── */
 .dark {
     /* Surface */
     --ct-background:      15 17 23;      /* #0f1117 */
-    --ct-surface-lowest:  20 24 36;      /* #141824 â€“ cards */
-    --ct-surface-low:     28 32 48;      /* #1c2030 â€“ table heads, inputs */
-    --ct-surface:         34 38 56;      /* #222638 â€“ hover */
+    --ct-surface-lowest:  20 24 36;      /* #141824 — cards */
+    --ct-surface-low:     28 32 48;      /* #1c2030 — table heads, inputs */
+    --ct-surface:         34 38 56;      /* #222638 — hover */
     --ct-surface-high:    40 44 62;      /* #282c3e */
     --ct-surface-highest: 46 50 68;      /* #2e3244 */
 
@@ -59,7 +59,7 @@
     --ct-on-primary: 15 17 23;             /* #0f1117 */
 }
 
-/* â”€â”€â”€ Base Resets & Global â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Base Resets & Global ────────────────────────────── */
 /* ────────────────────────────────────────────────────────────────────
    WCAG 2.1 AA accessibility layer (WS22)
    Lives OUTSIDE @layer base so the rules are not overridden by Tailwind
@@ -533,19 +533,19 @@ html[data-theme="high-contrast"].dark {
     ::-webkit-scrollbar-thumb:hover { background: #1a237e; }
     .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
-    /* Sidebar scrollbar â€“ light mode */
+    /* Sidebar scrollbar — light mode */
     .sidebar-scroll::-webkit-scrollbar       { width: 3px; }
     .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
     .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(26, 35, 126,0.3); }
-    /* Sidebar scrollbar â€“ dark mode */
+    /* Sidebar scrollbar — dark mode */
     .dark .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
     .dark .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 }
 
-/* â”€â”€â”€ Component Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Component Utilities ─────────────────────────────── */
 @layer components {
 
-    /* Gradient text â€” deep navy â†’ action blue â†’ bright blue */
+    /* Gradient text — deep navy â†’ action blue â†’ bright blue */
     .text-gradient {
         background: linear-gradient(135deg, #0d1452 0%, #1a237e 55%, #3949ab 100%);
         -webkit-background-clip: text;
@@ -558,7 +558,7 @@ html[data-theme="high-contrast"].dark {
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    /* Reserved high-energy accent gradient â€” use sparingly for one-off marks */
+    /* Reserved high-energy accent gradient — use sparingly for one-off marks */
     .text-gradient-spark {
         background: linear-gradient(135deg, #12d9e3 0%, #1a237e 50%, #d912e3 100%);
         -webkit-background-clip: text;
@@ -711,9 +711,9 @@ html[data-theme="high-contrast"].dark {
     }
 }
 
-/* â”€â”€â”€ Dark mode: Colored surface overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─── Dark mode: Colored surface overrides ───────────────
    These win over Tailwind utilities via specificity (.dark .*)
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+─────────────────────────────────────────────────────────── */
 .dark .bg-red-50    { background-color: rgba(127,29,29,0.25) !important; }
 .dark .bg-green-50  { background-color: rgba(20,83,45,0.25)  !important; }
 .dark .bg-blue-50   { background-color: rgba(23,37,84,0.25)  !important; }
@@ -729,7 +729,7 @@ html[data-theme="high-contrast"].dark {
 .dark .border-blue-100  { border-color: rgba(23,37,84,0.4)   !important; }
 .dark .border-amber-100 { border-color: rgba(120,53,15,0.4)  !important; }
 
-/* â”€â”€â”€ Utility Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Utility Overrides ───────────────────────────────── */
 @layer utilities {
     /* Animation delays */
     .delay-75   { animation-delay: 75ms; }
@@ -779,13 +779,13 @@ html[data-theme="high-contrast"].dark {
     .ring-inset-secondary { box-shadow: inset 0 0 0 1.5px rgba(26, 35, 126,0.5); }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   CIHRMS Â· auth form treatment (shared by Login + Register)
+/* ────────────────────────────────────────────────────────────────────
+   CIHRMS · auth form treatment (shared by Login + Register)
    Blue-dominant. Gold reserved as a 5% accent (folio number + a
    single hairline). Cyan/magenta appear only as caret/error sparks.
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+──────────────────────────────────────────────────────────────────── */
 
-/* â”€â”€ SSO sign-in stack (Phase 4 / WS19) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── SSO sign-in stack (Phase 4 / WS19) ─────────────────────────── */
 .sso-stack {
     display: flex; flex-direction: column; gap: 0.6rem;
     margin: 0 0 1.8rem;
@@ -832,7 +832,7 @@ html[data-theme="high-contrast"].dark {
     text-transform: uppercase; letter-spacing: 0.16em;
     color: #5a6b80;
 }
-.auth-folio-num   { color: #b88a08; font-weight: 700; }  /* gold â€” 5% accent */
+.auth-folio-num   { color: #b88a08; font-weight: 700; }  /* gold — 5% accent */
 .auth-folio-rule  { flex: 1; height: 1px; background: rgba(13, 20, 82,0.16); }
 .auth-folio-label { color: #0d1452; }
 
@@ -947,7 +947,7 @@ html[data-theme="high-contrast"].dark {
     font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #d912e3;     /* magenta spark â€” reserved error signal */
+    color: #d912e3;     /* magenta spark — reserved error signal */
 }
 
 .field-row {
@@ -1022,7 +1022,7 @@ html[data-theme="high-contrast"].dark {
 .auth-submit:active:not(:disabled) { transform: translateY(0); }
 .auth-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
-/* The shimmer is the ONE moment gold appears on the form â€” a thin
+/* The shimmer is the ONE moment gold appears on the form — a thin
    sweep across the CTA on hover. This is the 5% rule in action. */
 .auth-submit-shimmer {
     position: absolute; inset: 0;

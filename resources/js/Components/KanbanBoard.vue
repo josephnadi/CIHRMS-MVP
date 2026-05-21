@@ -20,7 +20,7 @@ const props = defineProps({
 
 const emit = defineEmits(['move', 'add']);
 
-// â”€â”€ Drag state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Drag state ───────────────────────────────────────────────────────────────
 const draggingItemId   = ref(null);
 const draggingFromCol  = ref(null);
 const hoveredColumnId  = ref(null);
@@ -93,7 +93,7 @@ function onDrop(toColumnId, ev) {
     emit('move', { itemId, fromColumnId, toColumnId });
 }
 
-// â”€â”€ Kebab menu state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Kebab menu state ─────────────────────────────────────────────────────────
 const openKebabId = ref(null);
 
 function toggleKebab(itemId, ev) {
@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
     document.removeEventListener('keydown', onEsc);
 });
 
-// â”€â”€ Theming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Theming ──────────────────────────────────────────────────────────────────
 const colorMap = {
     blue:   { dot: 'bg-cyan-500',   badge: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300',     header: 'text-cyan-700 dark:text-cyan-300',     ring: 'ring-cyan-400/40   bg-cyan-50/40   dark:bg-cyan-950/30',  glow: 'rgba(18,217,227,0.55)',    spark: '#12d9e3' },
     green:  { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300', header: 'text-green-700 dark:text-green-300',   ring: 'ring-green-400/40  bg-green-50/40  dark:bg-green-950/30',  glow: 'rgba(22,163,74,0.55)',     spark: '#16a34a' },
@@ -158,7 +158,7 @@ const skeletonCounts = [3, 2, 4, 1];
 <template>
     <div class="w-full overflow-x-auto pb-4 -mb-4">
 
-        <!-- â”€â”€ Loading skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Loading skeleton ────────────────────────────────────────────── -->
         <div v-if="loading" class="flex gap-4" style="min-width: max-content;">
             <div v-for="(n, ci) in 4" :key="ci" class="min-w-[280px] flex-shrink-0">
                 <div class="flex items-center gap-2 mb-3 px-1">
@@ -179,7 +179,7 @@ const skeletonCounts = [3, 2, 4, 1];
             </div>
         </div>
 
-        <!-- â”€â”€ Board â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── Board ──────────────────────────────────────────────────────── -->
         <div v-else class="flex gap-4" style="min-width: max-content;">
             <div
                 v-for="column in columns"

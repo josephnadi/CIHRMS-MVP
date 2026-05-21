@@ -109,7 +109,7 @@ function initials(name) {
 }
 
 function fmtDate(d) {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -147,7 +147,7 @@ const filteredList = computed(() => {
 </script>
 
 <template>
-    <Head :title="`Applicants â€” ${job?.title ?? 'Job'}`" />
+    <Head :title="`Applicants — ${job?.title ?? 'Job'}`" />
     <div data-page-root="true">
 
             <Teleport to="#page-header-mount" defer>
@@ -283,7 +283,7 @@ const filteredList = computed(() => {
                                         <span class="material-symbols-outlined text-[13px]">picture_as_pdf</span>
                                         Download
                                     </a>
-                                    <span v-else class="text-[11px] text-on-surface-variant/40">â€”</span>
+                                    <span v-else class="text-[11px] text-on-surface-variant/40">—</span>
                                 </td>
                                 <td class="px-5 py-3.5 text-on-surface-variant/70 text-[12px]">
                                     {{ fmtDate(a.created_at) }}

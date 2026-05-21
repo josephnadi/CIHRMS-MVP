@@ -113,6 +113,51 @@ test('HR can create an employee without providing employee_no or staff_id (both 
     expect($employee->employee_no)->toStartWith('CIHRM-');
 });
 
+test('HR can enrol a new employee in benefit plans at creation time', function () {
+    $health = \App\Models\BenefitPlan::create([
+        'name'                              => 'Health Cover',
+        'code'                              => 'HLT-01',
+        'type'                              => 'health_insurance',
+        'provider'                          => 'Cosmopolitan',
+        'monthly_cost'                      => 200,
+        'employee_contribution_percentage'  => 25,
+        'is_active'                         => true,
+        'effective_from'                    => now()->subMonth()->toDateString(),
+    ]);
+    $dental = \App\Models\BenefitPlan::create([
+        'name'                              => 'Dental',
+        'code'                              => 'DNT-01',
+        'type'                              => 'dental',
+        'provider'                          => 'GhanaDental',
+        'monthly_cost'                      => 80,
+        'employee_contribution_percentage'  => 0,
+        'is_active'                         => true,
+        'effective_from'                    => now()->subMonth()->toDateString(),
+    ]);
+
+    $this->actingAs($this->hr)
+        ->post(route('employees.store'), [
+            'create_user'      => true,
+            'user_name'        => 'Yaa Twum',
+            'user_email'       => 'yaa.twum@example.com',
+            'user_role'        => 'employee',
+            'user_password'    => 'StrongP@ss1',
+            'department_id'    => $this->dept->id,
+            'position'         => 'Analyst',
+            'hire_date'        => now()->subYear()->toDateString(),
+            'status'           => EmployeeStatus::Active->value,
+            'benefit_plan_ids' => [$health->id, $dental->id],
+        ])
+        ->assertRedirect();
+
+    $user = User::where('email', 'yaa.twum@example.com')->firstOrFail();
+    $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
+    expect($employee->benefitEnrolments()->count())->toBe(2);
+    expect($employee->benefitEnrolments()->pluck('plan_id')->all())
+        ->toContain($health->id, $dental->id);
+});
+
 test('auto-assigned employee_no is unique across two back-to-back creations', function () {
     $payload = fn (string $email) => [
         'create_user'   => true,

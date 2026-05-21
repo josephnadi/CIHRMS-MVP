@@ -179,7 +179,7 @@ const categoryLabel = {
             </div>
 
             <div class="flex flex-wrap gap-3 items-center">
-                <SearchInput v-model="localFilters.search" placeholder="Search by tag, name, serialâ€¦" @update:modelValue="applyFilters" class="flex-1 max-w-md" />
+                <SearchInput v-model="localFilters.search" placeholder="Search by tag, name, serial…" @update:modelValue="applyFilters" class="flex-1 max-w-md" />
                 <select v-model="localFilters.category" @change="applyFilters" aria-label="Filter by category" class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm">
                     <option value="">All Categories</option>
                     <option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option>
@@ -203,9 +203,9 @@ const categoryLabel = {
                             <td><span :class="['rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider', statusTone[a.current_status]?.cls]">{{ statusTone[a.current_status]?.label }}</span></td>
                             <td>
                                 <span v-if="a.current_assignment" class="text-xs">{{ a.current_assignment.employee_name }} <span class="text-on-surface-variant font-mono">({{ a.current_assignment.employee_no }})</span></span>
-                                <span v-else class="text-xs text-on-surface-variant">â€”</span>
+                                <span v-else class="text-xs text-on-surface-variant">—</span>
                             </td>
-                            <td class="text-xs">{{ a.location ?? 'â€”' }}</td>
+                            <td class="text-xs">{{ a.location ?? '—' }}</td>
                             <td class="whitespace-nowrap">
                                 <div class="inline-flex items-center gap-1">
                                     <!-- Assign (only when in stock) -->

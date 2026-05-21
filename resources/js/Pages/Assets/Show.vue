@@ -60,14 +60,14 @@ const statusCls = {
 </script>
 
 <template>
-<Head :title="`${asset.asset_tag} â€” ${asset.name}`" />
+<Head :title="`${asset.asset_tag} — ${asset.name}`" />
     <div data-page-root="true">
         <div class="p-6 space-y-6 animate-reveal-up">
             <header class="flex items-center justify-between">
                 <div>
                     <Link :href="route('assets.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">â† All Assets</Link>
-                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">{{ asset.asset_tag }} â€” {{ asset.name }}</h1>
-                    <p class="text-sm text-on-surface-variant">{{ asset.brand }} {{ asset.model }} Â· {{ asset.category }} Â· S/N {{ asset.serial_number ?? 'â€”' }}</p>
+                    <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">{{ asset.asset_tag }} — {{ asset.name }}</h1>
+                    <p class="text-sm text-on-surface-variant">{{ asset.brand }} {{ asset.model }} · {{ asset.category }} · S/N {{ asset.serial_number ?? '—' }}</p>
                 </div>
                 <span :class="['rounded-full px-3 py-1 text-xs font-bold uppercase', statusCls[asset.current_status]]">{{ asset.current_status?.replace('_',' ') }}</span>
             </header>
@@ -77,18 +77,18 @@ const statusCls = {
                     <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 card-lift">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 mb-3">Details</h2>
                         <dl class="space-y-2 text-sm">
-                            <div class="flex justify-between"><dt class="text-on-surface-variant">Purchase</dt><dd>{{ asset.purchase_date ?? 'â€”' }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-on-surface-variant">Cost</dt><dd>{{ asset.purchase_cost !== null ? `${asset.currency} ${asset.purchase_cost.toFixed(2)}` : 'â€”' }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-on-surface-variant">Supplier</dt><dd>{{ asset.supplier ?? 'â€”' }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-on-surface-variant">Warranty</dt><dd>{{ asset.warranty_expires_at ?? 'â€”' }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-on-surface-variant">Location</dt><dd>{{ asset.location ?? 'â€”' }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-on-surface-variant">Purchase</dt><dd>{{ asset.purchase_date ?? '—' }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-on-surface-variant">Cost</dt><dd>{{ asset.purchase_cost !== null ? `${asset.currency} ${asset.purchase_cost.toFixed(2)}` : '—' }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-on-surface-variant">Supplier</dt><dd>{{ asset.supplier ?? '—' }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-on-surface-variant">Warranty</dt><dd>{{ asset.warranty_expires_at ?? '—' }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-on-surface-variant">Location</dt><dd>{{ asset.location ?? '—' }}</dd></div>
                         </dl>
                     </section>
 
                     <section v-if="asset.current_assignment" class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 card-lift">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 mb-3">Current Assignment</h2>
                         <p class="text-sm font-bold">{{ asset.current_assignment.employee_name }}</p>
-                        <p class="text-xs text-on-surface-variant">{{ asset.current_assignment.employee_no }} Â· since {{ new Date(asset.current_assignment.assigned_at).toLocaleDateString() }}</p>
+                        <p class="text-xs text-on-surface-variant">{{ asset.current_assignment.employee_no }} · since {{ new Date(asset.current_assignment.assigned_at).toLocaleDateString() }}</p>
                         <p v-if="asset.current_assignment.due_back_at" class="mt-1 text-xs">Due back: <span class="font-bold">{{ asset.current_assignment.due_back_at }}</span></p>
                     </section>
 
@@ -117,8 +117,8 @@ const statusCls = {
                                 <tr v-for="a in assignments.data" :key="a.id" class="border-t border-outline-variant/40">
                                     <td class="p-4">{{ a.employee_name }} <span class="font-mono text-xs text-on-surface-variant">({{ a.employee_no }})</span></td>
                                     <td class="text-xs">{{ new Date(a.assigned_at).toLocaleDateString() }}</td>
-                                    <td class="text-xs">{{ a.returned_at ? new Date(a.returned_at).toLocaleDateString() : 'â€”' }}</td>
-                                    <td class="text-xs">{{ a.condition_on_return ?? 'â€”' }}</td>
+                                    <td class="text-xs">{{ a.returned_at ? new Date(a.returned_at).toLocaleDateString() : '—' }}</td>
+                                    <td class="text-xs">{{ a.condition_on_return ?? '—' }}</td>
                                     <td class="text-xs text-on-surface-variant">{{ a.assigned_by }}</td>
                                 </tr>
                             </tbody>
@@ -136,9 +136,9 @@ const statusCls = {
                                     <td class="p-4">{{ m.type }}</td>
                                     <td>{{ m.status?.replace('_',' ') }}</td>
                                     <td class="text-xs">{{ new Date(m.started_at).toLocaleDateString() }}</td>
-                                    <td class="text-xs">{{ m.completed_at ? new Date(m.completed_at).toLocaleDateString() : 'â€”' }}</td>
-                                    <td class="text-xs">{{ m.vendor ?? 'â€”' }}</td>
-                                    <td class="text-xs">{{ m.cost !== null ? m.cost.toFixed(2) : 'â€”' }}</td>
+                                    <td class="text-xs">{{ m.completed_at ? new Date(m.completed_at).toLocaleDateString() : '—' }}</td>
+                                    <td class="text-xs">{{ m.vendor ?? '—' }}</td>
+                                    <td class="text-xs">{{ m.cost !== null ? m.cost.toFixed(2) : '—' }}</td>
                                     <td>
                                         <button v-if="m.status === 'open' && $page.props.auth.permissions?.includes('assets.manage')" @click="completeMaint(m)" class="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold hover:bg-emerald-100">Complete</button>
                                     </td>

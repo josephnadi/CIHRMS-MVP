@@ -9,9 +9,37 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [sqlite, pgsql]
+    name: PHP 8.4 / Pest · ${{ matrix.db }}
+
+    # Each matrix entry overrides the DB connection; Postgres runs inside a
+    # service container, SQLite uses the in-repo file.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER:     cihrms
+          POSTGRES_PASSWORD: cihrms
+          POSTGRES_DB:       cihrms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cihrms"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
-      DB_CONNECTION: sqlite
-      DB_DATABASE: database/database.sqlite
+      DB_CONNECTION: ${{ matrix.db }}
+      # SQLite path is set inline below; pgsql values come from the service container.
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: ${{ matrix.db == 'pgsql' && 'cihrms_test' || 'database/database.sqlite' }}
+      DB_USERNAME: cihrms
+      DB_PASSWORD: cihrms
 
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +48,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: bcmath, mbstring, pdo, pdo_sqlite, sqlite3, gd, intl
+          extensions: bcmath, mbstring, pdo, pdo_sqlite, sqlite3, pdo_pgsql, pgsql, gd, intl
           coverage: none
           tools: composer:v2
 
@@ -47,13 +75,21 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
-          touch database/database.sqlite
+          if [ "$DB_CONNECTION" = "sqlite" ]; then
+            touch database/database.sqlite
+          fi
 
       - name: Run migrations + seed
         run: php artisan migrate --seed --force
 
       - name: Build frontend
         run: npm run build
+
+      - name: WCAG 2.1 AA static audit
+        # Fails on any `error` severity finding — static scan only (axe-core
+        # browser audit is a planned next addition). See docs/accessibility/
+        # for the rule set and the conformance statement.
+        run: php artisan a11y:audit
 
       - name: Run Pest
         run: vendor/bin/pest --colors=always

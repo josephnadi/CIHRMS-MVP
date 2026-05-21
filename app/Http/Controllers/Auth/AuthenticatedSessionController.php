@@ -26,6 +26,12 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Handle an incoming authentication request.
+     *
+     * Every successful login lands on the unified /dashboard, which renders
+     * role-specific content via permissions. We deliberately skip
+     * `redirect()->intended()` so users don't get dropped back onto a deep
+     * link they were trying to reach when they got bounced to login — the
+     * dashboard is the canonical landing surface for all roles.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -33,7 +39,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
     }
 
     /**

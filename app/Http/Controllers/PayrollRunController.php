@@ -112,4 +112,49 @@ class PayrollRunController extends Controller
 
         return Storage::disk('local')->download($return->file_path);
     }
+
+    /**
+     * Stream the Oracle IPPD2/IPPD3 upload file for this run. Each call
+     * regenerates the file from the current PayrollLine rows, so it always
+     * reflects the latest state — there's no stale-file failure mode where
+     * a re-run leaves a download pointing at outdated numbers.
+     */
+    public function downloadIppd(PayrollRun $run, \App\Services\Payroll\Ippd\IppdExporter $exporter): \Symfony\Component\HttpFoundation\Response
+    {
+        $this->authorize('view', $run);
+
+        $contents = $exporter->preview($run);
+        $filename = sprintf('IPPD-%s.csv', $run->reference);
+
+        return response($contents, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+
+    /**
+     * Stream the GIFMIS journal-voucher CSV for this run. Like the IPPD
+     * endpoint, the file is regenerated on every request so it always
+     * reflects current PayrollLine state. Throws a 422 with the residual
+     * if the journal doesn't balance — that's a calculator bug, not a
+     * user error, but surfacing it before upload prevents a state-accountant
+     * rejection on the GIFMIS side.
+     */
+    public function downloadGifmis(PayrollRun $run, \App\Services\Payroll\Gifmis\GifmisJournalExporter $exporter): \Symfony\Component\HttpFoundation\Response
+    {
+        $this->authorize('view', $run);
+
+        try {
+            $contents = $exporter->preview($run);
+        } catch (\RuntimeException $e) {
+            return response($e->getMessage(), 422, ['Content-Type' => 'text/plain']);
+        }
+
+        $filename = sprintf('GIFMIS-JV-%s.csv', $run->reference);
+
+        return response($contents, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
 }

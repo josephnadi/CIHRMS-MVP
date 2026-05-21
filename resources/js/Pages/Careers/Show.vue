@@ -39,7 +39,7 @@ const formatDate = (d) => {
 </script>
 
 <template>
-    <Head :title="`${j.title} Â· Careers Â· CIHRM Ghana`" />
+    <Head :title="`${j.title} · Careers · CIHRM Ghana`" />
 
     <div class="min-h-screen bg-background">
 
@@ -157,7 +157,7 @@ const formatDate = (d) => {
                             </div>
 
                             <div>
-                                <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">CV / Resume <span class="text-on-surface-variant/60 font-normal">(PDF, DOC, DOCX Â· max 5MB)</span></label>
+                                <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">CV / Resume <span class="text-on-surface-variant/60 font-normal">(PDF, DOC, DOCX · max 5MB)</span></label>
                                 <input
                                     type="file"
                                     accept=".pdf,.doc,.docx"
@@ -200,7 +200,7 @@ const formatDate = (d) => {
         </main>
 
         <footer class="border-t border-outline-variant/40 mt-12 py-8">
-            <p class="text-center text-[11px] text-on-surface-variant/60">Â© 2026 CIHRM Ghana Â· Enterprise HR Management</p>
+            <p class="text-center text-[11px] text-on-surface-variant/60">© 2026 CIHRM Ghana · Enterprise HR Management</p>
         </footer>
     </div>
 </template>

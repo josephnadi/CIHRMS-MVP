@@ -52,11 +52,11 @@ const selectEmployee = (employee) => {
     selectedEmployee.value = employee;
 };
 
-// â”€â”€ Live Analytics Layer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Live Analytics Layer ──────────────────────────────────────────────────────
 const liveTime  = ref('');
 const lastSync  = ref(Date.now());      // timestamp of last server reload (for the "Live" pill)
 const isSyncing = ref(false);           // true while an Inertia partial reload is in flight
-const nowTick   = ref(Date.now());      // ticks every second to drive the "Live Â· 12s" countdown
+const nowTick   = ref(Date.now());      // ticks every second to drive the "Live · 12s" countdown
 const syncAgoLabel = computed(() => {
     const s = Math.max(0, Math.floor((nowTick.value - lastSync.value) / 1000));
     if (s < 60)   return s + 's';
@@ -115,10 +115,11 @@ const kpiCards = computed(() => {
     return [
         // Card icon colours follow the institutional palette:
         //   magenta = people, cyan = tech/service, gold = flagship (5%), blue = financial
-        { label: 'Active Staff',    display: (s.employees ?? 0).toLocaleString(),                                       trend: s.openJobs ? `${s.openJobs} open roles` : 'Workforce',     icon: 'badge',          color: '#d912e3', rgb: '217,18,227', spark: e, up: true  },
-        { label: 'Open Tickets',    display: s.openTickets ?? 0,                                                        trend: 'Service desk',                                            icon: 'support_agent',  color: '#12d9e3', rgb: '18,217,227', spark: t, up: false },
-        { label: 'Pending Leave',   display: s.pendingLeave ?? 0,                                                       trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#7986cb', rgb: '121, 134, 203', spark: l, up: false },
-        { label: 'Pending Payroll', display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : '—', icon: 'payments',       color: '#ffd700', rgb: '255,215,0',  spark: c, up: true  },
+        // Each card deep-links to its source module so a director can drill in.
+        { label: 'Active Staff',    href: route('employees.index'),                  display: (s.employees ?? 0).toLocaleString(),                                       trend: s.openJobs ? `${s.openJobs} open roles` : 'Workforce',     icon: 'badge',          color: '#d912e3', rgb: '217,18,227', spark: e, up: true  },
+        { label: 'Open Tickets',    href: route('tickets.index'),                    display: s.openTickets ?? 0,                                                        trend: 'Service desk',                                            icon: 'support_agent',  color: '#12d9e3', rgb: '18,217,227', spark: t, up: false },
+        { label: 'Pending Leave',   href: route('leave.index', { status: 'pending' }), display: s.pendingLeave ?? 0,                                                     trend: 'Awaiting approval',                                       icon: 'calendar_today', color: '#7986cb', rgb: '121, 134, 203', spark: l, up: false },
+        { label: 'Pending Payroll', href: route('payments.index'),                   display: s.pendingPayments ?? 0,                                                    trend: s.openComplaints ? `${s.openComplaints} complaints` : '—', icon: 'payments',       color: '#ffd700', rgb: '255,215,0',  spark: c, up: true  },
     ];
 });
 
@@ -196,7 +197,7 @@ const chartLeaveByMonth = computed(() => {
 });
 const chartTicketTrend = computed(() => Object.values(props.ticketTrend ?? {}));
 
-// Workforce performance bars: scale real monthly leave data to a 20â€“98% range so visual
+// Workforce performance bars: scale real monthly leave data to a 20—98% range so visual
 // proportions stay readable. Falls back to a stable baseline series when no data exists.
 const perfBarData = computed(() => {
     const real = chartLeaveByMonth.value;
@@ -217,7 +218,7 @@ const sparkArea = (pts, w = 96, h = 30) => {
     return `M 0,${(h - ((pts[0] - min) / rng) * h * 0.88).toFixed(1)} L ${line} L ${w},${h} L 0,${h} Z`;
 };
 
-// â”€â”€ Department-specific live data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Department-specific live data ────────────────────────────────────────────
 const deptSparkData = ref({
     it: {
         servers:  [22, 24, 23, 24, 24, 23, 24, 24, 23, 24, 24, 24],
@@ -248,11 +249,11 @@ const deptSparkData = ref({
 const _intervals = [];
 let   _reloadTimer = null;
 
-// Pick a fresh delay between 15sâ€“20s so the cadence never feels mechanical.
+// Pick a fresh delay between 15s—20s so the cadence never feels mechanical.
 const nextReloadMs = () => 15000 + Math.floor(Math.random() * 5001);
 
 // Pull fresh server-side numbers in the background. `only:` keeps the payload
-// small â€” Inertia re-evaluates just these props server-side and patches them
+// small — Inertia re-evaluates just these props server-side and patches them
 // in client-side without a full page reload.
 function scheduleServerReload() {
     _reloadTimer = setTimeout(() => {
@@ -276,7 +277,7 @@ onMounted(() => {
         liveTime.value = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     }, 60000));
 
-    // 1Hz tick that drives the "Live Â· Ns" countdown pill in the header
+    // 1Hz tick that drives the "Live · Ns" countdown pill in the header
     _intervals.push(setInterval(() => { nowTick.value = Date.now(); }, 1000));
 
     // Fast in-memory random walk for sparklines (visual liveness)
@@ -309,7 +310,7 @@ onMounted(() => {
         deptSparkData.value.finance   = { revenue: shift(fi.revenue, 8.0, 9.5, 0.08), variance: shift(fi.variance, -3.5, -1.0, 0.1), pending: shift(fi.pending, 120, 200, 4), efficiency: shift(fi.efficiency, 88, 98, 0.8) };
     }, 3800));
 
-    // â”€â”€ Real backend sync every 15â€“20s (random) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Real backend sync every 15—20s (random) ─────────────────────────
     scheduleServerReload();
 });
 
@@ -317,7 +318,7 @@ onBeforeUnmount(() => {
     _intervals.forEach(clearInterval);
     if (_reloadTimer) clearTimeout(_reloadTimer);
 });
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 const filteredEmployees = computed(() => props.employees.filter((employee) =>
     (employee.name?.toLowerCase() || '').includes(search.value.toLowerCase()) ||
@@ -517,7 +518,7 @@ const getStatusColor = (status) => {
                                 </div>
                                 <h4 class="text-2xl font-black text-primary">{{ selectedEmployee.name || 'Akua Mensah' }}</h4>
                                 <p class="text-sm font-bold text-secondary">{{ selectedEmployee.position }}</p>
-                                <p class="mt-1 text-xs font-medium text-on-surface-variant">ID: {{ selectedEmployee.employee_no }} â€¢ Joined 2021</p>
+                                <p class="mt-1 text-xs font-medium text-on-surface-variant">ID: {{ selectedEmployee.employee_no }} • Joined 2021</p>
                                 
                                 <div class="mt-8 flex gap-3">
                                     <Link v-if="selectedEmployee?.id" :href="route('employees.show', selectedEmployee.id)"
@@ -760,7 +761,7 @@ const getStatusColor = (status) => {
                         </div>
                     </div>
 
-                    <!-- Floating Action Button â€” opens new-ticket modal -->
+                    <!-- Floating Action Button — opens new-ticket modal -->
                     <button @click="router.visit(route('tickets.index', { new: 1 }))"
                             type="button"
                             title="Create new ticket"
@@ -1159,7 +1160,7 @@ const getStatusColor = (status) => {
                                         <div class="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-black text-[10px]">AM</div>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-xs font-black text-primary truncate">Annual Leave</p>
-                                            <p class="text-[9px] font-medium text-on-surface-variant">3 days â€¢ Oct 12-15</p>
+                                            <p class="text-[9px] font-medium text-on-surface-variant">3 days • Oct 12-15</p>
                                         </div>
                                         <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 text-[8px] font-black uppercase">Pending</span>
                                     </div>
@@ -1189,7 +1190,7 @@ const getStatusColor = (status) => {
                                 ]" :key="job.title" class="p-8 hover:bg-surface-container-low/30 transition-all flex items-center justify-between group cursor-pointer">
                                     <div>
                                         <h4 class="text-sm font-black text-primary group-hover:text-secondary transition-colors">{{ job.title }}</h4>
-                                        <p class="text-[10px] font-medium text-on-surface-variant mt-1">{{ job.dept }} â€¢ 12 days left</p>
+                                        <p class="text-[10px] font-medium text-on-surface-variant mt-1">{{ job.dept }} • 12 days left</p>
                                     </div>
                                     <div class="flex items-center gap-8">
                                         <div class="text-right">
@@ -1580,29 +1581,34 @@ const getStatusColor = (status) => {
                         <!-- Live KPI Cards with Sparklines — surfaced to the top so
                              numbers a director scans first are above the fold. -->
                         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                            <div v-for="(card, i) in kpiCards" :key="card.label"
-                                 class="group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-                                 :style="`animation:slideUpFade 0.45s cubic-bezier(0.22,1,0.36,1) both;animation-delay:${i*0.07}s`">
+                            <Link v-for="(card, i) in kpiCards" :key="card.label"
+                                 :href="card.href"
+                                 :aria-label="`${card.label}: ${card.display}. Open ${card.label} module.`"
+                                 class="kpi-tile group relative overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-3.5 cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2"
+                                 :style="`--card-rgb:${card.rgb};animation:kpiFlyIn ${(0.85 - i*0.18).toFixed(2)}s cubic-bezier(0.22,1,0.36,1) both;animation-delay:${(i*0.09).toFixed(2)}s`">
+                                <!-- Hover sheen — diagonal gradient that sweeps in from corner -->
+                                <span class="kpi-sheen pointer-events-none absolute inset-0" aria-hidden="true"></span>
+
                                 <!-- Live badge -->
-                                <div class="absolute right-3.5 top-3.5 flex items-center gap-1">
+                                <div class="absolute right-3 top-3 flex items-center gap-1">
                                     <span class="h-1.5 w-1.5 rounded-full live-dot" :style="`background:${card.color}`"></span>
                                     <span class="text-[7.5px] font-black uppercase tracking-widest" :style="`color:${card.color};opacity:0.65`">live</span>
                                 </div>
-                                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+                                <div class="kpi-icon mb-1.5 flex h-7 w-7 items-center justify-center rounded-lg"
                                      :style="`background:rgba(${card.rgb},0.1)`">
-                                    <span class="material-symbols-outlined text-[18px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
+                                    <span class="material-symbols-outlined text-[15px]" :style="`color:${card.color};font-variation-settings:'FILL' 1`">{{ card.icon }}</span>
                                 </div>
-                                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
-                                <p class="mt-1.5 text-2xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
-                                <p class="mt-1 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">
+                                <p class="text-[9.5px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">{{ card.label }}</p>
+                                <p class="mt-0.5 text-xl font-black text-primary leading-none kpi-val">{{ card.display }}</p>
+                                <p class="mt-0.5 text-[10px] font-semibold" :style="`color:${card.up ? '#059669' : '#d97706'}`">
                                     {{ card.up ? '↑' : '↓' }} {{ card.trend }}
                                 </p>
-                                <!-- Live sparkline (animated draw-in + hover crosshair + glow dot) -->
-                                <div class="-mx-1 mt-3">
-                                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="32"
-                                               :stroke-width="1.6" :label="card.label" class="!block w-full"/>
+                                <!-- Compact sparkline — flying terminal dot removed -->
+                                <div class="-mx-1 mt-1.5">
+                                    <Sparkline :data="card.spark" :color="card.color" :width="96" :height="20"
+                                               :stroke-width="1.5" :show-dot="false" :label="card.label" class="!block w-full"/>
                                 </div>
-                            </div>
+                            </Link>
                         </div>
 
                         <!-- Hero Greeting + Executive Health Rings — the preview-card
@@ -1700,7 +1706,7 @@ const getStatusColor = (status) => {
                                 <div class="mb-5 flex items-center justify-between flex-shrink-0">
                                     <div>
                                         <h4 class="text-[13px] font-black text-primary">Approved Leave by Month</h4>
-                                        <p class="text-[10px] font-medium text-on-surface-variant mt-0.5">Monthly leave volume Â· {{ new Date().getFullYear() }}</p>
+                                        <p class="text-[10px] font-medium text-on-surface-variant mt-0.5">Monthly leave volume · {{ new Date().getFullYear() }}</p>
                                     </div>
                                     <div class="flex items-center gap-3">
                                         <div class="flex items-center gap-1.5">
@@ -1725,7 +1731,7 @@ const getStatusColor = (status) => {
                                 </div>
                             </div>
 
-                            <!-- Live Activity Feed â€” cap height so it doesn't drive the row taller than the chart -->
+                            <!-- Live Activity Feed — cap height so it doesn't drive the row taller than the chart -->
                             <div class="lg:col-span-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden flex flex-col max-h-[420px]">
                                 <div class="flex items-center justify-between px-5 py-4 border-b border-outline-variant/50 flex-shrink-0">
                                     <h4 class="text-[13px] font-black text-primary">Live Activity</h4>
@@ -1801,13 +1807,13 @@ const getStatusColor = (status) => {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.department?.name || 'â€”' }}</td>
+                                                    <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.department?.name || '—' }}</td>
                                                     <td class="px-6 py-4">
                                                         <span class="inline-flex rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border" :class="getStatusColor(employee.status || 'active')">
                                                             {{ employee.status_label || employee.status || 'Active' }}
                                                         </span>
                                                     </td>
-                                                    <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.hire_date || 'â€”' }}</td>
+                                                    <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.hire_date || '—' }}</td>
                                                     <td class="px-7 py-4 text-right">
                                                         <Link :href="route('employees.show', employee.id)" class="text-on-surface-variant hover:text-secondary transition-colors" title="Open profile">
                                                             <span class="material-symbols-outlined text-xl">open_in_new</span>
@@ -1949,7 +1955,7 @@ const getStatusColor = (status) => {
                                             </div>
                                             <div class="space-y-0.5 min-w-0">
                                                 <p class="text-xs font-bold text-primary leading-snug line-clamp-2">{{ event.event }}</p>
-                                                <p class="text-[10px] font-medium text-on-surface-variant">Just now â€¢ <span class="text-secondary">System</span></p>
+                                                <p class="text-[10px] font-medium text-on-surface-variant">Just now • <span class="text-secondary">System</span></p>
                                             </div>
                                         </div>
                                         <div v-if="!recentEvents.length" class="py-6 text-center text-xs font-bold text-on-surface-variant italic">No recent activity.</div>
@@ -1972,7 +1978,7 @@ const getStatusColor = (status) => {
                                             <span class="material-symbols-outlined text-white/80 text-xl" style="font-variation-settings:'FILL' 1">psychology</span>
                                             <p class="text-[10px] font-black uppercase tracking-[0.18em] text-white/60">AI Insight</p>
                                         </div>
-                                        <p class="text-sm font-bold leading-relaxed">Staff retention is at <span class="text-white font-black">94%</span> â€” above the 90% institutional target. Consider initiating a recognition programme to sustain momentum.</p>
+                                        <p class="text-sm font-bold leading-relaxed">Staff retention is at <span class="text-white font-black">94%</span> — above the 90% institutional target. Consider initiating a recognition programme to sustain momentum.</p>
                                         <button @click="router.visit(route('reports.index'))" type="button"
                                                 class="mt-5 w-full rounded-xl py-2.5 text-xs font-black text-white transition-all hover:bg-white/20"
                                                 style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);">
@@ -1989,7 +1995,7 @@ const getStatusColor = (status) => {
 </template>
 
 <style scoped>
-/* â”€â”€ Internal canvas scroll (sticky-header tables, activity feeds) â”€â”€â”€ */
+/* ── Internal canvas scroll (sticky-header tables, activity feeds) ─── */
 .canvas-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
 .canvas-scroll::-webkit-scrollbar-track { background: transparent; }
 .canvas-scroll::-webkit-scrollbar-thumb {
@@ -2003,7 +2009,7 @@ const getStatusColor = (status) => {
     background-clip: padding-box;
 }
 
-/* â”€â”€ Live dot pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Live dot pulse ─────────────────────────────────── */
 .live-dot {
     animation: liveDot 1.6s ease-in-out infinite;
 }
@@ -2012,38 +2018,96 @@ const getStatusColor = (status) => {
     50%       { opacity: 0.3; transform: scale(0.75); }
 }
 
-/* â”€â”€ KPI number transition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── KPI number transition ──────────────────────────── */
 .kpi-val {
     transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* â”€â”€ Activity feed transition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── KPI tile hover animation ───────────────────────────────────────
+   Subtle lift + glow + tinted border using the card's accent colour.
+   The diagonal sheen slides in on hover for a premium feel. */
+.kpi-tile {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.kpi-tile:hover {
+    transform: translateY(-3px);
+    border-color: rgba(var(--card-rgb), 0.4);
+    box-shadow:
+        0 14px 32px -8px rgba(var(--card-rgb), 0.22),
+        0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.kpi-tile .kpi-icon {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.kpi-tile:hover .kpi-icon {
+    transform: scale(1.08) rotate(-3deg);
+}
+.kpi-sheen {
+    background: linear-gradient(135deg,
+        transparent 35%,
+        rgba(var(--card-rgb), 0.07) 50%,
+        transparent 65%);
+    transform: translateX(-100%);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.kpi-tile:hover .kpi-sheen { transform: translateX(100%); }
+@media (prefers-reduced-motion: reduce) {
+    .kpi-tile, .kpi-tile .kpi-icon, .kpi-sheen { transition: none !important; }
+    .kpi-tile:hover { transform: none; }
+}
+
+/* ── Activity feed transition ───────────────────────── */
 .feed-anim-enter-active { transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
 .feed-anim-leave-active { transition: all 0.25s ease; position: absolute; width: 100%; }
 .feed-anim-enter-from   { opacity: 0; transform: translateY(-10px); }
 .feed-anim-leave-to     { opacity: 0; transform: translateY(8px); }
 .feed-anim-move         { transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
 
-/* â”€â”€ Bar tooltip fix (overflow visible on parent) â”€â”€â”€â”€â”€ */
+/* ── Bar tooltip fix (overflow visible on parent) ───── */
 .group { isolation: isolate; }
 
-/* â”€â”€ Slide-up stagger keyframe (referenced inline) â”€â”€â”€â”€â”€ */
+/* ── Slide-up stagger keyframe (referenced inline) ───── */
 @keyframes slideUpFade {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── KPI cards fly-in (page load) ────────────────────────────────────
+   Each card slides in from the left. Per-card duration shrinks (see the
+   inline `${0.85 - i*0.18}s`) so later cards accelerate — the row reads
+   as a left-to-right wave with mounting urgency. */
+@keyframes kpiFlyIn {
+    from {
+        opacity: 0;
+        transform: translateX(-72px) scale(0.96);
+        filter: blur(2px);
+    }
+    60% {
+        opacity: 1;
+        filter: blur(0);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kpi-tile { animation: none !important; }
+}
+
 /* ── Executive health rings ──
-   Subtle floating animation per ring so the hero feels alive without
-   becoming busy. The arc has its own draw-in transition on dashoffset. */
+   Ambient slow spin runs continuously (no hover required) so the hero feels
+   alive even when the cursor isn't on it. The arc has its own draw-in
+   transition on dashoffset whenever the underlying percentage changes. */
 .exec-ring__arc {
     transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .exec-ring__svg {
     transform: rotate(-90deg);
-}
-.exec-ring:hover .exec-ring__svg {
-    animation: execRingSpin 6s linear infinite;
+    animation: execRingSpin 9s linear infinite;
 }
 @keyframes execRingSpin {
     from { transform: rotate(-90deg); }
@@ -2063,7 +2127,8 @@ const getStatusColor = (status) => {
 
 @media (prefers-reduced-motion: reduce) {
     .exec-ring__arc,
-    .exec-ring:hover .exec-ring__svg,
+    .exec-ring__svg,
     .exec-ribbon { animation: none !important; transition: none !important; }
+    .exec-ring__svg { transform: rotate(-90deg) !important; }
 }
 </style>

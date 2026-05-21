@@ -1,6 +1,6 @@
 <script setup>
 /**
- * Skip-to-main-content link â€” WCAG 2.4.1 (Bypass Blocks).
+ * Skip-to-main-content link — WCAG 2.4.1 (Bypass Blocks).
  *
  * Renders an `sr-only` anchor that becomes visible the moment a keyboard
  * user tabs to it. Targets `#main-content` by default; pass a different
@@ -9,7 +9,7 @@
  * Drop into the first child of every layout (Authenticated + Guest):
  *
  *   <SkipLink />
- *   <main id="main-content" tabindex="-1"> â€¦ </main>
+ *   <main id="main-content" tabindex="-1"> … </main>
  *
  * The `tabindex="-1"` on <main> lets the anchor move focus there even
  * though <main> isn't normally focusable.

@@ -28,10 +28,10 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
-            // PWA install + update + offline banner â€” registered globally so
+            // PWA install + update + offline banner — registered globally so
             // layouts can drop in <PwaInstallPrompt /> without importing.
             .component('PwaInstallPrompt',  PwaInstallPrompt)
-            // WCAG 2.1 AA primitives â€” global so any layout can use them.
+            // WCAG 2.1 AA primitives — global so any layout can use them.
             .component('SkipLink',          SkipLink)
             .component('AriaLiveAnnouncer', AriaLiveAnnouncer)
             .mount(el);

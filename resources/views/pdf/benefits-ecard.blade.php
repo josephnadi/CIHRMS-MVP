@@ -20,7 +20,7 @@
 <body>
 <div class="card">
     <div class="header">
-        <h1>CIHRM Ghana â€” Benefits E-Card</h1>
+        <h1>CIHRM Ghana — Benefits E-Card</h1>
         <p>{{ $plan->name }} ({{ strtoupper($plan->code) }})</p>
     </div>
 
@@ -28,7 +28,7 @@
     <div class="row"><span class="label">Employee #</span><span class="value">{{ $employee->employee_no }}</span></div>
     <div class="row"><span class="label">Plan</span><span class="value">{{ $plan->name }}</span></div>
     <div class="row"><span class="label">Type</span><span class="value">{{ ucfirst(str_replace('_',' ',$plan->type->value)) }}</span></div>
-    <div class="row"><span class="label">Provider</span><span class="value">{{ $plan->provider ?? 'â€”' }}</span></div>
+    <div class="row"><span class="label">Provider</span><span class="value">{{ $plan->provider ?? '—' }}</span></div>
     <div class="row"><span class="label">Effective</span><span class="value">{{ $enrolment->effective_from?->toDateString() }} â†’ {{ $enrolment->effective_to?->toDateString() ?? 'ongoing' }}</span></div>
     <div class="row"><span class="label">Monthly Premium</span><span class="value">GHS {{ number_format((float) $enrolment->monthly_premium, 2) }}</span></div>
 
@@ -40,7 +40,7 @@
     @endif
 
     <div class="footer">
-        Issued: {{ now()->format('Y-m-d H:i') }} Â· This card is system-generated and valid while enrolment is active. Present alongside national ID at point of service.
+        Issued: {{ now()->format('Y-m-d H:i') }} · This card is system-generated and valid while enrolment is active. Present alongside national ID at point of service.
     </div>
 </div>
 </body>

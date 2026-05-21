@@ -15,7 +15,7 @@ const props = defineProps({
     activeModule: String,
 });
 
-// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tabs ─────────────────────────────────────────────────────────────────────
 const activeTab = ref('overview');
 const tabs = [
     { label: 'Overview',      value: 'overview'   },
@@ -23,9 +23,12 @@ const tabs = [
     { label: 'Leave History', value: 'leave'      },
     { label: 'Tickets',       value: 'tickets'    },
     { label: 'Payroll',       value: 'payroll'    },
+    { label: 'Benefits',      value: 'benefits'   },
 ];
 
-// â”€â”€ Edit panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const formatGhs = (n) => 'GHS ' + Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// ── Edit panel ────────────────────────────────────────────────────────────────
 const showEditPanel = ref(false);
 
 const editForm = useForm({
@@ -43,7 +46,7 @@ const submitEdit = () => {
     });
 };
 
-// â”€â”€ Document upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Document upload ───────────────────────────────────────────────────────────
 const docFile    = ref(null);
 const docForm    = useForm({ title: '', file: null });
 const submitDoc  = () => {
@@ -53,7 +56,7 @@ const submitDoc  = () => {
     });
 };
 
-// â”€â”€ Delete document dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Delete document dialog ────────────────────────────────────────────────────
 const showDeleteDocDialog = ref(false);
 const selectedDocId       = ref(null);
 const confirmDeleteDoc = (id) => { selectedDocId.value = id; showDeleteDocDialog.value = true; };
@@ -63,7 +66,7 @@ const doDeleteDoc = () => {
     });
 };
 
-// â”€â”€ Computed helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Computed helpers ──────────────────────────────────────────────────────────
 // Avatar gradients — disciplined cool family matching Index.vue. People module
 // = navy/cobalt dominant + a single magenta variant. No warm reds/ambers.
 const gradients = [
@@ -84,7 +87,7 @@ const initials = (name) => {
 };
 
 const yearsOfService = computed(() => {
-    if (!props.employee?.hire_date) return 'â€”';
+    if (!props.employee?.hire_date) return '—';
     const hire = new Date(props.employee.hire_date);
     const now  = new Date();
     const yrs  = now.getFullYear() - hire.getFullYear();
@@ -97,19 +100,19 @@ const yearsOfService = computed(() => {
 });
 
 const probationEnd = computed(() => {
-    if (!props.employee?.hire_date) return 'â€”';
+    if (!props.employee?.hire_date) return '—';
     const d = new Date(props.employee.hire_date);
     d.setDate(d.getDate() + 90);
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 });
 
 const formatDate = (d) => {
-    if (!d) return 'â€”';
+    if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatCurrency = (n) => {
-    if (n == null) return 'â€”';
+    if (n == null) return '—';
     return 'GHS ' + Number(n).toLocaleString('en-GH', { minimumFractionDigits: 2 });
 };
 
@@ -118,7 +121,7 @@ const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).catch(() => {});
 };
 
-// Leave balance mock â€” replace with real prop when available
+// Leave balance mock — replace with real prop when available
 const leaveBalances = computed(() => [
     { type: 'Annual',     used: props.employee?.leave_used_annual  ?? 0,  total: 21 },
     { type: 'Sick',       used: props.employee?.leave_used_sick    ?? 0,  total: 14 },
@@ -144,9 +147,9 @@ const priorityColors = {
 </script>
 
 <template>
-    <Head :title="`${employee.user?.name ?? 'Employee'} â€” Profile`" />
+    <Head :title="`${employee.user?.name ?? 'Employee'} — Profile`" />
     <div data-page-root="true">
-            <!-- â”€â”€ Header slot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Header slot ─────────────────────────────────────────────────── -->
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
@@ -273,10 +276,10 @@ const priorityColors = {
                     </div>
                 </div>
 
-                <!-- â”€â”€ Tab bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── Tab bar ────────────────────────────────────────────────────── -->
                 <TabBar :tabs="tabs" v-model="activeTab" />
 
-                <!-- â”€â”€ OVERVIEW TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── OVERVIEW TAB ───────────────────────────────────────────────── -->
                 <div v-show="activeTab === 'overview'" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
                     <!-- Employment details -->
@@ -290,11 +293,11 @@ const priorityColors = {
                         <dl class="space-y-3">
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Position</dt>
-                                <dd class="font-semibold text-on-surface">{{ employee.position ?? 'â€”' }}</dd>
+                                <dd class="font-semibold text-on-surface">{{ employee.position ?? '—' }}</dd>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Department</dt>
-                                <dd class="font-semibold text-on-surface">{{ employee.department?.name ?? 'â€”' }}</dd>
+                                <dd class="font-semibold text-on-surface">{{ employee.department?.name ?? '—' }}</dd>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Employment Type</dt>
@@ -328,15 +331,15 @@ const priorityColors = {
                             <dl class="space-y-3">
                                 <div class="flex justify-between text-[13px]">
                                     <dt class="text-on-surface-variant">Full Name</dt>
-                                    <dd class="font-semibold text-on-surface">{{ employee.user?.name ?? 'â€”' }}</dd>
+                                    <dd class="font-semibold text-on-surface">{{ employee.user?.name ?? '—' }}</dd>
                                 </div>
                                 <div class="flex justify-between text-[13px]">
                                     <dt class="text-on-surface-variant">Email</dt>
-                                    <dd class="font-semibold text-on-surface">{{ employee.user?.email ?? 'â€”' }}</dd>
+                                    <dd class="font-semibold text-on-surface">{{ employee.user?.email ?? '—' }}</dd>
                                 </div>
                                 <div class="flex justify-between text-[13px]">
                                     <dt class="text-on-surface-variant">Phone</dt>
-                                    <dd class="font-semibold text-on-surface">{{ employee.phone ?? 'â€”' }}</dd>
+                                    <dd class="font-semibold text-on-surface">{{ employee.phone ?? '—' }}</dd>
                                 </div>
                                 <div class="flex justify-between text-[13px]">
                                     <dt class="text-on-surface-variant">Status</dt>
@@ -359,7 +362,7 @@ const priorityColors = {
                                     <div>
                                         <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">Ghana Card No.</p>
                                         <p class="text-[13px] font-mono font-semibold text-on-surface">
-                                            {{ employee.ghana_card ? '****' + employee.ghana_card.slice(-4) : 'â€”' }}
+                                            {{ employee.ghana_card ? '****' + employee.ghana_card.slice(-4) : '—' }}
                                         </p>
                                     </div>
                                     <button @click="copyToClipboard(employee.ghana_card)" class="text-on-surface-variant hover:text-secondary transition-colors">
@@ -370,7 +373,7 @@ const priorityColors = {
                                     <div>
                                         <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">SSNIT Number</p>
                                         <p class="text-[13px] font-mono font-semibold text-on-surface">
-                                            {{ employee.ssnit_number ? '****' + employee.ssnit_number.slice(-4) : 'â€”' }}
+                                            {{ employee.ssnit_number ? '****' + employee.ssnit_number.slice(-4) : '—' }}
                                         </p>
                                     </div>
                                     <button @click="copyToClipboard(employee.ssnit_number)" class="text-on-surface-variant hover:text-secondary transition-colors">
@@ -381,7 +384,7 @@ const priorityColors = {
                                     <div>
                                         <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">TIN</p>
                                         <p class="text-[13px] font-mono font-semibold text-on-surface">
-                                            {{ employee.tin ? '****' + employee.tin.slice(-4) : 'â€”' }}
+                                            {{ employee.tin ? '****' + employee.tin.slice(-4) : '—' }}
                                         </p>
                                     </div>
                                     <button @click="copyToClipboard(employee.tin)" class="text-on-surface-variant hover:text-secondary transition-colors">
@@ -403,7 +406,7 @@ const priorityColors = {
                         <dl class="space-y-3">
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Gender</dt>
-                                <dd class="font-semibold text-on-surface capitalize">{{ employee.gender ? employee.gender.replace('_', ' ') : 'â€”' }}</dd>
+                                <dd class="font-semibold text-on-surface capitalize">{{ employee.gender ? employee.gender.replace('_', ' ') : '—' }}</dd>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Date of Birth</dt>
@@ -411,11 +414,11 @@ const priorityColors = {
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">National ID</dt>
-                                <dd class="font-mono text-[12.5px] font-semibold text-on-surface">{{ employee.national_id ?? 'â€”' }}</dd>
+                                <dd class="font-mono text-[12.5px] font-semibold text-on-surface">{{ employee.national_id ?? '—' }}</dd>
                             </div>
                             <div class="flex justify-between gap-3 text-[13px]">
                                 <dt class="text-on-surface-variant flex-shrink-0">Address</dt>
-                                <dd class="font-semibold text-on-surface text-right">{{ employee.address ?? 'â€”' }}</dd>
+                                <dd class="font-semibold text-on-surface text-right">{{ employee.address ?? '—' }}</dd>
                             </div>
                         </dl>
                     </div>
@@ -430,8 +433,8 @@ const priorityColors = {
                         </h4>
                         <div v-if="employee.manager" class="rounded-xl border border-outline-variant/40 bg-surface-container-low p-3 mb-3">
                             <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Manager</p>
-                            <p class="text-[14px] font-bold text-on-surface">{{ employee.manager.name ?? 'â€”' }}</p>
-                            <p class="text-[12px] text-on-surface-variant">{{ employee.manager.position }} Â· {{ employee.manager.employee_no }}</p>
+                            <p class="text-[14px] font-bold text-on-surface">{{ employee.manager.name ?? '—' }}</p>
+                            <p class="text-[12px] text-on-surface-variant">{{ employee.manager.position }} · {{ employee.manager.employee_no }}</p>
                         </div>
                         <p v-else class="text-[12.5px] italic text-on-surface-variant/55 mb-3">No manager assigned.</p>
 
@@ -474,11 +477,11 @@ const priorityColors = {
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Phone</dt>
-                                <dd class="font-mono text-[12.5px] font-semibold text-on-surface">{{ employee.emergency_contact_phone ?? 'â€”' }}</dd>
+                                <dd class="font-mono text-[12.5px] font-semibold text-on-surface">{{ employee.emergency_contact_phone ?? '—' }}</dd>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Relationship</dt>
-                                <dd class="font-semibold text-on-surface capitalize">{{ employee.emergency_contact_relationship ?? 'â€”' }}</dd>
+                                <dd class="font-semibold text-on-surface capitalize">{{ employee.emergency_contact_relationship ?? '—' }}</dd>
                             </div>
                         </div>
                         <p v-else class="text-[12.5px] italic text-on-surface-variant/55">No emergency contact on file.</p>
@@ -500,12 +503,12 @@ const priorityColors = {
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Bank</dt>
-                                <dd class="font-semibold text-on-surface">{{ employee.bank_name ?? 'â€”' }}</dd>
+                                <dd class="font-semibold text-on-surface">{{ employee.bank_name ?? '—' }}</dd>
                             </div>
                             <div class="flex justify-between text-[13px]">
                                 <dt class="text-on-surface-variant">Account</dt>
                                 <dd class="font-mono text-[12.5px] font-semibold text-on-surface">
-                                    {{ employee.bank_account ? '****' + employee.bank_account.slice(-4) : 'â€”' }}
+                                    {{ employee.bank_account ? '****' + employee.bank_account.slice(-4) : '—' }}
                                 </dd>
                             </div>
                         </dl>
@@ -534,7 +537,7 @@ const priorityColors = {
                     </div>
                 </div>
 
-                <!-- â”€â”€ DOCUMENTS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── DOCUMENTS TAB ──────────────────────────────────────────────── -->
                 <div v-show="activeTab === 'documents'" class="space-y-6">
 
                     <!-- Upload form -->
@@ -618,7 +621,7 @@ const priorityColors = {
                     </div>
                 </div>
 
-                <!-- â”€â”€ LEAVE HISTORY TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── LEAVE HISTORY TAB ──────────────────────────────────────────── -->
                 <div v-show="activeTab === 'leave'" class="space-y-6">
 
                     <!-- Balance summary -->
@@ -660,7 +663,7 @@ const priorityColors = {
                                     <td class="px-4 py-3 text-[13px] font-semibold text-on-surface capitalize">{{ req.type }}</td>
                                     <td class="px-4 py-3 text-[12px] text-on-surface-variant">{{ formatDate(req.start_date) }}</td>
                                     <td class="px-4 py-3 text-[12px] text-on-surface-variant">{{ formatDate(req.end_date) }}</td>
-                                    <td class="px-4 py-3 text-[13px] font-bold text-on-surface">{{ req.days ?? 'â€”' }}</td>
+                                    <td class="px-4 py-3 text-[13px] font-bold text-on-surface">{{ req.days ?? '—' }}</td>
                                     <td class="px-4 py-3">
                                         <StatusBadge :status="req.status" type="leave" />
                                     </td>
@@ -671,7 +674,7 @@ const priorityColors = {
                     </div>
                 </div>
 
-                <!-- â”€â”€ TICKETS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── TICKETS TAB ────────────────────────────────────────────────── -->
                 <div v-show="activeTab === 'tickets'">
                     <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
                         <div v-if="!employee.tickets?.length" class="p-10 text-center">
@@ -710,7 +713,40 @@ const priorityColors = {
                     </div>
                 </div>
 
-                <!-- â”€â”€ PAYROLL TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+                <!-- ── PAYROLL TAB ────────────────────────────────────────────────── -->
+                <!-- Benefits tab — plans this employee is enrolled in -->
+                <div v-show="activeTab === 'benefits'">
+                    <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
+                        <div v-if="!employee.benefit_enrolments?.length" class="p-10 text-center">
+                            <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30">verified_user</span>
+                            <p class="mt-2 text-[13px] text-on-surface-variant">No benefit enrolments yet.</p>
+                            <p class="mt-1 text-[11px] text-on-surface-variant/60">Plans can be assigned at creation time or via the Benefits module.</p>
+                        </div>
+                        <ul v-else class="divide-y divide-outline-variant/30">
+                            <li v-for="enr in employee.benefit_enrolments" :key="enr.id" class="flex items-start gap-3 p-4 transition-colors hover:bg-secondary/[0.04]">
+                                <span class="material-symbols-outlined mt-0.5 flex-shrink-0 text-[20px] text-brand-gold-deep" style="font-variation-settings:'FILL' 1">verified_user</span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-baseline gap-2">
+                                        <p class="text-[13px] font-bold text-on-surface truncate">{{ enr.plan?.name ?? '—' }}</p>
+                                        <span v-if="enr.plan?.code" class="text-[10.5px] font-mono text-on-surface-variant/60">{{ enr.plan.code }}</span>
+                                    </div>
+                                    <p class="mt-0.5 text-[11.5px] font-medium text-on-surface-variant/70">
+                                        <span v-if="enr.plan?.type">{{ enr.plan.type }}</span>
+                                        <span v-if="enr.plan?.provider"> · {{ enr.plan.provider }}</span>
+                                        <span> · Effective from {{ formatDate(enr.effective_from) }}</span>
+                                    </p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-[12.5px] font-black tabular-nums text-on-surface">{{ formatGhs(enr.monthly_premium) }}</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">
+                                        {{ enr.status }}
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div v-show="activeTab === 'payroll'">
                     <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card overflow-hidden">
                         <div v-if="!employee.payments?.length" class="p-10 text-center">
@@ -745,7 +781,7 @@ const priorityColors = {
 
             </div>
 
-            <!-- â”€â”€ Edit Employee SlidePanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Edit Employee SlidePanel ───────────────────────────────────── -->
             <SlidePanel
                 :open="showEditPanel"
                 title="Edit Employee"
@@ -817,7 +853,7 @@ const priorityColors = {
                 </template>
             </SlidePanel>
 
-            <!-- â”€â”€ Delete document dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Delete document dialog ────────────────────────────────────────── -->
             <ConfirmDialog
                 :open="showDeleteDocDialog"
                 title="Delete Document"

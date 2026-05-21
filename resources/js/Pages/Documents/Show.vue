@@ -219,7 +219,8 @@ const canWithdraw = computed(() => D.value.status === 'in_review' && D.value.own
                         <div v-for="(r, i) in routeForm.recipients" :key="i" class="flex items-start gap-2">
                             <span class="w-7 text-center font-mono text-[12px] font-black pt-2">{{ i + 1 }}</span>
                             <RecipientPicker v-model="r.user_id" />
-                            <select v-model="r.action_required" class="rounded-lg border border-outline-variant px-2 py-2 text-[12px]">
+                            <select v-model="r.action_required" :aria-label="`Action required for recipient ${i + 1}`"
+                                    class="rounded-lg border border-outline-variant px-2 py-2 text-[12px]">
                                 <option value="sign">Sign</option>
                                 <option value="review">Review</option>
                                 <option value="approve">Approve</option>
