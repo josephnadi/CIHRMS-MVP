@@ -42,6 +42,9 @@ use App\Http\Controllers\PipController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Webhooks\BiometricWebhookController;
 use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\Finance\ChartOfAccountsController;
+use App\Http\Controllers\Finance\FinanceHubController;
+use App\Http\Controllers\Finance\OrgBankAccountController;
 use App\Http\Controllers\Webhooks\ESignWebhookController;
 use App\Http\Controllers\Webhooks\WebhookController;
 use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
@@ -139,6 +142,7 @@ Route::get('/complaints/track', [ComplaintController::class, 'track'])
 // clock events via AttendanceService with source=web_kiosk.
 Route::prefix('kiosk')->name('kiosk.')->middleware('throttle:60,1')->group(function () {
     Route::get('/',        [KioskController::class, 'show'])->name('show');
+    Route::get('/recent',  [KioskController::class, 'recent'])->name('recent');
     Route::post('/verify', [KioskController::class, 'verify'])->name('verify');
     Route::post('/clock',  [KioskController::class, 'clock'])->name('clock');
     Route::post('/face',   [KioskController::class, 'clockByFace'])->name('face');
@@ -824,6 +828,37 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('signed')
             ->name('download');
         Route::post('/{document}/convert',         [DocumentController::class, 'convert'])->name('convert');
+    });
+
+    // ── F1: Finance ─────────────────────────────────────────────────────────
+    // finance.hub gates ONLY the Finance Hub landing page.
+    // Auditors who have accounts.view / bank_accounts.view but NOT finance.hub
+    // must still reach the list endpoints, so each resource group carries its
+    // own per-permission middleware.
+    Route::prefix('finance')->name('finance.')->group(function () {
+        // FinanceHubController wired in Task 9
+        Route::middleware('permission:finance.hub')->group(function () {
+            Route::get('/', [FinanceHubController::class, 'index'])->name('hub');
+        });
+
+        Route::middleware('permission:accounts.view')->group(function () {
+            Route::get('accounts', [ChartOfAccountsController::class, 'index'])->name('accounts.index');
+        });
+        Route::middleware('permission:accounts.manage')->group(function () {
+            Route::post('accounts',             [ChartOfAccountsController::class, 'store'])->name('accounts.store');
+            Route::patch('accounts/{account}',  [ChartOfAccountsController::class, 'update'])->name('accounts.update');
+            Route::delete('accounts/{account}', [ChartOfAccountsController::class, 'destroy'])->name('accounts.destroy');
+        });
+
+        // OrgBankAccountController wired in Task 8
+        Route::middleware('permission:bank_accounts.view')->group(function () {
+            Route::get('bank-accounts', [OrgBankAccountController::class, 'index'])->name('bank-accounts.index');
+        });
+        Route::middleware('permission:bank_accounts.manage')->group(function () {
+            Route::post('bank-accounts',                  [OrgBankAccountController::class, 'store'])->name('bank-accounts.store');
+            Route::patch('bank-accounts/{bankAccount}',   [OrgBankAccountController::class, 'update'])->name('bank-accounts.update');
+            Route::delete('bank-accounts/{bankAccount}',  [OrgBankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
+        });
     });
 });
 

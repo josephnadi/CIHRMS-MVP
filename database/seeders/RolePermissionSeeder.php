@@ -152,6 +152,13 @@ class RolePermissionSeeder extends Seeder
 
         // ── Communications: notice board / ticker ──
         'announcements.manage'    => ['Communications', 'Create, edit, and remove org-wide notices on the ticker'],
+
+        // ── F1: Finance — Chart of Accounts & Org Banking ──
+        'accounts.view'        => ['Finance', 'View chart of accounts'],
+        'accounts.manage'      => ['Finance', 'Create / edit / archive GL accounts'],
+        'bank_accounts.view'   => ['Finance', 'View organisational bank accounts'],
+        'bank_accounts.manage' => ['Finance', 'Manage organisational bank accounts'],
+        'finance.hub'          => ['Finance', 'Access the Finance Hub landing page'],
     ];
 
     /**
@@ -233,6 +240,10 @@ class RolePermissionSeeder extends Seeder
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
             'reports.view',
+            // F1 — Finance Hub & Chart of Accounts
+            'accounts.view', 'accounts.manage',
+            'bank_accounts.view', 'bank_accounts.manage',
+            'finance.hub',
         ],
         'it_support' => [
             'dashboard.view',
@@ -264,6 +275,8 @@ class RolePermissionSeeder extends Seeder
             'privacy.fulfill',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
+            // F1 — Finance read-only oversight
+            'accounts.view', 'bank_accounts.view',
         ],
     ];
 

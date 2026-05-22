@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Enums\AttendanceSource;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceRecord extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'employee_id', 'device_id', 'source', 'direction',
         'event_at', 'recorded_at', 'geo_lat', 'geo_lng',

@@ -106,11 +106,47 @@ class KioskController extends Controller
         ], 501);
     }
 
+    /**
+     * Today's social-proof wall — last 8 kiosk punches today.
+     *
+     * Polled every ~15s by the kiosk page. Payload is deliberately minimal
+     * (first name + direction + event_at) so anyone within sight of the device
+     * can see it without leaking Staff IDs, full names, or positions.
+     */
+    public function recent(): JsonResponse
+    {
+        $rows = AttendanceRecord::query()
+            ->where('source', AttendanceSource::WebKiosk->value)
+            ->whereDate('event_at', now()->toDateString())
+            ->latest('event_at')
+            ->limit(8)
+            ->with('employee.user:id,name')
+            ->get();
+
+        $payload = $rows->map(function (AttendanceRecord $r) {
+            $fullName  = $r->employee?->user?->name ?? '—';
+            $firstName = trim(strtok($fullName, ' ')) ?: '—';
+
+            return [
+                'first_name' => $firstName,
+                'direction'  => $r->direction,
+                'event_at'   => CarbonImmutable::instance($r->event_at)->toIso8601String(),
+            ];
+        })->values();
+
+        return response()->json([
+            'recent'     => $payload,
+            'serverTime' => now()->toIso8601String(),
+        ]);
+    }
+
     private function matchEmployee(string $employeeNo, string $name): ?Employee
     {
+        // Case-insensitive employee_no lookup so "gh-hr-001" matches "GH-HR-001".
+        // LOWER() is supported on SQLite, MySQL, and Postgres so no driver split needed.
         $employee = Employee::query()
             ->with('user:id,name')
-            ->where('employee_no', trim($employeeNo))
+            ->whereRaw('LOWER(employee_no) = ?', [strtolower(trim($employeeNo))])
             ->first();
 
         if (! $employee || ! $employee->user) {
