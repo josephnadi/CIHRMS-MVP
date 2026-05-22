@@ -114,24 +114,15 @@ class JournalPostingService
             $reversal = $reversal->fresh('lines.glAccount');
             $postedReversal = $this->post($reversal);
 
-            // Downgrade the reversal JE to Reversed status in the DB so that
-            // "status = posted" ledger queries exclude it (it is a compensating
-            // entry, not an independent business transaction). We use a raw update
-            // to avoid mutating the in-memory $postedReversal model, so callers
-            // can still inspect the Posted state that confirmed execution.
-            JournalEntry::where('id', $postedReversal->id)->update([
-                'status'      => JournalEntryStatus::Reversed->value,
-                'reversed_at' => now(),
-                'reversed_by' => $by->id,
-            ]);
-
+            // Mark the ORIGINAL entry as reversed. The reversal JE itself stays
+            // in Posted status — it is a real business transaction that mutated
+            // gl_account_balances. Only the entry whose effects were undone gets
+            // the Reversed status.
             $entry->status      = JournalEntryStatus::Reversed;
             $entry->reversed_at = now();
             $entry->reversed_by = $by->id;
             $entry->save();
 
-            // Return the in-memory snapshot that still carries Posted status so
-            // callers can verify the reversal was successfully executed.
             return $postedReversal;
         });
     }

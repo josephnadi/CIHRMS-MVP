@@ -98,12 +98,13 @@ it('reverses a posted JE — creates inverted JE and rolls balances back', funct
     expect($reversal->reversal_of_id)->toBe($je->id);
     expect($reversal->lines)->toHaveCount(2);
     expect($je->fresh()->status)->toBe(JournalEntryStatus::Reversed);
+    expect($reversal->fresh()->status)->toBe(JournalEntryStatus::Posted);
 
     expect((float) GlAccountBalance::find($this->expense->id)->balance)->toBe(0.0);
     expect((float) GlAccountBalance::find($this->ap->id)->balance)->toBe(0.0);
 });
 
-it('balance invariant: balance equals natural sum of all posted lines for that account', function () {
+it('balance invariant: balance equals natural sum of lines from posted + reversed entries', function () {
     $this->actingAs($this->user);
 
     $je1 = makeBalancedJe($this->user, $this->expense, $this->ap, 500);
@@ -115,7 +116,7 @@ it('balance invariant: balance equals natural sum of all posted lines for that a
     $this->svc->reverse($je1->fresh('lines'), $this->user, 'rollback first');
 
     $expSum = JournalLine::whereHas('entry', fn ($q) =>
-        $q->where('status', JournalEntryStatus::Posted->value)
+        $q->whereIn('status', [JournalEntryStatus::Posted->value, JournalEntryStatus::Reversed->value])
     )
     ->where('gl_account_id', $this->expense->id)
     ->get()
