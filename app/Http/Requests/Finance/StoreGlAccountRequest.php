@@ -17,6 +17,9 @@ class StoreGlAccountRequest extends FormRequest
 
     public function rules(): array
     {
+        // NOTE: 'unique:gl_accounts,code' intentionally queries soft-deleted rows too.
+        // GL codes are permanently retired once used — never re-issued — to preserve
+        // audit trail continuity. If a code must be reused, hard-delete the archived row.
         return [
             'code'        => ['required', 'string', 'max:20', 'unique:gl_accounts,code'],
             'name'        => ['required', 'string', 'max:150'],

@@ -1,6 +1,14 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const canManage = computed(() => {
+    const perms = page.props?.auth?.permissions ?? [];
+    return Array.isArray(perms)
+        ? perms.includes('bank_accounts.manage')
+        : (typeof perms === 'function' ? perms().includes('bank_accounts.manage') : false);
+});
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -107,7 +115,7 @@ const purposeColor = (val) => ({
                     The institute's own bank accounts. {{ rows.length }} total.
                 </p>
             </div>
-            <PrimaryButton @click="openNew">
+            <PrimaryButton v-if="canManage" @click="openNew">
                 <span class="material-symbols-outlined text-[16px] mr-1">add</span>
                 New Bank Account
             </PrimaryButton>
@@ -128,7 +136,7 @@ const purposeColor = (val) => ({
                 <p class="font-mono text-[12px] text-on-surface tracking-wider">{{ bank.account_number }}</p>
                 <p class="text-[10px] text-on-surface-variant">GL {{ bank.gl_account?.code }} — {{ bank.gl_account?.name }}</p>
                 <p class="text-[13px] font-black text-primary">Opening: {{ cedi(bank.opening_balance) }}</p>
-                <div class="flex gap-2 pt-1">
+                <div v-if="canManage" class="flex gap-2 pt-1">
                     <button @click="openEdit(bank)" class="text-[11px] font-bold text-secondary hover:underline">Edit</button>
                     <button @click="archive(bank)"  class="text-[11px] font-bold text-rose-600 hover:underline">Archive</button>
                 </div>

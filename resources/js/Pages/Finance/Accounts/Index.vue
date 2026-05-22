@@ -1,6 +1,14 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const canManage = computed(() => {
+    const perms = page.props?.auth?.permissions ?? [];
+    return Array.isArray(perms)
+        ? perms.includes('accounts.manage')
+        : (typeof perms === 'function' ? perms().includes('accounts.manage') : false);
+});
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -12,12 +20,10 @@ import EmptyState from '@/Components/EmptyState.vue';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    tree:    { type: Object, required: true },   // { data: GlAccountResource[] }
     flat:    { type: Object, required: true },   // { data: GlAccountResource[] }
     filters: { type: Object, default: () => ({}) },
 });
 
-const treeRows = computed(() => props.tree.data ?? props.tree ?? []);
 const flatRows = computed(() => props.flat.data ?? props.flat ?? []);
 
 const typeFilter = ref(props.filters.type ?? '');
@@ -103,7 +109,7 @@ const typeColor = (typeValue) => ({
                     General-ledger account catalogue. {{ flatRows.length }} accounts.
                 </p>
             </div>
-            <PrimaryButton @click="openNew">
+            <PrimaryButton v-if="canManage" @click="openNew">
                 <span class="material-symbols-outlined text-[16px] mr-1">add</span>
                 New Account
             </PrimaryButton>
@@ -155,8 +161,10 @@ const typeColor = (typeValue) => ({
                             GHS {{ (acc.balance ?? 0).toFixed(2) }}
                         </td>
                         <td class="px-4 py-2 text-right space-x-2">
-                            <button @click="openEdit(acc)" class="text-[11px] font-bold text-secondary hover:underline">Edit</button>
-                            <button @click="archive(acc)"  class="text-[11px] font-bold text-rose-600 hover:underline">Archive</button>
+                            <template v-if="canManage">
+                                <button @click="openEdit(acc)" class="text-[11px] font-bold text-secondary hover:underline">Edit</button>
+                                <button @click="archive(acc)"  class="text-[11px] font-bold text-rose-600 hover:underline">Archive</button>
+                            </template>
                         </td>
                     </tr>
                 </tbody>

@@ -27,9 +27,8 @@ class ChartOfAccountsController extends Controller
 
         return Inertia::render('Finance/Accounts/Index', [
             'activeModule' => 'finance-accounts',
-            'tree'    => GlAccountResource::collection($this->service->tree()),
-            'flat'    => GlAccountResource::collection($this->service->list($filters)),
-            'filters' => $filters,
+            'flat'         => GlAccountResource::collection($this->service->list($filters)),
+            'filters'      => $filters,
         ]);
     }
 

@@ -6,7 +6,6 @@ namespace App\Services\Finance;
 
 use App\Models\GlAccount;
 use App\Models\GlAccountBalance;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -33,22 +32,6 @@ class ChartOfAccountsService
         }
 
         return $q->orderBy('code')->get();
-    }
-
-    public function paginate(array $filters = [], int $perPage = 50): LengthAwarePaginator
-    {
-        $q = GlAccount::query()->with('balance');
-
-        if (! empty($filters['type']))   $q->where('type', $filters['type']);
-        if (! empty($filters['search'])) {
-            $term = trim($filters['search']);
-            $q->where(function ($w) use ($term) {
-                $w->where('code', 'like', "%{$term}%")
-                  ->orWhere('name', 'like', "%{$term}%");
-            });
-        }
-
-        return $q->orderBy('code')->paginate($perPage)->withQueryString();
     }
 
     public function tree(): Collection

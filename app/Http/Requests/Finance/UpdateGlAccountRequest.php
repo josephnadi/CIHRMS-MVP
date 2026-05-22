@@ -17,6 +17,9 @@ class UpdateGlAccountRequest extends FormRequest
 
     public function rules(): array
     {
+        // NOTE: Rule::unique('gl_accounts', 'code')->ignore($id) still queries soft-deleted rows
+        // for all other records. GL codes are permanently retired once used — never re-issued —
+        // to preserve audit trail continuity. If a code must be reused, hard-delete the archived row.
         $id = $this->route('account')?->id;
 
         return [

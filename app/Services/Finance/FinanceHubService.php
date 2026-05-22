@@ -147,10 +147,15 @@ class FinanceHubService
         ];
     }
 
+    /**
+     * LoanStatus cases that represent loans requiring action from a finance officer:
+     * awaiting approval, or approved but not yet disbursed.
+     */
     private function loanPendingStatuses(): array
     {
         return [
             LoanStatus::PendingApproval->value,
+            LoanStatus::Approved->value,
         ];
     }
 }

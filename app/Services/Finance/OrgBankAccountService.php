@@ -8,7 +8,6 @@ use App\Enums\GlAccountType;
 use App\Models\GlAccount;
 use App\Models\OrgBankAccount;
 use DomainException;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class OrgBankAccountService
@@ -21,14 +20,6 @@ class OrgBankAccountService
         if (array_key_exists('is_active', $filters)) $q->where('is_active', (bool) $filters['is_active']);
 
         return $q->orderBy('bank_name')->orderBy('account_name')->get();
-    }
-
-    public function paginate(array $filters = [], int $perPage = 25): LengthAwarePaginator
-    {
-        $q = OrgBankAccount::query()->with('glAccount');
-        if (! empty($filters['purpose'])) $q->where('purpose', $filters['purpose']);
-
-        return $q->orderBy('bank_name')->paginate($perPage)->withQueryString();
     }
 
     public function create(array $data): OrgBankAccount
