@@ -859,6 +859,16 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::patch('bank-accounts/{bankAccount}',   [OrgBankAccountController::class, 'update'])->name('bank-accounts.update');
             Route::delete('bank-accounts/{bankAccount}',  [OrgBankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
         });
+
+        // F2 — Vendors
+        Route::middleware('permission:vendors.view')->group(function () {
+            Route::get('vendors', [\App\Http\Controllers\Finance\VendorController::class, 'index'])->name('vendors.index');
+        });
+        Route::middleware('permission:vendors.manage')->group(function () {
+            Route::post('vendors',                  [\App\Http\Controllers\Finance\VendorController::class, 'store'])->name('vendors.store');
+            Route::patch('vendors/{vendor}',        [\App\Http\Controllers\Finance\VendorController::class, 'update'])->name('vendors.update');
+            Route::delete('vendors/{vendor}',       [\App\Http\Controllers\Finance\VendorController::class, 'destroy'])->name('vendors.destroy');
+        });
     });
 });
 
