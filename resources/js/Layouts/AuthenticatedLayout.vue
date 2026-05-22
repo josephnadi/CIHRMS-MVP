@@ -128,6 +128,7 @@ const navSections = computed(() => {
                 title: 'Organization',
                 items: [
                     { label: 'Recruitment',  route: 'modules.recruitment',  module: 'recruitment', icon: 'person_add',       visible: true },
+                    { label: 'Messages',     route: 'chat.index',           module: 'chat',        icon: 'forum',            visible: true },
                     { label: 'Service Desk', route: 'modules.tickets',      module: 'tickets',     icon: 'support_agent',    visible: true },
                     {
                         label: 'Learning', icon: 'school', expandable: true, visible: can('learning.view'),
