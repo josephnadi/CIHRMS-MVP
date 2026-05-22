@@ -142,9 +142,11 @@ class KioskController extends Controller
 
     private function matchEmployee(string $employeeNo, string $name): ?Employee
     {
+        // Case-insensitive employee_no lookup so "gh-hr-001" matches "GH-HR-001".
+        // LOWER() is supported on SQLite, MySQL, and Postgres so no driver split needed.
         $employee = Employee::query()
             ->with('user:id,name')
-            ->where('employee_no', trim($employeeNo))
+            ->whereRaw('LOWER(employee_no) = ?', [strtolower(trim($employeeNo))])
             ->first();
 
         if (! $employee || ! $employee->user) {
