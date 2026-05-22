@@ -138,6 +138,10 @@ class User extends Authenticatable
             'accounts.view', 'accounts.manage',
             'bank_accounts.view', 'bank_accounts.manage',
             'finance.hub',
+            // F2 — Accounts Payable & Journal
+            'vendors.view', 'vendors.manage',
+            'ap_invoices.view', 'ap_invoices.create', 'ap_invoices.approve', 'ap_invoices.pay',
+            'journal.view',
         ],
         'it_support' => [
             'dashboard.view',
@@ -171,6 +175,8 @@ class User extends Authenticatable
             'governance.view', 'governance.acknowledge',
             // F1 — Finance read-only oversight
             'accounts.view', 'bank_accounts.view',
+            // F2 — Read-only oversight
+            'vendors.view', 'ap_invoices.view', 'journal.view',
         ],
     ];
 

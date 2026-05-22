@@ -159,6 +159,16 @@ class RolePermissionSeeder extends Seeder
         'bank_accounts.view'   => ['Finance', 'View organisational bank accounts'],
         'bank_accounts.manage' => ['Finance', 'Manage organisational bank accounts'],
         'finance.hub'          => ['Finance', 'Access the Finance Hub landing page'],
+
+        // ── F2: Finance — Accounts Payable + Journal Engine ──
+        'vendors.view'         => ['Finance', 'View vendor master data'],
+        'vendors.manage'       => ['Finance', 'Create / edit / archive vendors'],
+        'ap_invoices.view'     => ['Finance', 'View vendor invoices'],
+        'ap_invoices.create'   => ['Finance', 'Create / submit vendor invoices'],
+        'ap_invoices.approve'  => ['Finance', 'Approve / cancel vendor invoices'],
+        'ap_invoices.pay'      => ['Finance', 'Record / void AP payments and trigger disbursement'],
+        'journal.view'         => ['Finance', 'View posted journal entries (audit)'],
+        'journal.post_manual'  => ['Finance', 'Create / post manual journal entries (emergency)'],
     ];
 
     /**
@@ -244,6 +254,10 @@ class RolePermissionSeeder extends Seeder
             'accounts.view', 'accounts.manage',
             'bank_accounts.view', 'bank_accounts.manage',
             'finance.hub',
+            // F2 — Accounts Payable & Journal
+            'vendors.view', 'vendors.manage',
+            'ap_invoices.view', 'ap_invoices.create', 'ap_invoices.approve', 'ap_invoices.pay',
+            'journal.view',
         ],
         'it_support' => [
             'dashboard.view',
@@ -277,6 +291,8 @@ class RolePermissionSeeder extends Seeder
             'governance.view', 'governance.acknowledge',
             // F1 — Finance read-only oversight
             'accounts.view', 'bank_accounts.view',
+            // F2 — Read-only oversight
+            'vendors.view', 'ap_invoices.view', 'journal.view',
         ],
     ];
 
