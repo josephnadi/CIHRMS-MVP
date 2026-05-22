@@ -28,7 +28,10 @@ return new class extends Migration
             $table->foreignId('org_bank_account_id')->constrained('org_bank_accounts')->restrictOnDelete();
             $table->string('narration', 500)->nullable();
             $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
-            $table->foreignId('disbursement_id')->nullable()->constrained('disbursements')->nullOnDelete();
+            // No DB-level FK on disbursement_id — disbursements table is created
+            // by a later migration (2026_05_31). Eloquent relation in ApPayment
+            // resolves the link by column name, no FK required.
+            $table->unsignedBigInteger('disbursement_id')->nullable()->index();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('processed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('processed_at')->nullable();
