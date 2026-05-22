@@ -142,6 +142,7 @@ Route::get('/complaints/track', [ComplaintController::class, 'track'])
 // clock events via AttendanceService with source=web_kiosk.
 Route::prefix('kiosk')->name('kiosk.')->middleware('throttle:60,1')->group(function () {
     Route::get('/',        [KioskController::class, 'show'])->name('show');
+    Route::get('/recent',  [KioskController::class, 'recent'])->name('recent');
     Route::post('/verify', [KioskController::class, 'verify'])->name('verify');
     Route::post('/clock',  [KioskController::class, 'clock'])->name('clock');
     Route::post('/face',   [KioskController::class, 'clockByFace'])->name('face');

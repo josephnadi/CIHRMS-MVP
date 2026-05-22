@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
+import RecentPunches from '@/Components/Kiosk/RecentPunches.vue';
 
 const props = defineProps({
     serverTime: String,
@@ -12,6 +13,21 @@ const now = ref(new Date(props.serverTime ?? Date.now()));
 let clockInterval = null;
 onMounted(() => { clockInterval = setInterval(() => { now.value = new Date(); }, 1000); });
 onUnmounted(() => { clearInterval(clockInterval); });
+
+// ── Today's wall — last 8 kiosk punches today, polled every 15s ─────────────
+const recent = ref([]);
+let recentInterval = null;
+const fetchRecent = async () => {
+    try {
+        const { data } = await axios.get(route('kiosk.recent'));
+        recent.value = data?.recent ?? [];
+    } catch (_) { /* network blip — keep previous list */ }
+};
+onMounted(() => {
+    fetchRecent();
+    recentInterval = setInterval(fetchRecent, 15000);
+});
+onUnmounted(() => { if (recentInterval) clearInterval(recentInterval); });
 
 const liveTime = computed(() =>
     now.value.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -160,6 +176,7 @@ const clock = async (direction) => {
             matched.value = data.employee;
             lastRecord.value = data.record;
             stage.value = 'success';
+            fetchRecent();
             scheduleReset(6000);
         } else {
             errorMessage.value = data.message ?? 'Could not record clock event.';
@@ -382,6 +399,11 @@ const formattedEventTime = computed(() => {
             </div>
         </section>
 
+        <!-- Today's wall — last 8 kiosk punches; doubles as a device-liveness indicator -->
+        <div class="kiosk-wall">
+            <RecentPunches :items="recent" />
+        </div>
+
         <footer class="kiosk-footer">
             <span>CIHRMS · Attendance terminal</span>
             <span class="hidden sm:inline">Press <kbd>Enter</kbd> to submit · Tap "Scan Face" for biometric (coming soon)</span>
@@ -400,6 +422,12 @@ const formattedEventTime = computed(() => {
     color: #fff;
     overflow: hidden;
     isolation: isolate;
+}
+.kiosk-wall {
+    position: relative;
+    z-index: 1;
+    padding: 12px 28px 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .kiosk-mesh {
     position: absolute; inset: 0; pointer-events: none; z-index: 0;
