@@ -40,13 +40,13 @@ const statusColor = (val) => ({
         </div>
 
         <div class="flex flex-wrap gap-2 items-center">
-            <select v-model="sourceFilter" @change="apply" class="rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest">
+            <select v-model="sourceFilter" @change="apply" aria-label="Source type" class="rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest">
                 <option value="">All sources</option>
                 <option value="manual">Manual</option>
                 <option value="vendor_invoice">Vendor Invoice</option>
                 <option value="ap_payment">AP Payment</option>
             </select>
-            <select v-model="statusFilter" @change="apply" class="rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest">
+            <select v-model="statusFilter" @change="apply" aria-label="Status" class="rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest">
                 <option value="">All statuses</option>
                 <option value="draft">Draft</option>
                 <option value="posted">Posted</option>

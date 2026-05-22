@@ -193,12 +193,12 @@ const statusColor = (val) => ({
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <InputLabel for="invoice_date" value="Invoice date" />
-                        <input id="invoice_date" v-model="form.invoice_date" type="date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        <input id="invoice_date" v-model="form.invoice_date" type="date" aria-label="Invoice date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                         <InputError :message="form.errors.invoice_date" />
                     </div>
                     <div>
                         <InputLabel for="due_date" value="Due date" />
-                        <input id="due_date" v-model="form.due_date" type="date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        <input id="due_date" v-model="form.due_date" type="date" aria-label="Due date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                     </div>
                 </div>
 

@@ -206,11 +206,11 @@ const statusColor = (val) => ({
                 </div>
                 <div>
                     <InputLabel for="address" value="Address" />
-                    <textarea id="address" v-model="form.address" rows="2" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
+                    <textarea id="address" v-model="form.address" rows="2" aria-label="Address" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
                 </div>
                 <div>
                     <InputLabel for="notes" value="Notes" />
-                    <textarea id="notes" v-model="form.notes" rows="2" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
+                    <textarea id="notes" v-model="form.notes" rows="2" aria-label="Notes" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
                 </div>
                 <div class="pt-2 flex justify-end gap-2">
                     <button type="button" @click="panelOpen = false" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>
