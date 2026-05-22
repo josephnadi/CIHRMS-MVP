@@ -47,7 +47,7 @@ it('forbids employees from accessing the hub', function () {
 
 it('cashPosition reflects live gl_account_balances for bank-linked asset accounts', function () {
     $finance = User::factory()->create(['role' => 'finance_officer']);
-    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('cashPosition', 0.0));
+    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('cashPosition', fn ($v) => (float) $v === 0.0));
 
     $vendor  = Vendor::create(['code' => 'V', 'name' => 'V', 'status' => 'active']);
     $expense = \App\Models\GlAccount::where('code', '5200')->firstOrFail();
@@ -69,7 +69,7 @@ it('cashPosition reflects live gl_account_balances for bank-linked asset account
     \Illuminate\Support\Facades\Cache::flush();
 
     // Bank GL 1100 should now show -500 (asset, credited 500 → natural Dr - Cr = -500).
-    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('cashPosition', -500.0));
+    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('cashPosition', fn ($v) => (float) $v === -500.0));
 });
 
 it('apOutstanding aggregates the outstanding amount from approved + partially_paid invoices', function () {
@@ -87,5 +87,5 @@ it('apOutstanding aggregates the outstanding amount from approved + partially_pa
 
     \Illuminate\Support\Facades\Cache::flush();
 
-    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('apOutstanding', 1000.0));
+    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('apOutstanding', fn ($v) => (float) $v === 1000.0));
 });
