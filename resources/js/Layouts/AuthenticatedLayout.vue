@@ -242,13 +242,18 @@ const navSections = computed(() => {
         },
     ];
 
-    if (can('finance.hub') || can('accounts.view') || can('bank_accounts.view')) {
+    if (can('finance.hub') || can('accounts.view') || can('bank_accounts.view') ||
+        can('vendors.view') || can('ap_invoices.view') || can('journal.view')) {
         sections.push({
             title: 'Finance',
             items: [
                 { label: 'Finance Hub',        route: 'finance.hub',                module: 'finance',                  icon: 'account_balance',         visible: can('finance.hub') },
                 { label: 'Chart of Accounts',  route: 'finance.accounts.index',     module: 'finance-accounts',         icon: 'account_tree',            visible: can('accounts.view') },
                 { label: 'Bank Accounts',      route: 'finance.bank-accounts.index',module: 'finance-bank-accounts',    icon: 'account_balance_wallet',  visible: can('bank_accounts.view') },
+                { label: 'Vendors',        route: 'finance.vendors.index',     module: 'finance-vendors',     icon: 'store',          visible: can('vendors.view') },
+                { label: 'AP Invoices',    route: 'finance.ap-invoices.index', module: 'finance-ap-invoices', icon: 'receipt_long',   visible: can('ap_invoices.view') },
+                { label: 'AP Payments',    route: 'finance.ap-payments.index', module: 'finance-ap-payments', icon: 'payments',       visible: can('ap_invoices.view') },
+                { label: 'Journal',        route: 'finance.journal.index',     module: 'finance-journal',     icon: 'list_alt',       visible: can('journal.view') },
             ],
         });
     }
@@ -469,6 +474,13 @@ const SIDEBAR_ICON_COLORS = {
     'assets':                   '#7986cb',
     'dept-finance':             '#3949ab',
     'dept-marketing':           '#7986cb',
+    'finance':                  '#3949ab',
+    'finance-accounts':         '#3949ab',
+    'finance-bank-accounts':    '#3949ab',
+    'finance-vendors':          '#3949ab',
+    'finance-ap-invoices':      '#3949ab',
+    'finance-ap-payments':      '#3949ab',
+    'finance-journal':          '#3949ab',
 };
 const SIDEBAR_ICON_DEFAULT = '#7986cb';
 

@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Models\GlAccountBalance;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Services\Finance\VendorInvoiceService;
 use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\GlAccountBalanceSeeder;
 use Database\Seeders\OrgBankAccountSeeder;
@@ -15,7 +18,7 @@ beforeEach(function () {
     (new GlAccountBalanceSeeder())->run();
 });
 
-it('renders the hub for finance_officer with expected aggregate keys', function () {
+it('renders the hub for finance_officer with F2 aggregate keys', function () {
     $finance = User::factory()->create(['role' => 'finance_officer']);
 
     $this->actingAs($finance)
@@ -29,33 +32,60 @@ it('renders the hub for finance_officer with expected aggregate keys', function 
             ->has('statutoryCompliance')
             ->has('bankAccounts')
             ->has('nextPayroll')
+            ->has('apOutstanding')
+            ->has('pendingApprovals.payroll_runs')
+            ->has('pendingApprovals.loans')
+            ->has('pendingApprovals.invoices')
+            ->has('pendingApprovals.payments')
         );
 });
 
 it('forbids employees from accessing the hub', function () {
     $employee = User::factory()->create(['role' => 'employee']);
-
-    $this->actingAs($employee)
-        ->get('/finance')
-        ->assertForbidden();
+    $this->actingAs($employee)->get('/finance')->assertForbidden();
 });
 
-it('hub cash position equals the sum of active bank account opening balances', function () {
+it('cashPosition reflects live gl_account_balances for bank-linked asset accounts', function () {
     $finance = User::factory()->create(['role' => 'finance_officer']);
+    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('cashPosition', 0.0));
 
-    // Seed includes 3 banks at zero opening balance.
-    $this->actingAs($finance)
-        ->get('/finance')
-        ->assertInertia(fn ($p) => $p->where('cashPosition', fn ($v) => (float) $v === 0.0));
+    $vendor  = Vendor::create(['code' => 'V', 'name' => 'V', 'status' => 'active']);
+    $expense = \App\Models\GlAccount::where('code', '5200')->firstOrFail();
+    $inv = app(VendorInvoiceService::class)->create([
+        'vendor_id' => $vendor->id, 'invoice_date' => '2026-05-22',
+        'lines' => [['description' => 'X', 'quantity' => 1, 'unit_price' => 500, 'gl_account_id' => $expense->id]],
+    ], $finance);
+    app(VendorInvoiceService::class)->submit($inv);
+    $approver = User::factory()->create(['role' => 'finance_officer']);
+    app(VendorInvoiceService::class)->approve($inv->fresh(), $approver);
 
-    // Now bump one bank's opening_balance and re-test.
-    $bank = \App\Models\OrgBankAccount::first();
-    $bank->update(['opening_balance' => 100000.00]);
+    $bank = \App\Models\OrgBankAccount::where('bank_name', 'GCB')->firstOrFail();
+    app(\App\Services\Finance\ApPaymentService::class)->record([
+        'vendor_id' => $vendor->id, 'payment_date' => '2026-05-22', 'amount' => 500,
+        'org_bank_account_id' => $bank->id,
+        'allocations' => [['vendor_invoice_id' => $inv->id, 'allocated_amount' => 500]],
+    ], $finance);
 
-    // Hub uses 60s cache; flush.
     \Illuminate\Support\Facades\Cache::flush();
 
-    $this->actingAs($finance)
-        ->get('/finance')
-        ->assertInertia(fn ($p) => $p->where('cashPosition', fn ($v) => (float) $v === 100000.0));
+    // Bank GL 1100 should now show -500 (asset, credited 500 → natural Dr - Cr = -500).
+    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('cashPosition', -500.0));
+});
+
+it('apOutstanding aggregates the outstanding amount from approved + partially_paid invoices', function () {
+    $finance = User::factory()->create(['role' => 'finance_officer']);
+    $vendor  = Vendor::create(['code' => 'V', 'name' => 'V', 'status' => 'active']);
+    $expense = \App\Models\GlAccount::where('code', '5200')->firstOrFail();
+
+    $inv = app(VendorInvoiceService::class)->create([
+        'vendor_id' => $vendor->id, 'invoice_date' => '2026-05-22',
+        'lines' => [['description' => 'X', 'quantity' => 1, 'unit_price' => 1000, 'gl_account_id' => $expense->id]],
+    ], $finance);
+    app(VendorInvoiceService::class)->submit($inv);
+    $approver = User::factory()->create(['role' => 'finance_officer']);
+    app(VendorInvoiceService::class)->approve($inv->fresh(), $approver);
+
+    \Illuminate\Support\Facades\Cache::flush();
+
+    $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('apOutstanding', 1000.0));
 });

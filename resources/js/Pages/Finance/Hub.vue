@@ -10,7 +10,8 @@ const props = defineProps({
     bankAccounts:        { type: Array,  default: () => [] },
     nextPayroll:         { type: [Object, null], default: null },
     outstandingLoans:    { type: Object, default: () => ({ count: 0, total_balance: 0 }) },
-    pendingApprovals:    { type: Object, default: () => ({ payroll_runs: 0, loans: 0 }) },
+    apOutstanding:       { type: Number, default: 0 },
+    pendingApprovals:    { type: Object, default: () => ({ payroll_runs: 0, loans: 0, invoices: 0, payments: 0 }) },
     statutoryCompliance: { type: Array,  default: () => [] },
 });
 
@@ -25,7 +26,12 @@ const cediShort = (v) => {
     return 'GHS ' + n.toFixed(2);
 };
 
-const totalPendingCount = computed(() => props.pendingApprovals.payroll_runs + props.pendingApprovals.loans);
+const totalPendingCount = computed(() =>
+    props.pendingApprovals.payroll_runs +
+    props.pendingApprovals.loans +
+    props.pendingApprovals.invoices +
+    props.pendingApprovals.payments
+);
 
 const statusBadge = (status) => {
     const s = (status || '').toLowerCase();
@@ -71,7 +77,7 @@ const statusBadge = (status) => {
         </div>
 
         <!-- KPI Strip -->
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
                 <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">Cash Position</p>
                 <p class="mt-2 text-2xl font-black text-primary">{{ cediShort(cashPosition) }}</p>
@@ -85,10 +91,16 @@ const statusBadge = (status) => {
             </div>
 
             <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">AP Outstanding</p>
+                <p class="mt-2 text-2xl font-black text-primary">{{ cediShort(apOutstanding) }}</p>
+                <p class="mt-1 text-[10px] text-on-surface-variant">Approved invoices unpaid</p>
+            </div>
+
+            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
                 <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">Pending Approvals</p>
                 <p class="mt-2 text-2xl font-black text-primary">{{ totalPendingCount }}</p>
                 <p class="mt-1 text-[10px] text-on-surface-variant">
-                    {{ pendingApprovals.payroll_runs }} payroll · {{ pendingApprovals.loans }} loans
+                    {{ pendingApprovals.payroll_runs }} payroll · {{ pendingApprovals.loans }} loans · {{ pendingApprovals.invoices }} invoices · {{ pendingApprovals.payments }} payments
                 </p>
             </div>
 
