@@ -1007,6 +1007,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::middleware('permission:reconciliation.view')->group(function () {
                 Route::get('/',                          [\App\Http\Controllers\Finance\ReconciliationController::class, 'index'])->name('index');
                 Route::get('/{bankStatement}',           [\App\Http\Controllers\Finance\ReconciliationController::class, 'show'])->name('show');
+                Route::get('/{bankStatement}/print',     [\App\Http\Controllers\Finance\ReconciliationController::class, 'print'])->name('print');
             });
             Route::middleware('permission:reconciliation.import')->group(function () {
                 Route::post('/',                         [\App\Http\Controllers\Finance\ReconciliationController::class, 'store'])->name('store');

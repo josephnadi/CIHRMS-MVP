@@ -72,6 +72,18 @@ const reconciled = computed(() => props.lines.filter(l => l.reconciled_at));
                     <h1 class="text-[1.6rem] font-black tracking-tight text-primary">{{ statement.org_bank_account?.bank_name }} · {{ statement.statement_date }}</h1>
                     <p class="text-[13px] text-on-surface-variant mt-0.5">Closing {{ cedi(statement.closing_balance) }} · {{ statement.reconciled_lines }}/{{ statement.total_lines }} lines reconciled ({{ statement.reconciled_pct }}%)</p>
                 </div>
+                <div class="flex items-center gap-2">
+                    <a :href="route('finance.reconciliation.print', statement.id)" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">print</span>
+                        View / Print
+                    </a>
+                    <a :href="route('finance.reconciliation.print', { bankStatement: statement.id, download: 1 })"
+                       class="inline-flex items-center gap-1.5 rounded-xl bg-primary text-on-primary px-3 py-2 text-[12px] font-bold hover:opacity-90 transition-opacity">
+                        <span class="material-symbols-outlined text-[16px]">download</span>
+                        Download PDF
+                    </a>
+                </div>
             </div>
         </div>
 

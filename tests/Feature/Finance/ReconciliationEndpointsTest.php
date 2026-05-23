@@ -98,3 +98,65 @@ it('post adjustment requires 2fa:fresh', function () {
 
     expect($line->fresh()->reconciled_at)->not->toBeNull();
 });
+
+it('finance_officer can stream the reconciliation PDF', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $stmt = BankStatement::create([
+        'org_bank_account_id' => $this->bank->id,
+        'statement_date'      => '2026-05-31',
+        'opening_balance'     => 0,
+        'closing_balance'     => 1500,
+        'file_hash'           => str_repeat('p', 64),
+        'file_name'           => 'p.csv',
+        'format'              => 'csv',
+        'imported_by'         => $u->id,
+    ]);
+    BankStatementLine::create([
+        'bank_statement_id' => $stmt->id,
+        'line_no'           => 1,
+        'transaction_date'  => '2026-05-20',
+        'description'       => 'PAYMENT IN',
+        'amount'            => 1500.00,
+        'line_hash'         => str_repeat('r', 64),
+    ]);
+
+    $response = $this->actingAs($u)->get("/finance/reconciliation/{$stmt->id}/print");
+
+    $response->assertOk();
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+});
+
+it('forces PDF download when ?download=1 is passed', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $stmt = BankStatement::create([
+        'org_bank_account_id' => $this->bank->id,
+        'statement_date'      => '2026-05-31',
+        'opening_balance'     => 0,
+        'closing_balance'     => 0,
+        'file_hash'           => str_repeat('d', 64),
+        'file_name'           => 'd.csv',
+        'format'              => 'csv',
+        'imported_by'         => $u->id,
+    ]);
+
+    $response = $this->actingAs($u)->get("/finance/reconciliation/{$stmt->id}/print?download=1");
+
+    $response->assertOk();
+    expect($response->headers->get('content-disposition'))->toContain('attachment');
+});
+
+it('employee gets 403 on the reconciliation PDF', function () {
+    $u = User::factory()->create(['role' => 'employee']);
+    $stmt = BankStatement::create([
+        'org_bank_account_id' => $this->bank->id,
+        'statement_date'      => '2026-05-31',
+        'opening_balance'     => 0,
+        'closing_balance'     => 0,
+        'file_hash'           => str_repeat('e', 64),
+        'file_name'           => 'e.csv',
+        'format'              => 'csv',
+        'imported_by'         => User::factory()->create()->id,
+    ]);
+
+    $this->actingAs($u)->get("/finance/reconciliation/{$stmt->id}/print")->assertForbidden();
+});
