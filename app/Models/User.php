@@ -147,8 +147,8 @@ class User extends Authenticatable
             'ar_invoices.view', 'ar_invoices.create', 'ar_invoices.approve',
             'ar_invoices.receive', 'ar_invoices.write_off',
             'statements.view',
-            // F4 — Paystack Gateway (no refund — super_admin only)
-            'gateway.view', 'gateway.create',
+            // F4 — Paystack Gateway
+            'gateway.view', 'gateway.create', 'gateway.refund',
             // F5 — Bank Reconciliation
             'reconciliation.view', 'reconciliation.import', 'reconciliation.match', 'reconciliation.adjust',
         ],
