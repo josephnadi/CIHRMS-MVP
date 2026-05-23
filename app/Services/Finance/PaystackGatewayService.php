@@ -65,6 +65,27 @@ class PaystackGatewayService
         }
     }
 
+    /**
+     * @return array  the parsed `data` field from Paystack's /refund response
+     */
+    public function refundTransaction(string $paystackRef, float $amountGhs, string $reason): array
+    {
+        $payload = [
+            'transaction'   => $paystackRef,
+            'amount'        => (int) round($amountGhs * 100),
+            'merchant_note' => $reason,
+        ];
+
+        try {
+            $response = $this->client()->post('/refund', $payload);
+            return $this->parse($response, '/refund')['data'];
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $body = $e->response->json();
+            $message = $body['message'] ?? "Paystack /refund returned HTTP {$e->response->status()}";
+            throw new PaystackException($message);
+        }
+    }
+
     private function client()
     {
         try {

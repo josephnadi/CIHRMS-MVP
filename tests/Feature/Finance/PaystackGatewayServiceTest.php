@@ -86,3 +86,44 @@ it('verifyTransaction throws PaystackException when API status is false', functi
     expect(fn () => $this->svc->verifyTransaction('pst_ref_bad'))
         ->toThrow(PaystackException::class, 'reference not found');
 });
+
+it('refundTransaction converts GHS to pesewas and returns refund data', function () {
+    Http::fake([
+        'api.paystack.co/refund' => Http::response([
+            'status' => true,
+            'data' => [
+                'id'           => 99888777,
+                'transaction'  => ['reference' => 'pst_ref_001'],
+                'amount'       => 25050,
+                'currency'     => 'GHS',
+                'status'       => 'pending',
+                'refunded_at'  => null,
+                'merchant_note'=> 'Customer cancelled',
+            ],
+        ], 200),
+    ]);
+
+    $result = $this->svc->refundTransaction('pst_ref_001', 250.50, 'Customer cancelled');
+
+    expect($result['id'])->toBe(99888777);
+    expect($result['status'])->toBe('pending');
+
+    Http::assertSent(function ($request) {
+        return $request->url() === 'https://api.paystack.co/refund'
+            && $request['transaction']   === 'pst_ref_001'
+            && $request['amount']        === 25050
+            && $request['merchant_note'] === 'Customer cancelled';
+    });
+});
+
+it('refundTransaction throws PaystackException on non-2xx', function () {
+    Http::fake([
+        'api.paystack.co/refund' => Http::response([
+            'status'  => false,
+            'message' => 'Transaction not refundable',
+        ], 422),
+    ]);
+
+    expect(fn () => $this->svc->refundTransaction('pst_bad', 100.0, 'no'))
+        ->toThrow(PaystackException::class, 'not refundable');
+});
