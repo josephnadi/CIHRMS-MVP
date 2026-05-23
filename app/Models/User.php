@@ -149,6 +149,8 @@ class User extends Authenticatable
             'statements.view',
             // F4 — Paystack Gateway (no refund — super_admin only)
             'gateway.view', 'gateway.create',
+            // F5 — Bank Reconciliation
+            'reconciliation.view', 'reconciliation.import', 'reconciliation.match', 'reconciliation.adjust',
         ],
         'it_support' => [
             'dashboard.view',
@@ -188,6 +190,8 @@ class User extends Authenticatable
             'customers.view', 'ar_invoices.view', 'statements.view',
             // F4 — Read-only gateway oversight
             'gateway.view',
+            // F5 — Read-only reconciliation oversight
+            'reconciliation.view',
         ],
     ];
 
