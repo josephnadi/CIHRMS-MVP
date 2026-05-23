@@ -49,16 +49,17 @@ function submitRoute() {
 
 function placeAnnotation({ x_pct, y_pct, page: pageNo }) {
     if (! pendingAnnotation.value) return;
-    const dimensions = pendingAnnotation.value.type === 'stamp'
-        ? { w_pct: 18, h_pct: 6 }
-        : { w_pct: 22, h_pct: 8 };
+    const fromPending = pendingAnnotation.value;
+    const dimensions = fromPending.w_pct
+        ? { w_pct: fromPending.w_pct, h_pct: fromPending.h_pct }
+        : (fromPending.type === 'stamp' ? { w_pct: 18, h_pct: 6 } : { w_pct: 22, h_pct: 8 });
 
     router.post(route('documents.annotations.store', D.value.uuid), {
-        type:  pendingAnnotation.value.type,
+        type:  fromPending.type,
         page:  pageNo,
         x_pct, y_pct,
         ...dimensions,
-        data:  pendingAnnotation.value.data,
+        data:  fromPending.data,
     }, { preserveScroll: true, onSuccess: () => { pendingAnnotation.value = null; } });
 }
 
@@ -67,8 +68,16 @@ function onSigned({ png_base64 }) {
     showSigPad.value = false;
 }
 
-function onStamp({ text, color }) {
-    pendingAnnotation.value = { type: 'stamp', data: { text, color } };
+function onStamp(payload) {
+    if (payload.png_base64) {
+        pendingAnnotation.value = {
+            type: 'stamp',
+            data: { png_base64: payload.png_base64, asset_id: payload.asset_id },
+            w_pct: payload.w_pct, h_pct: payload.h_pct,
+        };
+    } else {
+        pendingAnnotation.value = { type: 'stamp', data: { text: payload.text, color: payload.color } };
+    }
     showStamp.value = false;
 }
 
