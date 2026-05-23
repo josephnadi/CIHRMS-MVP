@@ -19,11 +19,13 @@ class VendorService
             $q->where('status', $filters['status']);
         }
         if (! empty($filters['search'])) {
-            $term = trim($filters['search']);
+            // LOWER() both sides so search works on Postgres (LIKE is case-sensitive)
+            // while remaining correct on SQLite/MySQL (LOWER is a standard SQL function).
+            $term = '%' . strtolower(trim($filters['search'])) . '%';
             $q->where(function ($w) use ($term) {
-                $w->where('name', 'like', "%{$term}%")
-                  ->orWhere('code', 'like', "%{$term}%")
-                  ->orWhere('tax_id', 'like', "%{$term}%");
+                $w->whereRaw('LOWER(name) LIKE ?', [$term])
+                  ->orWhereRaw('LOWER(code) LIKE ?', [$term])
+                  ->orWhereRaw('LOWER(tax_id) LIKE ?', [$term]);
             });
         }
 
