@@ -13,6 +13,11 @@ const canCreatePayment = computed(() => {
     const list = Array.isArray(perms) ? perms : (typeof perms === 'function' ? perms() : []);
     return list.includes('gateway.create');
 });
+const canRefundPayment = computed(() => {
+    const perms = page.props?.auth?.permissions ?? [];
+    const list = Array.isArray(perms) ? perms : (typeof perms === 'function' ? perms() : []);
+    return list.includes('gateway.refund');
+});
 
 const sendPaymentLink = () => {
     const inv = props.invoice;
@@ -53,6 +58,11 @@ const statusColor = (val) => ({
                             class="rounded-xl border border-secondary/40 bg-secondary/5 px-3 py-2 text-[12px] font-bold text-secondary hover:bg-secondary/10">
                         <span class="material-symbols-outlined text-[14px] mr-1 align-text-bottom">link</span>Send Payment Link
                     </button>
+                    <Link v-if="canRefundPayment && invoice.status.value === 'paid'"
+                          :href="route('finance.payment-intents.index')"
+                          class="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-[12px] font-bold text-rose-700 hover:bg-rose-100">
+                        <span class="material-symbols-outlined text-[14px] mr-1 align-text-bottom">undo</span>Refund Paystack payment
+                    </Link>
                     <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase border" :class="statusColor(invoice.status.value)">{{ invoice.status.label }}</span>
                 </div>
             </div>
