@@ -935,7 +935,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::get('journal',                  [\App\Http\Controllers\Finance\JournalController::class, 'index'])->name('journal.index');
             Route::get('journal/{journalEntry}',   [\App\Http\Controllers\Finance\JournalController::class, 'show'])->name('journal.show');
         });
-        Route::middleware('permission:journal.post_manual')->group(function () {
+        Route::middleware(['permission:journal.post_manual', '2fa:fresh'])->group(function () {
             Route::post('journal',                 [\App\Http\Controllers\Finance\JournalController::class, 'store'])->name('journal.store');
         });
 
