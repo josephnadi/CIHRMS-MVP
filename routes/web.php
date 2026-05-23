@@ -982,15 +982,6 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::get('statements',                  [\App\Http\Controllers\Finance\StatementController::class, 'index'])->name('statements.index');
             Route::get('statements/{customer}',       [\App\Http\Controllers\Finance\StatementController::class, 'show'])->name('statements.show');
         });
-
-        // F4 — Payment Intents (Paystack gateway)
-        Route::middleware('permission:gateway.view')->group(function () {
-            Route::get('payment-intents',                       [\App\Http\Controllers\Finance\PaymentIntentController::class, 'index'])->name('payment-intents.index');
-            Route::get('payment-intents/{paymentIntent}',       [\App\Http\Controllers\Finance\PaymentIntentController::class, 'show'])->name('payment-intents.show');
-        });
-        Route::middleware(['permission:gateway.create', '2fa:fresh'])->group(function () {
-            Route::post('payment-intents',                      [\App\Http\Controllers\Finance\PaymentIntentController::class, 'store'])->name('payment-intents.store');
-        });
     });
 });
 
