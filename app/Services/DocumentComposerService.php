@@ -55,11 +55,16 @@ class DocumentComposerService
                 }
             }
 
+            $letterhead = ! empty($attrs['letterhead_id'])
+                ? \App\Models\LetterheadTemplate::find($attrs['letterhead_id'])
+                : \App\Models\LetterheadTemplate::where('is_default', true)->first();
+            $doc->update(['letterhead_id' => $letterhead?->id]);
+
             $pdfPath = $this->renderHtmlToPdf(
                 $doc,
                 $attrs['title'],
                 $this->sanitizeHtml($attrs['body_html']),
-                (bool) ($attrs['letterhead'] ?? true),
+                $letterhead,
             );
 
             $sha256 = hash_file('sha256', $pdfPath);
@@ -100,35 +105,21 @@ class DocumentComposerService
      * can replace the title-only stamp later by dropping a PNG at
      * `public/img/letterhead.png` (the renderer will pick it up if present).
      */
-    private function renderHtmlToPdf(Document $doc, string $title, string $bodyHtml, bool $letterhead): string
+    private function renderHtmlToPdf(Document $doc, string $title, string $bodyHtml, ?\App\Models\LetterheadTemplate $letterhead): string
     {
         $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
         $pdf->SetCreator('CIHRMS');
         $pdf->SetAuthor($doc->owner?->name ?? 'CIHRMS');
         $pdf->SetTitle($title);
-        $pdf->SetMargins(20, $letterhead ? 36 : 18, 20);
+        $pdf->SetMargins(20, $letterhead ? max(20, $letterhead->header_height_mm) : 18, 20);
         $pdf->setHeaderMargin($letterhead ? 8 : 0);
         $pdf->setAutoPageBreak(true, 18);
 
         if ($letterhead) {
-            $logoPath = public_path('img/letterhead.png');
-            $hasLogo  = is_file($logoPath);
-
+            $absPath = \Illuminate\Support\Facades\Storage::disk('local')->path($letterhead->storage_path);
+            $pdf->SetHeaderData($absPath, $letterhead->header_height_mm, '', '');
             $pdf->setPrintHeader(true);
-            $pdf->setHeaderFont(['helvetica', 'B', 9]);
-            // TCPDF lets us either set header text/logo via setHeaderData OR
-            // override Header(). We override so we get full control over the
-            // gold rule beneath the title, the optional logo on the left, and
-            // the per-page consistency.
-            // Setting Header() via subclass is heavy; instead we use a small
-            // anonymous extension would require eval, so just lean on
-            // setHeaderData + tweak: institutional title, optional logo.
-            $pdf->SetHeaderData(
-                $hasLogo ? 'img/letterhead.png' : '',
-                $hasLogo ? 22 : 0,
-                'CIHRM-GHANA',
-                "P.O. Box 1234, Cape Coast · cihrm-ghana.gov.gh · communications@cihrm.gov.gh",
-            );
+            $pdf->setHeaderFont(['helvetica', '', 9]);
         } else {
             $pdf->setPrintHeader(false);
         }
@@ -136,16 +127,10 @@ class DocumentComposerService
 
         $pdf->AddPage();
         $pdf->SetFont('helvetica', '', 11);
-
-        // Strip our editor's class names + inline styles down to TCPDF-friendly
-        // markup, then render. TCPDF supports a subset of HTML; the editor's
-        // toolbar only emits tags from that subset (b, i, u, p, br, h1-h3,
-        // ul, ol, li, a, blockquote, hr, div with text-align).
         $pdf->writeHTML($bodyHtml, true, false, true, false, '');
 
         $out = tempnam(sys_get_temp_dir(), 'comp') . '.pdf';
         $pdf->Output($out, 'F');
-
         return $out;
     }
 
