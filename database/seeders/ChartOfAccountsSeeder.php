@@ -60,6 +60,7 @@ class ChartOfAccountsSeeder extends Seeder
         ['5300', 'IT & Technology',                'expense', '5000'],
         ['5400', 'Marketing',                      'expense', '5000'],
         ['5500', 'Other Expenses',                 'expense', '5000'],
+        ['5600', 'Bad Debt Expense',               'expense', '5000'],
     ];
 
     public function run(): void

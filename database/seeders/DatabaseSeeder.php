@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call(OrgBankAccountSeeder::class);
         $this->call(GlAccountBalanceSeeder::class);
         $this->call(VendorSeeder::class);
+        $this->call(CustomerSeeder::class);
 
         // Documents module permissions (must run AFTER RolePermissionSeeder so the
         // canonical role rows exist — this seeder attaches documents.* to them).

@@ -9,6 +9,8 @@ enum JournalSourceType: string
     case Manual        = 'manual';
     case VendorInvoice = 'vendor_invoice';
     case ApPayment     = 'ap_payment';
+    case ArInvoice     = 'ar_invoice';
+    case ArReceipt     = 'ar_receipt';
 
     public function label(): string
     {
@@ -16,6 +18,8 @@ enum JournalSourceType: string
             self::Manual        => 'Manual',
             self::VendorInvoice => 'Vendor Invoice',
             self::ApPayment     => 'AP Payment',
+            self::ArInvoice     => 'AR Invoice',
+            self::ArReceipt     => 'AR Receipt',
         };
     }
 }
