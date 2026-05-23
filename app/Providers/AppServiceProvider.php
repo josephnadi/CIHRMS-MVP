@@ -259,6 +259,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\Policy::class,              \App\Policies\GovernancePolicy::class);
         Gate::policy(Document::class,                        DocumentPolicy::class);
         Gate::policy(\App\Models\DocumentAnnotation::class,  DocumentPolicy::class);
+        Gate::policy(\App\Models\StampAsset::class,          \App\Policies\StampAssetPolicy::class);
         Gate::policy(\App\Models\Conversation::class,        \App\Policies\ConversationPolicy::class);
         Gate::policy(\App\Models\ChatMessage::class,         \App\Policies\ConversationPolicy::class);
 
