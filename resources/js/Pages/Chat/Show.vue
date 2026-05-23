@@ -49,8 +49,12 @@ function submit() {
         preserveScroll: true,
         preserveState:  true,
         onSuccess: () => {
+            // The props-watcher on `messages` already replaces liveMessages
+            // with the fresh server list (which includes the new message).
+            // Don't pollNow here — it races the watcher and would re-add
+            // the new message a second time. The 4s interval poll picks up
+            // any concurrent inbound messages.
             form.reset('body');
-            pollNow();
         },
         onError: () => {
             // Drop the optimistic bubble — server has rejected.
@@ -74,10 +78,16 @@ async function pollNow() {
             params: { since: lastSeenId.value },
         });
         if (data.messages?.length) {
-            // Drop optimistic placeholders if their server twin arrived
+            // Drop optimistic placeholders, then merge only IDs we don't
+            // already have — protects against the post-send race where the
+            // props-watcher and a concurrent poll both deliver the same row.
             liveMessages.value = liveMessages.value.filter(m => typeof m.id === 'number');
-            liveMessages.value.push(...data.messages);
-            scrollToBottom();
+            const existing = new Set(liveMessages.value.map(m => m.id));
+            const toAdd = data.messages.filter(m => !existing.has(m.id));
+            if (toAdd.length) {
+                liveMessages.value.push(...toAdd);
+                scrollToBottom();
+            }
         }
     } catch (e) { /* swallow — next tick will retry */ }
 }
@@ -209,9 +219,7 @@ const otherInitials = computed(() => props.conversation?.other?.initials ?? '?')
                 </header>
 
                 <!-- Messages stream -->
-                <div ref="messagesEl"
-                     class="flex-1 overflow-y-auto px-6 py-6 space-y-3"
-                     style="background:linear-gradient(180deg,#f7f9fc 0%, #ffffff 100%);">
+                <div ref="messagesEl" class="chat-stream flex-1 overflow-y-auto px-6 py-6 space-y-2">
                     <div v-if="grouped.length === 0" class="h-full flex flex-col items-center justify-center text-center text-on-surface-variant">
                         <span class="material-symbols-outlined text-4xl mb-2" style="font-variation-settings:'FILL' 1">forum</span>
                         <p class="text-[13px] font-bold">No messages yet — say hello.</p>
@@ -219,33 +227,26 @@ const otherInitials = computed(() => props.conversation?.other?.initials ?? '?')
 
                     <template v-for="item in grouped" :key="item.kind === 'separator' ? 's-' + item.date : 'm-' + item.id">
                         <!-- Date separator -->
-                        <div v-if="item.kind === 'separator'" class="flex items-center gap-3 my-4">
-                            <div class="flex-1 h-px bg-outline-variant/40"></div>
-                            <span class="text-[9px] font-black text-on-surface-variant uppercase tracking-[0.18em]">{{ item.date }}</span>
-                            <div class="flex-1 h-px bg-outline-variant/40"></div>
+                        <div v-if="item.kind === 'separator'" class="chat-day">
+                            <span class="chat-day-line"></span>
+                            <span class="chat-day-label">{{ item.date }}</span>
+                            <span class="chat-day-line"></span>
                         </div>
 
                         <!-- Message bubble -->
                         <div v-else
-                             :class="['flex items-end gap-2', item.sender_id === me.id ? 'justify-end' : 'justify-start']">
-                            <div v-if="item.sender_id !== me.id"
-                                 class="h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                                 style="background:#0c8b86;color:#ffffff">
+                             :class="['chat-msg', item.sender_id === me.id ? 'is-mine' : 'is-theirs']">
+                            <div v-if="item.sender_id !== me.id" class="chat-msg-avatar">
                                 {{ otherInitials }}
                             </div>
-                            <div :class="['max-w-[70%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed shadow-sm group/msg relative',
-                                          item.sender_id === me.id
-                                              ? 'rounded-br-md text-white'
-                                              : 'rounded-bl-md bg-white text-primary border border-outline-variant/40',
-                                          item._pending ? 'opacity-70' : '']"
-                                 :style="item.sender_id === me.id ? 'background:linear-gradient(135deg,#1a237e,#3949ab)' : ''">
-                                <p class="whitespace-pre-wrap break-words">{{ item.body }}</p>
-                                <div class="mt-1 flex items-center justify-end gap-1.5">
-                                    <span class="text-[9px] font-bold opacity-70">{{ item.time }}</span>
-                                    <span v-if="item._pending" class="text-[9px] opacity-70">sending…</span>
+                            <div :class="['chat-bubble', item.sender_id === me.id ? 'is-mine' : 'is-theirs', item._pending ? 'is-pending' : '']">
+                                <p class="chat-bubble-body">{{ item.body }}</p>
+                                <div class="chat-bubble-meta">
+                                    <span class="chat-bubble-time">{{ item.time }}</span>
+                                    <span v-if="item._pending" class="chat-bubble-time">sending…</span>
                                     <button v-if="item.sender_id === me.id && !item._pending"
                                             @click="deleteMessage(item.id)"
-                                            class="opacity-0 group-hover/msg:opacity-100 transition-opacity text-[9px] font-bold underline"
+                                            class="chat-bubble-delete"
                                             title="Delete for everyone">
                                         Delete
                                     </button>
@@ -279,3 +280,145 @@ const otherInitials = computed(() => props.conversation?.other?.initials ?? '?')
         </div>
     </div>
 </template>
+
+<style scoped>
+/* ────────────────────────────────────────────────────────────────
+   Chat stream — soft warm-grey gradient backdrop; bubbles float
+   above with airy spacing. Refined day separators use letterspaced
+   small-caps and hairline rules.
+   ──────────────────────────────────────────────────────────────── */
+.chat-stream {
+    background:
+        radial-gradient(ellipse at top, rgba(26, 35, 126, 0.025), transparent 60%),
+        linear-gradient(180deg, #f7f8fb 0%, #fefefe 100%);
+}
+
+/* Day separators */
+.chat-day {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 10px;
+}
+.chat-day-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(26, 35, 126, 0.18), transparent);
+}
+.chat-day-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 900;
+    color: rgb(var(--ct-on-surface-variant));
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    padding: 2px 10px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(26, 35, 126, 0.08);
+}
+
+/* Message row layout */
+.chat-msg {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    animation: bubble-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chat-msg.is-mine    { justify-content: flex-end; }
+.chat-msg.is-theirs  { justify-content: flex-start; }
+
+@keyframes bubble-in {
+    from { opacity: 0; transform: translateY(4px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+/* Avatar chip on incoming messages */
+.chat-msg-avatar {
+    height: 28px;
+    width: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0c8b86 0%, #0f766e 100%);
+    box-shadow: 0 2px 4px rgba(15, 118, 110, 0.25);
+    flex-shrink: 0;
+}
+
+/* The bubble itself */
+.chat-bubble {
+    position: relative;
+    max-width: 70%;
+    padding: 10px 14px 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-radius: 16px;
+    transition: opacity 0.2s ease;
+}
+.chat-bubble.is-pending { opacity: 0.7; }
+
+/* INCOMING (their) bubble — warm cream, square corner bottom-left */
+.chat-bubble.is-theirs {
+    background: #ffffff;
+    color: rgb(var(--ct-primary));
+    border: 1px solid rgba(26, 35, 126, 0.08);
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 1px 2px rgba(10, 17, 56, 0.04),
+                0 4px 12px -6px rgba(10, 17, 56, 0.08);
+}
+
+/* OUTGOING (your) bubble — cobalt gradient, square corner bottom-right */
+.chat-bubble.is-mine {
+    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+    color: #ffffff;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 1px 2px rgba(26, 35, 126, 0.18),
+                0 6px 16px -8px rgba(26, 35, 126, 0.35);
+}
+
+.chat-bubble-body {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+
+.chat-bubble-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.chat-bubble-time {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    opacity: 0.65;
+    letter-spacing: 0.02em;
+    font-feature-settings: 'tnum' 1;
+}
+
+.chat-bubble-delete {
+    font-size: 9px;
+    font-weight: 800;
+    text-decoration: underline;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+}
+.chat-bubble:hover .chat-bubble-delete { opacity: 0.7; }
+.chat-bubble:hover .chat-bubble-delete:hover { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-msg { animation: none; }
+}
+</style>
