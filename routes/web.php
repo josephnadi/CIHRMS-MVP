@@ -127,6 +127,11 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/ussd', [\App\Http\Controllers\Webhooks\UssdWebhookController::class, 'handle'])
         ->middleware('webhook.signature:hubtel_ussd')
         ->name('ussd');
+
+    // F4 — Paystack hosted-checkout webhook (HMAC-SHA512 signed)
+    Route::post('/paystack', [\App\Http\Controllers\Finance\PaystackWebhookController::class, 'handle'])
+        ->middleware(['paystack.signature', 'throttle:120,1'])
+        ->name('paystack');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
