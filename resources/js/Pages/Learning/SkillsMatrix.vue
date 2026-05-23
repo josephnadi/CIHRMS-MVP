@@ -87,10 +87,13 @@ const skillForm = useForm({
 });
 
 const submitSkill = () => {
-    // Placeholder — route may not exist yet; fire a PATCH to a graceful endpoint
-    // In production wire to learning.skills.store
-    showAddSkill.value = false;
-    skillForm.reset();
+    skillForm.post(route('learning.skills.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showAddSkill.value = false;
+            skillForm.reset();
+        },
+    });
 };
 
 // ── Cell level rendering ──────────────────────────────────────────────────────

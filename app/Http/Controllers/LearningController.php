@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Learning\RecordProgressRequest;
 use App\Http\Requests\Learning\StoreCertificationRequest;
 use App\Http\Requests\Learning\StoreCourseRequest;
+use App\Http\Requests\Learning\StoreSkillRequest;
 use App\Http\Requests\Learning\UpdateCourseRequest;
 use App\Http\Resources\CertificationResource;
 use App\Http\Resources\CourseResource;
@@ -131,5 +132,11 @@ class LearningController extends Controller
             'matrix'       => $this->learning->skillsMatrix($request->integer('department_id') ?: null),
             'activeModule' => 'learning',
         ]);
+    }
+
+    public function storeSkill(StoreSkillRequest $request): RedirectResponse
+    {
+        $skill = $this->learning->createCatalogSkill($request->validated());
+        return back()->with('success', "Skill “{$skill->name}” added to the catalogue.");
     }
 }
