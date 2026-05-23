@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'paystack' => [
+        'url'                  => env('PAYSTACK_URL', 'https://api.paystack.co'),
+        'public_key'           => env('PAYSTACK_PUBLIC_KEY'),
+        'secret_key'           => env('PAYSTACK_SECRET_KEY'),
+        'webhook_secret'       => env('PAYSTACK_WEBHOOK_SECRET'),
+        'receipt_bank_purpose' => env('PAYSTACK_RECEIPT_BANK_PURPOSE', 'receipts'),
+        'callback_default_url' => env('PAYSTACK_CALLBACK_DEFAULT_URL'),
+    ],
+
 ];

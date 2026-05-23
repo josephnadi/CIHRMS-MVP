@@ -179,6 +179,11 @@ class RolePermissionSeeder extends Seeder
         'ar_invoices.receive'      => ['Finance', 'Record / void AR receipts against invoices'],
         'ar_invoices.write_off'    => ['Finance', 'Write off uncollectible AR invoices as bad debt'],
         'statements.view'          => ['Finance', 'View customer statements (date-range, running balance)'],
+
+        // ── F4: Finance — Paystack Gateway ──
+        'gateway.view'   => ['Finance', 'View payment intents and gateway events'],
+        'gateway.create' => ['Finance', 'Generate Paystack payment links'],
+        'gateway.refund' => ['Finance', 'Refund a processed Paystack payment'],
     ];
 
     /**
@@ -273,6 +278,8 @@ class RolePermissionSeeder extends Seeder
             'ar_invoices.view', 'ar_invoices.create', 'ar_invoices.approve',
             'ar_invoices.receive', 'ar_invoices.write_off',
             'statements.view',
+            // F4 — Paystack Gateway (no refund — super_admin only)
+            'gateway.view', 'gateway.create',
         ],
         'it_support' => [
             'dashboard.view',
@@ -310,6 +317,8 @@ class RolePermissionSeeder extends Seeder
             'vendors.view', 'ap_invoices.view', 'journal.view',
             // F3 — Read-only oversight
             'customers.view', 'ar_invoices.view', 'statements.view',
+            // F4 — Read-only gateway oversight
+            'gateway.view',
         ],
     ];
 

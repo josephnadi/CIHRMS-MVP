@@ -127,6 +127,11 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/ussd', [\App\Http\Controllers\Webhooks\UssdWebhookController::class, 'handle'])
         ->middleware('webhook.signature:hubtel_ussd')
         ->name('ussd');
+
+    // F4 — Paystack hosted-checkout webhook (HMAC-SHA512 signed)
+    Route::post('/paystack', [\App\Http\Controllers\Finance\PaystackWebhookController::class, 'handle'])
+        ->middleware(['paystack.signature', 'throttle:120,1'])
+        ->name('paystack');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -932,11 +937,11 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::post('ar-invoices/{arInvoice}/approve',  [\App\Http\Controllers\Finance\ArInvoiceController::class, 'approve'])->name('ar-invoices.approve');
             Route::post('ar-invoices/{arInvoice}/cancel',   [\App\Http\Controllers\Finance\ArInvoiceController::class, 'cancel'])->name('ar-invoices.cancel');
         });
-        Route::middleware(['permission:ar_invoices.write_off'])->group(function () {
-            // 2fa:fresh deferred — not all test users have a fresh 2FA assertion
-            // and the F3 acceptance criteria call for it but we add it once the
-            // existing 2fa middleware test fixtures are in place. For now the
-            // permission gate is the primary control.
+        Route::middleware(['permission:ar_invoices.write_off', '2fa:fresh'])->group(function () {
+            // Bad-debt write-off destroys an AR receivable from the books and is
+            // irreversible without manual JE intervention — gated behind a fresh
+            // 2FA challenge, matching payroll.reverse / loans.disburse / DPA
+            // privacy.fulfill posture.
             Route::post('ar-invoices/{arInvoice}/write-off', [\App\Http\Controllers\Finance\ArInvoiceController::class, 'writeOff'])->name('ar-invoices.write-off');
         });
 
@@ -944,7 +949,10 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::middleware('permission:ar_invoices.view')->group(function () {
             Route::get('ar-receipts', [\App\Http\Controllers\Finance\ArReceiptController::class, 'index'])->name('ar-receipts.index');
         });
-        Route::middleware('permission:ar_invoices.receive')->group(function () {
+        Route::middleware(['permission:ar_invoices.receive', '2fa:fresh'])->group(function () {
+            // Recording or voiding a receipt moves money against an AR invoice's
+            // outstanding balance. Same posture as payroll.disburse: fresh 2FA
+            // challenge required so a stolen session can't drain receivables.
             Route::post('ar-receipts',                        [\App\Http\Controllers\Finance\ArReceiptController::class, 'store'])->name('ar-receipts.store');
             Route::post('ar-receipts/{arReceipt}/void',       [\App\Http\Controllers\Finance\ArReceiptController::class, 'void'])->name('ar-receipts.void');
         });
@@ -953,6 +961,15 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::middleware('permission:statements.view')->group(function () {
             Route::get('statements',                  [\App\Http\Controllers\Finance\StatementController::class, 'index'])->name('statements.index');
             Route::get('statements/{customer}',       [\App\Http\Controllers\Finance\StatementController::class, 'show'])->name('statements.show');
+        });
+
+        // F4 — Payment Intents (Paystack gateway)
+        Route::middleware('permission:gateway.view')->group(function () {
+            Route::get('payment-intents',                       [\App\Http\Controllers\Finance\PaymentIntentController::class, 'index'])->name('payment-intents.index');
+            Route::get('payment-intents/{paymentIntent}',       [\App\Http\Controllers\Finance\PaymentIntentController::class, 'show'])->name('payment-intents.show');
+        });
+        Route::middleware(['permission:gateway.create', '2fa:fresh'])->group(function () {
+            Route::post('payment-intents',                      [\App\Http\Controllers\Finance\PaymentIntentController::class, 'store'])->name('payment-intents.store');
         });
     });
 });

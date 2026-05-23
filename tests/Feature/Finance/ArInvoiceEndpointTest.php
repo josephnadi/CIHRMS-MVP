@@ -7,9 +7,22 @@ use App\Models\ArInvoice;
 use App\Models\Customer;
 use App\Models\GlAccount;
 use App\Models\User;
+use App\Services\Auth\TwoFactorService;
 use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\GlAccountBalanceSeeder;
 use Database\Seeders\RolePermissionSeeder;
+
+/**
+ * Helper — F3 receive + write-off endpoints are gated by `2fa:fresh`.
+ * Tests that POST to those routes must (a) ensure the user has 2FA enrolled
+ * (`two_factor_confirmed_at` set) and (b) hold a fresh challenge assertion.
+ */
+function ar2faFresh(\App\Models\User $user): \App\Models\User
+{
+    $user->forceFill(['two_factor_confirmed_at' => now()])->save();
+    app(TwoFactorService::class)->markFresh($user);
+    return $user;
+}
 
 beforeEach(function () {
     (new RolePermissionSeeder())->run();
@@ -111,9 +124,30 @@ it('write_off requires the ar_invoices.write_off permission', function () {
         'reason' => 'uncollectible',
     ])->assertForbidden();
 
-    // finance_officer with the permission — should succeed
-    $this->actingAs($creator)->post("/finance/ar-invoices/{$inv->id}/write-off", [
+    // finance_officer with the permission AND a fresh 2FA challenge — should succeed
+    $this->actingAs(ar2faFresh($creator))->post("/finance/ar-invoices/{$inv->id}/write-off", [
         'reason' => 'uncollectible after 180 days',
     ])->assertRedirect();
     expect($inv->fresh()->status)->toBe(ArInvoiceStatus::WrittenOff);
+});
+
+it('write_off is blocked when the user lacks a fresh 2FA assertion', function () {
+    $creator  = User::factory()->create(['role' => 'finance_officer']);
+    $approver = User::factory()->create(['role' => 'finance_officer']);
+
+    $this->actingAs($creator);
+    $this->post('/finance/ar-invoices', [
+        'customer_id' => $this->customer->id, 'invoice_date' => '2026-05-22',
+        'lines' => [['description' => 'X', 'quantity' => 1, 'unit_price' => 1000, 'gl_account_id' => $this->income->id]],
+    ]);
+    $inv = ArInvoice::latest()->first();
+    $this->post("/finance/ar-invoices/{$inv->id}/submit");
+    $this->actingAs($approver)->post("/finance/ar-invoices/{$inv->id}/approve");
+
+    // Creator has permission but has NOT challenged 2FA — middleware
+    // redirects to the challenge page rather than processing the write-off.
+    $this->actingAs($creator)->post("/finance/ar-invoices/{$inv->id}/write-off", [
+        'reason' => 'no 2fa fresh',
+    ])->assertRedirect(); // redirects to /two-factor/enroll or /two-factor/challenge
+    expect($inv->fresh()->status)->toBe(ArInvoiceStatus::Approved);
 });

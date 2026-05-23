@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'        => \App\Http\Middleware\EnsurePermission::class,
             'audit'             => \App\Http\Middleware\AuditTrail::class,
             'webhook.signature' => \App\Http\Middleware\VerifyWebhookSignature::class,
+            'paystack.signature' => \App\Http\Middleware\VerifyPaystackSignature::class,
             '2fa'               => \App\Http\Middleware\RequireTwoFactor::class,
             'api.scope'         => \App\Http\Middleware\RequireApiScope::class,
         ]);
