@@ -196,6 +196,19 @@ class DocumentController extends Controller
         return back()->with('flash.success', 'Annotation removed.');
     }
 
+    public function updateAnnotation(
+        \App\Http\Requests\Documents\MoveAnnotationRequest $request,
+        Document $document,
+        \App\Models\DocumentAnnotation $annotation,
+    ) {
+        abort_unless($annotation->document_id === $document->id, 404);
+        $updated = $this->docs->moveAnnotation($annotation, $request->validated(), $request->user());
+        return back()->with([
+            'flash.success' => 'Annotation updated.',
+            'annotation'    => (new \App\Http\Resources\DocumentAnnotationResource($updated))->resolve(),
+        ]);
+    }
+
     public function act(ActOnRouteRequest $request, Document $document, DocumentRoute $route)
     {
         $this->routing->act(

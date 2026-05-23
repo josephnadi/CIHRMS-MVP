@@ -820,6 +820,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::post('/{document}/archive',         [DocumentController::class, 'archive'])->name('archive');
         Route::post('/{document}/annotations',     [DocumentController::class, 'annotate'])->name('annotations.store');
         Route::delete('/{document}/annotations/{annotationId}', [DocumentController::class, 'removeAnnotation'])->name('annotations.destroy');
+        Route::patch('/{document}/annotations/{annotation}', [DocumentController::class, 'updateAnnotation'])->name('annotations.update');
         Route::post('/{document}/routes/{route}/act', [DocumentController::class, 'act'])->name('routes.act');
         // `download` requires a valid signature (URL::temporarySignedRoute) —
         // the show page mints fresh 5-min URLs and the user follows those.
