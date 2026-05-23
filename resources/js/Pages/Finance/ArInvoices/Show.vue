@@ -1,10 +1,27 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({ invoice: { type: Object, required: true } });
+
+const page = usePage();
+const canCreatePayment = computed(() => {
+    const perms = page.props?.auth?.permissions ?? [];
+    const list = Array.isArray(perms) ? perms : (typeof perms === 'function' ? perms() : []);
+    return list.includes('gateway.create');
+});
+
+const sendPaymentLink = () => {
+    const inv = props.invoice;
+    if (! inv) return;
+    router.post(route('finance.payment-intents.store'), {
+        ar_invoice_id: inv.id,
+        amount:        inv.outstanding,
+    });
+};
 
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -30,7 +47,14 @@ const statusColor = (val) => ({
                     <h1 class="text-[1.6rem] font-black tracking-tight text-primary">{{ invoice.reference }}</h1>
                     <p class="text-[13px] text-on-surface-variant mt-0.5">{{ invoice.customer?.code }} — {{ invoice.customer?.name }}</p>
                 </div>
-                <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase border" :class="statusColor(invoice.status.value)">{{ invoice.status.label }}</span>
+                <div class="flex items-center gap-3">
+                    <button v-if="canCreatePayment && ['approved','partially_paid'].includes(invoice.status.value)"
+                            @click="sendPaymentLink"
+                            class="rounded-xl border border-secondary/40 bg-secondary/5 px-3 py-2 text-[12px] font-bold text-secondary hover:bg-secondary/10">
+                        <span class="material-symbols-outlined text-[14px] mr-1 align-text-bottom">link</span>Send Payment Link
+                    </button>
+                    <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase border" :class="statusColor(invoice.status.value)">{{ invoice.status.label }}</span>
+                </div>
             </div>
         </div>
 
