@@ -129,6 +129,7 @@ class DocumentController extends Controller
             'owner', 'currentVersion', 'versions',
             'routes.fromUser', 'routes.toUser',
             'annotations.user',
+            'annotations.route',
             'events.actor',
             'shares',
         ]);
@@ -196,6 +197,19 @@ class DocumentController extends Controller
         return back()->with('flash.success', 'Annotation removed.');
     }
 
+    public function updateAnnotation(
+        \App\Http\Requests\Documents\MoveAnnotationRequest $request,
+        Document $document,
+        \App\Models\DocumentAnnotation $annotation,
+    ) {
+        abort_unless($annotation->document_id === $document->id, 404);
+        $updated = $this->docs->moveAnnotation($annotation, $request->validated(), $request->user());
+        return back()->with([
+            'flash.success' => 'Annotation updated.',
+            'annotation'    => (new \App\Http\Resources\DocumentAnnotationResource($updated))->resolve(),
+        ]);
+    }
+
     public function act(ActOnRouteRequest $request, Document $document, DocumentRoute $route)
     {
         $this->routing->act(
@@ -258,7 +272,8 @@ class DocumentController extends Controller
         // download is a freshly-burned PDF stamped with viewer + timestamp so
         // a leaked copy is traceable back to who pulled it.
         $isRestricted = $document->confidentiality === DocumentConfidentiality::Restricted;
-        $burned = $isRestricted || $request->boolean('burned', false);
+        $alwaysWatermark = $document->watermark_mode?->value === 'always' && $document->watermark_id !== null;
+        $burned = $isRestricted || $request->boolean('burned', false) || $alwaysWatermark;
 
         if ($burned) {
             $watermark = $isRestricted ? [

@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Viewer from '@/Components/Documents/Viewer.vue';
 import AnnotationLayer from '@/Components/Documents/AnnotationLayer.vue';
@@ -11,6 +12,32 @@ import TimelineRail from '@/Components/Documents/TimelineRail.vue';
 import RecipientPicker from '@/Components/Documents/RecipientPicker.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
+
+// ─── Letterhead templates (for Edit drawer picker) ────────────────────────
+// Pulled from the Settings/Letterheads index endpoint via XHR so the user
+// can change the letterhead from the Edit drawer without leaving the page.
+const letterheadTemplates = ref([]);
+async function loadLetterheadTemplates() {
+    const res = await axios.get(route('settings.letterheads.index'), {
+        headers: { 'X-Inertia': 'true', 'X-Inertia-Version': '0', Accept: 'application/json' },
+    });
+    letterheadTemplates.value = res.data?.props?.templates?.data ?? [];
+}
+
+// ─── Watermark templates (for Edit drawer picker) ─────────────────────────
+// Same XHR pattern as letterheads; lets the user pick a watermark + apply
+// mode from the Edit drawer without leaving the document page.
+const watermarkTemplates = ref([]);
+async function loadWatermarkTemplates() {
+    const res = await axios.get(route('settings.watermarks.index'), {
+        headers: { 'X-Inertia': 'true', 'X-Inertia-Version': '0', Accept: 'application/json' },
+    });
+    watermarkTemplates.value = res.data?.props?.templates?.data ?? [];
+}
+onMounted(() => {
+    loadLetterheadTemplates();
+    loadWatermarkTemplates();
+});
 
 const page = usePage();
 const currentUserId = computed(() => page.props.auth.user.id);
@@ -49,16 +76,17 @@ function submitRoute() {
 
 function placeAnnotation({ x_pct, y_pct, page: pageNo }) {
     if (! pendingAnnotation.value) return;
-    const dimensions = pendingAnnotation.value.type === 'stamp'
-        ? { w_pct: 18, h_pct: 6 }
-        : { w_pct: 22, h_pct: 8 };
+    const fromPending = pendingAnnotation.value;
+    const dimensions = fromPending.w_pct
+        ? { w_pct: fromPending.w_pct, h_pct: fromPending.h_pct }
+        : (fromPending.type === 'stamp' ? { w_pct: 18, h_pct: 6 } : { w_pct: 22, h_pct: 8 });
 
     router.post(route('documents.annotations.store', D.value.uuid), {
-        type:  pendingAnnotation.value.type,
+        type:  fromPending.type,
         page:  pageNo,
         x_pct, y_pct,
         ...dimensions,
-        data:  pendingAnnotation.value.data,
+        data:  fromPending.data,
     }, { preserveScroll: true, onSuccess: () => { pendingAnnotation.value = null; } });
 }
 
@@ -67,8 +95,16 @@ function onSigned({ png_base64 }) {
     showSigPad.value = false;
 }
 
-function onStamp({ text, color }) {
-    pendingAnnotation.value = { type: 'stamp', data: { text, color } };
+function onStamp(payload) {
+    if (payload.png_base64) {
+        pendingAnnotation.value = {
+            type: 'stamp',
+            data: { png_base64: payload.png_base64, asset_id: payload.asset_id },
+            w_pct: payload.w_pct, h_pct: payload.h_pct,
+        };
+    } else {
+        pendingAnnotation.value = { type: 'stamp', data: { text: payload.text, color: payload.color } };
+    }
     showStamp.value = false;
 }
 
@@ -131,6 +167,9 @@ const isSensitive = computed(() => ['confidential', 'restricted'].includes(D.val
 const showEditPanel = ref(false);
 const editForm = useForm({
     title: '', description: '', confidentiality: 'internal', tags: [],
+    letterhead_id: null,
+    watermark_id:   null,
+    watermark_mode: 'on_burn',
 });
 
 function openEdit() {
@@ -138,6 +177,9 @@ function openEdit() {
     editForm.description     = D.value.description ?? '';
     editForm.confidentiality = D.value.confidentiality ?? 'internal';
     editForm.tags            = D.value.tags ?? [];
+    editForm.letterhead_id   = D.value.letterhead_id ?? null;
+    editForm.watermark_id   = D.value.watermark_id ?? null;
+    editForm.watermark_mode = D.value.watermark_mode ?? 'on_burn';
     showEditPanel.value = true;
 }
 function submitEdit() {
@@ -257,6 +299,9 @@ function revokeShare(shareId) {
                                 :pageSize="ps"
                                 :can-place="!!pendingAnnotation && canAnnotate"
                                 :pending="pendingAnnotation"
+                                :doc-uuid="D.uuid"
+                                :doc-status="D.status"
+                                :doc-owner-id="D.owner?.id"
                                 @place="placeAnnotation" />
                         </template>
                     </Viewer>
@@ -307,6 +352,28 @@ function revokeShare(shareId) {
                                 <option value="internal">Internal</option>
                                 <option value="confidential">Confidential</option>
                                 <option value="restricted">Restricted</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Letterhead</label>
+                            <select v-model="editForm.letterhead_id" aria-label="Letterhead template" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option :value="null">None</option>
+                                <option v-for="t in letterheadTemplates" :key="t.id" :value="t.id">{{ t.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Watermark</label>
+                            <select v-model="editForm.watermark_id" aria-label="Watermark template" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option :value="null">None</option>
+                                <option v-for="w in watermarkTemplates" :key="w.id" :value="w.id">{{ w.name }} ({{ w.type }})</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">When to apply</label>
+                            <select v-model="editForm.watermark_mode" aria-label="Watermark application mode" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option value="on_burn">On burned PDF only</option>
+                                <option value="always">Always (including original downloads)</option>
+                                <option value="none">Never</option>
                             </select>
                         </div>
                         <div class="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">

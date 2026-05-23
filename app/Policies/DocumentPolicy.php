@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\DocumentRouteStatus;
 use App\Enums\DocumentStatus;
 use App\Models\Document;
+use App\Models\DocumentAnnotation;
 use App\Models\DocumentRoute;
 use App\Models\User;
 
@@ -126,5 +127,24 @@ class DocumentPolicy
     public function share(User $user, Document $doc): bool
     {
         return $doc->owner_id === $user->id || $user->hasPermission('documents.manage');
+    }
+
+    public function moveAnnotation(User $user, DocumentAnnotation $annotation): bool
+    {
+        $doc        = $annotation->document;
+        $isCreator  = $annotation->user_id === $user->id;
+        $isDocOwner = $doc?->owner_id === $user->id;
+        $isDocDraft = $doc?->status === DocumentStatus::Draft;
+
+        if (! ($isCreator || ($isDocOwner && $isDocDraft))) {
+            return false;
+        }
+        if ($annotation->route_id) {
+            $route = $annotation->route;
+            if ($route && $route->status === DocumentRouteStatus::Completed) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -22,4 +22,8 @@ enum DocumentEventType: string
     case Deleted      = 'deleted';
     case Shared       = 'shared';
     case Unshared     = 'unshared';
+
+    // Documents v2 — Phase 2 additions.
+    case AnnotationMoved   = 'annotation_moved';
+    case AnnotationResized = 'annotation_resized';
 }

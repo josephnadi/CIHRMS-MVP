@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -16,9 +17,32 @@ const form = useForm({
     title:           '',
     description:    '',
     confidentiality: 'internal',
-    letterhead:      true,
+    letterhead_id:   null,
     body_html:       '<p>Dear &lt;recipient&gt;,</p><p>&nbsp;</p><p>Body of your letter goes here…</p><p>&nbsp;</p><p>Yours faithfully,</p><p>&lt;Your name&gt;</p>',
 });
+
+// ─── Letterhead templates ──────────────────────────────────────────────────
+// Pulled from the Settings/Letterheads index endpoint via XHR so we can
+// populate the dropdown without an Inertia page reload. The endpoint returns
+// an Inertia page payload — we just want the props.templates.data array.
+const templates = ref([]);
+
+async function loadTemplates() {
+    const res = await axios.get(route('settings.letterheads.index'), {
+        headers: {
+            'X-Inertia': 'true',
+            'X-Inertia-Version': '0',
+            Accept: 'application/json',
+        },
+    });
+    templates.value = res.data?.props?.templates?.data ?? [];
+    if (! form.letterhead_id) {
+        const def = templates.value.find(t => t.is_default);
+        if (def) form.letterhead_id = def.id;
+    }
+}
+
+const selectedTemplate = computed(() => templates.value.find(t => t.id === form.letterhead_id));
 
 const editorRef  = ref(null);
 const previewRef = ref(null);
@@ -72,17 +96,10 @@ function clearFormatting() {
 // styling that TCPDF will use, so the user can see (approximately) what the
 // final PDF will look like before they hit Save.
 const previewHtml = computed(() => {
-    const lh = form.letterhead
-        ? `
-          <header style="border-bottom:1px solid #c9a227;padding-bottom:8px;margin-bottom:18px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div>
-                <h1 style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:900;letter-spacing:0.06em;color:#0d1452;">CIHRM-GHANA</h1>
-                <p style="margin:2px 0 0;font-size:9px;color:#666;">P.O. Box 1234, Cape Coast · cihrm-ghana.gov.gh</p>
-              </div>
-              <div style="font-size:9px;color:#999;text-transform:uppercase;letter-spacing:0.1em;">Official correspondence</div>
-            </div>
-          </header>`
+    const lh = selectedTemplate.value
+        ? `<header style="border-bottom:1px solid #c9a227;padding-bottom:8px;margin-bottom:18px;">
+             <img alt="Letterhead preview" src="${selectedTemplate.value.preview_url}" style="width:100%;max-height:${selectedTemplate.value.header_height_mm * 3}px;object-fit:contain;" />
+           </header>`
         : '';
     return `<!doctype html>
 <html><head><meta charset="utf-8"><style>
@@ -103,11 +120,12 @@ function refreshPreview() {
     previewRef.value.srcdoc = previewHtml.value;
 }
 
-watch([() => form.body_html, () => form.letterhead], refreshPreview);
+watch([() => form.body_html, () => form.letterhead_id, templates], refreshPreview, { deep: true });
 onMounted(() => {
     // Initial editor content + initial preview render.
     if (editorRef.value) editorRef.value.innerHTML = form.body_html;
     refreshPreview();
+    loadTemplates();
 });
 
 // ─── Submit ────────────────────────────────────────────────────────────────
@@ -157,11 +175,13 @@ const TOOLS = [
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <label class="flex items-center gap-2 rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black cursor-pointer">
-                        <input type="checkbox" v-model="form.letterhead" aria-label="Attach institutional letterhead" class="h-4 w-4 accent-secondary" />
-                        <span class="material-symbols-outlined text-[16px]">badge</span>
-                        Attach letterhead
-                    </label>
+                    <select v-model="form.letterhead_id" aria-label="Letterhead template"
+                            class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black">
+                        <option :value="null">No letterhead</option>
+                        <option v-for="t in templates" :key="t.id" :value="t.id">
+                            {{ t.name }} ({{ t.owner_scope }})
+                        </option>
+                    </select>
                     <button @click="submit" :disabled="form.processing || ! form.title || ! form.body_html"
                             class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px disabled:opacity-50"
                             style="background:linear-gradient(135deg,#0d1452,#1a237e);">
@@ -235,7 +255,7 @@ const TOOLS = [
                 <div class="flex items-center justify-between mb-2 px-1">
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary">PDF Preview</p>
                     <p class="text-[10px] font-mono text-on-surface-variant">
-                        {{ form.letterhead ? 'with letterhead · A4' : 'plain · A4' }}
+                        {{ selectedTemplate ? `${selectedTemplate.name} · A4` : 'plain · A4' }}
                     </p>
                 </div>
                 <iframe ref="previewRef" class="w-full bg-white rounded-lg border border-outline-variant"

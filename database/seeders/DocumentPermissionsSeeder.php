@@ -26,6 +26,8 @@ class DocumentPermissionsSeeder extends Seeder
         'documents.manage'              => ['Documents', 'Administer any document (org-wide override)'],
         // Documents v2 — Phase 1
         'documents.share_organization'  => ['Documents', 'Share documents with the entire organization'],
+        // Documents v2 — Phase 3 (Stamp Asset Library)
+        'document_assets.manage'        => ['Documents', 'Manage organization-scope stamps, letterheads and watermarks'],
     ];
 
     /**
@@ -55,7 +57,7 @@ class DocumentPermissionsSeeder extends Seeder
         $baseSlugs   = ['documents.view', 'documents.create'];
         // documents.share_organization is granted with the management bundle —
         // org-wide visibility is a privileged action even for owners.
-        $manageSlugs = ['documents.view', 'documents.create', 'documents.manage', 'documents.share_organization'];
+        $manageSlugs = ['documents.view', 'documents.create', 'documents.manage', 'documents.share_organization', 'document_assets.manage'];
 
         // 2. Attach to every existing role. syncWithoutDetaching preserves
         //    permissions assigned by other seeders (the canonical role catalog

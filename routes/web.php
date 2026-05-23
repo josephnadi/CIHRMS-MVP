@@ -825,6 +825,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::post('/{document}/archive',         [DocumentController::class, 'archive'])->name('archive');
         Route::post('/{document}/annotations',     [DocumentController::class, 'annotate'])->name('annotations.store');
         Route::delete('/{document}/annotations/{annotationId}', [DocumentController::class, 'removeAnnotation'])->name('annotations.destroy');
+        Route::patch('/{document}/annotations/{annotation}', [DocumentController::class, 'updateAnnotation'])->name('annotations.update');
         Route::post('/{document}/routes/{route}/act', [DocumentController::class, 'act'])->name('routes.act');
         // `download` requires a valid signature (URL::temporarySignedRoute) —
         // the show page mints fresh 5-min URLs and the user follows those.
@@ -839,6 +840,30 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::delete('/{document}',               [DocumentController::class, 'destroy'])->name('destroy');
         Route::post('/{document}/shares',          [\App\Http\Controllers\DocumentShareController::class, 'store'])->name('shares.store');
         Route::delete('/{document}/shares/{share}', [\App\Http\Controllers\DocumentShareController::class, 'destroy'])->name('shares.destroy');
+    });
+
+    // Documents v2 — Phase 3: Stamp assets (Settings)
+    Route::prefix('settings/stamps')->name('settings.stamps.')->group(function () {
+        Route::get('/',                  [\App\Http\Controllers\Settings\StampAssetController::class, 'index'])->name('index');
+        Route::post('/',                 [\App\Http\Controllers\Settings\StampAssetController::class, 'store'])->name('store');
+        Route::get('/{asset}/preview',   [\App\Http\Controllers\Settings\StampAssetController::class, 'preview'])->name('preview');
+        Route::delete('/{asset}',        [\App\Http\Controllers\Settings\StampAssetController::class, 'destroy'])->name('destroy');
+    });
+
+    // Documents v2 — Phase 4: Letterhead templates (Settings)
+    Route::prefix('settings/letterheads')->name('settings.letterheads.')->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'index'])->name('index');
+        Route::post('/',                  [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}/preview', [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'preview'])->name('preview');
+        Route::delete('/{template}',      [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'destroy'])->name('destroy');
+    });
+
+    // Documents v2 — Phase 5: Watermark templates (Settings)
+    Route::prefix('settings/watermarks')->name('settings.watermarks.')->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'index'])->name('index');
+        Route::post('/',                  [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}/preview', [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'preview'])->name('preview');
+        Route::delete('/{template}',      [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'destroy'])->name('destroy');
     });
 
     // ── F1: Finance ─────────────────────────────────────────────────────────

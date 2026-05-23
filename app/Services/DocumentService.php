@@ -108,6 +108,35 @@ class DocumentService
         $annotation->delete();
     }
 
+    public function moveAnnotation(DocumentAnnotation $annotation, array $attrs, User $by): DocumentAnnotation
+    {
+        $fields = ['x_pct', 'y_pct', 'w_pct', 'h_pct', 'rotation'];
+        $clean  = array_intersect_key($attrs, array_flip($fields));
+
+        $before = $annotation->only($fields);
+        $annotation->update($clean);
+        $after  = $annotation->fresh()->only($fields);
+
+        $posChanged = $before['x_pct'] != $after['x_pct'] || $before['y_pct'] != $after['y_pct'];
+        $dimChanged = $before['w_pct'] != $after['w_pct'] || $before['h_pct'] != $after['h_pct'] || $before['rotation'] != $after['rotation'];
+
+        if ($posChanged) {
+            $this->logEvent($annotation->document, $by, DocumentEventType::AnnotationMoved, [
+                'annotation_id' => $annotation->id,
+                'from' => ['x' => $before['x_pct'], 'y' => $before['y_pct']],
+                'to'   => ['x' => $after['x_pct'],  'y' => $after['y_pct']],
+            ]);
+        }
+        if ($dimChanged) {
+            $this->logEvent($annotation->document, $by, DocumentEventType::AnnotationResized, [
+                'annotation_id' => $annotation->id,
+                'from' => ['w' => $before['w_pct'], 'h' => $before['h_pct'], 'rot' => $before['rotation']],
+                'to'   => ['w' => $after['w_pct'],  'h' => $after['h_pct'],  'rot' => $after['rotation']],
+            ]);
+        }
+        return $annotation->fresh();
+    }
+
     public function archive(Document $doc, User $by): Document
     {
         $doc->update(['status' => DocumentStatus::Archived]);
@@ -123,7 +152,7 @@ class DocumentService
      */
     public function updateMetadata(Document $doc, array $attrs, User $by): Document
     {
-        $allowed = ['title', 'description', 'confidentiality', 'tags'];
+        $allowed = ['title', 'description', 'confidentiality', 'tags', 'letterhead_id', 'watermark_id', 'watermark_mode'];
         $clean = array_intersect_key($attrs, array_flip($allowed));
 
         $before = $doc->only($allowed);

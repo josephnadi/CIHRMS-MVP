@@ -26,6 +26,7 @@ class ComposeDocumentRequest extends FormRequest
             // attacks (multi-MB pastes). 100k chars ≈ 25 pages of dense text.
             'body_html'       => ['required', 'string', 'min:1', 'max:100000'],
             'letterhead'      => ['nullable', 'boolean'],
+            'letterhead_id' => ['nullable', 'integer', 'exists:letterhead_templates,id'],
         ];
     }
 }
