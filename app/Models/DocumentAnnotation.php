@@ -37,4 +37,9 @@ class DocumentAnnotation extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function route(): BelongsTo
+    {
+        return $this->belongsTo(DocumentRoute::class, 'route_id');
+    }
 }
