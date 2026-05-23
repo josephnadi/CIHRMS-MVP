@@ -49,12 +49,14 @@ class ChatController extends Controller
             ->paginate(18)
             ->withQueryString();
 
-        // Recent threads (max 6) — used for the "Continue chatting" strip
+        // "Continue chatting" strip — your most-recently-touched conversations,
+        // up to 6. Includes brand-new "+ New" threads even without a message
+        // yet (they appear with a "Say hello —" placeholder), ordered by
+        // either last activity or the moment the thread was opened.
         $recent = Conversation::query()
             ->forUser($me)
-            ->whereNotNull('last_message_at')
             ->with(['participants:id,name,email', 'latestMessage'])
-            ->orderByDesc('last_message_at')
+            ->orderByRaw('COALESCE(last_message_at, created_at) DESC')
             ->limit(6)
             ->get()
             ->map(fn (Conversation $c) => $this->serialiseConversationSummary($c, $me));
@@ -101,11 +103,15 @@ class ChatController extends Controller
             'participants.employee.department:id,name',
         ]);
 
-        // Sidebar list — your other conversations, latest first.
+        // Sidebar list — your other conversations, most recently active first.
+        // COALESCE so brand-new conversations (no messages yet) sort by the
+        // moment they were created instead of being pushed to the bottom by
+        // NULL last_message_at — otherwise a freshly-opened "+ New" chat
+        // would appear below every old thread that has messages.
         $threads = Conversation::query()
             ->forUser($me)
             ->with(['participants:id,name,email', 'latestMessage'])
-            ->orderByDesc('last_message_at')
+            ->orderByRaw('COALESCE(last_message_at, created_at) DESC')
             ->limit(30)
             ->get()
             ->map(fn (Conversation $c) => $this->serialiseConversationSummary($c, $me));
