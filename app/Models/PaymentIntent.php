@@ -22,6 +22,9 @@ class PaymentIntent extends Model
         'paystack_reference', 'paystack_access_code', 'authorization_url', 'callback_url',
         'ar_receipt_id', 'narration', 'paid_at', 'expires_at', 'last_paystack_response',
         'created_by',
+        // F4-R: refund audit
+        'refunded_at', 'refund_amount', 'refund_reason',
+        'refund_paystack_ref', 'refund_settled_at', 'refunded_by',
     ];
 
     protected $attributes = ['currency' => 'GHS', 'status' => 'created'];
@@ -34,6 +37,10 @@ class PaymentIntent extends Model
             'paid_at'                => 'datetime',
             'expires_at'             => 'datetime',
             'last_paystack_response' => 'array',
+            // F4-R
+            'refunded_at'            => 'datetime',
+            'refund_amount'          => 'decimal:2',
+            'refund_settled_at'      => 'datetime',
         ];
     }
 
@@ -57,6 +64,11 @@ class PaymentIntent extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function refunder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'refunded_by');
+    }
+
     public function scopePending(Builder $q): Builder
     {
         return $q->where('status', PaymentIntentStatus::Pending->value);
@@ -67,5 +79,11 @@ class PaymentIntent extends Model
         return $q->where('status', PaymentIntentStatus::Pending->value)
                  ->whereNotNull('expires_at')
                  ->where('expires_at', '<', now());
+    }
+
+    public function scopeRefundable(Builder $q): Builder
+    {
+        return $q->where('status', PaymentIntentStatus::Success->value)
+                 ->whereNull('refunded_at');
     }
 }
