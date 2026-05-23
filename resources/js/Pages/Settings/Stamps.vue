@@ -55,8 +55,8 @@ const SCOPES = ['personal', 'department', 'organization'];
                     {{ s }}
                 </option>
             </select>
-            <input type="file" required accept="image/png" @change="e => form.file = e.target.files[0]"
-                   class="text-[12px]" />
+            <input type="file" required accept="image/png" aria-label="Stamp file (PNG, up to 1 MB)"
+                   @change="e => form.file = e.target.files[0]" class="text-[12px]" />
             <button type="submit" :disabled="form.processing"
                     class="rounded-lg px-4 py-2 text-[12px] font-black text-white"
                     style="background:linear-gradient(135deg,#0d1452,#1a237e)">

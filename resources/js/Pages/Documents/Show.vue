@@ -356,21 +356,21 @@ function revokeShare(shareId) {
                         </div>
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Letterhead</label>
-                            <select v-model="editForm.letterhead_id" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                            <select v-model="editForm.letterhead_id" aria-label="Letterhead template" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                                 <option :value="null">None</option>
                                 <option v-for="t in letterheadTemplates" :key="t.id" :value="t.id">{{ t.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Watermark</label>
-                            <select v-model="editForm.watermark_id" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                            <select v-model="editForm.watermark_id" aria-label="Watermark template" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                                 <option :value="null">None</option>
                                 <option v-for="w in watermarkTemplates" :key="w.id" :value="w.id">{{ w.name }} ({{ w.type }})</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">When to apply</label>
-                            <select v-model="editForm.watermark_mode" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                            <select v-model="editForm.watermark_mode" aria-label="Watermark application mode" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                                 <option value="on_burn">On burned PDF only</option>
                                 <option value="always">Always (including original downloads)</option>
                                 <option value="none">Never</option>

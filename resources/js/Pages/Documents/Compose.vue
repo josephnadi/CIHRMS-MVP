@@ -98,7 +98,7 @@ function clearFormatting() {
 const previewHtml = computed(() => {
     const lh = selectedTemplate.value
         ? `<header style="border-bottom:1px solid #c9a227;padding-bottom:8px;margin-bottom:18px;">
-             <img src="${selectedTemplate.value.preview_url}" style="width:100%;max-height:${selectedTemplate.value.header_height_mm * 3}px;object-fit:contain;" />
+             <img alt="Letterhead preview" src="${selectedTemplate.value.preview_url}" style="width:100%;max-height:${selectedTemplate.value.header_height_mm * 3}px;object-fit:contain;" />
            </header>`
         : '';
     return `<!doctype html>
