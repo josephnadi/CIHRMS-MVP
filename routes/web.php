@@ -359,6 +359,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::get('/my',                       [LearningController::class, 'myLearning']) ->name('my');
         Route::get('/skills-matrix',            [LearningController::class, 'skillsMatrix'])
             ->middleware('permission:learning.manage')->name('skills-matrix');
+        Route::post('/skills',                  [LearningController::class, 'storeSkill'])
+            ->middleware('permission:learning.manage')->name('skills.store');
 
         // Course management (HR/LD)
         Route::post('/courses',                 [LearningController::class, 'storeCourse'])
