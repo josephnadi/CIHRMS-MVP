@@ -272,7 +272,8 @@ class DocumentController extends Controller
         // download is a freshly-burned PDF stamped with viewer + timestamp so
         // a leaked copy is traceable back to who pulled it.
         $isRestricted = $document->confidentiality === DocumentConfidentiality::Restricted;
-        $burned = $isRestricted || $request->boolean('burned', false);
+        $alwaysWatermark = $document->watermark_mode?->value === 'always' && $document->watermark_id !== null;
+        $burned = $isRestricted || $request->boolean('burned', false) || $alwaysWatermark;
 
         if ($burned) {
             $watermark = $isRestricted ? [
