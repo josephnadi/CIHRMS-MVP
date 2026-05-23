@@ -116,6 +116,66 @@ const myActiveRoute = computed(() =>
 const canAnnotate = computed(() => D.value.status === 'draft' || !! myActiveRoute.value);
 const canRoute    = computed(() => D.value.status === 'draft' && D.value.owner?.id === currentUserId.value);
 const canWithdraw = computed(() => D.value.status === 'in_review' && D.value.owner?.id === currentUserId.value);
+
+// ── Documents v2 — Phase 1: Edit / Delete / Share ────────────────────────────
+const userPerms = computed(() => page.props.auth?.permissions ?? []);
+const can = (slug) => userPerms.value.includes('*') || userPerms.value.includes(slug);
+
+const isOwner = computed(() => D.value.owner?.id === currentUserId.value);
+const canEdit = computed(() => isOwner.value && D.value.status === 'draft');
+const canDelete = computed(() => (isOwner.value && D.value.status === 'draft') || can('documents.manage'));
+const canShare  = computed(() => isOwner.value || can('documents.manage'));
+const canShareOrg = computed(() => can('documents.share_organization') || can('documents.manage'));
+const isSensitive = computed(() => ['confidential', 'restricted'].includes(D.value.confidentiality));
+
+const showEditPanel = ref(false);
+const editForm = useForm({
+    title: '', description: '', confidentiality: 'internal', tags: [],
+});
+
+function openEdit() {
+    editForm.title           = D.value.title ?? '';
+    editForm.description     = D.value.description ?? '';
+    editForm.confidentiality = D.value.confidentiality ?? 'internal';
+    editForm.tags            = D.value.tags ?? [];
+    showEditPanel.value = true;
+}
+function submitEdit() {
+    editForm.patch(route('documents.update', D.value.uuid), {
+        preserveScroll: true,
+        onSuccess: () => { showEditPanel.value = false; },
+    });
+}
+
+function destroyDocument() {
+    if (! confirm(`Delete "${D.value.title}" (${D.value.ref_no})? This is reversible by an admin.`)) return;
+    router.delete(route('documents.destroy', D.value.uuid));
+}
+
+const showShareModal = ref(false);
+const shareForm = useForm({
+    audience_type: 'user', audience_id: null, expires_at: '',
+});
+const shares = computed(() => D.value.shares ?? []);
+
+function openShare() {
+    shareForm.audience_type = 'user';
+    shareForm.audience_id   = null;
+    shareForm.expires_at    = '';
+    showShareModal.value = true;
+}
+function submitShare() {
+    shareForm.post(route('documents.shares.store', D.value.uuid), {
+        preserveScroll: true,
+        onSuccess: () => { shareForm.reset(); shareForm.audience_type = 'user'; },
+    });
+}
+function revokeShare(shareId) {
+    if (! confirm('Revoke this share?')) return;
+    router.delete(route('documents.shares.destroy', { document: D.value.uuid, share: shareId }), {
+        preserveScroll: true,
+    });
+}
 </script>
 
 <template>
@@ -147,6 +207,18 @@ const canWithdraw = computed(() => D.value.status === 'in_review' && D.value.own
                             <button @click="printDocument" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black flex items-center gap-2"
                                     title="Open the burned PDF and trigger the browser print dialog">
                                 <span class="material-symbols-outlined text-[16px]">print</span> Print
+                            </button>
+                            <button v-if="canShare" @click="openShare"
+                                    class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">share</span> Share
+                            </button>
+                            <button v-if="canEdit" @click="openEdit"
+                                    class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-black flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                            </button>
+                            <button v-if="canDelete" @click="destroyDocument"
+                                    class="rounded-xl border border-rose-300 text-rose-700 px-3 py-2 text-[12px] font-black flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">delete</span> Delete
                             </button>
                             <button v-if="canRoute" @click="showRouteModal = true"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-black text-white shadow-glow-sm"
@@ -210,6 +282,112 @@ const canWithdraw = computed(() => D.value.status === 'in_review' && D.value.own
 
             <SignaturePad v-if="showSigPad" @signed="onSigned" @cancel="showSigPad = false" />
             <StampPicker v-if="showStamp" @stamp="onStamp" @cancel="showStamp = false" />
+
+            <!-- Documents v2 — Phase 1: Edit drawer -->
+            <div v-if="showEditPanel" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-card-hover p-5 w-full max-w-lg">
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary mb-1">Metadata only · draft documents</p>
+                    <h2 class="text-lg font-black text-primary mb-3">Edit document</h2>
+                    <form @submit.prevent="submitEdit" class="space-y-3">
+                        <div>
+                            <label for="edit-title" class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Title</label>
+                            <input id="edit-title" v-model="editForm.title" type="text" required maxlength="255"
+                                   class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                            <p v-if="editForm.errors.title" class="text-rose-600 text-xs mt-1">{{ editForm.errors.title }}</p>
+                        </div>
+                        <div>
+                            <label for="edit-desc" class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Description</label>
+                            <textarea id="edit-desc" v-model="editForm.description" rows="3" maxlength="2000"
+                                      class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]"></textarea>
+                        </div>
+                        <div>
+                            <label for="edit-conf" class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Confidentiality</label>
+                            <select id="edit-conf" v-model="editForm.confidentiality"
+                                    class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option value="internal">Internal</option>
+                                <option value="confidential">Confidential</option>
+                                <option value="restricted">Restricted</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
+                            <button type="button" @click="showEditPanel = false" class="rounded-lg border border-outline-variant px-4 py-2 text-[12px] font-bold">Cancel</button>
+                            <button type="submit" :disabled="editForm.processing"
+                                    class="rounded-lg px-4 py-2 text-[12px] font-black text-white"
+                                    style="background:linear-gradient(135deg,#0d1452,#1a237e)">
+                                {{ editForm.processing ? 'Saving…' : 'Save changes' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Documents v2 — Phase 1: Share modal -->
+            <div v-if="showShareModal" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-card-hover p-5 w-full max-w-lg">
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary mb-1">Read-only audience</p>
+                    <h2 class="text-lg font-black text-primary mb-3">Share document</h2>
+
+                    <!-- Confidentiality guard banner -->
+                    <p v-if="isSensitive" class="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-900">
+                        This document is marked {{ D.confidentiality }}. It can only be shared with individual users — not departments or the whole organization.
+                    </p>
+
+                    <form @submit.prevent="submitShare" class="space-y-3">
+                        <div>
+                            <label for="share-audience" class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Audience</label>
+                            <select id="share-audience" v-model="shareForm.audience_type"
+                                    class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option value="user">Individual user</option>
+                                <option value="department" :disabled="isSensitive">Department</option>
+                                <option value="organization" :disabled="isSensitive || ! canShareOrg">
+                                    Entire organization{{ ! canShareOrg ? ' (requires permission)' : '' }}
+                                </option>
+                            </select>
+                            <p v-if="shareForm.errors.audience_type" class="text-rose-600 text-xs mt-1">{{ shareForm.errors.audience_type }}</p>
+                        </div>
+                        <div v-if="shareForm.audience_type === 'user'">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">User</label>
+                            <RecipientPicker v-model="shareForm.audience_id" />
+                            <p v-if="shareForm.errors.audience_id" class="text-rose-600 text-xs mt-1">{{ shareForm.errors.audience_id }}</p>
+                        </div>
+                        <div v-if="shareForm.audience_type === 'department'">
+                            <label for="share-dept" class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Department ID</label>
+                            <input id="share-dept" v-model.number="shareForm.audience_id" type="number" min="1"
+                                   class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                            <p v-if="shareForm.errors.audience_id" class="text-rose-600 text-xs mt-1">{{ shareForm.errors.audience_id }}</p>
+                        </div>
+                        <div>
+                            <label for="share-expires" class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Expires at (optional)</label>
+                            <input id="share-expires" v-model="shareForm.expires_at" type="datetime-local"
+                                   class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                            <p v-if="shareForm.errors.expires_at" class="text-rose-600 text-xs mt-1">{{ shareForm.errors.expires_at }}</p>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
+                            <button type="button" @click="showShareModal = false" class="rounded-lg border border-outline-variant px-4 py-2 text-[12px] font-bold">Done</button>
+                            <button type="submit" :disabled="shareForm.processing"
+                                    class="rounded-lg px-4 py-2 text-[12px] font-black text-white"
+                                    style="background:linear-gradient(135deg,#0d1452,#1a237e)">
+                                {{ shareForm.processing ? 'Sharing…' : 'Share' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Existing shares list -->
+                    <div v-if="shares.length" class="mt-5 pt-4 border-t border-outline-variant/40">
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant mb-2">Active shares</p>
+                        <ul class="space-y-1.5">
+                            <li v-for="s in shares" :key="s.id" class="flex items-center justify-between gap-3 text-[12px]">
+                                <span class="font-bold text-primary">
+                                    <span class="rounded-full bg-secondary/10 text-secondary px-2 py-0.5 text-[10px] font-black uppercase tracking-widest mr-2">{{ s.audience_type }}</span>
+                                    {{ s.label ?? s.audience_id ?? 'organization' }}
+                                    <span v-if="s.expires_at" class="text-[10px] text-on-surface-variant">· expires {{ s.expires_at }}</span>
+                                </span>
+                                <button @click="revokeShare(s.id)" class="text-[11px] font-bold text-rose-600 hover:underline">Revoke</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
             <div v-if="showRouteModal" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
                 <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-card-hover p-5 w-full max-w-lg">

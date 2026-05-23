@@ -16,4 +16,10 @@ enum DocumentEventType: string
     case Withdrawn    = 'withdrawn';
     case Downloaded   = 'downloaded';
     case Archived     = 'archived';
+
+    // Documents v2 — Phase 1 additions.
+    case Updated      = 'updated';
+    case Deleted      = 'deleted';
+    case Shared       = 'shared';
+    case Unshared     = 'unshared';
 }

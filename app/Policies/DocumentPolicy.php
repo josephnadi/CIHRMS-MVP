@@ -35,8 +35,29 @@ class DocumentPolicy
             return true;
         }
 
-        return $doc->routes()->where('to_user_id', $user->id)->exists()
-            || $doc->routes()->where('from_user_id', $user->id)->exists();
+        if ($doc->routes()->where('to_user_id', $user->id)->exists()
+            || $doc->routes()->where('from_user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        // Documents v2 — Phase 1: shared-with-me widening. Honour user, dept,
+        // and org-wide audiences, and ignore expired shares.
+        $departmentId = $user->employee?->department_id;
+
+        return $doc->shares()
+            ->where(function ($q) use ($user, $departmentId) {
+                $q->where(function ($a) use ($user) {
+                    $a->where('audience_type', 'user')->where('audience_id', $user->id);
+                })
+                ->orWhere(function ($a) use ($departmentId) {
+                    $a->where('audience_type', 'department')->where('audience_id', $departmentId);
+                })
+                ->orWhere('audience_type', 'organization');
+            })
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->exists();
     }
 
     public function create(User $user): bool
@@ -94,5 +115,16 @@ class DocumentPolicy
     public function manage(User $user): bool
     {
         return $user->hasPermission('documents.manage');
+    }
+
+    /**
+     * Owner or any user with documents.manage may create / revoke shares.
+     * Organization-scope shares require the documents.share_organization
+     * permission in addition to ownership (enforced in the controller layer
+     * so the policy stays scope-agnostic).
+     */
+    public function share(User $user, Document $doc): bool
+    {
+        return $doc->owner_id === $user->id || $user->hasPermission('documents.manage');
     }
 }

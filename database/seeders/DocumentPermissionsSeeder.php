@@ -21,9 +21,11 @@ use Illuminate\Support\Facades\Cache;
 class DocumentPermissionsSeeder extends Seeder
 {
     private const PERMISSIONS = [
-        'documents.view'   => ['Documents', 'View documents directory and document detail'],
-        'documents.create' => ['Documents', 'Create documents and upload new versions'],
-        'documents.manage' => ['Documents', 'Administer any document (org-wide override)'],
+        'documents.view'                => ['Documents', 'View documents directory and document detail'],
+        'documents.create'              => ['Documents', 'Create documents and upload new versions'],
+        'documents.manage'              => ['Documents', 'Administer any document (org-wide override)'],
+        // Documents v2 — Phase 1
+        'documents.share_organization'  => ['Documents', 'Share documents with the entire organization'],
     ];
 
     /**
@@ -51,7 +53,9 @@ class DocumentPermissionsSeeder extends Seeder
             ->pluck('id', 'slug');
 
         $baseSlugs   = ['documents.view', 'documents.create'];
-        $manageSlugs = ['documents.view', 'documents.create', 'documents.manage'];
+        // documents.share_organization is granted with the management bundle —
+        // org-wide visibility is a privileged action even for owners.
+        $manageSlugs = ['documents.view', 'documents.create', 'documents.manage', 'documents.share_organization'];
 
         // 2. Attach to every existing role. syncWithoutDetaching preserves
         //    permissions assigned by other seeders (the canonical role catalog

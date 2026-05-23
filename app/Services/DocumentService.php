@@ -115,6 +115,49 @@ class DocumentService
         return $doc;
     }
 
+    /**
+     * Documents v2 — Phase 1. Metadata-only edit. Allowed by policy only on
+     * Draft documents; the caller is expected to have run the policy check
+     * (the controller does). Logs the field diff so the event log doubles as
+     * an audit trail.
+     */
+    public function updateMetadata(Document $doc, array $attrs, User $by): Document
+    {
+        $allowed = ['title', 'description', 'confidentiality', 'tags'];
+        $clean = array_intersect_key($attrs, array_flip($allowed));
+
+        $before = $doc->only($allowed);
+        $doc->update($clean);
+        $after = $doc->fresh()->only($allowed);
+
+        $changed = [];
+        foreach ($allowed as $field) {
+            if (($before[$field] ?? null) !== ($after[$field] ?? null)) {
+                $changed[$field] = ['from' => $before[$field] ?? null, 'to' => $after[$field] ?? null];
+            }
+        }
+
+        if (! empty($changed)) {
+            $this->logEvent($doc, $by, DocumentEventType::Updated, ['changes' => $changed]);
+        }
+
+        return $doc->fresh();
+    }
+
+    /**
+     * Documents v2 — Phase 1. Soft delete. The `documents` table uses
+     * SoftDeletes — record stays for audit replay; lists already filter
+     * trashed rows by default.
+     */
+    public function softDelete(Document $doc, User $by): void
+    {
+        $this->logEvent($doc, $by, DocumentEventType::Deleted, [
+            'ref_no' => $doc->ref_no,
+            'title'  => $doc->title,
+        ]);
+        $doc->delete();
+    }
+
     public function logEvent(Document $doc, User $actor, DocumentEventType $type, array $payload = []): DocumentEvent
     {
         return DocumentEvent::create([

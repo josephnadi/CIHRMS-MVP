@@ -13,6 +13,7 @@ use App\Http\Requests\Documents\AnnotateDocumentRequest;
 use App\Http\Requests\Documents\ComposeDocumentRequest;
 use App\Http\Requests\Documents\RouteDocumentRequest;
 use App\Http\Requests\Documents\StoreDocumentRequest;
+use App\Http\Requests\Documents\UpdateDocumentRequest;
 use App\Http\Resources\DocumentAnnotationResource;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
@@ -129,6 +130,7 @@ class DocumentController extends Controller
             'routes.fromUser', 'routes.toUser',
             'annotations.user',
             'events.actor',
+            'shares',
         ]);
 
         // Pre-signed download URLs (5-min TTL). The download route is protected
@@ -218,6 +220,28 @@ class DocumentController extends Controller
         $this->authorize('manage', Document::class);
         $this->docs->archive($document, $request->user());
         return back()->with('flash.success', 'Document archived.');
+    }
+
+    /**
+     * Documents v2 — Phase 1. Metadata-only edit on Draft documents.
+     * Authorisation is enforced inside UpdateDocumentRequest via the
+     * DocumentPolicy::update gate.
+     */
+    public function update(UpdateDocumentRequest $request, Document $document)
+    {
+        $this->docs->updateMetadata($document, $request->validated(), $request->user());
+        return back()->with('flash.success', 'Document updated.');
+    }
+
+    /**
+     * Documents v2 — Phase 1. Soft delete. Owner-on-Draft OR documents.manage.
+     */
+    public function destroy(Document $document, Request $request)
+    {
+        $this->authorize('delete', $document);
+        $this->docs->softDelete($document, $request->user());
+        return redirect()->route('documents.index')
+            ->with('flash.success', "Document {$document->ref_no} deleted.");
     }
 
     public function download(Document $document, Request $request): BinaryFileResponse
