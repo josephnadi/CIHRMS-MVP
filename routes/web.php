@@ -837,6 +837,14 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::delete('/{document}/shares/{share}', [\App\Http\Controllers\DocumentShareController::class, 'destroy'])->name('shares.destroy');
     });
 
+    // Documents v2 — Phase 3: Stamp assets (Settings)
+    Route::prefix('settings/stamps')->name('settings.stamps.')->group(function () {
+        Route::get('/',                  [\App\Http\Controllers\Settings\StampAssetController::class, 'index'])->name('index');
+        Route::post('/',                 [\App\Http\Controllers\Settings\StampAssetController::class, 'store'])->name('store');
+        Route::get('/{asset}/preview',   [\App\Http\Controllers\Settings\StampAssetController::class, 'preview'])->name('preview');
+        Route::delete('/{asset}',        [\App\Http\Controllers\Settings\StampAssetController::class, 'destroy'])->name('destroy');
+    });
+
     // ── F1: Finance ─────────────────────────────────────────────────────────
     // finance.hub gates ONLY the Finance Hub landing page.
     // Auditors who have accounts.view / bank_accounts.view but NOT finance.hub
@@ -957,6 +965,15 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::middleware('permission:statements.view')->group(function () {
             Route::get('statements',                  [\App\Http\Controllers\Finance\StatementController::class, 'index'])->name('statements.index');
             Route::get('statements/{customer}',       [\App\Http\Controllers\Finance\StatementController::class, 'show'])->name('statements.show');
+        });
+
+        // F4 — Payment Intents (Paystack gateway)
+        Route::middleware('permission:gateway.view')->group(function () {
+            Route::get('payment-intents',                       [\App\Http\Controllers\Finance\PaymentIntentController::class, 'index'])->name('payment-intents.index');
+            Route::get('payment-intents/{paymentIntent}',       [\App\Http\Controllers\Finance\PaymentIntentController::class, 'show'])->name('payment-intents.show');
+        });
+        Route::middleware(['permission:gateway.create', '2fa:fresh'])->group(function () {
+            Route::post('payment-intents',                      [\App\Http\Controllers\Finance\PaymentIntentController::class, 'store'])->name('payment-intents.store');
         });
     });
 });
