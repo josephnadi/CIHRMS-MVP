@@ -13,6 +13,7 @@ const props = defineProps({
     apOutstanding:       { type: Number, default: 0 },
     pendingApprovals:    { type: Object, default: () => ({ payroll_runs: 0, loans: 0, invoices: 0, payments: 0 }) },
     statutoryCompliance: { type: Array,  default: () => [] },
+    gatewayHealth:       { type: Object, default: () => ({ status: 'ok', message: null }) },
 });
 
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', {
@@ -49,6 +50,15 @@ const statusBadge = (status) => {
     <Head title="Finance Hub" />
 
     <div class="space-y-8 animate-reveal-up">
+        <div v-if="gatewayHealth.status === 'missing_bank'"
+             class="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+            <span class="material-symbols-outlined text-[20px] text-amber-700">warning</span>
+            <div>
+                <p class="text-[12px] font-black text-amber-900">Gateway not configured</p>
+                <p class="text-[11px] text-amber-800 mt-0.5">{{ gatewayHealth.message }}</p>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>

@@ -34,9 +34,29 @@ class FinanceHubService
             'apOutstanding'       => $this->apOutstanding(),
             'arOutstanding'       => $this->arOutstanding(),
             'agingBuckets'        => $this->agingBuckets(),
+            'gatewayHealth'       => $this->gatewayHealth(),
             'pendingApprovals'    => $this->pendingApprovals(),
             'statutoryCompliance' => $this->statutoryCompliance(),
         ];
+    }
+
+    private function gatewayHealth(): array
+    {
+        $purpose = config('services.paystack.receipt_bank_purpose', 'receipts');
+
+        $hasReceiptsBank = OrgBankAccount::query()
+            ->where('purpose', $purpose)
+            ->where('is_active', true)
+            ->exists();
+
+        if (! $hasReceiptsBank) {
+            return [
+                'status'  => 'missing_bank',
+                'message' => "No active org bank account with purpose '{$purpose}'. Paystack receipts will fail.",
+            ];
+        }
+
+        return ['status' => 'ok', 'message' => null];
     }
 
     private function cashPosition(): float

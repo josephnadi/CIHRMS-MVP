@@ -94,3 +94,30 @@ it('apOutstanding aggregates the outstanding amount from approved + partially_pa
 
     $this->actingAs($finance)->get('/finance')->assertInertia(fn ($p) => $p->where('apOutstanding', fn ($v) => (float) $v === 1000.0));
 });
+
+it('hub returns gatewayHealth key', function () {
+    $finance = User::factory()->create(['role' => 'finance_officer']);
+
+    $this->actingAs($finance)
+        ->get('/finance')
+        ->assertOk()
+        ->assertInertia(fn ($p) => $p
+            ->component('Finance/Hub')
+            ->has('gatewayHealth')
+            ->has('gatewayHealth.status')
+            ->has('gatewayHealth.message')
+        );
+});
+
+it('gatewayHealth is missing_bank when no receipts-purpose bank exists', function () {
+    config(['services.paystack.receipt_bank_purpose' => 'receipts']);
+    \App\Models\OrgBankAccount::query()->forPurpose('receipts')->delete();
+
+    $finance = User::factory()->create(['role' => 'finance_officer']);
+
+    \Illuminate\Support\Facades\Cache::flush();
+
+    $this->actingAs($finance)
+        ->get('/finance')
+        ->assertInertia(fn ($p) => $p->where('gatewayHealth.status', 'missing_bank'));
+});
