@@ -14,6 +14,7 @@ const props = defineProps({
     pendingApprovals:    { type: Object, default: () => ({ payroll_runs: 0, loans: 0, invoices: 0, payments: 0 }) },
     statutoryCompliance: { type: Array,  default: () => [] },
     gatewayHealth:       { type: Object, default: () => ({ status: 'ok', message: null }) },
+    reconciliationStats: { type: Object, default: () => ({ unreconciled_count: 0, oldest_unreconciled_date: null }) },
 });
 
 const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', {
