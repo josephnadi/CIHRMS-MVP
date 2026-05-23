@@ -284,6 +284,206 @@ const MUSICAL_PRESETS = {
     ],
 };
 
+// ── GAMIFIED file overrides ───────────────────────────────────────
+// Drop an MP3 / OGG / WAV at `public/sounds/gamified/<key>` and useSound
+// will prefer it over the synth fallback below. Filenames mirror the
+// event keys; see `docs/sound_pack_sources.md` for curated CC0 arcade /
+// chiptune sources (Kenney UI Audio + Sci-Fi Sounds are the primary
+// recommendation — they ship with explicit CC0 licensing).
+const GAMIFIED_FILES = {
+    'notification':   'notification.mp3',
+    'success':        'success.mp3',
+    'error':          'error.mp3',
+    'warning':        'warning.mp3',
+    'event.created':  'event-created.mp3',
+    'assigned.you':   'assigned.mp3',
+    'task.completed': 'task-completed.mp3',
+    'message':        'message.mp3',
+    'announcement':   'announcement.mp3',
+    'submit':         'submit.mp3',
+    'invalid':        'invalid.mp3',
+    'approved':       'approved.mp3',
+    'rejected':       'rejected.mp3',
+    'welcome':        'welcome.mp3',
+    'goodbye':        'goodbye.mp3',
+};
+
+// ── GAMIFIED preset library ───────────────────────────────────────
+// Arcade / chiptune feel: square + sawtooth oscillators for that 8-bit
+// timbre, slightly longer note durations than MUSICAL_PRESETS for
+// satisfying "achievement unlocked" punctuation, and rising arpeggio
+// finishes with a held chord lock-in on celebratory events. Think:
+// Zelda treasure-chest, Mario coin pickup, RPG level-up fanfare.
+//
+// Design notes:
+//  - Hits ~0.20-0.45s (vs musical's 0.14-0.32s).
+//  - Tails ~1.30-1.80s (vs musical's 0.85-1.40s).
+//  - Square / sawtooth on the punchy hits, sine on the held tails so the
+//    chord doesn't fatigue the ear.
+//  - `slideTo` glissandi on the final note of celebratory events for
+//    that "swooping into victory" feel.
+const GAMIFIED_PRESETS = {
+    // Coin-pickup ascending pair with held bell tail.
+    'notification': [
+        { freq: 988,  start: 0.00, dur: 0.18, type: 'square',   gain: 0.34 },
+        { freq: 1319, start: 0.14, dur: 0.30, type: 'square',   gain: 0.36 },
+        { freq: 1568, start: 0.32, dur: 0.40, type: 'triangle', gain: 0.34 },
+        { freq: 1319, start: 0.56, dur: 1.30, type: 'sine',     gain: 0.26 },  // ringing tail
+        { freq: 988,  start: 0.56, dur: 1.30, type: 'sine',     gain: 0.16 },  // harmony
+    ],
+
+    // XP-gain rising arpeggio + triumph chord lock.
+    'success': [
+        { freq: 523,  start: 0.00, dur: 0.18, type: 'square',   gain: 0.30 },
+        { freq: 659,  start: 0.14, dur: 0.20, type: 'square',   gain: 0.32 },
+        { freq: 784,  start: 0.30, dur: 0.22, type: 'square',   gain: 0.34 },
+        { freq: 988,  start: 0.48, dur: 0.26, type: 'triangle', gain: 0.38 },
+        { freq: 1319, start: 0.68, dur: 0.36, type: 'sine',     gain: 0.40 },
+        { freq: 1568, start: 0.92, dur: 0.50, type: 'sine',     gain: 0.38, slideTo: 1976 },
+        // Chord lock (~1.6s)
+        { freq: 784,  start: 1.20, dur: 1.60, type: 'sine',     gain: 0.26 },
+        { freq: 988,  start: 1.20, dur: 1.60, type: 'sine',     gain: 0.22 },
+        { freq: 1319, start: 1.20, dur: 1.60, type: 'sine',     gain: 0.20 },
+        { freq: 1976, start: 1.20, dur: 1.60, type: 'sine',     gain: 0.14 },
+    ],
+
+    // Sawtooth descending buzz with low rumble.
+    'error': [
+        { freq: 622,  start: 0.00, dur: 0.20, type: 'sawtooth', gain: 0.34 },
+        { freq: 466,  start: 0.16, dur: 0.26, type: 'sawtooth', gain: 0.36 },
+        { freq: 311,  start: 0.36, dur: 0.36, type: 'sawtooth', gain: 0.34, slideTo: 196 },
+        { freq: 165,  start: 0.62, dur: 1.30, type: 'square',   gain: 0.28 },  // low buzz tail
+        { freq: 110,  start: 0.62, dur: 1.30, type: 'sine',     gain: 0.20 },  // sub rumble
+    ],
+
+    // Alert "doot doot DOOT" with extended hold.
+    'warning': [
+        { freq: 659,  start: 0.00, dur: 0.24, type: 'square',   gain: 0.34 },
+        { freq: 659,  start: 0.28, dur: 0.24, type: 'square',   gain: 0.34 },
+        { freq: 523,  start: 0.56, dur: 0.44, type: 'triangle', gain: 0.36 },
+        { freq: 392,  start: 0.78, dur: 1.40, type: 'sine',     gain: 0.30 },  // hold
+        { freq: 659,  start: 0.78, dur: 1.40, type: 'sine',     gain: 0.14 },  // octave shimmer
+    ],
+
+    // Treasure-chest opening: rising 6-note arpeggio + held chord.
+    'event.created': [
+        { freq: 587,  start: 0.00, dur: 0.16, type: 'square',   gain: 0.32 },
+        { freq: 698,  start: 0.12, dur: 0.18, type: 'square',   gain: 0.34 },
+        { freq: 880,  start: 0.26, dur: 0.22, type: 'square',   gain: 0.36 },
+        { freq: 1047, start: 0.42, dur: 0.26, type: 'triangle', gain: 0.36 },
+        { freq: 1319, start: 0.60, dur: 0.32, type: 'sine',     gain: 0.38 },
+        { freq: 1568, start: 0.80, dur: 0.46, type: 'sine',     gain: 0.36, slideTo: 1760 },
+        { freq: 1175, start: 1.10, dur: 1.40, type: 'sine',     gain: 0.30 },  // chest-open hold
+        { freq: 1568, start: 1.10, dur: 1.40, type: 'sine',     gain: 0.18 },  // shimmer overtone
+    ],
+
+    // "Quest received!" 4-note rising with held shimmer.
+    'assigned.you': [
+        { freq: 698,  start: 0.00, dur: 0.18, type: 'square',   gain: 0.36 },
+        { freq: 932,  start: 0.14, dur: 0.18, type: 'square',   gain: 0.36 },
+        { freq: 1175, start: 0.28, dur: 0.26, type: 'triangle', gain: 0.38 },
+        { freq: 1397, start: 0.48, dur: 0.30, type: 'triangle', gain: 0.38 },
+        { freq: 1175, start: 0.74, dur: 0.36, type: 'sine',     gain: 0.34 },
+        { freq: 932,  start: 0.96, dur: 1.30, type: 'sine',     gain: 0.30 },  // sustained hold
+        { freq: 1397, start: 0.96, dur: 1.30, type: 'sine',     gain: 0.18 },  // shimmer
+    ],
+
+    // Full victory fanfare — sweep + massive chord hold.
+    'task.completed': [
+        { freq: 523,  start: 0.00, dur: 0.18, type: 'square',   gain: 0.34 },
+        { freq: 659,  start: 0.14, dur: 0.18, type: 'square',   gain: 0.34 },
+        { freq: 784,  start: 0.28, dur: 0.18, type: 'square',   gain: 0.34 },
+        { freq: 988,  start: 0.42, dur: 0.20, type: 'triangle', gain: 0.36 },
+        { freq: 1319, start: 0.58, dur: 0.24, type: 'triangle', gain: 0.40 },
+        { freq: 1568, start: 0.76, dur: 0.28, type: 'sine',     gain: 0.40 },
+        { freq: 1976, start: 0.98, dur: 0.50, type: 'sine',     gain: 0.42, slideTo: 2349 },
+        // Massive chord hold (~1.8s)
+        { freq: 523,  start: 1.40, dur: 1.80, type: 'sine',     gain: 0.20 },
+        { freq: 988,  start: 1.40, dur: 1.80, type: 'sine',     gain: 0.26 },
+        { freq: 1319, start: 1.40, dur: 1.80, type: 'sine',     gain: 0.30 },
+        { freq: 1568, start: 1.40, dur: 1.80, type: 'sine',     gain: 0.22 },
+        { freq: 1976, start: 1.40, dur: 1.80, type: 'sine',     gain: 0.16 },
+    ],
+
+    // Quick blip-blip with bell sustain.
+    'message': [
+        { freq: 1175, start: 0.00, dur: 0.14, type: 'square',   gain: 0.34 },
+        { freq: 1568, start: 0.12, dur: 0.18, type: 'triangle', gain: 0.34 },
+        { freq: 1319, start: 0.28, dur: 0.30, type: 'triangle', gain: 0.30 },
+        { freq: 988,  start: 0.50, dur: 1.10, type: 'sine',     gain: 0.22 },
+    ],
+
+    // Broadcast horn + long ringing chord.
+    'announcement': [
+        { freq: 523,  start: 0.00, dur: 0.36, type: 'sawtooth', gain: 0.32 },
+        { freq: 784,  start: 0.10, dur: 0.42, type: 'sawtooth', gain: 0.30 },
+        { freq: 1047, start: 0.22, dur: 0.50, type: 'triangle', gain: 0.32 },
+        { freq: 1568, start: 0.42, dur: 0.50, type: 'sine',     gain: 0.30 },
+        { freq: 1047, start: 0.66, dur: 1.80, type: 'sine',     gain: 0.30 },  // ringing chord
+        { freq: 1568, start: 0.66, dur: 1.80, type: 'sine',     gain: 0.20 },  // shimmer
+        { freq: 523,  start: 0.66, dur: 1.80, type: 'sine',     gain: 0.18 },  // sub
+    ],
+
+    // Punchy "thwack" with brief tail.
+    'submit': [
+        { freq: 880,  start: 0.00, dur: 0.10, type: 'square',   gain: 0.28 },
+        { freq: 1175, start: 0.06, dur: 0.16, type: 'triangle', gain: 0.32 },
+        { freq: 784,  start: 0.18, dur: 0.50, type: 'sine',     gain: 0.20 },
+    ],
+
+    // Error bonk descending.
+    'invalid': [
+        { freq: 311,  start: 0.00, dur: 0.20, type: 'sawtooth', gain: 0.34 },
+        { freq: 196,  start: 0.16, dur: 0.30, type: 'sawtooth', gain: 0.32 },
+        { freq: 130,  start: 0.36, dur: 0.95, type: 'sine',     gain: 0.26 },
+    ],
+
+    // Power-up rising trill + bright held chord.
+    'approved': [
+        { freq: 523,  start: 0.00, dur: 0.12, type: 'square',   gain: 0.28 },
+        { freq: 659,  start: 0.08, dur: 0.14, type: 'square',   gain: 0.32 },
+        { freq: 880,  start: 0.18, dur: 0.18, type: 'triangle', gain: 0.36 },
+        { freq: 1047, start: 0.30, dur: 0.22, type: 'triangle', gain: 0.38 },
+        { freq: 1319, start: 0.46, dur: 0.30, type: 'sine',     gain: 0.40 },
+        { freq: 1568, start: 0.66, dur: 0.42, type: 'sine',     gain: 0.38, slideTo: 1760 },
+        { freq: 1319, start: 0.94, dur: 1.40, type: 'sine',     gain: 0.30 },  // sustain
+        { freq: 1976, start: 0.94, dur: 1.40, type: 'sine',     gain: 0.18 },  // shimmer
+    ],
+
+    // Game-over descending — sawtooth slide into low hold.
+    'rejected': [
+        { freq: 466,  start: 0.00, dur: 0.20, type: 'sawtooth', gain: 0.36 },
+        { freq: 392,  start: 0.16, dur: 0.22, type: 'sawtooth', gain: 0.34 },
+        { freq: 311,  start: 0.34, dur: 0.30, type: 'triangle', gain: 0.32, slideTo: 246 },
+        { freq: 196,  start: 0.56, dur: 0.40, type: 'triangle', gain: 0.30, slideTo: 147 },
+        { freq: 110,  start: 0.88, dur: 1.30, type: 'sine',     gain: 0.26 },
+    ],
+
+    // Overworld-style fanfare on sign-in.
+    'welcome': [
+        { freq: 523,  start: 0.00, dur: 0.24, type: 'square',   gain: 0.32 },
+        { freq: 784,  start: 0.18, dur: 0.24, type: 'square',   gain: 0.32 },
+        { freq: 1047, start: 0.36, dur: 0.26, type: 'triangle', gain: 0.34 },
+        { freq: 1319, start: 0.56, dur: 0.30, type: 'triangle', gain: 0.36 },
+        { freq: 1568, start: 0.80, dur: 0.40, type: 'sine',     gain: 0.38, slideTo: 1760 },
+        // Held major chord (~1.8s)
+        { freq: 1047, start: 1.16, dur: 1.80, type: 'sine',     gain: 0.30 },
+        { freq: 1319, start: 1.16, dur: 1.80, type: 'sine',     gain: 0.22 },
+        { freq: 1568, start: 1.16, dur: 1.80, type: 'sine',     gain: 0.20 },
+        { freq: 523,  start: 1.16, dur: 1.80, type: 'sine',     gain: 0.18 },
+    ],
+
+    // Sleep / standby descending fade.
+    'goodbye': [
+        { freq: 988,  start: 0.00, dur: 0.22, type: 'square',   gain: 0.32 },
+        { freq: 784,  start: 0.18, dur: 0.26, type: 'triangle', gain: 0.32 },
+        { freq: 587,  start: 0.40, dur: 0.32, type: 'triangle', gain: 0.30 },
+        { freq: 392,  start: 0.64, dur: 0.40, type: 'sine',     gain: 0.28, slideTo: 294 },
+        { freq: 196,  start: 0.96, dur: 1.40, type: 'sine',     gain: 0.24 },  // long fade
+        { freq: 392,  start: 0.96, dur: 1.40, type: 'sine',     gain: 0.14 },  // octave shimmer
+    ],
+};
+
 // ── CINEMATIC preset library ──────────────────────────────────────
 // Maps event keys to a synth function in cinematic-synth.js plus its
 // per-event options. Designed to feel like real-world sounds: a doorbell
@@ -402,7 +602,24 @@ function play(key, master = 1) {
         return;
     }
 
-    // 2. Musical pack — pure synth, no file overrides (the original behaviour).
+    // 2. Gamified pack — try real audio file first, then synth fallback.
+    if (pack === 'gamified') {
+        const file = GAMIFIED_FILES[key];
+        if (file) {
+            const cached = bufferCache.get(`${pack}/${file}`);
+            if (cached) { playBuffer(cached, master); return; }
+            tryLoadFile(pack, file);   // warm cache for next time
+        }
+        const tones = GAMIFIED_PRESETS[key];
+        if (!tones) {
+            console.warn(`[useSound] unknown gamified preset: ${key}`);
+            return;
+        }
+        playSequence(tones, master);
+        return;
+    }
+
+    // 3. Musical pack — pure synth, no file overrides (the original behaviour).
     const tones = MUSICAL_PRESETS[key];
     if (!tones) {
         console.warn(`[useSound] unknown musical preset: ${key}`);
@@ -422,7 +639,7 @@ function setVolume(v) {
     localStorage.setItem(LS_VOLUME, String(volume.value));
 }
 
-const VALID_PACKS = ['musical', 'cinematic'];
+const VALID_PACKS = ['musical', 'cinematic', 'gamified'];
 function setPack(pack) {
     if (! VALID_PACKS.includes(pack)) {
         console.warn(`[useSound] unknown pack: ${pack}`);
@@ -447,11 +664,11 @@ if (typeof window !== 'undefined') {
 // Preset listings for the SoundToggle preview grid — exposes whichever pack
 // is currently active so the preview buttons always match what users hear.
 // Computed so Vue templates re-render when the pack changes at runtime.
-const presetsRef = computed(() =>
-    activePack.value === 'cinematic'
-        ? Object.keys(CINEMATIC_PRESETS)
-        : Object.keys(MUSICAL_PRESETS)
-);
+const presetsRef = computed(() => {
+    if (activePack.value === 'cinematic') return Object.keys(CINEMATIC_PRESETS);
+    if (activePack.value === 'gamified')  return Object.keys(GAMIFIED_PRESETS);
+    return Object.keys(MUSICAL_PRESETS);
+});
 
 export function useSound() {
     return {

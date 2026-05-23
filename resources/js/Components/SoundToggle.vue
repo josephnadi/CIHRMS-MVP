@@ -15,10 +15,17 @@ const onVolume = (e) => setVolume(parseFloat(e.target.value));
 const PACK_LABEL = {
     musical:   'Musical tones',
     cinematic: 'Real-world sounds',
+    gamified:  'Gamified arcade',
 };
 const PACK_HINT = {
     musical:   'Abstract synthesised tones — minimal, unobtrusive.',
     cinematic: 'Doorbell, train horn, cash register, bell — like a real environment.',
+    gamified:  'Arcade chiptune — longer notes, coin pickup, victory fanfares.',
+};
+const PACK_ICON = {
+    musical:   'piano',
+    cinematic: 'theater_comedy',
+    gamified:  'stadia_controller',
 };
 
 const close = (e) => {
@@ -99,7 +106,7 @@ onBeforeUnmount(() => document.removeEventListener('click', close));
                                 :disabled="isMuted"
                                 @click="setPack(pack)">
                             <span class="material-symbols-outlined sfx-pack-icon">
-                                {{ pack === 'cinematic' ? 'theater_comedy' : 'piano' }}
+                                {{ PACK_ICON[pack] ?? 'piano' }}
                             </span>
                             <span class="sfx-pack-label">{{ PACK_LABEL[pack] }}</span>
                             <span class="sfx-pack-hint">{{ PACK_HINT[pack] }}</span>
@@ -342,10 +349,10 @@ onBeforeUnmount(() => document.removeEventListener('click', close));
 .sfx-preset:disabled { opacity: 0.4; cursor: not-allowed; }
 .sfx-preset-icon { font-size: 13px; color: #1a237e; }
 
-/* Pack switcher — segmented two-card picker */
+/* Pack switcher — vertical stack so all three labels stay legible at 280px */
 .sfx-pack-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 6px;
 }
 .sfx-pack {
