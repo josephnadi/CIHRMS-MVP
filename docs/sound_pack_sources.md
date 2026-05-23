@@ -95,6 +95,55 @@ shipping.
 | `welcome`          | `welcome.mp3`                | Freesound CC0: "station bell rising"     |
 | `goodbye`          | `goodbye.mp3`                | Pixabay: "train horn low slow"           |
 
+## Suggested files per event (gamified pack)
+
+Arcade / chiptune palette — coin pickups, victory fanfares, 8-bit
+buzzes. The primary recommendation is **Kenney's audio packs**:
+
+- [`kenney.nl/assets/ui-audio`](https://kenney.nl/assets/ui-audio) —
+  CC0, 50 clean UI sounds (button clicks, switches, coin pickups,
+  confirms). Perfect for `submit`, `notification`, `invalid`.
+- [`kenney.nl/assets/sci-fi-sounds`](https://kenney.nl/assets/sci-fi-sounds)
+  — CC0, 40 retro/arcade sounds (laser shots, alarms, power-ups,
+  explosions). Good for `warning`, `approved`, `error`.
+- [`kenney.nl/assets/casino-audio`](https://kenney.nl/assets/casino-audio)
+  — CC0, slot-machine wins, coin showers. Perfect for
+  `task.completed`, `success`.
+
+All Kenney assets are explicitly **CC0 / public domain** with no
+attribution required — the cleanest licence available for a
+government deployment.
+
+Other CC0 options:
+
+- **OpenGameArt.org** — filter by *License → CC0*. Search "8-bit
+  fanfare", "chiptune jingle", "NES coin", "victory loop".
+- **Sonic Bloom Free Bundles** — periodic CC0 packs aimed at game devs.
+- **Freesound.org** — search "chiptune" or "8-bit" with the CC0 filter.
+
+| event-key          | file name in repo            | suggested source / search                                |
+| ------------------ | ---------------------------- | -------------------------------------------------------- |
+| `notification`     | `notification.mp3`           | Kenney UI Audio: `bong_001.ogg` (gentle coin ding)       |
+| `success`          | `success.mp3`                | Kenney Casino Audio: `chips_collide1.ogg` (cheery jingle) |
+| `error`            | `error.mp3`                  | Kenney UI Audio: `error_001.ogg` (sharp bonk)            |
+| `warning`          | `warning.mp3`                | Kenney Sci-Fi: `alarm_001.ogg` (8-bit klaxon)            |
+| `event.created`    | `event-created.mp3`          | Freesound CC0: "treasure chest open"                     |
+| `assigned.you`     | `assigned.mp3`               | Kenney UI Audio: `select_001.ogg` (4-note rising)        |
+| `task.completed`   | `task-completed.mp3`         | Kenney Casino: `jackpot.ogg` (full fanfare ~2s)          |
+| `message`          | `message.mp3`                | Kenney UI Audio: `glass_001.ogg` (short blip)            |
+| `announcement`     | `announcement.mp3`           | Freesound CC0: "8-bit stage clear horn"                  |
+| `submit`           | `submit.mp3`                 | Kenney UI Audio: `click_005.ogg` (crisp button)          |
+| `invalid`          | `invalid.mp3`                | Kenney UI Audio: `error_002.ogg` (short fail)            |
+| `approved`         | `approved.mp3`               | Kenney Sci-Fi: `pickup_001.ogg` (rising power-up)        |
+| `rejected`         | `rejected.mp3`               | Kenney Sci-Fi: `lowDown.ogg` (descending fail)           |
+| `welcome`          | `welcome.mp3`                | Freesound CC0: "NES intro fanfare"                       |
+| `goodbye`          | `goodbye.mp3`                | Freesound CC0: "game-over jingle, gentle"                |
+
+The exact Kenney filenames change between pack revisions — preview each
+candidate in their web player before downloading. Most clips are OGG
+inside the bundles; rename to `.mp3` only after re-encoding (the
+audio loader trusts the extension's content-type).
+
 ## File preparation checklist
 
 Before dropping a file into `public/sounds/cinematic/`:
@@ -153,3 +202,24 @@ so the UX is complete without any audio assets. Notes on quality:
 - **Buzzer / alarm / email pop** — workmanlike. ★★★☆☆
 
 The 3-star items are the priority replacements when real files arrive.
+
+### Gamified pack synth fallback
+
+The `GAMIFIED_PRESETS` map in `useSound.js` synthesises arcade-style
+chiptune sequences when no audio file is present:
+
+- **Square + sawtooth oscillators** on the punchy hits, sine on the
+  held tails — close approximation of NES-era timbres without an
+  actual NES2A03 emulator. ★★★★☆ for "coin pickup" / "menu confirm",
+  ★★★☆☆ for the bigger fanfares (real recorded clips have more body).
+- **Pitch-bend `slideTo` glissandi** on celebratory finals (welcome,
+  success, task.completed, approved, event.created, rejected) —
+  reads as "swooping into victory" without an actual modulation
+  envelope. ★★★★☆
+- **Chord locks** (~1.6-1.8s sustains) on win events — built from
+  three to five sine voices stacked. Reads as triumph but lacks the
+  harmonic richness of a sampled orchestra hit. ★★★☆☆ — the priority
+  replacement when Kenney's casino bundle is dropped in.
+
+The synth and file path co-exist: drop one file in,
+the other 14 events keep their synth voices until you replace them.

@@ -12,8 +12,8 @@ refresh the browser → next event of that key uses the file.
 public/sounds/<pack>/<event-key>.<ext>
 ```
 
-- `<pack>`         — `musical` or `cinematic` (must match `useSound`'s
-                     `activePack`).
+- `<pack>`         — `musical`, `cinematic`, or `gamified` (must match
+                     `useSound`'s `activePack`).
 - `<event-key>`    — the string passed to `play(key)`. See list below.
 - `<ext>`          — `.mp3` is checked first; `.ogg` and `.wav` work too
                      if you serve them with the right Content-Type.
@@ -40,6 +40,30 @@ audio). Keep clips short. ADSR envelope handled by the browser, not us.
 | `rejected`         | buzzer, low                                  |
 | `welcome`          | station bell, rising                         |
 | `goodbye`          | train horn, low and slow                     |
+
+## Gamified pack — drop-in keys
+
+Same filename contract; arcade / chiptune samples instead of real-world
+recordings. Recommended source: **Kenney UI Audio + Sci-Fi Sounds**
+(both CC0). See `docs/sound_pack_sources.md` for the curated map.
+
+| event-key          | suggested sound                              |
+| ------------------ | -------------------------------------------- |
+| `notification`     | coin pickup (single ding)                    |
+| `success`          | level-up jingle / power-up                   |
+| `error`            | game-over bonk (short)                       |
+| `warning`          | alert klaxon, 8-bit                          |
+| `event.created`    | treasure chest open (Zelda-style)            |
+| `assigned.you`     | quest received chime                         |
+| `task.completed`   | full victory fanfare (longer, held chord)    |
+| `message`          | RPG dialog blip                              |
+| `announcement`     | stage-clear horn                             |
+| `submit`           | menu-confirm button press                    |
+| `invalid`          | error buzz, short                            |
+| `approved`         | power-up jingle (rising)                     |
+| `rejected`         | fail buzz, descending                        |
+| `welcome`          | overworld intro fanfare                      |
+| `goodbye`          | game-end / standby tone                      |
 
 ## Where to source files
 

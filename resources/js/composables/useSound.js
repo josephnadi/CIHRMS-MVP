@@ -284,6 +284,30 @@ const MUSICAL_PRESETS = {
     ],
 };
 
+// ── GAMIFIED file overrides ───────────────────────────────────────
+// Drop an MP3 / OGG / WAV at `public/sounds/gamified/<key>` and useSound
+// will prefer it over the synth fallback below. Filenames mirror the
+// event keys; see `docs/sound_pack_sources.md` for curated CC0 arcade /
+// chiptune sources (Kenney UI Audio + Sci-Fi Sounds are the primary
+// recommendation — they ship with explicit CC0 licensing).
+const GAMIFIED_FILES = {
+    'notification':   'notification.mp3',
+    'success':        'success.mp3',
+    'error':          'error.mp3',
+    'warning':        'warning.mp3',
+    'event.created':  'event-created.mp3',
+    'assigned.you':   'assigned.mp3',
+    'task.completed': 'task-completed.mp3',
+    'message':        'message.mp3',
+    'announcement':   'announcement.mp3',
+    'submit':         'submit.mp3',
+    'invalid':        'invalid.mp3',
+    'approved':       'approved.mp3',
+    'rejected':       'rejected.mp3',
+    'welcome':        'welcome.mp3',
+    'goodbye':        'goodbye.mp3',
+};
+
 // ── GAMIFIED preset library ───────────────────────────────────────
 // Arcade / chiptune feel: square + sawtooth oscillators for that 8-bit
 // timbre, slightly longer note durations than MUSICAL_PRESETS for
@@ -578,8 +602,14 @@ function play(key, master = 1) {
         return;
     }
 
-    // 2. Gamified pack — arcade synth, longer notes, no file overrides.
+    // 2. Gamified pack — try real audio file first, then synth fallback.
     if (pack === 'gamified') {
+        const file = GAMIFIED_FILES[key];
+        if (file) {
+            const cached = bufferCache.get(`${pack}/${file}`);
+            if (cached) { playBuffer(cached, master); return; }
+            tryLoadFile(pack, file);   // warm cache for next time
+        }
         const tones = GAMIFIED_PRESETS[key];
         if (!tones) {
             console.warn(`[useSound] unknown gamified preset: ${key}`);
