@@ -147,6 +147,8 @@ class User extends Authenticatable
             'ar_invoices.view', 'ar_invoices.create', 'ar_invoices.approve',
             'ar_invoices.receive', 'ar_invoices.write_off',
             'statements.view',
+            // F4 — Paystack Gateway (no refund — super_admin only)
+            'gateway.view', 'gateway.create',
         ],
         'it_support' => [
             'dashboard.view',
@@ -184,6 +186,8 @@ class User extends Authenticatable
             'vendors.view', 'ap_invoices.view', 'journal.view',
             // F3 — Read-only oversight
             'customers.view', 'ar_invoices.view', 'statements.view',
+            // F4 — Read-only gateway oversight
+            'gateway.view',
         ],
     ];
 
