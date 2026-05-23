@@ -392,7 +392,11 @@ class DashboardService
                     ->where('end_date',   '>=', $today)
                     ->count(),
                 'open_tickets'    => Ticket::query()->whereIn('employee_id', $employeeIds)->whereIn('status', ['open', 'in_progress'])->count(),
-                'open_complaints' => Complaint::query()->whereIn('employee_id', $employeeIds)->open()->count(),
+                // complaints have no employee_id FK by design (anonymous-friendly,
+                // submitted_by is a free string per Whistleblower Act). Count
+                // org-wide open complaints; the manager dashboard surfaces the
+                // figure as a general indicator, not a per-team metric.
+                'open_complaints' => Complaint::open()->count(),
                 'recent_leave'    => LeaveRequest::query()
                     ->whereIn('employee_id', $employeeIds)
                     ->with('employee:id,employee_no,user_id', 'employee.user:id,name')
