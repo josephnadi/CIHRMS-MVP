@@ -35,6 +35,18 @@ it('third party cannot move annotation', function () {
     expect((new DocumentPolicy())->moveAnnotation($other, $ann))->toBeFalse();
 });
 
+it('doc owner can move another user\'s annotation on a draft', function () {
+    $owner   = User::factory()->create();
+    $creator = User::factory()->create();
+    $doc     = Document::factory()->for($owner, 'owner')->create(['status' => DocumentStatus::Draft]);
+    $v       = DocumentVersion::factory()->for($doc)->create();
+    $doc->update(['current_version_id' => $v->id]);
+    $ann = DocumentAnnotation::factory()->for($doc)->for($v, 'version')->create([
+        'user_id' => $creator->id, 'type' => 'signature',
+    ]);
+    expect((new DocumentPolicy())->moveAnnotation($owner, $ann))->toBeTrue();
+});
+
 it('locks annotation on completed route', function () {
     $owner = User::factory()->create();
     $doc   = Document::factory()->for($owner, 'owner')->create(['status' => DocumentStatus::InReview]);

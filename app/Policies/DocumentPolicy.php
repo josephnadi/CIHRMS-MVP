@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\DocumentRouteStatus;
 use App\Enums\DocumentStatus;
 use App\Models\Document;
+use App\Models\DocumentAnnotation;
 use App\Models\DocumentRoute;
 use App\Models\User;
 
@@ -128,7 +129,7 @@ class DocumentPolicy
         return $doc->owner_id === $user->id || $user->hasPermission('documents.manage');
     }
 
-    public function moveAnnotation(User $user, \App\Models\DocumentAnnotation $annotation): bool
+    public function moveAnnotation(User $user, DocumentAnnotation $annotation): bool
     {
         $doc        = $annotation->document;
         $isCreator  = $annotation->user_id === $user->id;
