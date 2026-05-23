@@ -21,8 +21,10 @@ use Illuminate\Support\Facades\DB;
 
 class VendorInvoiceService
 {
-    public function __construct(private readonly JournalPostingService $journal)
-    {
+    public function __construct(
+        private readonly JournalPostingService $journal,
+        private readonly SequenceService $sequences,
+    ) {
     }
 
     public function create(array $data, User $creator): VendorInvoice
@@ -193,18 +195,12 @@ class VendorInvoiceService
     private function nextReference(): string
     {
         $year = now()->format('Y');
-        $count = VendorInvoice::query()
-            ->where('reference', 'like', "API-{$year}-%")
-            ->count();
-        return sprintf('API-%s-%04d', $year, $count + 1);
+        return sprintf('API-%s-%04d', $year, $this->sequences->next("ap_invoice:{$year}"));
     }
 
     private function nextJournalReference(): string
     {
         $year = now()->format('Y');
-        $count = JournalEntry::query()
-            ->where('reference', 'like', "JE-{$year}-%")
-            ->count();
-        return sprintf('JE-%s-%06d', $year, $count + 1);
+        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
