@@ -859,6 +859,49 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::patch('bank-accounts/{bankAccount}',   [OrgBankAccountController::class, 'update'])->name('bank-accounts.update');
             Route::delete('bank-accounts/{bankAccount}',  [OrgBankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
         });
+
+        // F2 — Vendors
+        Route::middleware('permission:vendors.view')->group(function () {
+            Route::get('vendors', [\App\Http\Controllers\Finance\VendorController::class, 'index'])->name('vendors.index');
+        });
+        Route::middleware('permission:vendors.manage')->group(function () {
+            Route::post('vendors',                  [\App\Http\Controllers\Finance\VendorController::class, 'store'])->name('vendors.store');
+            Route::patch('vendors/{vendor}',        [\App\Http\Controllers\Finance\VendorController::class, 'update'])->name('vendors.update');
+            Route::delete('vendors/{vendor}',       [\App\Http\Controllers\Finance\VendorController::class, 'destroy'])->name('vendors.destroy');
+        });
+
+        // F2 — AP Invoices
+        Route::middleware('permission:ap_invoices.view')->group(function () {
+            Route::get('ap-invoices',                       [\App\Http\Controllers\Finance\ApInvoiceController::class, 'index'])->name('ap-invoices.index');
+            Route::get('ap-invoices/{apInvoice}',           [\App\Http\Controllers\Finance\ApInvoiceController::class, 'show'])->name('ap-invoices.show');
+        });
+        Route::middleware('permission:ap_invoices.create')->group(function () {
+            Route::post('ap-invoices',                      [\App\Http\Controllers\Finance\ApInvoiceController::class, 'store'])->name('ap-invoices.store');
+            Route::post('ap-invoices/{apInvoice}/submit',   [\App\Http\Controllers\Finance\ApInvoiceController::class, 'submit'])->name('ap-invoices.submit');
+        });
+        Route::middleware('permission:ap_invoices.approve')->group(function () {
+            Route::post('ap-invoices/{apInvoice}/approve',  [\App\Http\Controllers\Finance\ApInvoiceController::class, 'approve'])->name('ap-invoices.approve');
+            Route::post('ap-invoices/{apInvoice}/cancel',   [\App\Http\Controllers\Finance\ApInvoiceController::class, 'cancel'])->name('ap-invoices.cancel');
+        });
+
+        // F2 — AP Payments
+        Route::middleware('permission:ap_invoices.view')->group(function () {
+            Route::get('ap-payments', [\App\Http\Controllers\Finance\ApPaymentController::class, 'index'])->name('ap-payments.index');
+        });
+        Route::middleware('permission:ap_invoices.pay')->group(function () {
+            Route::post('ap-payments',                            [\App\Http\Controllers\Finance\ApPaymentController::class, 'store'])->name('ap-payments.store');
+            Route::post('ap-payments/{apPayment}/void',           [\App\Http\Controllers\Finance\ApPaymentController::class, 'void'])->name('ap-payments.void');
+            Route::post('ap-payments/{apPayment}/disburse',       [\App\Http\Controllers\Finance\ApPaymentController::class, 'disburse'])->name('ap-payments.disburse');
+        });
+
+        // F2 — Journal Explorer
+        Route::middleware('permission:journal.view')->group(function () {
+            Route::get('journal',                  [\App\Http\Controllers\Finance\JournalController::class, 'index'])->name('journal.index');
+            Route::get('journal/{journalEntry}',   [\App\Http\Controllers\Finance\JournalController::class, 'show'])->name('journal.show');
+        });
+        Route::middleware('permission:journal.post_manual')->group(function () {
+            Route::post('journal',                 [\App\Http\Controllers\Finance\JournalController::class, 'store'])->name('journal.store');
+        });
     });
 });
 

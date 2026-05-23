@@ -31,6 +31,7 @@ class FinanceHubService
             'bankAccounts'        => $this->bankAccountsSummary(),
             'nextPayroll'         => $this->nextPayroll(),
             'outstandingLoans'    => $this->outstandingLoans(),
+            'apOutstanding'       => $this->apOutstanding(),
             'pendingApprovals'    => $this->pendingApprovals(),
             'statutoryCompliance' => $this->statutoryCompliance(),
         ];
@@ -38,11 +39,22 @@ class FinanceHubService
 
     private function cashPosition(): float
     {
-        // NOTE: F1 uses opening_balance as a static proxy for cash position. Once F2's
-        // journal-posting engine lands, this should sum gl_account_balances.balance for
-        // accounts where org_bank_accounts.gl_account_id is set, which will reflect
-        // real-time cash after every payroll disbursement and receipt.
-        return (float) OrgBankAccount::active()->sum('opening_balance');
+        // F2: live cash position. Sum gl_account_balances.balance for asset GL
+        // accounts that are linked to active org_bank_accounts. Replaces the F1
+        // static-proxy implementation.
+        return (float) \App\Models\GlAccountBalance::query()
+            ->join('gl_accounts', 'gl_accounts.id', '=', 'gl_account_balances.gl_account_id')
+            ->join('org_bank_accounts', 'org_bank_accounts.gl_account_id', '=', 'gl_accounts.id')
+            ->where('org_bank_accounts.is_active', true)
+            ->where('gl_accounts.type', 'asset')
+            ->sum('gl_account_balances.balance');
+    }
+
+    private function apOutstanding(): float
+    {
+        return (float) \App\Models\VendorInvoice::query()
+            ->whereIn('status', ['approved', 'partially_paid'])
+            ->sum(\Illuminate\Support\Facades\DB::raw('total - amount_paid'));
     }
 
     private function bankAccountsSummary(): array
@@ -100,6 +112,8 @@ class FinanceHubService
         return [
             'payroll_runs' => PayrollRun::whereIn('status', $this->payrollPreApprovalStatuses())->count(),
             'loans'        => LoanAccount::whereIn('status', $this->loanPendingStatuses())->count(),
+            'invoices'     => \App\Models\VendorInvoice::where('status', 'pending_approval')->count(),
+            'payments'     => \App\Models\ApPayment::where('status', 'pending')->count(),
         ];
     }
 
