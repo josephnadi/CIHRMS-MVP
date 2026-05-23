@@ -18,6 +18,7 @@ class DocumentResource extends JsonResource
             'status_label'    => $this->status?->label(),
             'confidentiality' => $this->confidentiality?->value,
             'tags'            => $this->tags ?? [],
+            'letterhead_id'   => $this->letterhead_id,
             'owner'           => $this->whenLoaded('owner', fn () => [
                 'id'   => $this->owner->id,
                 'name' => $this->owner->name,
