@@ -17,7 +17,22 @@ class StoreVendorInvoiceRequest extends FormRequest
     {
         return [
             'vendor_id'         => ['required', 'integer', 'exists:vendors,id'],
-            'vendor_invoice_no' => ['nullable', 'string', 'max:100'],
+            'vendor_invoice_no' => [
+                'nullable', 'string', 'max:100',
+                function ($attribute, $value, $fail) {
+                    // Per-vendor uniqueness; null/empty is always allowed.
+                    if ($value === null || $value === '') return;
+                    $vendorId = $this->input('vendor_id');
+                    if (! $vendorId) return;
+                    $exists = \App\Models\VendorInvoice::query()
+                        ->where('vendor_id', $vendorId)
+                        ->where('vendor_invoice_no', $value)
+                        ->exists();
+                    if ($exists) {
+                        $fail("This vendor already has an invoice with number '{$value}'.");
+                    }
+                },
+            ],
             'invoice_date'      => ['required', 'date'],
             'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
             'currency'          => ['sometimes', 'string', 'size:3'],
