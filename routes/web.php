@@ -828,6 +828,12 @@ Route::middleware(['auth', 'audit'])->group(function () {
             ->middleware('signed')
             ->name('download');
         Route::post('/{document}/convert',         [DocumentController::class, 'convert'])->name('convert');
+
+        // Documents v2 — Phase 1: edit / delete / share
+        Route::patch('/{document}',                [DocumentController::class, 'update'])->name('update');
+        Route::delete('/{document}',               [DocumentController::class, 'destroy'])->name('destroy');
+        Route::post('/{document}/shares',          [\App\Http\Controllers\DocumentShareController::class, 'store'])->name('shares.store');
+        Route::delete('/{document}/shares/{share}', [\App\Http\Controllers\DocumentShareController::class, 'destroy'])->name('shares.destroy');
     });
 
     // ── F1: Finance ─────────────────────────────────────────────────────────

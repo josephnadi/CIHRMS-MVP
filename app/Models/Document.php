@@ -65,6 +65,11 @@ class Document extends Model
         return $this->hasMany(DocumentEvent::class)->orderBy('occurred_at');
     }
 
+    public function shares(): HasMany
+    {
+        return $this->hasMany(DocumentShare::class);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'uuid';

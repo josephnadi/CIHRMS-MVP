@@ -32,6 +32,19 @@ class DocumentResource extends JsonResource
             'routes'      => DocumentRouteResource::collection($this->whenLoaded('routes')),
             'annotations' => DocumentAnnotationResource::collection($this->whenLoaded('annotations')),
             'events'      => DocumentEventResource::collection($this->whenLoaded('events')),
+            // Documents v2 — Phase 1: read-only shares (always shipped when relation loaded)
+            'shares'      => $this->whenLoaded('shares', fn () => $this->shares->map(fn ($s) => [
+                'id'            => $s->id,
+                'audience_type' => $s->audience_type instanceof \BackedEnum ? $s->audience_type->value : $s->audience_type,
+                'audience_id'   => $s->audience_id,
+                'label'         => match (true) {
+                    ($s->audience_type instanceof \BackedEnum ? $s->audience_type->value : $s->audience_type) === 'organization' => 'Entire organization',
+                    ($s->audience_type instanceof \BackedEnum ? $s->audience_type->value : $s->audience_type) === 'department' => '#' . $s->audience_id,
+                    default => '#' . $s->audience_id,
+                },
+                'granted_at'    => $s->granted_at?->toIso8601String(),
+                'expires_at'    => $s->expires_at?->toIso8601String(),
+            ])),
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
         ];
