@@ -32,6 +32,8 @@ class UpdateDocumentRequest extends FormRequest
             'tags'            => ['sometimes', 'nullable', 'array'],
             'tags.*'          => ['string', 'max:40'],
             'letterhead_id'   => ['sometimes', 'nullable', 'integer', 'exists:letterhead_templates,id'],
+            'watermark_id'   => ['sometimes', 'nullable', 'integer', 'exists:watermark_templates,id'],
+            'watermark_mode' => ['sometimes', 'in:none,on_burn,always'],
         ];
     }
 }
