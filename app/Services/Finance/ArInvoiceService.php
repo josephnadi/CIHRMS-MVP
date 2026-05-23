@@ -25,8 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ArInvoiceService
 {
-    public function __construct(private readonly JournalPostingService $journal)
-    {
+    public function __construct(
+        private readonly JournalPostingService $journal,
+        private readonly SequenceService $sequences,
+    ) {
     }
 
     public function create(array $data, User $creator): ArInvoice
@@ -268,18 +270,12 @@ class ArInvoiceService
     private function nextReference(): string
     {
         $year = now()->format('Y');
-        $count = ArInvoice::query()
-            ->where('reference', 'like', "ARI-{$year}-%")
-            ->count();
-        return sprintf('ARI-%s-%04d', $year, $count + 1);
+        return sprintf('ARI-%s-%04d', $year, $this->sequences->next("ar_invoice:{$year}"));
     }
 
     private function nextJournalReference(): string
     {
         $year = now()->format('Y');
-        $count = JournalEntry::query()
-            ->where('reference', 'like', "JE-{$year}-%")
-            ->count();
-        return sprintf('JE-%s-%06d', $year, $count + 1);
+        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }

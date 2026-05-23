@@ -21,8 +21,10 @@ use Illuminate\Support\Facades\DB;
 
 class ApPaymentService
 {
-    public function __construct(private readonly JournalPostingService $journal)
-    {
+    public function __construct(
+        private readonly JournalPostingService $journal,
+        private readonly SequenceService $sequences,
+    ) {
     }
 
     public function record(array $data, User $creator): ApPayment
@@ -172,14 +174,12 @@ class ApPaymentService
     private function nextReference(): string
     {
         $year = now()->format('Y');
-        $count = ApPayment::query()->where('reference', 'like', "APP-{$year}-%")->count();
-        return sprintf('APP-%s-%04d', $year, $count + 1);
+        return sprintf('APP-%s-%04d', $year, $this->sequences->next("app_payment:{$year}"));
     }
 
     private function nextJournalReference(): string
     {
         $year = now()->format('Y');
-        $count = JournalEntry::query()->where('reference', 'like', "JE-{$year}-%")->count();
-        return sprintf('JE-%s-%06d', $year, $count + 1);
+        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }

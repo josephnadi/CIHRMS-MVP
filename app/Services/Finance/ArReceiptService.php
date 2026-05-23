@@ -28,8 +28,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ArReceiptService
 {
-    public function __construct(private readonly JournalPostingService $journal)
-    {
+    public function __construct(
+        private readonly JournalPostingService $journal,
+        private readonly SequenceService $sequences,
+    ) {
     }
 
     public function record(array $data, User $creator): ArReceipt
@@ -176,14 +178,12 @@ class ArReceiptService
     private function nextReference(): string
     {
         $year = now()->format('Y');
-        $count = ArReceipt::query()->where('reference', 'like', "ARC-{$year}-%")->count();
-        return sprintf('ARC-%s-%04d', $year, $count + 1);
+        return sprintf('ARC-%s-%04d', $year, $this->sequences->next("ar_receipt:{$year}"));
     }
 
     private function nextJournalReference(): string
     {
         $year = now()->format('Y');
-        $count = JournalEntry::query()->where('reference', 'like', "JE-{$year}-%")->count();
-        return sprintf('JE-%s-%06d', $year, $count + 1);
+        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }

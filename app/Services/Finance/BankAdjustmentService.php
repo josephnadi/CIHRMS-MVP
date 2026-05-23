@@ -18,6 +18,7 @@ class BankAdjustmentService
     public function __construct(
         private readonly JournalPostingService $journal,
         private readonly ReconciliationService $reconciliation,
+        private readonly SequenceService $sequences,
     ) {
     }
 
@@ -82,7 +83,6 @@ class BankAdjustmentService
     private function nextJournalReference(): string
     {
         $year = now()->format('Y');
-        $count = JournalEntry::query()->where('reference', 'like', "JE-{$year}-%")->count();
-        return sprintf('JE-%s-%06d', $year, $count + 1);
+        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
