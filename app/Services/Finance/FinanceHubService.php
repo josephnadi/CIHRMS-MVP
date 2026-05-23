@@ -32,6 +32,8 @@ class FinanceHubService
             'nextPayroll'         => $this->nextPayroll(),
             'outstandingLoans'    => $this->outstandingLoans(),
             'apOutstanding'       => $this->apOutstanding(),
+            'arOutstanding'       => $this->arOutstanding(),
+            'agingBuckets'        => $this->agingBuckets(),
             'pendingApprovals'    => $this->pendingApprovals(),
             'statutoryCompliance' => $this->statutoryCompliance(),
         ];
@@ -55,6 +57,48 @@ class FinanceHubService
         return (float) \App\Models\VendorInvoice::query()
             ->whereIn('status', ['approved', 'partially_paid'])
             ->sum(\Illuminate\Support\Facades\DB::raw('total - amount_paid'));
+    }
+
+    private function arOutstanding(): float
+    {
+        return (float) \App\Models\ArInvoice::query()
+            ->whereIn('status', ['approved', 'partially_paid'])
+            ->sum(\Illuminate\Support\Facades\DB::raw('total - amount_received'));
+    }
+
+    /**
+     * Aging buckets for outstanding AR invoices, computed in PHP because
+     * SQLite + Postgres date arithmetic diverges enough that a single SQL
+     * expression isn't worth the maintenance cost vs. a single iteration
+     * over a typically-small set. Buckets: current / 30 / 60 / 90+.
+     *
+     * @return array{current:float, 30:float, 60:float, 90_plus:float}
+     */
+    private function agingBuckets(): array
+    {
+        $today = \Carbon\CarbonImmutable::today();
+
+        $rows = \App\Models\ArInvoice::query()
+            ->whereIn('status', ['approved', 'partially_paid'])
+            ->get(['due_date', 'total', 'amount_received']);
+
+        $buckets = ['current' => 0.0, '30' => 0.0, '60' => 0.0, '90_plus' => 0.0];
+
+        foreach ($rows as $r) {
+            $outstanding = (float) $r->total - (float) $r->amount_received;
+            if ($outstanding <= 0.005) continue;
+
+            if (! $r->due_date || $r->due_date->greaterThanOrEqualTo($today)) {
+                $buckets['current'] += $outstanding;
+            } else {
+                $daysOverdue = (int) $today->diffInDays($r->due_date, true);
+                if ($daysOverdue <= 30)     $buckets['30']      += $outstanding;
+                elseif ($daysOverdue <= 60) $buckets['60']      += $outstanding;
+                else                         $buckets['90_plus'] += $outstanding;
+            }
+        }
+
+        return array_map(fn ($v) => round($v, 2), $buckets);
     }
 
     private function bankAccountsSummary(): array

@@ -32,7 +32,10 @@ it('JournalEntryStatus exposes draft/posted/reversed', function () {
 
 it('JournalSourceType exposes manual + invoice + payment sources', function () {
     $values = array_map(fn ($c) => $c->value, JournalSourceType::cases());
-    expect($values)->toEqualCanonicalizing(['manual', 'vendor_invoice', 'ap_payment']);
+    // F2 added: manual, vendor_invoice, ap_payment. F3 extended with ar_invoice, ar_receipt.
+    expect($values)->toEqualCanonicalizing([
+        'manual', 'vendor_invoice', 'ap_payment', 'ar_invoice', 'ar_receipt',
+    ]);
 });
 
 it('all F2 enum labels are non-empty', function () {

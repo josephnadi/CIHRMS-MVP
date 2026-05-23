@@ -169,6 +169,16 @@ class RolePermissionSeeder extends Seeder
         'ap_invoices.pay'      => ['Finance', 'Record / void AP payments and trigger disbursement'],
         'journal.view'         => ['Finance', 'View posted journal entries (audit)'],
         'journal.post_manual'  => ['Finance', 'Create / post manual journal entries (emergency)'],
+
+        // ── F3: Finance — Accounts Receivable ──
+        'customers.view'           => ['Finance', 'View customer master data'],
+        'customers.manage'         => ['Finance', 'Create / edit / archive customers'],
+        'ar_invoices.view'         => ['Finance', 'View AR invoices'],
+        'ar_invoices.create'       => ['Finance', 'Create / submit AR invoices'],
+        'ar_invoices.approve'      => ['Finance', 'Approve / cancel AR invoices'],
+        'ar_invoices.receive'      => ['Finance', 'Record / void AR receipts against invoices'],
+        'ar_invoices.write_off'    => ['Finance', 'Write off uncollectible AR invoices as bad debt'],
+        'statements.view'          => ['Finance', 'View customer statements (date-range, running balance)'],
     ];
 
     /**
@@ -258,6 +268,11 @@ class RolePermissionSeeder extends Seeder
             'vendors.view', 'vendors.manage',
             'ap_invoices.view', 'ap_invoices.create', 'ap_invoices.approve', 'ap_invoices.pay',
             'journal.view',
+            // F3 — Accounts Receivable
+            'customers.view', 'customers.manage',
+            'ar_invoices.view', 'ar_invoices.create', 'ar_invoices.approve',
+            'ar_invoices.receive', 'ar_invoices.write_off',
+            'statements.view',
         ],
         'it_support' => [
             'dashboard.view',
@@ -293,6 +308,8 @@ class RolePermissionSeeder extends Seeder
             'accounts.view', 'bank_accounts.view',
             // F2 — Read-only oversight
             'vendors.view', 'ap_invoices.view', 'journal.view',
+            // F3 — Read-only oversight
+            'customers.view', 'ar_invoices.view', 'statements.view',
         ],
     ];
 
