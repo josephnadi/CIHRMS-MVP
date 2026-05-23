@@ -924,7 +924,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::middleware('permission:ap_invoices.view')->group(function () {
             Route::get('ap-payments', [\App\Http\Controllers\Finance\ApPaymentController::class, 'index'])->name('ap-payments.index');
         });
-        Route::middleware('permission:ap_invoices.pay')->group(function () {
+        Route::middleware(['permission:ap_invoices.pay', '2fa:fresh'])->group(function () {
             Route::post('ap-payments',                            [\App\Http\Controllers\Finance\ApPaymentController::class, 'store'])->name('ap-payments.store');
             Route::post('ap-payments/{apPayment}/void',           [\App\Http\Controllers\Finance\ApPaymentController::class, 'void'])->name('ap-payments.void');
             Route::post('ap-payments/{apPayment}/disburse',       [\App\Http\Controllers\Finance\ApPaymentController::class, 'disburse'])->name('ap-payments.disburse');
@@ -935,7 +935,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::get('journal',                  [\App\Http\Controllers\Finance\JournalController::class, 'index'])->name('journal.index');
             Route::get('journal/{journalEntry}',   [\App\Http\Controllers\Finance\JournalController::class, 'show'])->name('journal.show');
         });
-        Route::middleware('permission:journal.post_manual')->group(function () {
+        Route::middleware(['permission:journal.post_manual', '2fa:fresh'])->group(function () {
             Route::post('journal',                 [\App\Http\Controllers\Finance\JournalController::class, 'store'])->name('journal.store');
         });
 

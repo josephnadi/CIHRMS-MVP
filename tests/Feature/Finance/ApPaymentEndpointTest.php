@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\OrgBankAccount;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\Auth\TwoFactorService;
 use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\GlAccountBalanceSeeder;
 use Database\Seeders\OrgBankAccountSeeder;
@@ -16,6 +17,13 @@ beforeEach(function () {
     (new GlAccountBalanceSeeder())->run();
     (new OrgBankAccountSeeder())->run();
 });
+
+function apPay2faFresh(User $user): User
+{
+    $user->forceFill(['two_factor_confirmed_at' => now()])->save();
+    app(TwoFactorService::class)->markFresh($user);
+    return $user;
+}
 
 it('finance_officer lists ap-payments', function () {
     $u = User::factory()->create(['role' => 'finance_officer']);
@@ -43,7 +51,7 @@ it('records a payment via POST', function () {
     $approver = User::factory()->create(['role' => 'finance_officer']);
     app(\App\Services\Finance\VendorInvoiceService::class)->approve($inv->fresh(), $approver);
 
-    $this->actingAs($u)->post('/finance/ap-payments', [
+    $this->actingAs(apPay2faFresh($u))->post('/finance/ap-payments', [
         'vendor_id'           => $vendor->id,
         'payment_date'        => '2026-05-22',
         'amount'              => 100,

@@ -49,3 +49,11 @@ Schedule::command('audit:verify-chain --notify')->dailyAt('03:00')->withoutOverl
 // validity expires within 30 days. Sends one notification per expiring row;
 // HR sees the upcoming queue, the employee gets the inbox nudge.
 Schedule::command('identity:expiring --window=30')->dailyAt('07:30')->withoutOverlapping();
+
+// F4-R follow-up: expire stale Paystack payment intents nightly. Without this
+// schedule, `pending` intents whose `expires_at` has passed accumulate
+// indefinitely. expireStale() flips them to `expired` so the UI surfaces a
+// clean state and the count metric on the finance hub stays accurate.
+Schedule::call(function () {
+    app(\App\Services\Finance\PaymentIntentService::class)->expireStale();
+})->dailyAt('02:15')->name('payment-intents:expire-stale')->onOneServer();

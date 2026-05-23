@@ -3,11 +3,19 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Services\Auth\TwoFactorService;
 use Database\Seeders\RolePermissionSeeder;
 
 beforeEach(function () {
     (new RolePermissionSeeder())->run();
 });
+
+function journal2faFresh(User $user): User
+{
+    $user->forceFill(['two_factor_confirmed_at' => now()])->save();
+    app(TwoFactorService::class)->markFresh($user);
+    return $user;
+}
 
 it('finance_officer can list and view journal entries', function () {
     $u = User::factory()->create(['role' => 'finance_officer']);
@@ -37,7 +45,7 @@ it('super_admin can post a manual JE', function () {
     $exp = \App\Models\GlAccount::where('code', '5200')->firstOrFail();
     $ap  = \App\Models\GlAccount::where('code', '2100')->firstOrFail();
 
-    $this->actingAs($u)->post('/finance/journal', [
+    $this->actingAs(journal2faFresh($u))->post('/finance/journal', [
         'entry_date' => '2026-05-22',
         'narration'  => 'Manual test',
         'lines' => [
