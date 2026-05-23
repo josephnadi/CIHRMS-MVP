@@ -2,9 +2,9 @@
 
 A modular HRMS MVP covering employees, leave, tickets, payroll, recruitment, governance, performance, and integrations.
 
-> **Stack:** Laravel 13.7 (PHP 8.3) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · SQLite (dev) · Pest 4
+> **Stack:** Laravel 13.8 (PHP 8.3, CI on 8.4) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · PostgreSQL (production) / SQLite (dev) · Pest 4
 > **Auth model:** Staff ID + Full Name (not email) · DB-backed RBAC layered over a legacy `User.role` enum
-> **Last reviewed:** 2026-05-14
+> **Last reviewed:** 2026-05-23 — post Documents v2, Finance F1–F5 + Paystack, Chat redesign, gamified sound pack
 
 ---
 
@@ -77,9 +77,12 @@ Backend-complete (controllers, services, routes, resources):
 - **Recruitment** — public careers portal, applicants, offer envelope (e-sign), Zoho contact sync
 - **Complaints / Governance** — complaint log + status workflow
 - **Performance** — review cycles, goals, goal check-ins, reviews
-- **Notifications** — multi-channel delivery with consent tracking
+- **Documents v2** — upload + in-portal composer + sequential routing (sign/review/approve), **manipulable annotations** (drag/resize/rotate signatures and stamps), **stamp asset library** (personal/department/organization PNG uploads), **letterhead templates** (replaces hardcoded letterhead), **watermark templates** (per-document `watermark_id` + `none|on_burn|always` mode). Edit/Delete/Share (user/department/org audiences) with confidentiality guard.
+- **Finance** — Chart of Accounts (F1), Accounts Payable + Journal Engine (F2), Accounts Receivable + customer statements (F3), **Paystack hosted-checkout gateway** (F4: payment links, webhook signature verification, refund flow), Bank Reconciliation (F5: CSV/OFX/MT940 import + 3-tier matching + bank-adjustment journal entries).
+- **Internal Chat** — 1:1 messaging with optimistic send, 4-second polling, day separators, post-send dedupe, and a single-column scrollable directory.
+- **Notifications** — multi-channel delivery with consent tracking; pluggable **sound packs** (musical / cinematic / gamified) with file-override architecture for production-grade UI audio.
 - **Audit Logs** — queued write, RBAC-gated viewing
-- **Integrations** — OAuth tokens + signature-verified webhooks for WhatsApp, Zoho, e-sign, MS Graph, Google, Slack
+- **Integrations** — OAuth tokens + signature-verified webhooks for WhatsApp, Zoho, e-sign, MS Graph, Google, Slack, Paystack
 
 Frontend depth varies — see [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md) for the per-module breakdown.
 
@@ -99,13 +102,17 @@ Authorization is layered:
 composer test    # config:clear + artisan test
 ```
 
-Pest 4 is configured; current coverage is limited to Breeze auth + profile tests under [tests/Feature/](tests/Feature/). Expanding test coverage is a tracked workstream — see [docs/implementation_plan.md](docs/implementation_plan.md).
+Pest 4. As of 2026-05-23: **895 tests / ~2,950 assertions passing** on both SQLite (dev) and PostgreSQL (CI on PHP 8.4). Coverage spans every module: auth, employees, leave, tickets, complaints, recruitment, performance, payments, payroll, documents (annotations, stamps, letterheads, watermarks, shares), finance (F1–F5 including Paystack webhook signature verification), policies, audit, and webhook signature verification for all integration providers. Filter examples: `php artisan test --filter=Documents`, `--filter=Finance`, `--filter=Stamp|Letterhead|Watermark`.
+
+> **PHP 8.5 local note:** the `laravel/pao` stream-filter is excluded from auto-discovery to unblock 8.5 boot. CI runs on 8.4 where the issue does not apply.
 
 ## Documentation
 
 - [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md) — Current state of every layer and module
+- [docs/MARKET_READY_PUNCHLIST.md](docs/MARKET_READY_PUNCHLIST.md) — Pre-launch risk audit and deferral log
 - [docs/implementation_plan.md](docs/implementation_plan.md) — Forward-looking punch list and phases
 - [docs/credentials.md](docs/credentials.md) — All seeded login accounts
+- [docs/sound_pack_sources.md](docs/sound_pack_sources.md) — CC0 audio sources + drop-in contract for the cinematic / gamified sound packs
 - [docs/Cihrm Hrms Product Requirements Document Prd.pdf](docs/Cihrm%20Hrms%20Product%20Requirements%20Document%20Prd.pdf) — Product requirements
 - [docs/README.md](docs/README.md) — Index of every doc
 

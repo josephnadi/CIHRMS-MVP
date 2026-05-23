@@ -1,7 +1,7 @@
 # CIHRMS — Project State
 
-> **Snapshot date:** 2026-05-16 (updated post UI redesign campaign)
-> **Stack:** Laravel 13.8 (PHP 8.3 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · SQLite (dev) · Pest 4
+> **Snapshot date:** 2026-05-23 (post Documents v2 + Finance F1–F5 + Paystack + Chat redesign + sound packs)
+> **Stack:** Laravel 13.8 (PHP 8.3 → CI 8.4 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · PostgreSQL (production) / SQLite (dev) · Pest 4
 > **Repo:** Under git on `main`; remote `origin → https://github.com/josephnadi/CIHRMS-MVP.git`; CI on PHP 8.4 via GitHub Actions.
 > **Architecture:** Enum → FormRequest → Service → Event → Listener → Resource → Inertia Page
 > **Design system:** "Sovereign Precision" — obsidian sidebar, cobalt gradients, RGB-triplet stat cards, card-lift / btn-shimmer / animate-reveal-up motion. Reference pages: Employees/Index (651 LOC), Tickets/Index (472 LOC).
@@ -10,11 +10,30 @@
 
 ## 1. Headline
 
-The application is feature-complete end-to-end across backend, RBAC, and Vue frontend for all eight core modules. As of this snapshot:
+The application is feature-complete end-to-end across backend, RBAC, and Vue frontend for all core modules plus the post-MVP Documents v2 and Finance F1–F5 build-outs. As of this snapshot (2026-05-23):
 
-- **Backend:** services, FormRequests, resources, controllers (57 actions across 17 controllers), 93 named routes — all written and wired.
-- **Frontend:** every module page that the controllers reference now exists in [resources/js/Pages/](../resources/js/Pages/), including the three Performance sub-pages added in this session (Goals, Reviews, NineBox).
-- **Tests:** seven Pest 4 feature test files (Tickets, Leave, Employees, Payments, Complaints, Recruitment, Performance, Policies, Webhook signatures) covering happy paths, key side effects (resolved_at stamping, leave balance increment, AtRisk auto-flip, etc.), policy deny paths, and signature verification for all six webhook providers.
+- **Backend:** services, FormRequests, resources, controllers, signature-verified webhooks (Paystack + WhatsApp + Zoho + e-sign + MS Graph + Google + Slack), DB-backed RBAC with org-scope asset policies (stamps, letterheads, watermarks) — all written and wired.
+- **Frontend:** every module page that the controllers reference exists in [resources/js/Pages/](../resources/js/Pages/), including the new Settings asset libraries (Stamps, Letterheads, Watermarks) added in Documents v2 and the Finance sub-pages (AR/AP, Customers/Vendors, Journal Explorer, Statements, Reconciliation, PaymentIntents).
+- **Tests:** **895 Pest 4 tests / ~2,950 assertions passing** on both SQLite and PostgreSQL. Coverage spans every module — auth, employees, leave, tickets, complaints, recruitment, performance, payments, payroll, documents (annotations + stamps + letterheads + watermarks + shares), finance (F1–F5 including Paystack webhook signature verification + bank reconciliation matching), policies, audit, and webhook signature verification for all six integration providers.
+
+### Post-MVP build-outs shipped this snapshot
+
+- **Documents v2** (PR #15, merged 2026-05-23) — manipulable annotations (drag/resize/rotate signatures and stamps with a Completed-route lock), stamp asset library, letterhead templates (replacing the hardcoded `public/img/letterhead.png`), watermark templates (per-document `watermark_id` + `none|on_burn|always` mode). New tables: `stamp_assets`, `letterhead_templates`, `watermark_templates`. New permission: `document_assets.manage`. New routes: `PATCH /documents/{document}/annotations/{annotation}`, `/settings/{stamps,letterheads,watermarks}` CRUD.
+- **Finance F1–F5** — Chart of Accounts + Org Bank Accounts (F1), Accounts Payable + Journal Engine (F2 — PR #10), Accounts Receivable + customer statements (F3 — PR #12), **Paystack hosted-checkout gateway** (F4 — PR #14: payment intents, webhook signature verification, refunds, idempotency keys), Bank Reconciliation (F5: CSV/OFX/MT940 import + 3-tier matching + bank-adjustment journal entries).
+- **Finance C1–C3 hardening** (PRs #20 + #21, merged 2026-05-23) — 2FA on AP payments + journal.store + AR receive/write-off; `lockForUpdate` on credit-balance reads; `SequenceService::next()` replacing the count()+1 race in finance reference generation.
+- **Internal Chat** — 1:1 messaging with optimistic send, 4-second polling, day separators, post-send dedupe, and a single-column scrollable directory (PR #24 open).
+- **Sound packs** — pluggable `musical | cinematic | gamified` with file-override architecture (PR #25 open). Drop MP3s at `public/sounds/<pack>/<key>.mp3` and `useSound` prefers the real audio over the synth.
+
+### Open pre-launch PRs (mergeable, CI green)
+
+| PR  | Title |
+|-----|-------|
+| #22 | feat(learning): wire SkillsMatrix Add Skill to real catalog endpoint (I3) |
+| #23 | docs: pre-launch operational notes — kiosk face-scan + MT940 (C4 + I5) |
+| #24 | Chat: single-column list + post-send dedupe + new-thread sort |
+| #25 | Sound: add gamified arcade pack + file-override for production audio |
+| #26 | feat(finance): printable bank-reconciliation report + close P1 (P1+P2) |
+| #27 | feat(finance): bulk operator actions — bulk refund + reconciliation re-match (P3) |
 
 **(P6 complete — production hardening shipped 2026-05-16):** rate-limits on public endpoints (careers `5/min`, self-clock `10/min`), `password_must_change` gate via `ForcePasswordChange` middleware, `SESSION_SECURE_COOKIE` + `APP_TRUSTED_PROXIES` documented in `.env.example`, `sentry` log channel + `config/backup.php` skeleton + `deploy/supervisor/*.conf` units, and `laravel/pao` excluded from auto-discovery to unblock PHP 8.5 boot. Optional packages (`sentry/sentry-laravel`, `spatie/laravel-backup`) are deferred to deploy-time install; see [deploy/README.md](../deploy/README.md).
 
