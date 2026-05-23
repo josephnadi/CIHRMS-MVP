@@ -133,3 +133,67 @@ it('rejects a missing or too-short reason', function () {
         ->post("/finance/payment-intents/{$intent->id}/refund", ['reason' => 'no'])
         ->assertSessionHasErrors('reason');
 });
+
+it('bulk-refund refunds every selected intent', function () {
+    Http::fake([
+        'api.paystack.co/refund' => Http::response([
+            'status' => true, 'data' => ['id' => 9999, 'status' => 'pending'],
+        ], 200),
+    ]);
+
+    $creator  = User::factory()->create(['role' => 'finance_officer']);
+    $approver = User::factory()->create(['role' => 'finance_officer']);
+    $i1 = makeRefundableIntent($this->customer, $creator, $approver);
+    $i2 = makeRefundableIntent($this->customer, $creator, $approver);
+
+    $this->actingAs(refund2faFresh($creator))
+        ->post('/finance/payment-intents/bulk-refund', [
+            'intent_ids' => [$i1->id, $i2->id],
+            'reason'     => 'Bulk operator action — chargeback batch',
+        ])
+        ->assertRedirect();
+
+    expect($i1->fresh()->status)->toBe(PaymentIntentStatus::Refunded);
+    expect($i2->fresh()->status)->toBe(PaymentIntentStatus::Refunded);
+});
+
+it('bulk-refund requires at least one intent_id', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+
+    $this->actingAs(refund2faFresh($u))
+        ->post('/finance/payment-intents/bulk-refund', [
+            'intent_ids' => [],
+            'reason'     => 'Whatever',
+        ])
+        ->assertSessionHasErrors('intent_ids');
+});
+
+it('bulk-refund 403s an auditor', function () {
+    $creator  = User::factory()->create(['role' => 'finance_officer']);
+    $approver = User::factory()->create(['role' => 'finance_officer']);
+    $intent = makeRefundableIntent($this->customer, $creator, $approver);
+
+    $auditor = User::factory()->create(['role' => 'auditor']);
+
+    $this->actingAs(refund2faFresh($auditor))
+        ->post('/finance/payment-intents/bulk-refund', [
+            'intent_ids' => [$intent->id],
+            'reason'     => 'snooping',
+        ])
+        ->assertForbidden();
+});
+
+it('bulk-refund without fresh 2FA is bounced before any refund runs', function () {
+    $creator  = User::factory()->create(['role' => 'finance_officer']);
+    $approver = User::factory()->create(['role' => 'finance_officer']);
+    $intent = makeRefundableIntent($this->customer, $creator, $approver);
+
+    $this->actingAs($creator)
+        ->post('/finance/payment-intents/bulk-refund', [
+            'intent_ids' => [$intent->id],
+            'reason'     => 'no 2fa',
+        ])
+        ->assertStatus(302);
+
+    expect($intent->fresh()->status)->toBe(PaymentIntentStatus::Success);
+});

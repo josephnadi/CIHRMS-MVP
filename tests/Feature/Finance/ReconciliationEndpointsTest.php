@@ -160,3 +160,48 @@ it('employee gets 403 on the reconciliation PDF', function () {
 
     $this->actingAs($u)->get("/finance/reconciliation/{$stmt->id}/print")->assertForbidden();
 });
+
+it('rematch re-runs the matcher and returns a success flash', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $stmt = BankStatement::create([
+        'org_bank_account_id' => $this->bank->id,
+        'statement_date'      => '2026-05-31',
+        'opening_balance'     => 0,
+        'closing_balance'     => 0,
+        'file_hash'           => str_repeat('z', 64),
+        'file_name'           => 'z.csv',
+        'format'              => 'csv',
+        'imported_by'         => $u->id,
+    ]);
+    BankStatementLine::create([
+        'bank_statement_id' => $stmt->id,
+        'line_no'           => 1,
+        'transaction_date'  => '2026-05-20',
+        'description'       => 'PAYMENT IN',
+        'amount'            => 250.00,
+        'line_hash'         => str_repeat('y', 64),
+    ]);
+
+    $this->actingAs($u)
+        ->post("/finance/reconciliation/{$stmt->id}/rematch")
+        ->assertRedirect()
+        ->assertSessionHas('success');
+});
+
+it('auditor cannot rematch (no reconciliation.match permission)', function () {
+    $u = User::factory()->create(['role' => 'auditor']);
+    $stmt = BankStatement::create([
+        'org_bank_account_id' => $this->bank->id,
+        'statement_date'      => '2026-05-31',
+        'opening_balance'     => 0,
+        'closing_balance'     => 0,
+        'file_hash'           => str_repeat('w', 64),
+        'file_name'           => 'w.csv',
+        'format'              => 'csv',
+        'imported_by'         => User::factory()->create()->id,
+    ]);
+
+    $this->actingAs($u)
+        ->post("/finance/reconciliation/{$stmt->id}/rematch")
+        ->assertForbidden();
+});

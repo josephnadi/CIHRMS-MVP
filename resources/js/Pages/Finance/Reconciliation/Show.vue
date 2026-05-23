@@ -59,6 +59,16 @@ const confidenceColor = (c) => ({
 
 const unmatched = computed(() => props.lines.filter(l => !l.reconciled_at));
 const reconciled = computed(() => props.lines.filter(l => l.reconciled_at));
+
+const rematching = ref(false);
+const rematch = () => {
+    if (rematching.value) return;
+    rematching.value = true;
+    router.post(route('finance.reconciliation.rematch', props.statement.id), {}, {
+        preserveScroll: true,
+        onFinish: () => { rematching.value = false; },
+    });
+};
 </script>
 
 <template>
@@ -73,6 +83,11 @@ const reconciled = computed(() => props.lines.filter(l => l.reconciled_at));
                     <p class="text-[13px] text-on-surface-variant mt-0.5">Closing {{ cedi(statement.closing_balance) }} · {{ statement.reconciled_lines }}/{{ statement.total_lines }} lines reconciled ({{ statement.reconciled_pct }}%)</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button v-if="canMatch" @click="rematch" :disabled="rematching"
+                            class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors disabled:opacity-60">
+                        <span class="material-symbols-outlined text-[16px]" :class="{ 'animate-spin': rematching }">{{ rematching ? 'progress_activity' : 'refresh' }}</span>
+                        Re-run auto-matcher
+                    </button>
                     <a :href="route('finance.reconciliation.print', statement.id)" target="_blank" rel="noopener"
                        class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors">
                         <span class="material-symbols-outlined text-[16px]">print</span>
