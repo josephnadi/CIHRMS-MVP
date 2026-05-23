@@ -29,6 +29,10 @@ use Illuminate\Support\Facades\DB;
  */
 class JournalPostingService
 {
+    public function __construct(private readonly SequenceService $sequences)
+    {
+    }
+
     public function post(JournalEntry $entry): JournalEntry
     {
         if ($entry->status !== JournalEntryStatus::Draft) {
@@ -140,11 +144,7 @@ class JournalPostingService
 
     private function nextReversalReference(): string
     {
-        $year  = now()->format('Y');
-        $count = JournalEntry::query()
-            ->where('reference', 'like', "JR-{$year}-%")
-            ->count();
-
-        return sprintf('JR-%s-%06d', $year, $count + 1);
+        $year = now()->format('Y');
+        return sprintf('JR-%s-%06d', $year, $this->sequences->next("journal_reversal:{$year}"));
     }
 }

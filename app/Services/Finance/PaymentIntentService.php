@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentIntentService
 {
-    public function __construct(private readonly PaystackGatewayService $gateway)
-    {
+    public function __construct(
+        private readonly PaystackGatewayService $gateway,
+        private readonly SequenceService $sequences,
+    ) {
     }
 
     public function createForInvoice(
@@ -88,7 +90,6 @@ class PaymentIntentService
     private function nextReference(): string
     {
         $year = now()->format('Y');
-        $count = PaymentIntent::query()->where('reference', 'like', "PI-{$year}-%")->count();
-        return sprintf('PI-%s-%06d', $year, $count + 1);
+        return sprintf('PI-%s-%06d', $year, $this->sequences->next("payment_intent:{$year}"));
     }
 }

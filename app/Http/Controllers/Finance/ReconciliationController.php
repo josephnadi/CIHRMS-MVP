@@ -21,10 +21,13 @@ use App\Services\Finance\BankAdjustmentService;
 use App\Services\Finance\ReconciliationMatcher;
 use App\Services\Finance\ReconciliationService;
 use App\Services\Finance\StatementImportService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ReconciliationController extends Controller
 {
@@ -145,5 +148,49 @@ class ReconciliationController extends Controller
             : "No new matches found ({$counts['unmatched']} lines still unmatched).";
 
         return back()->with('success', $msg);
+    }
+
+    public function print(BankStatement $bankStatement, Request $request): SymfonyResponse
+    {
+        $bankStatement->load('orgBankAccount');
+
+        $lines = $bankStatement->lines()
+            ->with('matched:id,reference')
+            ->orderBy('line_no')
+            ->get()
+            ->each(function ($line) {
+                $line->matched_reference = $line->matched?->reference;
+            });
+
+        $reconciledLines = $lines->filter(fn ($l) => $l->reconciled_at !== null)->values();
+        $unmatchedLines  = $lines->filter(fn ($l) => $l->reconciled_at === null)->values();
+
+        $totalDr = (float) $lines->filter(fn ($l) => (float) $l->amount < 0)->sum(fn ($l) => abs((float) $l->amount));
+        $totalCr = (float) $lines->filter(fn ($l) => (float) $l->amount > 0)->sum(fn ($l) => (float) $l->amount);
+
+        $payload = [
+            'statement'        => $bankStatement,
+            'bank'             => $bankStatement->orgBankAccount,
+            'reconciledLines'  => $reconciledLines,
+            'unmatchedLines'   => $unmatchedLines,
+            'reconciledCount'  => $reconciledLines->count(),
+            'unmatchedCount'   => $unmatchedLines->count(),
+            'totalCount'       => $lines->count(),
+            'totalDr'          => $totalDr,
+            'totalCr'          => $totalCr,
+            'generatedBy'      => $request->user()?->name ?? 'system',
+        ];
+
+        $filename = sprintf(
+            'reconciliation-%s-%s.pdf',
+            $bankStatement->orgBankAccount?->bank_name ? str_replace(' ', '-', strtolower($bankStatement->orgBankAccount->bank_name)) : 'statement',
+            $bankStatement->statement_date->toDateString(),
+        );
+
+        $pdf = Pdf::loadView('pdf.reconciliation-statement', $payload)->setPaper('a4', 'portrait');
+
+        return $request->boolean('download')
+            ? $pdf->download($filename)
+            : $pdf->stream($filename);
     }
 }

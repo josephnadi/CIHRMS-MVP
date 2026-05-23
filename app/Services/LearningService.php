@@ -11,6 +11,7 @@ use App\Models\Course;
 use App\Models\Employee;
 use App\Models\EmployeeSkill;
 use App\Models\Enrolment;
+use App\Models\SkillCatalogItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -227,6 +228,13 @@ class LearningService
             }
         }
 
+        // Catalog skills appear as columns with count 0 when no employee has them yet.
+        foreach (SkillCatalogItem::query()->pluck('name') as $name) {
+            if (! array_key_exists($name, $skillTotals)) {
+                $skillTotals[$name] = 0;
+            }
+        }
+
         arsort($skillTotals);
         $skills = [];
         foreach ($skillTotals as $name => $count) {
@@ -238,5 +246,14 @@ class LearningService
             'skills'    => $skills,
             'matrix'    => $matrix,
         ];
+    }
+
+    public function createCatalogSkill(array $data): SkillCatalogItem
+    {
+        return SkillCatalogItem::create([
+            'name'        => $data['name'],
+            'category'    => $data['category'] ?? null,
+            'description' => $data['description'] ?? null,
+        ]);
     }
 }

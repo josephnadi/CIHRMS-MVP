@@ -125,8 +125,9 @@
 
 ## POLISH — quality-of-life, not blocking launch
 
-### P1. One skipped test
-- [tests/Feature/Support/DbExprTest.php:23](tests/Feature/Support/DbExprTest.php#L23) — SQLite-only literal pin tests are intentionally skipped on Postgres (the PR #18 fix). Working as intended; flagged for awareness only.
+### P1. One skipped test  ✅ resolved 2026-05-23 (no-op — design is correct)
+- [tests/Feature/Support/DbExprTest.php:23](tests/Feature/Support/DbExprTest.php#L23) — SQLite-only literal pin tests are intentionally skipped on Postgres (the PR #18 fix). Working as intended.
+- The test file's own docstring (lines 7-18) already documents the intent: literal-pin tests assert the exact SQL fragment for the active driver; under the Postgres CI matrix the `emitted fragments execute against the live connection` test guards correctness instead. No change needed; future audits should not re-flag.
 
 ### P2. Bank-rec printable reports
 - F5 memory deferral. The audit log in `bank_transaction_matches` covers the data; presentation is operator-visible in the Reconciliation/Show page but no PDF/printable export. Treasurers may ask. Defer until they do.

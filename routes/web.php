@@ -359,6 +359,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::get('/my',                       [LearningController::class, 'myLearning']) ->name('my');
         Route::get('/skills-matrix',            [LearningController::class, 'skillsMatrix'])
             ->middleware('permission:learning.manage')->name('skills-matrix');
+        Route::post('/skills',                  [LearningController::class, 'storeSkill'])
+            ->middleware('permission:learning.manage')->name('skills.store');
 
         // Course management (HR/LD)
         Route::post('/courses',                 [LearningController::class, 'storeCourse'])
@@ -1008,6 +1010,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::middleware('permission:reconciliation.view')->group(function () {
                 Route::get('/',                          [\App\Http\Controllers\Finance\ReconciliationController::class, 'index'])->name('index');
                 Route::get('/{bankStatement}',           [\App\Http\Controllers\Finance\ReconciliationController::class, 'show'])->name('show');
+                Route::get('/{bankStatement}/print',     [\App\Http\Controllers\Finance\ReconciliationController::class, 'print'])->name('print');
             });
             Route::middleware('permission:reconciliation.import')->group(function () {
                 Route::post('/',                         [\App\Http\Controllers\Finance\ReconciliationController::class, 'store'])->name('store');
