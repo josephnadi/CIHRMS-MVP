@@ -111,3 +111,32 @@ The shared attendance kiosk at `/kiosk` ships **without face recognition** in th
 - [ ] For high-trust sites: provision biometric devices and configure their webhook target before go-live.
 - [ ] For all sites: print and post the buddy-punching policy notice at each kiosk station.
 - [ ] Add the attendance variance check to the site supervisor's weekly routine.
+
+## 10. Bank reconciliation — MT940 real-fixture validation
+
+The MT940 parser in [app/Services/Finance/Statements/Mt940StatementParser.php](../app/Services/Finance/Statements/Mt940StatementParser.php) was validated against one **synthetic** fixture during F5 development. Real Ghanaian bank exports may contain `:61:` subfield variations the parser has not seen — see I5 in [docs/MARKET_READY_PUNCHLIST.md](MARKET_READY_PUNCHLIST.md).
+
+**Pre-pilot ask — required from at least one of GCB / Stanbic / GTB / Ecobank:**
+
+- A genuine MT940 export covering ≥ 50 transactions across at least 3 distinct transaction types (debit credit, charge, reversal). Two months of activity is ideal.
+- The bank's own MT940 dialect notes if available (most Ghanaian banks publish a brief PDF describing their `:61:` and `:86:` formatting choices).
+- Test-environment access to whatever portal the operator will use to download the file in production, so the operator's day-1 procedure can be rehearsed against a known-good sample.
+
+**On receipt:**
+
+1. Anonymise the sample (zero out account numbers, salt counter-party names) and check it in as a fixture under `tests/Fixtures/Finance/Mt940/<bank>.sta`.
+2. Add a parser test that reads the fixture and asserts the row count + signed sums match the bank's totals page.
+3. If parser changes are needed, harden in place — the parser is intentionally permissive on unrecognised `:61:` subfields (returns the line as-is rather than throwing), but downstream reconciliation rules expect specific fields to be populated.
+4. Repeat per bank. Currently CSV and OFX cover the same ground for most Ghanaian banks; MT940 is the SWIFT-style format some treasury teams prefer.
+
+**Until a real fixture exists:**
+
+- Operators uploading MT940 should be told this format is "beta" and to fall back to CSV/OFX if their MT940 import surfaces parse errors. The Reconciliation UI does not currently surface this — add an operator note in the file-upload help text before go-live if the bank in question requires MT940.
+- Reconciliation errors are NOT silently swallowed — the importer raises and the operator sees the failure. So a parser gap is recoverable, just operationally noisy.
+
+**Operational checklist (per bank onboarded):**
+
+- [ ] Request real MT940 export + dialect notes during the pilot kick-off.
+- [ ] Anonymise and commit as a fixture.
+- [ ] Add a parser test that asserts totals match the bank's own statement page.
+- [ ] If the bank uses MT940 in production, run a full reconciliation cycle against the real fixture before signing off pilot readiness.
