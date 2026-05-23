@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\SsoIdentityProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,7 +22,15 @@ class AuthenticatedSessionController extends Controller
     {
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
-            'status' => session('status'),
+            'status'           => session('status'),
+            'ssoProviders'     => Schema::hasTable('identity_providers')
+                ? SsoIdentityProvider::active()->ordered()->get()->map(fn ($p) => [
+                    'slug'         => $p->slug,
+                    'name'         => $p->name,
+                    'button_label' => $p->button_label ?: "Sign in with {$p->name}",
+                    'button_icon'  => $p->button_icon ?: 'login',
+                ])->all()
+                : [],
         ]);
     }
 

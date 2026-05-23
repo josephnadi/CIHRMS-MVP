@@ -287,10 +287,14 @@ class User extends Authenticatable
     /** All role slugs the user holds (legacy primary role + DB-assigned). */
     public function allRoleSlugs(): array
     {
-        $primary  = $this->role instanceof UserRole ? $this->role->value : $this->role;
-        $assigned = $this->roles->pluck('slug')->all();
+        $cacheKey = "user_roles_{$this->id}_{$this->updated_at?->timestamp}";
 
-        return array_values(array_unique(array_filter([$primary, ...$assigned])));
+        return Cache::remember($cacheKey, 60, function () {
+            $primary  = $this->role instanceof UserRole ? $this->role->value : $this->role;
+            $assigned = $this->roles->pluck('slug')->all();
+
+            return array_values(array_unique(array_filter([$primary, ...$assigned])));
+        });
     }
 
     public function hasRole(array|string|UserRole $roles): bool
@@ -351,10 +355,14 @@ class User extends Authenticatable
      */
     public function managedDepartmentIds(): Collection
     {
-        $headed = $this->headedDepartments()->pluck('id');
-        $scoped = $this->roles()->wherePivotNotNull('department_id')->pluck('user_roles.department_id');
+        $cacheKey = "user_managed_depts_{$this->id}_{$this->updated_at?->timestamp}";
 
-        return $headed->merge($scoped)->unique()->values();
+        return collect(Cache::remember($cacheKey, 60, function () {
+            $headed = $this->headedDepartments()->pluck('id');
+            $scoped = $this->roles()->wherePivotNotNull('department_id')->pluck('user_roles.department_id');
+
+            return $headed->merge($scoped)->unique()->values()->all();
+        }));
     }
 
     public function managesDepartment(?int $departmentId): bool

@@ -2,11 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\SsoIdentityProvider;
 use App\Services\AnnouncementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Schema;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,7 +34,10 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => fn () => $user?->allPermissions() ?? [],
                 'managedDepartmentIds' => fn () => $user?->managedDepartmentIds()->all() ?? [],
             ],
-            'notifications' => fn () => $request->user()
+            // Deferred — sent in a follow-up Inertia request after the page paints.
+            // Notification bell + announcement ticker update a moment later instead
+            // of blocking every navigation on 3 extra DB queries.
+            'notifications' => Inertia::defer(fn () => $request->user()
                 ?->unreadNotifications()
                 ->latest()
                 ->limit(10)
@@ -45,25 +47,19 @@ class HandleInertiaRequests extends Middleware
                     'message' => $n->data['message'] ?? null,
                     'kind'    => $n->data['kind']    ?? null,
                     'time'    => $n->created_at->diffForHumans(),
-                ]) ?? [],
-            'notificationCount' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
-            'announcementTicker' => fn () => $request->user()
+                ]) ?? []),
+            'notificationCount' => Inertia::defer(
+                fn () => $request->user()?->unreadNotifications()->count() ?? 0
+            ),
+            'announcementTicker' => Inertia::defer(fn () => $request->user()
                 ? app(AnnouncementService::class)->ticker($request->user())->values()->all()
-                : [],
+                : []),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
                 'info'    => fn () => $request->session()->get('info'),
                 'warning' => fn () => $request->session()->get('warning'),
             ],
-            'ssoProviders' => fn () => Schema::hasTable('identity_providers')
-                ? SsoIdentityProvider::active()->ordered()->get()->map(fn ($p) => [
-                    'slug'         => $p->slug,
-                    'name'         => $p->name,
-                    'button_label' => $p->button_label ?: "Sign in with {$p->name}",
-                    'button_icon'  => $p->button_icon ?: 'login',
-                ])->all()
-                : [],
 
             // ── i18n state for the Vue layer (Phase 4 / WS20) ──
             // Active locale, supported set for the LocaleSwitcher, and
