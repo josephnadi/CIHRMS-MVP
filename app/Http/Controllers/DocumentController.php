@@ -129,6 +129,7 @@ class DocumentController extends Controller
             'owner', 'currentVersion', 'versions',
             'routes.fromUser', 'routes.toUser',
             'annotations.user',
+            'annotations.route',
             'events.actor',
             'shares',
         ]);

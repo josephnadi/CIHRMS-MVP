@@ -257,6 +257,9 @@ function revokeShare(shareId) {
                                 :pageSize="ps"
                                 :can-place="!!pendingAnnotation && canAnnotate"
                                 :pending="pendingAnnotation"
+                                :doc-uuid="D.uuid"
+                                :doc-status="D.status"
+                                :doc-owner-id="D.owner?.id"
                                 @place="placeAnnotation" />
                         </template>
                     </Viewer>

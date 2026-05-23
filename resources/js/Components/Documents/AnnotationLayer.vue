@@ -1,17 +1,29 @@
 <script setup>
 import { computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import DraggableAnnotation from './DraggableAnnotation.vue';
 
 const props = defineProps({
     annotations: { type: Array, default: () => [] },
     page:        { type: Number, default: 1 },
-    pageSize:    { type: Object, required: true },     // { width, height }
+    pageSize:    { type: Object, required: true },
     canPlace:    { type: Boolean, default: false },
-    pending:     { type: Object, default: null },      // { type, data, w_pct, h_pct }
+    pending:     { type: Object, default: null },
+    docUuid:     { type: String, required: true },
+    docStatus:   { type: String, required: true },
+    docOwnerId:  { type: Number, required: true },
 });
+const emit = defineEmits(['place']);
 
-const emit = defineEmits(['place', 'remove']);
-
+const pageInst = usePage();
+const currentUserId = computed(() => pageInst.props.auth.user.id);
 const visible = computed(() => props.annotations.filter(a => a.page === props.page));
+
+function canManipulate(a) {
+    if (a.user?.id === currentUserId.value) return a.route_status !== 'completed';
+    if (props.docOwnerId === currentUserId.value && props.docStatus === 'draft') return true;
+    return false;
+}
 
 function handleClick(e) {
     if (! props.canPlace || ! props.pending) return;
@@ -20,33 +32,30 @@ function handleClick(e) {
     const y_pct = ((e.clientY - rect.top)  / rect.height) * 100;
     emit('place', { x_pct, y_pct, page: props.page });
 }
+
+function onAnnotationUpdate(a, geometry) {
+    router.patch(
+        route('documents.annotations.update', { document: props.docUuid, annotation: a.id }),
+        geometry,
+        { preserveScroll: true, preserveState: true },
+    );
+}
+
+function onAnnotationDelete(a) {
+    if (! confirm('Remove this annotation?')) return;
+    router.delete(
+        route('documents.annotations.destroy', { document: props.docUuid, annotationId: a.id }),
+        { preserveScroll: true },
+    );
+}
 </script>
 
 <template>
-    <div class="absolute inset-0"
-         :class="canPlace ? 'cursor-crosshair' : 'pointer-events-none'"
-         @click="handleClick">
-        <div v-for="a in visible" :key="a.id"
-             :style="{
-                 position: 'absolute',
-                 left:   a.x_pct + '%',
-                 top:    a.y_pct + '%',
-                 width:  a.w_pct + '%',
-                 height: a.h_pct + '%',
-             }"
-             class="group pointer-events-auto">
-            <img v-if="a.type === 'signature' || a.type === 'initial' || (a.type === 'stamp' && a.data?.png_base64)"
-                 :src="a.data.png_base64"
-                 class="w-full h-full object-contain" />
-            <div v-else-if="a.type === 'stamp'"
-                 class="flex items-center justify-center w-full h-full border-2 font-black text-center"
-                 :style="{ color: a.data?.color ?? '#cc0000', borderColor: a.data?.color ?? '#cc0000' }">
-                {{ a.data?.text ?? 'STAMP' }}
-            </div>
-            <div v-else-if="a.type === 'text'"
-                 class="text-[11px] font-semibold text-on-surface">
-                {{ a.data?.text }}
-            </div>
-        </div>
+    <div data-annotation-layer class="absolute inset-0" :class="canPlace ? 'cursor-crosshair' : ''" @click="handleClick">
+        <DraggableAnnotation v-for="a in visible" :key="a.id"
+            :annotation="a"
+            :can-manipulate="canManipulate(a)"
+            @update="g => onAnnotationUpdate(a, g)"
+            @delete="onAnnotationDelete(a)" />
     </div>
 </template>
