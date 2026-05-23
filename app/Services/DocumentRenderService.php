@@ -31,7 +31,7 @@ class DocumentRenderService
             ->orderBy('page')
             ->get();
 
-        $useCache = $watermark === null;
+        $useCache = $watermark === null && $doc->watermark_id === null;
 
         if ($useCache) {
             $hash = $this->annotationHash($annotations);
@@ -70,7 +70,11 @@ class DocumentRenderService
                 $this->drawAnnotation($pdf, $a, $pageWidth, $pageHeight);
             }
 
-            if ($watermark) {
+            // Per-document watermark template overrides / augments the auto restricted watermark.
+            $tpl = $doc->watermark; // null when documents.watermark_id IS NULL
+            if ($tpl) {
+                $this->drawTemplateWatermark($pdf, $tpl, $pageWidth, $pageHeight);
+            } elseif ($watermark) {
                 $this->drawWatermark($pdf, $watermark, $pageWidth, $pageHeight);
             }
         }
@@ -198,6 +202,36 @@ class DocumentRenderService
             $pdf->SetFont('helvetica', '', max(8, $h * 2));
             $pdf->MultiCell($w, $h, $data['text'] ?? '', 0, 'L');
         }
+    }
+
+    private function drawTemplateWatermark(Fpdi $pdf, \App\Models\WatermarkTemplate $tpl, float $pageW, float $pageH): void
+    {
+        $cx = $pageW / 2;
+        $cy = $pageH / 2;
+
+        $pdf->StartTransform();
+        $pdf->SetAlpha((float) $tpl->opacity);
+        $pdf->Rotate((int) $tpl->angle_deg, $cx, $cy);
+
+        if ($tpl->type === 'image' && $tpl->storage_path) {
+            $abs = Storage::disk('local')->path($tpl->storage_path);
+            $w = $pageW * 0.6;
+            $pdf->Image($abs, $cx - $w / 2, $cy - $w / 2, $w, 0, 'PNG');
+        } else {
+            $text  = (string) ($tpl->text ?? 'WATERMARK');
+            $color = $tpl->color ?? '#dc2626';
+            [$r, $g, $b] = sscanf($color, '#%02x%02x%02x');
+            $pdf->SetTextColor($r, $g, $b);
+            $size = $tpl->font_size_hint ?: max(36, min(72, (int) round($pageW / 12)));
+            $pdf->SetFont('helvetica', 'B', $size);
+            $textWidth = $pdf->GetStringWidth($text);
+            $pdf->SetXY($cx - $textWidth / 2, $cy - 12);
+            $pdf->Cell($textWidth, 24, $text, 0, 0, 'C');
+            $pdf->SetTextColor(0, 0, 0);
+        }
+
+        $pdf->SetAlpha(1.0);
+        $pdf->StopTransform();
     }
 
     private function annotationHash($annotations): string
