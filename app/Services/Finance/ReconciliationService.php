@@ -41,4 +41,33 @@ class ReconciliationService
             ]);
         });
     }
+
+    public function unlink(BankStatementLine $line, User $user, string $reason): void
+    {
+        if ($line->reconciled_at === null) {
+            throw new DomainException("line {$line->id} is not currently reconciled");
+        }
+
+        DB::transaction(function () use ($line, $user, $reason) {
+            $match = BankTransactionMatch::where('bank_statement_line_id', $line->id)
+                ->whereNull('unmatched_at')
+                ->orderByDesc('id')
+                ->first();
+
+            if ($match !== null) {
+                $match->update([
+                    'unmatched_at'     => now(),
+                    'unmatched_by'     => $user->id,
+                    'unmatched_reason' => $reason,
+                ]);
+            }
+
+            $line->update([
+                'matched_type'  => null,
+                'matched_id'    => null,
+                'confidence'    => null,
+                'reconciled_at' => null,
+            ]);
+        });
+    }
 }
