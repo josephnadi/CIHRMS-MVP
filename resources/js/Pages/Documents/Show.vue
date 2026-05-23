@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Viewer from '@/Components/Documents/Viewer.vue';
 import AnnotationLayer from '@/Components/Documents/AnnotationLayer.vue';
@@ -11,6 +12,18 @@ import TimelineRail from '@/Components/Documents/TimelineRail.vue';
 import RecipientPicker from '@/Components/Documents/RecipientPicker.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
+
+// ─── Letterhead templates (for Edit drawer picker) ────────────────────────
+// Pulled from the Settings/Letterheads index endpoint via XHR so the user
+// can change the letterhead from the Edit drawer without leaving the page.
+const letterheadTemplates = ref([]);
+async function loadLetterheadTemplates() {
+    const res = await axios.get(route('settings.letterheads.index'), {
+        headers: { 'X-Inertia': 'true', 'X-Inertia-Version': '0', Accept: 'application/json' },
+    });
+    letterheadTemplates.value = res.data?.props?.templates?.data ?? [];
+}
+onMounted(loadLetterheadTemplates);
 
 const page = usePage();
 const currentUserId = computed(() => page.props.auth.user.id);
@@ -140,6 +153,7 @@ const isSensitive = computed(() => ['confidential', 'restricted'].includes(D.val
 const showEditPanel = ref(false);
 const editForm = useForm({
     title: '', description: '', confidentiality: 'internal', tags: [],
+    letterhead_id: null,
 });
 
 function openEdit() {
@@ -147,6 +161,7 @@ function openEdit() {
     editForm.description     = D.value.description ?? '';
     editForm.confidentiality = D.value.confidentiality ?? 'internal';
     editForm.tags            = D.value.tags ?? [];
+    editForm.letterhead_id   = D.value.letterhead_id ?? null;
     showEditPanel.value = true;
 }
 function submitEdit() {
@@ -319,6 +334,13 @@ function revokeShare(shareId) {
                                 <option value="internal">Internal</option>
                                 <option value="confidential">Confidential</option>
                                 <option value="restricted">Restricted</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Letterhead</label>
+                            <select v-model="editForm.letterhead_id" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option :value="null">None</option>
+                                <option v-for="t in letterheadTemplates" :key="t.id" :value="t.id">{{ t.name }}</option>
                             </select>
                         </div>
                         <div class="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">

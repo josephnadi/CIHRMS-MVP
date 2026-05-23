@@ -152,7 +152,7 @@ class DocumentService
      */
     public function updateMetadata(Document $doc, array $attrs, User $by): Document
     {
-        $allowed = ['title', 'description', 'confidentiality', 'tags'];
+        $allowed = ['title', 'description', 'confidentiality', 'tags', 'letterhead_id'];
         $clean = array_intersect_key($attrs, array_flip($allowed));
 
         $before = $doc->only($allowed);
