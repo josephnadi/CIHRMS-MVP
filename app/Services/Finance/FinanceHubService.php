@@ -35,8 +35,25 @@ class FinanceHubService
             'arOutstanding'       => $this->arOutstanding(),
             'agingBuckets'        => $this->agingBuckets(),
             'gatewayHealth'       => $this->gatewayHealth(),
+            'reconciliationStats' => $this->reconciliationStats(),
             'pendingApprovals'    => $this->pendingApprovals(),
             'statutoryCompliance' => $this->statutoryCompliance(),
+        ];
+    }
+
+    private function reconciliationStats(): array
+    {
+        $unreconciled = \App\Models\BankStatementLine::query()
+            ->whereNull('reconciled_at')
+            ->count();
+
+        $oldest = \App\Models\BankStatementLine::query()
+            ->whereNull('reconciled_at')
+            ->min('transaction_date');
+
+        return [
+            'unreconciled_count'       => $unreconciled,
+            'oldest_unreconciled_date' => $oldest,
         ];
     }
 

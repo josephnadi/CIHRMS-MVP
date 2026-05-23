@@ -184,6 +184,12 @@ class RolePermissionSeeder extends Seeder
         'gateway.view'   => ['Finance', 'View payment intents and gateway events'],
         'gateway.create' => ['Finance', 'Generate Paystack payment links'],
         'gateway.refund' => ['Finance', 'Refund a processed Paystack payment'],
+
+        // ── F5: Finance — Bank Reconciliation ──
+        'reconciliation.view'   => ['Finance', 'View bank statements and reconciliation status'],
+        'reconciliation.import' => ['Finance', 'Upload bank statement files'],
+        'reconciliation.match'  => ['Finance', 'Link statement lines to AP payments / AR receipts'],
+        'reconciliation.adjust' => ['Finance', 'Post bank fee or interest adjustment journal entries'],
     ];
 
     /**
@@ -280,6 +286,8 @@ class RolePermissionSeeder extends Seeder
             'statements.view',
             // F4 — Paystack Gateway (no refund — super_admin only)
             'gateway.view', 'gateway.create',
+            // F5 — Bank Reconciliation
+            'reconciliation.view', 'reconciliation.import', 'reconciliation.match', 'reconciliation.adjust',
         ],
         'it_support' => [
             'dashboard.view',
@@ -319,6 +327,8 @@ class RolePermissionSeeder extends Seeder
             'customers.view', 'ar_invoices.view', 'statements.view',
             // F4 — Read-only gateway oversight
             'gateway.view',
+            // F5 — Read-only reconciliation oversight
+            'reconciliation.view',
         ],
     ];
 

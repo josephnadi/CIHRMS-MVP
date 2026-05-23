@@ -22,6 +22,7 @@ class ApPayment extends Model
         'reference', 'vendor_id', 'status', 'payment_date', 'amount', 'currency',
         'org_bank_account_id', 'narration', 'journal_entry_id', 'disbursement_id',
         'created_by', 'processed_by', 'processed_at', 'voided_by', 'voided_at',
+        'external_ref',
     ];
 
     protected $attributes = ['currency' => 'GHS', 'status' => 'pending'];

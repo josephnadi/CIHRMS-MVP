@@ -245,7 +245,7 @@ const navSections = computed(() => {
     if (can('finance.hub') || can('accounts.view') || can('bank_accounts.view') ||
         can('vendors.view') || can('ap_invoices.view') || can('journal.view') ||
         can('customers.view') || can('ar_invoices.view') || can('statements.view') ||
-        can('gateway.view')) {
+        can('gateway.view') || can('reconciliation.view')) {
         sections.push({
             title: 'Finance',
             items: [
@@ -260,6 +260,7 @@ const navSections = computed(() => {
                 { label: 'AR Receipts',    route: 'finance.ar-receipts.index', module: 'finance-ar-receipts', icon: 'savings',        visible: can('ar_invoices.view') },
                 { label: 'Statements',     route: 'finance.statements.index',  module: 'finance-statements',  icon: 'description',    visible: can('statements.view') },
                 { label: 'Payment Links',  route: 'finance.payment-intents.index', module: 'finance-payment-intents', icon: 'link', visible: can('gateway.view') },
+                { label: 'Reconciliation', route: 'finance.reconciliation.index', module: 'finance-reconciliation', icon: 'compare_arrows', visible: can('reconciliation.view') },
                 { label: 'Journal',        route: 'finance.journal.index',     module: 'finance-journal',     icon: 'list_alt',       visible: can('journal.view') },
             ],
         });
@@ -492,6 +493,7 @@ const SIDEBAR_ICON_COLORS = {
     'finance-ar-receipts':      '#3949ab',
     'finance-statements':       '#3949ab',
     'finance-payment-intents':  '#3949ab',
+    'finance-reconciliation':   '#3949ab',
     'finance-journal':          '#3949ab',
 };
 const SIDEBAR_ICON_DEFAULT = '#7986cb';

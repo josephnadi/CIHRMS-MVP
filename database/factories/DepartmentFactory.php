@@ -15,10 +15,20 @@ class DepartmentFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->unique()->randomElement([
+        $candidates = [
             'Engineering', 'Operations', 'Finance', 'Marketing', 'Sales',
             'Customer Support', 'Legal', 'Procurement', 'Research', 'Communications',
-        ]);
+        ];
+
+        // Exclude names already in the DB so the factory can run after seeders
+        // that pre-create canonical departments (Marketing, Finance, IT, …) via
+        // firstOrCreate — otherwise the random pick collides on departments.name UNIQUE.
+        $taken = Department::query()->pluck('name')->all();
+        $pool  = array_values(array_diff($candidates, $taken));
+
+        $name = ! empty($pool)
+            ? fake()->unique()->randomElement($pool)
+            : 'Dept ' . fake()->unique()->numberBetween(100, 999);
 
         return [
             'name'        => $name,

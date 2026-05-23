@@ -996,6 +996,24 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::middleware(['permission:gateway.create', '2fa:fresh'])->group(function () {
             Route::post('payment-intents',                      [\App\Http\Controllers\Finance\PaymentIntentController::class, 'store'])->name('payment-intents.store');
         });
+
+        // F5 — Bank Reconciliation
+        Route::prefix('reconciliation')->name('reconciliation.')->group(function () {
+            Route::middleware('permission:reconciliation.view')->group(function () {
+                Route::get('/',                          [\App\Http\Controllers\Finance\ReconciliationController::class, 'index'])->name('index');
+                Route::get('/{bankStatement}',           [\App\Http\Controllers\Finance\ReconciliationController::class, 'show'])->name('show');
+            });
+            Route::middleware('permission:reconciliation.import')->group(function () {
+                Route::post('/',                         [\App\Http\Controllers\Finance\ReconciliationController::class, 'store'])->name('store');
+            });
+            Route::middleware('permission:reconciliation.match')->group(function () {
+                Route::post('/lines/{line}/link',        [\App\Http\Controllers\Finance\ReconciliationController::class, 'link'])->name('link');
+                Route::post('/lines/{line}/unlink',      [\App\Http\Controllers\Finance\ReconciliationController::class, 'unlink'])->name('unlink');
+            });
+            Route::middleware(['permission:reconciliation.adjust', '2fa:fresh'])->group(function () {
+                Route::post('/lines/{line}/adjust',      [\App\Http\Controllers\Finance\ReconciliationController::class, 'adjust'])->name('adjust');
+            });
+        });
     });
 });
 
