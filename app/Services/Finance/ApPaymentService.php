@@ -144,6 +144,12 @@ class ApPaymentService
                 $this->journal->reverse($payment->journalEntry, $by, "Void: {$reason}");
             }
 
+            // F4-R-era hardening (I4): re-fetch the linked AP invoices with
+            // lockForUpdate before mutating amount_paid, so concurrent voids /
+            // payment-records can't lose state. Mirrors ArReceiptService::void().
+            $invoiceIds = $payment->allocations->pluck('vendor_invoice_id')->all();
+            VendorInvoice::whereIn('id', $invoiceIds)->lockForUpdate()->get();
+
             foreach ($payment->allocations as $alloc) {
                 $inv = $alloc->invoice;
                 $inv->amount_paid = (float) $inv->amount_paid - (float) $alloc->allocated_amount;
