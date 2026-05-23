@@ -845,6 +845,14 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::delete('/{asset}',        [\App\Http\Controllers\Settings\StampAssetController::class, 'destroy'])->name('destroy');
     });
 
+    // Documents v2 — Phase 4: Letterhead templates (Settings)
+    Route::prefix('settings/letterheads')->name('settings.letterheads.')->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'index'])->name('index');
+        Route::post('/',                  [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}/preview', [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'preview'])->name('preview');
+        Route::delete('/{template}',      [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'destroy'])->name('destroy');
+    });
+
     // ── F1: Finance ─────────────────────────────────────────────────────────
     // finance.hub gates ONLY the Finance Hub landing page.
     // Auditors who have accounts.view / bank_accounts.view but NOT finance.hub
