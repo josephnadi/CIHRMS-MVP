@@ -243,7 +243,8 @@ const navSections = computed(() => {
     ];
 
     if (can('finance.hub') || can('accounts.view') || can('bank_accounts.view') ||
-        can('vendors.view') || can('ap_invoices.view') || can('journal.view')) {
+        can('vendors.view') || can('ap_invoices.view') || can('journal.view') ||
+        can('customers.view') || can('ar_invoices.view') || can('statements.view')) {
         sections.push({
             title: 'Finance',
             items: [
@@ -253,6 +254,10 @@ const navSections = computed(() => {
                 { label: 'Vendors',        route: 'finance.vendors.index',     module: 'finance-vendors',     icon: 'store',          visible: can('vendors.view') },
                 { label: 'AP Invoices',    route: 'finance.ap-invoices.index', module: 'finance-ap-invoices', icon: 'receipt_long',   visible: can('ap_invoices.view') },
                 { label: 'AP Payments',    route: 'finance.ap-payments.index', module: 'finance-ap-payments', icon: 'payments',       visible: can('ap_invoices.view') },
+                { label: 'Customers',      route: 'finance.customers.index',   module: 'finance-customers',   icon: 'storefront',     visible: can('customers.view') },
+                { label: 'AR Invoices',    route: 'finance.ar-invoices.index', module: 'finance-ar-invoices', icon: 'request_quote',  visible: can('ar_invoices.view') },
+                { label: 'AR Receipts',    route: 'finance.ar-receipts.index', module: 'finance-ar-receipts', icon: 'savings',        visible: can('ar_invoices.view') },
+                { label: 'Statements',     route: 'finance.statements.index',  module: 'finance-statements',  icon: 'description',    visible: can('statements.view') },
                 { label: 'Journal',        route: 'finance.journal.index',     module: 'finance-journal',     icon: 'list_alt',       visible: can('journal.view') },
             ],
         });
@@ -480,6 +485,10 @@ const SIDEBAR_ICON_COLORS = {
     'finance-vendors':          '#3949ab',
     'finance-ap-invoices':      '#3949ab',
     'finance-ap-payments':      '#3949ab',
+    'finance-customers':        '#3949ab',
+    'finance-ar-invoices':      '#3949ab',
+    'finance-ar-receipts':      '#3949ab',
+    'finance-statements':       '#3949ab',
     'finance-journal':          '#3949ab',
 };
 const SIDEBAR_ICON_DEFAULT = '#7986cb';
