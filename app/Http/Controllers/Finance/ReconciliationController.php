@@ -134,4 +134,16 @@ class ReconciliationController extends Controller
 
         return back()->with('success', 'Bank adjustment posted.');
     }
+
+    public function rematch(BankStatement $bankStatement): RedirectResponse
+    {
+        $counts = $this->matcher->matchUnreconciled($bankStatement);
+
+        $linked = $counts['high'] + $counts['medium'] + $counts['low'];
+        $msg = $linked > 0
+            ? "Re-matched {$linked} lines (high {$counts['high']} / medium {$counts['medium']} / low {$counts['low']}, {$counts['unmatched']} still unmatched)."
+            : "No new matches found ({$counts['unmatched']} lines still unmatched).";
+
+        return back()->with('success', $msg);
+    }
 }

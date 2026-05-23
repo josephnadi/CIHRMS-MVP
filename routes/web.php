@@ -1000,6 +1000,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
         // F4-R — Refund operator flow
         Route::middleware(['permission:gateway.refund', '2fa:fresh'])->group(function () {
             Route::post('payment-intents/{paymentIntent}/refund', [\App\Http\Controllers\Finance\RefundController::class, 'store'])->name('payment-intents.refund');
+            Route::post('payment-intents/bulk-refund',            [\App\Http\Controllers\Finance\RefundController::class, 'bulkStore'])->name('payment-intents.bulk-refund');
         });
 
         // F5 — Bank Reconciliation
@@ -1014,6 +1015,7 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::middleware('permission:reconciliation.match')->group(function () {
                 Route::post('/lines/{line}/link',        [\App\Http\Controllers\Finance\ReconciliationController::class, 'link'])->name('link');
                 Route::post('/lines/{line}/unlink',      [\App\Http\Controllers\Finance\ReconciliationController::class, 'unlink'])->name('unlink');
+                Route::post('/{bankStatement}/rematch',  [\App\Http\Controllers\Finance\ReconciliationController::class, 'rematch'])->name('rematch');
             });
             Route::middleware(['permission:reconciliation.adjust', '2fa:fresh'])->group(function () {
                 Route::post('/lines/{line}/adjust',      [\App\Http\Controllers\Finance\ReconciliationController::class, 'adjust'])->name('adjust');

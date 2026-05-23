@@ -78,6 +78,37 @@ const refundForm = useForm({ reason: '' });
 
 const openRefund = (intent) => { refundModal.value = intent; refundForm.reset(); };
 
+// P3: bulk refund
+const selectedIds = ref(new Set());
+const refundableRows = computed(() => rows.value.filter(r => r.status?.value === 'success'));
+const allRefundableSelected = computed(() =>
+    refundableRows.value.length > 0
+    && refundableRows.value.every(r => selectedIds.value.has(r.id)),
+);
+const toggleSelect = (id) => {
+    const next = new Set(selectedIds.value);
+    next.has(id) ? next.delete(id) : next.add(id);
+    selectedIds.value = next;
+};
+const toggleSelectAll = () => {
+    selectedIds.value = allRefundableSelected.value
+        ? new Set()
+        : new Set(refundableRows.value.map(r => r.id));
+};
+const clearSelection = () => { selectedIds.value = new Set(); };
+
+const bulkRefundOpen = ref(false);
+const bulkRefundForm = useForm({ reason: '' });
+const openBulkRefund = () => { bulkRefundForm.reset(); bulkRefundOpen.value = true; };
+const submitBulkRefund = () => {
+    bulkRefundForm
+        .transform(data => ({ ...data, intent_ids: Array.from(selectedIds.value) }))
+        .post(route('finance.payment-intents.bulk-refund'), {
+            preserveScroll: true,
+            onSuccess: () => { bulkRefundOpen.value = false; clearSelection(); bulkRefundForm.reset(); },
+        });
+};
+
 const submitRefund = () => {
     if (! refundModal.value) return;
     refundForm.post(route('finance.payment-intents.refund', refundModal.value.id), {
@@ -106,9 +137,16 @@ const statusColor = (val) => ({
                 <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Payment Links</h1>
                 <p class="mt-1 text-[13px] font-medium text-on-surface-variant">{{ rows.length }} intents · Paystack hosted checkout.</p>
             </div>
-            <PrimaryButton v-if="canCreate" @click="openNew">
-                <span class="material-symbols-outlined text-[16px] mr-1">link</span>Send Payment Link
-            </PrimaryButton>
+            <div class="flex items-center gap-2">
+                <button v-if="canRefund && selectedIds.size > 0" @click="openBulkRefund"
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-rose-700 text-white px-3 py-2 text-[12px] font-bold hover:bg-rose-800 transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">currency_exchange</span>
+                    Refund {{ selectedIds.size }} selected
+                </button>
+                <PrimaryButton v-if="canCreate" @click="openNew">
+                    <span class="material-symbols-outlined text-[16px] mr-1">link</span>Send Payment Link
+                </PrimaryButton>
+            </div>
         </div>
 
         <div class="flex flex-wrap gap-2 items-center">
@@ -131,6 +169,11 @@ const statusColor = (val) => ({
             <table class="w-full text-[12px]">
                 <thead class="bg-surface-container border-b border-outline-variant/40">
                     <tr class="text-left">
+                        <th v-if="canRefund" class="px-3 py-2.5 w-10">
+                            <input type="checkbox" :checked="allRefundableSelected" @change="toggleSelectAll"
+                                   :disabled="refundableRows.length === 0"
+                                   aria-label="Select all refundable" class="accent-secondary" />
+                        </th>
                         <th class="px-4 py-2.5 font-black text-on-surface-variant uppercase text-[10px] tracking-wider">Reference</th>
                         <th class="px-4 py-2.5 font-black text-on-surface-variant uppercase text-[10px] tracking-wider">Customer</th>
                         <th class="px-4 py-2.5 font-black text-on-surface-variant uppercase text-[10px] tracking-wider">Invoice</th>
@@ -141,6 +184,11 @@ const statusColor = (val) => ({
                 </thead>
                 <tbody>
                     <tr v-for="intent in rows" :key="intent.id" class="border-t border-outline-variant/30">
+                        <td v-if="canRefund" class="px-3 py-2 w-10">
+                            <input v-if="intent.status?.value === 'success'" type="checkbox"
+                                   :checked="selectedIds.has(intent.id)" @change="toggleSelect(intent.id)"
+                                   :aria-label="`Select ${intent.reference}`" class="accent-secondary" />
+                        </td>
                         <td class="px-4 py-2 font-mono font-bold text-primary">{{ intent.reference }}</td>
                         <td class="px-4 py-2 text-on-surface">{{ intent.customer?.code }}</td>
                         <td class="px-4 py-2 text-on-surface-variant">{{ intent.invoice?.reference ?? '—' }}</td>
@@ -202,6 +250,34 @@ const statusColor = (val) => ({
                 </div>
             </form>
         </SlidePanel>
+
+        <!-- P3: Bulk refund modal -->
+        <div v-if="bulkRefundOpen" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+            <div class="bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-[14px] font-black text-primary mb-1">Refund {{ selectedIds.size }} payment links</h3>
+                <p class="text-[11px] text-on-surface-variant mb-4">
+                    The same reason will be sent to Paystack for each selected intent. Linked AR receipts will be voided.
+                </p>
+                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3">
+                    Cannot be undone. Per-intent failures are reported but do not roll back successful refunds.
+                </p>
+                <form @submit.prevent="submitBulkRefund" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Reason (visible to Paystack support)</label>
+                        <textarea v-model="bulkRefundForm.reason" rows="3"
+                                  class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
+                        <InputError :message="bulkRefundForm.errors.reason" />
+                        <InputError :message="bulkRefundForm.errors.bulk_refund" />
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="bulkRefundOpen = false"
+                                class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>
+                        <button type="submit" :disabled="bulkRefundForm.processing"
+                                class="rounded-xl bg-rose-700 text-white px-3 py-2 text-[12px] font-bold disabled:opacity-50">Confirm bulk refund</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- F4-R: Refund modal -->
         <div v-if="refundModal" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
