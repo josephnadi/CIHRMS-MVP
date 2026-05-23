@@ -853,6 +853,14 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::delete('/{template}',      [\App\Http\Controllers\Settings\LetterheadTemplateController::class, 'destroy'])->name('destroy');
     });
 
+    // Documents v2 — Phase 5: Watermark templates (Settings)
+    Route::prefix('settings/watermarks')->name('settings.watermarks.')->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'index'])->name('index');
+        Route::post('/',                  [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}/preview', [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'preview'])->name('preview');
+        Route::delete('/{template}',      [\App\Http\Controllers\Settings\WatermarkTemplateController::class, 'destroy'])->name('destroy');
+    });
+
     // ── F1: Finance ─────────────────────────────────────────────────────────
     // finance.hub gates ONLY the Finance Hub landing page.
     // Auditors who have accounts.view / bank_accounts.view but NOT finance.hub
