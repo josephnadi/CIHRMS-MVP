@@ -18,7 +18,7 @@ class Document extends Model
     protected $fillable = [
         'uuid', 'ref_no', 'title', 'description', 'owner_id',
         'current_version_id', 'status', 'confidentiality',
-        'parallel_routing', 'tags',
+        'parallel_routing', 'tags', 'letterhead_id',
     ];
 
     protected $casts = [
@@ -43,6 +43,11 @@ class Document extends Model
     public function currentVersion(): BelongsTo
     {
         return $this->belongsTo(DocumentVersion::class, 'current_version_id');
+    }
+
+    public function letterhead(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\LetterheadTemplate::class, 'letterhead_id');
     }
 
     public function versions(): HasMany
