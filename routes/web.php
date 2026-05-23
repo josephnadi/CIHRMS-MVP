@@ -997,6 +997,11 @@ Route::middleware(['auth', 'audit'])->group(function () {
             Route::post('payment-intents',                      [\App\Http\Controllers\Finance\PaymentIntentController::class, 'store'])->name('payment-intents.store');
         });
 
+        // F4-R — Refund operator flow
+        Route::middleware(['permission:gateway.refund', '2fa:fresh'])->group(function () {
+            Route::post('payment-intents/{paymentIntent}/refund', [\App\Http\Controllers\Finance\RefundController::class, 'store'])->name('payment-intents.refund');
+        });
+
         // F5 — Bank Reconciliation
         Route::prefix('reconciliation')->name('reconciliation.')->group(function () {
             Route::middleware('permission:reconciliation.view')->group(function () {

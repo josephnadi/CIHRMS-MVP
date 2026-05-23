@@ -164,3 +164,91 @@ it('non-charge-success events are recorded as no-op', function () {
     expect($event->fresh()->processed_at)->not->toBeNull();
     expect($event->fresh()->processing_error)->toContain('no-op');
 });
+
+it('refund.processed event stamps refund_settled_at on the matching intent', function () {
+    Http::fake([
+        'api.paystack.co/transaction/verify/pst_webhook_001' => Http::response([
+            'status' => true, 'data' => ['status' => 'success', 'reference' => 'pst_webhook_001', 'amount' => 30000],
+        ], 200),
+        'api.paystack.co/refund' => Http::response([
+            'status' => true, 'data' => ['id' => 7777, 'status' => 'pending'],
+        ], 200),
+    ]);
+
+    // First process a charge.success so the intent flips to success with a linked receipt — then refund is possible.
+    $charge = makeChargeSuccessEvent('evt_rp_pre1', 'pst_webhook_001');
+    $this->processor->process($charge);
+
+    app(\App\Services\Finance\RefundService::class)
+        ->refund($this->intent->fresh(), $this->user, 'test reason refund webhook');
+
+    $event = PaystackWebhookEvent::create([
+        'paystack_event_id'  => 'evt_rp_001',
+        'event_type'         => 'refund.processed',
+        'paystack_reference' => 'pst_webhook_001',
+        'payload'            => ['event' => 'refund.processed', 'data' => ['id' => 7777]],
+        'signature'          => 'sig',
+    ]);
+
+    $result = $this->processor->process($event);
+
+    expect($result)->toBeNull();
+    expect($event->fresh()->processed_at)->not->toBeNull();
+    expect($this->intent->fresh()->refund_settled_at)->not->toBeNull();
+    expect($event->fresh()->payment_intent_id)->toBe($this->intent->id);
+});
+
+it('refund.processed event with unknown refund_paystack_ref records error', function () {
+    $event = PaystackWebhookEvent::create([
+        'paystack_event_id'  => 'evt_rp_002',
+        'event_type'         => 'refund.processed',
+        'paystack_reference' => 'pst_webhook_001',
+        'payload'            => ['event' => 'refund.processed', 'data' => ['id' => 99999]],
+        'signature'          => 'sig',
+    ]);
+
+    $result = $this->processor->process($event);
+
+    expect($result)->toBeNull();
+    expect($event->fresh()->processing_error)->toContain('not found');
+});
+
+it('refund.processed event is idempotent (re-processing does not move refund_settled_at)', function () {
+    Http::fake([
+        'api.paystack.co/transaction/verify/pst_webhook_001' => Http::response([
+            'status' => true, 'data' => ['status' => 'success', 'reference' => 'pst_webhook_001', 'amount' => 30000],
+        ], 200),
+        'api.paystack.co/refund' => Http::response([
+            'status' => true, 'data' => ['id' => 4444, 'status' => 'pending'],
+        ], 200),
+    ]);
+
+    $charge = makeChargeSuccessEvent('evt_rp_pre2', 'pst_webhook_001');
+    $this->processor->process($charge);
+
+    app(\App\Services\Finance\RefundService::class)
+        ->refund($this->intent->fresh(), $this->user, 'idempotency test');
+
+    $event1 = PaystackWebhookEvent::create([
+        'paystack_event_id'  => 'evt_rp_003a',
+        'event_type'         => 'refund.processed',
+        'paystack_reference' => 'pst_webhook_001',
+        'payload'            => ['event' => 'refund.processed', 'data' => ['id' => 4444]],
+        'signature'          => 'sig',
+    ]);
+    $this->processor->process($event1);
+    $firstSettled = $this->intent->fresh()->refund_settled_at->toDateTimeString();
+
+    \Illuminate\Support\Carbon::setTestNow(now()->addSeconds(5));
+
+    $event2 = PaystackWebhookEvent::create([
+        'paystack_event_id'  => 'evt_rp_003b',
+        'event_type'         => 'refund.processed',
+        'paystack_reference' => 'pst_webhook_001',
+        'payload'            => ['event' => 'refund.processed', 'data' => ['id' => 4444]],
+        'signature'          => 'sig',
+    ]);
+    $this->processor->process($event2);
+
+    expect($this->intent->fresh()->refund_settled_at->toDateTimeString())->toBe($firstSettled);
+});

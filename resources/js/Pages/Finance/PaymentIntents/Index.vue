@@ -24,6 +24,11 @@ const canCreate = computed(() => {
     const list = Array.isArray(perms) ? perms : (typeof perms === 'function' ? perms() : []);
     return list.includes('gateway.create');
 });
+const canRefund = computed(() => {
+    const perms = page.props?.auth?.permissions ?? [];
+    const list = Array.isArray(perms) ? perms : (typeof perms === 'function' ? perms() : []);
+    return list.includes('gateway.refund');
+});
 
 const rows = computed(() => props.intents.data ?? props.intents ?? []);
 
@@ -65,6 +70,20 @@ const submit = () => form.post(route('finance.payment-intents.store'), {
 
 const copyLink = (url) => {
     navigator.clipboard?.writeText(url);
+};
+
+// F4-R: refund modal
+const refundModal = ref(null);
+const refundForm = useForm({ reason: '' });
+
+const openRefund = (intent) => { refundModal.value = intent; refundForm.reset(); };
+
+const submitRefund = () => {
+    if (! refundModal.value) return;
+    refundForm.post(route('finance.payment-intents.refund', refundModal.value.id), {
+        preserveScroll: true,
+        onSuccess: () => { refundModal.value = null; refundForm.reset(); },
+    });
 };
 
 const statusColor = (val) => ({
@@ -129,10 +148,15 @@ const statusColor = (val) => ({
                         <td class="px-4 py-2">
                             <span class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase border" :class="statusColor(intent.status.value)">{{ intent.status.label }}</span>
                         </td>
-                        <td class="px-4 py-2 text-right">
+                        <td class="px-4 py-2 text-right space-x-2">
                             <button v-if="intent.authorization_url && intent.status.value === 'pending'"
                                     @click="copyLink(intent.authorization_url)"
                                     class="text-[11px] font-bold text-secondary hover:underline">Copy link</button>
+                            <button v-if="canRefund && intent.status.value === 'success'"
+                                    @click="openRefund(intent)"
+                                    class="text-[11px] font-bold text-rose-700 hover:underline">Refund</button>
+                            <span v-if="intent.status.value === 'refunded'"
+                                  class="text-[10px] font-bold text-violet-700">Refunded</span>
                         </td>
                     </tr>
                 </tbody>
@@ -178,5 +202,30 @@ const statusColor = (val) => ({
                 </div>
             </form>
         </SlidePanel>
+
+        <!-- F4-R: Refund modal -->
+        <div v-if="refundModal" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+            <div class="bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md">
+                <h3 class="text-[14px] font-black text-primary mb-1">Refund Payment Link</h3>
+                <p class="text-[11px] text-on-surface-variant mb-4">{{ refundModal.reference }} · {{ cedi(refundModal.amount) }}</p>
+                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3">
+                    This calls Paystack /refund and immediately voids the linked AR receipt. Cannot be undone.
+                </p>
+                <form @submit.prevent="submitRefund" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Reason (visible to Paystack support)</label>
+                        <textarea v-model="refundForm.reason" rows="3"
+                                  class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
+                        <InputError :message="refundForm.errors.reason" />
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="refundModal = null"
+                                class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>
+                        <button type="submit" :disabled="refundForm.processing"
+                                class="rounded-xl bg-rose-700 text-white px-3 py-2 text-[12px] font-bold disabled:opacity-50">Confirm refund</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </template>

@@ -30,8 +30,9 @@ class PaystackWebhookProcessor
 
         try {
             return match ($event->event_type) {
-                'charge.success' => $this->handleChargeSuccess($event),
-                default          => $this->markNoOp($event),
+                'charge.success'   => $this->handleChargeSuccess($event),
+                'refund.processed' => $this->handleRefundProcessed($event),
+                default            => $this->markNoOp($event),
             };
         } catch (Throwable $e) {
             $event->update(['processing_error' => $e->getMessage()]);
@@ -165,5 +166,42 @@ class PaystackWebhookProcessor
             'processing_error' => "no-op for event_type {$event->event_type}",
         ]);
         return null;
+    }
+
+    private function handleRefundProcessed(PaystackWebhookEvent $event): null
+    {
+        $refundId = (string) (data_get($event->payload, 'data.id') ?? '');
+        if ($refundId === '') {
+            $event->update([
+                'processed_at'     => now(),
+                'processing_error' => 'refund.processed missing data.id',
+            ]);
+            return null;
+        }
+
+        return DB::transaction(function () use ($event, $refundId) {
+            $intent = PaymentIntent::where('refund_paystack_ref', $refundId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $intent) {
+                $event->update([
+                    'processed_at'     => now(),
+                    'processing_error' => "PaymentIntent for refund_paystack_ref '{$refundId}' not found",
+                ]);
+                return null;
+            }
+
+            if ($intent->refund_settled_at === null) {
+                $intent->update(['refund_settled_at' => now()]);
+            }
+
+            $event->update([
+                'processed_at'      => now(),
+                'payment_intent_id' => $intent->id,
+            ]);
+
+            return null;
+        });
     }
 }

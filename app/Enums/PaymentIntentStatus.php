@@ -12,6 +12,7 @@ enum PaymentIntentStatus: string
     case Failed    = 'failed';
     case Abandoned = 'abandoned';
     case Expired   = 'expired';
+    case Refunded  = 'refunded';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum PaymentIntentStatus: string
             self::Failed    => 'Failed',
             self::Abandoned => 'Abandoned',
             self::Expired   => 'Expired',
+            self::Refunded  => 'Refunded',
         };
     }
 }
