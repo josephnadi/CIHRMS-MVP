@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DocumentConfidentiality;
 use App\Enums\DocumentStatus;
+use App\Enums\DocumentWatermarkMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class Document extends Model
         'uuid', 'ref_no', 'title', 'description', 'owner_id',
         'current_version_id', 'status', 'confidentiality',
         'parallel_routing', 'tags', 'letterhead_id',
+        'watermark_id', 'watermark_mode',
     ];
 
     protected $casts = [
@@ -26,6 +28,7 @@ class Document extends Model
         'confidentiality'  => DocumentConfidentiality::class,
         'parallel_routing' => 'boolean',
         'tags'             => 'array',
+        'watermark_mode'   => DocumentWatermarkMode::class,
     ];
 
     protected static function booted(): void
@@ -48,6 +51,11 @@ class Document extends Model
     public function letterhead(): BelongsTo
     {
         return $this->belongsTo(\App\Models\LetterheadTemplate::class, 'letterhead_id');
+    }
+
+    public function watermark(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\WatermarkTemplate::class, 'watermark_id');
     }
 
     public function versions(): HasMany
