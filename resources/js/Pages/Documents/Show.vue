@@ -23,7 +23,21 @@ async function loadLetterheadTemplates() {
     });
     letterheadTemplates.value = res.data?.props?.templates?.data ?? [];
 }
-onMounted(loadLetterheadTemplates);
+
+// ─── Watermark templates (for Edit drawer picker) ─────────────────────────
+// Same XHR pattern as letterheads; lets the user pick a watermark + apply
+// mode from the Edit drawer without leaving the document page.
+const watermarkTemplates = ref([]);
+async function loadWatermarkTemplates() {
+    const res = await axios.get(route('settings.watermarks.index'), {
+        headers: { 'X-Inertia': 'true', 'X-Inertia-Version': '0', Accept: 'application/json' },
+    });
+    watermarkTemplates.value = res.data?.props?.templates?.data ?? [];
+}
+onMounted(() => {
+    loadLetterheadTemplates();
+    loadWatermarkTemplates();
+});
 
 const page = usePage();
 const currentUserId = computed(() => page.props.auth.user.id);
@@ -154,6 +168,8 @@ const showEditPanel = ref(false);
 const editForm = useForm({
     title: '', description: '', confidentiality: 'internal', tags: [],
     letterhead_id: null,
+    watermark_id:   null,
+    watermark_mode: 'on_burn',
 });
 
 function openEdit() {
@@ -162,6 +178,8 @@ function openEdit() {
     editForm.confidentiality = D.value.confidentiality ?? 'internal';
     editForm.tags            = D.value.tags ?? [];
     editForm.letterhead_id   = D.value.letterhead_id ?? null;
+    editForm.watermark_id   = D.value.watermark_id ?? null;
+    editForm.watermark_mode = D.value.watermark_mode ?? 'on_burn';
     showEditPanel.value = true;
 }
 function submitEdit() {
@@ -341,6 +359,21 @@ function revokeShare(shareId) {
                             <select v-model="editForm.letterhead_id" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                                 <option :value="null">None</option>
                                 <option v-for="t in letterheadTemplates" :key="t.id" :value="t.id">{{ t.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Watermark</label>
+                            <select v-model="editForm.watermark_id" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option :value="null">None</option>
+                                <option v-for="w in watermarkTemplates" :key="w.id" :value="w.id">{{ w.name }} ({{ w.type }})</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">When to apply</label>
+                            <select v-model="editForm.watermark_mode" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                                <option value="on_burn">On burned PDF only</option>
+                                <option value="always">Always (including original downloads)</option>
+                                <option value="none">Never</option>
                             </select>
                         </div>
                         <div class="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
