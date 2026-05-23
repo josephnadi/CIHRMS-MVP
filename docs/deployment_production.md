@@ -92,3 +92,22 @@ Two outstanding compliance prerequisites before any government pilot:
 2. Register with the **Cyber Security Authority** under the Cybersecurity Act 2020.
 
 These are organisational, not code, but block production go-live.
+
+## 9. Attendance kiosk — face-scan limitation
+
+The shared attendance kiosk at `/kiosk` ships **without face recognition** in the v1 launch. The face-scan tile in [resources/js/Pages/Kiosk/Index.vue](../resources/js/Pages/Kiosk/Index.vue) is intentionally a no-op (status text "Face recognition coming soon"). Vendor integration (Face++, AWS Rekognition, or ZKTeco SDK) is tracked as post-launch work — see C4 in [docs/MARKET_READY_PUNCHLIST.md](MARKET_READY_PUNCHLIST.md).
+
+**What this means for deployments:**
+
+- The kiosk verifies identity by `employee_no` + name lookup only. Someone with knowledge of a coworker's `employee_no` *can* clock in as that coworker. This is trust-weak by design until face-scan ships.
+- **Mitigation 1 — biometric devices (recommended for high-trust sites):** wherever attendance fraud risk is material, deploy a hardware biometric reader (fingerprint or face) and let it drive the higher-trust webhook flow at `BiometricWebhookController`. The /kiosk page is for low-trust contexts (front desk, training rooms) where the operator is co-located and observes punches.
+- **Mitigation 2 — posted policy:** operators should post a visible notice at each kiosk station stating that clock-ins are CCTV-monitored and that buddy-punching is a disciplinary offence under the organisation's attendance policy.
+- **Mitigation 3 — variance audits:** schedule periodic spot-checks of kiosk punches against rota / supervisor sign-off. Anomalies (e.g. an employee on approved leave with a kiosk punch) surface in the existing attendance audit log.
+- Do NOT advertise the kiosk to staff as biometric. The UI does not claim it is. If post-launch the face-scan path is added, this section will be updated to describe the enrolment flow and PII implications under the DPA.
+
+**Operational checklist (per site):**
+
+- [ ] Confirm with the site lead whether the deployment falls into "low-trust" (kiosk-only) or "high-trust" (requires biometric device) profile.
+- [ ] For high-trust sites: provision biometric devices and configure their webhook target before go-live.
+- [ ] For all sites: print and post the buddy-punching policy notice at each kiosk station.
+- [ ] Add the attendance variance check to the site supervisor's weekly routine.
