@@ -32,7 +32,7 @@ const requests = computed(() => props.leaves);
 // ── Auth / role ───────────────────────────────────────────────────────────────
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
-const isHR = computed(() => ['hr_admin', 'super_admin'].includes(user.value?.role));
+const isHR = computed(() => ['hr_admin', 'super_admin', 'ceo'].includes(user.value?.role));
 
 // ── Ghana leave types ─────────────────────────────────────────────────────────
 // Leave type palette — disciplined Sovereign Precision colors.

@@ -13,7 +13,7 @@ const props = defineProps({
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
-const isHR = computed(() => ['hr_admin', 'super_admin', 'manager'].includes(user.value?.role));
+const isHR = computed(() => ['hr_admin', 'super_admin', 'ceo', 'manager'].includes(user.value?.role));
 
 const lr = computed(() => props.leaveRequest?.data ?? props.leaveRequest);
 

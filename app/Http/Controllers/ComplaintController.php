@@ -22,8 +22,7 @@ class ComplaintController extends Controller
         // populate the inline reassignment dropdown on each row.
         $investigators = \App\Models\User::query()
             ->whereHas('roles.permissions', fn ($q) => $q->where('slug', 'complaints.manage'))
-            ->orWhere('role', 'super_admin')
-            ->orWhere('role', 'hr_admin')
+            ->orWhereIn('role', ['super_admin', 'ceo', 'hr_admin'])
             ->select('id', 'name')
             ->orderBy('name')
             ->limit(50)
