@@ -9,7 +9,7 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    // CIHRMS authenticates with name + staff_id (not email/password).
+    // CIHRMS authenticates with name + staff_id + password.
     // See \App\Http\Requests\Auth\LoginRequest::authenticate().
     $user = User::factory()->create([
         'name'     => 'Akua Mensah',
@@ -19,13 +19,14 @@ test('users can authenticate using the login screen', function () {
     $response = $this->post('/login', [
         'name'     => $user->name,
         'staff_id' => $user->staff_id,
+        'password' => 'password',
     ]);
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
-test('users can not authenticate with invalid credentials', function () {
+test('users can not authenticate with an invalid staff_id', function () {
     $user = User::factory()->create([
         'name'     => 'Akua Mensah',
         'staff_id' => 'GH-HR-AUTH-2',
@@ -34,7 +35,37 @@ test('users can not authenticate with invalid credentials', function () {
     $this->post('/login', [
         'name'     => $user->name,
         'staff_id' => 'WRONG-STAFF-ID',
+        'password' => 'password',
     ]);
+
+    $this->assertGuest();
+});
+
+test('users can not authenticate with an invalid password', function () {
+    $user = User::factory()->create([
+        'name'     => 'Akua Mensah',
+        'staff_id' => 'GH-HR-AUTH-3',
+    ]);
+
+    $this->post('/login', [
+        'name'     => $user->name,
+        'staff_id' => $user->staff_id,
+        'password' => 'wrong-password',
+    ]);
+
+    $this->assertGuest();
+});
+
+test('login requires the password field', function () {
+    $user = User::factory()->create([
+        'name'     => 'Akua Mensah',
+        'staff_id' => 'GH-HR-AUTH-4',
+    ]);
+
+    $this->post('/login', [
+        'name'     => $user->name,
+        'staff_id' => $user->staff_id,
+    ])->assertSessionHasErrors('password');
 
     $this->assertGuest();
 });

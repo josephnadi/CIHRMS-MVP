@@ -6,6 +6,7 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -28,13 +29,20 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string'],
+            'name'     => ['required', 'string'],
             'staff_id' => ['required', 'string'],
+            'password' => ['required', 'string'],
         ];
     }
 
     /**
      * Attempt to authenticate the request's credentials.
+     *
+     * Lookup is by (name + staff_id) — CIHRMS does not use email for sign-in
+     * because staff are addressed by their issued staff number. Once the
+     * candidate row is located, the supplied password is verified against
+     * the bcrypt hash. Both lookup-miss and bad-password produce the same
+     * generic error to avoid leaking which half is wrong.
      *
      * @throws ValidationException
      */
@@ -46,7 +54,7 @@ class LoginRequest extends FormRequest
             ->where('staff_id', $this->staff_id)
             ->first();
 
-        if (! $user) {
+        if (! $user || ! Hash::check((string) $this->password, (string) $user->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

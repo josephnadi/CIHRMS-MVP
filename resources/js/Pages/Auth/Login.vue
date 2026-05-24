@@ -15,12 +15,13 @@ const ssoProviders = computed(() => page.props.ssoProviders ?? []);
 const form = useForm({
     name:     '',
     staff_id: '',
+    password: '',
     remember: false,
 });
 
 const submit = () => {
     form.post(route('login'), {
-        onFinish: () => form.reset('staff_id'),
+        onFinish: () => form.reset('password'),
     });
 };
 </script>
@@ -52,7 +53,7 @@ const submit = () => {
             Welcome <em>back.</em>
         </h2>
         <p class="auth-deck">
-            Name and staff number, please.
+            Name, staff number, and password.
         </p>
 
         <!-- Status flash -->
@@ -93,6 +94,19 @@ const submit = () => {
                            class="field-input field-input-mono" />
                 </div>
                 <p v-if="form.errors.staff_id" class="field-error">{{ form.errors.staff_id }}</p>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <label for="password" class="field-label">
+                    <span>Password</span>
+                </label>
+                <input id="password" type="password"
+                       v-model="form.password"
+                       autocomplete="current-password" required
+                       placeholder="••••••••"
+                       class="field-input" />
+                <p v-if="form.errors.password" class="field-error">{{ form.errors.password }}</p>
             </div>
 
             <!-- Remember + recover -->

@@ -799,6 +799,12 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::delete('/',        [TwoFactorController::class, 'disable'])       ->name('disable');
     });
 
+    // Admin → User management (create super_admin / CEO / role users)
+    Route::prefix('admin/users')->name('admin.users.')->middleware('permission:users.manage')->group(function () {
+        Route::get('/',   [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+        Route::post('/',  [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
+    });
+
     // Admin → Integrations marketplace + OAuth callbacks
     Route::prefix('admin/integrations')->name('admin.integrations.')->middleware('permission:integrations.manage')->group(function () {
         Route::get('/',                              [IntegrationController::class, 'index'])     ->name('index');
