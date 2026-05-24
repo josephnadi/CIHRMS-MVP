@@ -190,6 +190,10 @@ class RolePermissionSeeder extends Seeder
         'reconciliation.import' => ['Finance', 'Upload bank statement files'],
         'reconciliation.match'  => ['Finance', 'Link statement lines to AP payments / AR receipts'],
         'reconciliation.adjust' => ['Finance', 'Post bank fee or interest adjustment journal entries'],
+
+        // ── AI assistant (audit-v2 tier-3 supplement, item 28) ──
+        // Gates per-call LLM provider cost; executives + line management only.
+        'ai.use'                => ['AI', 'Use AI assistant features'],
     ];
 
     /**
@@ -226,6 +230,8 @@ class RolePermissionSeeder extends Seeder
             'announcements.manage',
             'reports.view',
             'integrations.manage', 'users.manage',
+            // AI assistant — executives + HR line management get LLM-backed tooling.
+            'ai.use',
         ],
         'manager' => [
             'dashboard.view', 'employees.view',
@@ -238,6 +244,8 @@ class RolePermissionSeeder extends Seeder
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
             'reports.view',
+            // AI assistant — line managers get LLM-backed tooling.
+            'ai.use',
         ],
         'dept_head' => [
             'dashboard.view', 'employees.view', 'employees.transfer',

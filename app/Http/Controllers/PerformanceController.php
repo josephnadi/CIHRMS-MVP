@@ -60,6 +60,16 @@ class PerformanceController extends Controller
 
     public function updateGoal(UpdateGoalRequest $request, Goal $goal): RedirectResponse
     {
+        // Ownership gate (audit-v2 tier-3 supplement, item 27):
+        // route is gated by `performance.view` for self-service so without this
+        // check any viewer could PATCH any other employee's goal. Managers
+        // (performance.manage) may update any goal; everyone else only their own.
+        abort_unless(
+            $request->user()->hasPermission('performance.manage')
+                || $goal->employee?->user_id === $request->user()->id,
+            403,
+        );
+
         $this->performance->updateGoal($goal, $request->validated());
         return back()->with('success', 'Goal updated.');
     }
@@ -77,6 +87,17 @@ class PerformanceController extends Controller
 
     public function storeCheckin(StoreCheckinRequest $request, Goal $goal): RedirectResponse
     {
+        // Ownership gate (audit-v2 tier-3 supplement, item 27):
+        // route is gated by `performance.view` for self-service so without this
+        // check any viewer could post a check-in on any other employee's goal.
+        // Managers (performance.manage) may check in on any goal; everyone else
+        // only on their own.
+        abort_unless(
+            $request->user()->hasPermission('performance.manage')
+                || $goal->employee?->user_id === $request->user()->id,
+            403,
+        );
+
         $this->performance->recordCheckin($goal, $request->validated(), $request->user()->id);
         return back()->with('success', 'Check-in recorded.');
     }

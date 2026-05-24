@@ -422,7 +422,11 @@ Route::middleware(['auth', 'audit'])->group(function () {
     });
 
     // AI assistant
-    Route::post('/ai/employee-summary', [AiAssistantController::class, 'summary'])->name('ai.employee-summary');
+    // Per-call provider cost makes this an abuse vector — gate by ai.use and
+    // throttle 30/min/user (audit-v2 tier-3 supplement, item 28).
+    Route::post('/ai/employee-summary', [AiAssistantController::class, 'summary'])
+        ->middleware(['permission:ai.use', 'throttle:30,1'])
+        ->name('ai.employee-summary');
 
     // ── Internal chat (employee-to-employee messaging) ──
     Route::prefix('chat')->name('chat.')->group(function () {
@@ -777,6 +781,13 @@ Route::middleware(['auth', 'audit'])->group(function () {
     });
 
     // ── Phase 5: Incident Reporting ──
+    // Submitter-driven routes (store / update / messages.store / and even
+    // assign+unassign — the submitter is allowed to pick/swap a reviewer on
+    // their own report per IncidentReportPolicy) remain policy-gated only.
+    // The genuinely reviewer-only mutations (close / reopen) get
+    // defence-in-depth `incidents.review` middleware in addition to the policy
+    // (audit-v2 tier-3 supplement, item 29) so a future refactor that drops
+    // $this->authorize() in the controller still leaves the route closed.
     Route::prefix('governance/incidents')->name('incidents.')->group(function () {
         Route::get('/',                                  [\App\Http\Controllers\IncidentReportController::class, 'index'])    ->name('index');
         Route::get('/{report}',                          [\App\Http\Controllers\IncidentReportController::class, 'show'])     ->name('show');
@@ -785,8 +796,10 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::post('/{report}/assign',                  [\App\Http\Controllers\IncidentReportController::class, 'assign'])   ->name('assign');
         Route::delete('/{report}/assign/{user}',         [\App\Http\Controllers\IncidentReportController::class, 'unassign']) ->name('unassign');
         Route::post('/{report}/messages',                [\App\Http\Controllers\IncidentReportController::class, 'postMessage'])->name('messages.store');
-        Route::post('/{report}/close',                   [\App\Http\Controllers\IncidentReportController::class, 'close'])    ->name('close');
-        Route::post('/{report}/reopen',                  [\App\Http\Controllers\IncidentReportController::class, 'reopen'])   ->name('reopen');
+        Route::post('/{report}/close',                   [\App\Http\Controllers\IncidentReportController::class, 'close'])
+            ->middleware('permission:incidents.review')->name('close');
+        Route::post('/{report}/reopen',                  [\App\Http\Controllers\IncidentReportController::class, 'reopen'])
+            ->middleware('permission:incidents.review')->name('reopen');
         Route::get('/attachments/{attachment}/download', [\App\Http\Controllers\IncidentReportController::class, 'downloadAttachment'])->name('attachments.download');
     });
 
