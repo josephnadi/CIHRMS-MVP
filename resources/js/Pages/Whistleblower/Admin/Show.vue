@@ -71,7 +71,7 @@ const editionLabel = computed(() => {
 
 <template>
     <Head :title="`Case ${R.case_number}`" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
 
             <Teleport to="#page-header-mount" defer>
                 <div class="space-y-2">

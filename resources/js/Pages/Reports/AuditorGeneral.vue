@@ -71,7 +71,7 @@ const nextDueLabel = computed(() => {
 
 <template>
     <Head title="Auditor-General Report Pack" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
 
             <Teleport to="#page-header-mount" defer>
                 <div class="space-y-2">
