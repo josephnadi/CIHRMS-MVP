@@ -70,6 +70,7 @@ class GovernanceService
         return DB::transaction(function () use ($version, $publisher, $effectiveFrom) {
             $effectiveCarbon = CarbonImmutable::instance($effectiveFrom);
 
+            $version->loadMissing('policy');
             $policy = $version->policy;
             if ($policy->current_version_id && $policy->current_version_id !== $version->id) {
                 PolicyVersion::where('id', $policy->current_version_id)

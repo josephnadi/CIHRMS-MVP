@@ -84,6 +84,7 @@ class PerformanceContractService
             throw new \DomainException('Contract is not pending signature.');
         }
 
+        $contract->loadMissing(['employee', 'supervisor']);
         $employee   = $contract->employee;
         $supervisor = $contract->supervisor;
 

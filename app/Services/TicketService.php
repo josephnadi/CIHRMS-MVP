@@ -82,9 +82,11 @@ class TicketService
             ->when($request->status,      fn ($q, $v) => $q->where('status', $v))
             ->when($request->priority,    fn ($q, $v) => $q->where('priority', $v))
             ->when($request->assigned_to, fn ($q, $v) => $q->where('assigned_to', $v))
+            // Cross-driver search: ilike is Postgres-only; LOWER() + LIKE works
+            // on SQLite (test runner), MySQL, and Postgres alike.
             ->when($request->search, fn ($q, $v) => $q->where(fn ($s) => $s
-                ->where('title', 'ilike', "%$v%")
-                ->orWhere('description', 'ilike', "%$v%")))
+                ->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower((string) $v).'%'])
+                ->orWhereRaw('LOWER(description) LIKE ?', ['%'.strtolower((string) $v).'%'])))
             ->when($request->boolean('overdue'), fn ($q) => $q->where('due_at', '<', now())
                 ->whereNotIn('status', [TicketStatus::Resolved->value, TicketStatus::Closed->value]))
             ->latest()

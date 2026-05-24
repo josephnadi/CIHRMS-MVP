@@ -78,6 +78,10 @@ class AssetService
         }
 
         return DB::transaction(function () use ($assignment, $to, $condition, $notes) {
+            // Eager-load asset so subsequent `$assignment->asset` reads don't
+            // trip Model::preventLazyLoading() in dev / test.
+            $assignment->loadMissing('asset');
+
             $assignment->update([
                 'returned_at'         => now(),
                 'returned_to'         => $to->id,
@@ -140,6 +144,8 @@ class AssetService
         }
 
         return DB::transaction(function () use ($maintenance, $by, $cost, $notes) {
+            $maintenance->loadMissing('asset');
+
             $maintenance->update([
                 'status'       => MaintenanceStatus::Completed,
                 'completed_at' => now(),

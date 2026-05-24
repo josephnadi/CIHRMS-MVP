@@ -109,6 +109,7 @@ class CalibrationService
         }
 
         return DB::transaction(function () use ($session, $applier) {
+            $session->loadMissing('adjustments');
             foreach ($session->adjustments as $adj) {
                 Review::where('id', $adj->review_id)->update([
                     'overall_rating' => $adj->adjusted_rating,

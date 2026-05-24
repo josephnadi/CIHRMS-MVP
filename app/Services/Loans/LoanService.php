@@ -168,6 +168,7 @@ class LoanService
     public function postRepayment(LoanRepayment $repayment, int $payrollRunId, ?int $payrollLineId = null): LoanAccount
     {
         if ($repayment->status === LoanRepaymentStatus::Paid) {
+            $repayment->loadMissing('loan');
             return $repayment->loan->fresh();
         }
 
