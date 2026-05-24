@@ -340,8 +340,10 @@ const filteredEmployees = computed(() => props.employees.filter((employee) =>
 
 const moduleLabel = computed(() => {
     if (props.activeModule === 'overview' || !props.activeModule) {
-        if (usePage().props.auth.user.role === 'employee') return 'Employee Portal';
-        if (usePage().props.auth.user.role === 'hr_admin') return 'HR Portal';
+        const role = usePage().props.auth.user.role;
+        if (role === 'employee') return 'Employee Portal';
+        if (role === 'hr_admin') return 'HR Portal';
+        if (role === 'ceo')      return 'Executive Dashboard';
         return 'Executive Overview';
     }
 
@@ -1617,7 +1619,7 @@ const getStatusColor = (status) => {
                                   :headcount-by-dept="headcountByDept" />
 
                     <!-- Admin / HR Executive Overview -->
-                    <section v-if="['super_admin', 'hr_admin'].includes($page.props.auth.user.role)" class="space-y-8 animate-reveal-up">
+                    <section v-if="['super_admin', 'ceo', 'hr_admin'].includes($page.props.auth.user.role)" class="space-y-8 animate-reveal-up">
 
                         <!-- Live KPI Cards with Sparklines — surfaced to the top so
                              numbers a director scans first are above the fold. -->

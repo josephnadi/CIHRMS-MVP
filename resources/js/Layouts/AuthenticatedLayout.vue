@@ -88,8 +88,11 @@ onBeforeUnmount(() => {
 const can = (permission) =>
     permissions.value.includes('*') || permissions.value.includes(permission);
 
+const PRIVILEGED_NAV_ROLES = ['super_admin', 'ceo', 'hr_admin'];
+const FULL_SYSTEM_NAV_ROLES = ['super_admin', 'ceo'];
+
 const navSections = computed(() => {
-    if (user.value?.role === 'super_admin' || user.value?.role === 'hr_admin') {
+    if (PRIVILEGED_NAV_ROLES.includes(user.value?.role)) {
         const sections = [
             {
                 title: '',
@@ -183,10 +186,11 @@ const navSections = computed(() => {
             });
         }
 
-        if (user.value?.role === 'super_admin') {
+        if (FULL_SYSTEM_NAV_ROLES.includes(user.value?.role)) {
             sections.push({
                 title: 'System',
                 items: [
+                    { label: 'User Management', route: 'admin.users.index',        module: 'admin-users',   icon: 'manage_accounts', visible: can('users.manage') },
                     { label: 'Notice Board',  route: 'announcements.index',       module: 'announcements', icon: 'campaign',  visible: true },
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: true },
                     { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
@@ -200,10 +204,11 @@ const navSections = computed(() => {
                     { label: 'Audit Logs',    route: 'modules.audit-logs',        module: 'audit-logs',    icon: 'history',   visible: true },
                 ]
             });
-        } else if (can('announcements.manage') || can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all') || can('privacy.fulfill') || can('api.token_manage') || can('api.webhooks_manage')) {
+        } else if (can('announcements.manage') || can('integrations.manage') || can('whistleblower.investigate') || can('whistleblower.view_all') || can('privacy.fulfill') || can('api.token_manage') || can('api.webhooks_manage') || can('users.manage')) {
             sections.push({
                 title: 'System',
                 items: [
+                    { label: 'User Management', route: 'admin.users.index',        module: 'admin-users',   icon: 'manage_accounts', visible: can('users.manage') },
                     { label: 'Notice Board',  route: 'announcements.index',       module: 'announcements', icon: 'campaign',  visible: can('announcements.manage') },
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: can('integrations.manage') },
                     { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },

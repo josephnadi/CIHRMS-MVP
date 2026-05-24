@@ -38,7 +38,7 @@ class DashboardController extends Controller
         // service (see DashboardService::STATS_TTL).
         $role = $user->role instanceof \BackedEnum ? $user->role->value : (string) ($user->role ?? '');
 
-        $financeSnapshot = in_array($role, ['finance_officer', 'super_admin', 'hr_admin'], true)
+        $financeSnapshot = in_array($role, ['finance_officer', 'super_admin', 'ceo', 'hr_admin'], true)
             ? $this->dashboard->getFinanceSnapshot()
             : null;
 
