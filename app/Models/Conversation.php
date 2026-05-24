@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Conversation extends Model
 {
@@ -51,6 +52,10 @@ class Conversation extends Model
      * Resolve (or create) the unique 1:1 conversation between two users.
      * Both sides see exactly the same conversation_id — we don't create
      * a second row when person B replies from their side.
+     *
+     * The DB::transaction + re-check under sharedLock closes the race where
+     * two concurrent "open chat with B" calls from A would otherwise both
+     * miss the existence check and create two conversations for the same pair.
      */
     public static function findOrCreateOneOnOne(User $a, User $b): self
     {
@@ -58,20 +63,36 @@ class Conversation extends Model
             throw new \DomainException('Cannot start a conversation with yourself.');
         }
 
-        // Reuse if one already exists for this pair.
-        $existing = static::query()
+        $finder = fn () => static::query()
             ->where('is_group', false)
             ->whereHas('participants', fn ($q) => $q->where('users.id', $a->id))
             ->whereHas('participants', fn ($q) => $q->where('users.id', $b->id))
             ->first();
 
-        if ($existing) {
+        // Cheap reuse path — no need to open a transaction if the row already exists.
+        if ($existing = $finder()) {
             return $existing;
         }
 
-        $conv = static::create(['is_group' => false]);
-        $conv->participants()->attach([$a->id, $b->id]);
-        return $conv;
+        return DB::transaction(function () use ($a, $b, $finder) {
+            // Re-check under a shared lock. If a concurrent caller created
+            // the conversation between our first check and the transaction
+            // opening, we return their row instead of creating a duplicate.
+            $existing = static::query()
+                ->where('is_group', false)
+                ->whereHas('participants', fn ($q) => $q->where('users.id', $a->id))
+                ->whereHas('participants', fn ($q) => $q->where('users.id', $b->id))
+                ->sharedLock()
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            $conv = static::create(['is_group' => false]);
+            $conv->participants()->attach([$a->id, $b->id]);
+            return $conv;
+        });
     }
 
     /** Return the "other" participant for 1:1 chats (or null for groups). */

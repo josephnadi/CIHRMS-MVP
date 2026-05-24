@@ -9,6 +9,7 @@ use App\Models\StaffPhonePin;
 use App\Services\Messaging\Sms\SmsDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -85,16 +86,23 @@ class MessagingController extends Controller
         $employee = Employee::findOrFail($data['employee_id']);
         $pinPlain = (string) random_int(1000, 9999);
 
-        StaffPhonePin::updateOrCreate(
-            ['employee_id' => $employee->id],
-            [
-                'phone'           => $data['phone'],
-                'pin_hash'        => Hash::make($pinPlain),
-                'pin_expires_at'  => $data['validity_days'] ? now()->addDays((int) $data['validity_days']) : null,
-                'failed_attempts' => 0,
-                'locked_until'    => null,
-            ],
-        );
+        // Persist the PIN rotation in its own transaction; only dispatch the
+        // SMS after the commit succeeds. If the SMS provider then throws, the
+        // PIN is still rotated (and the employee can be resent the new code) —
+        // the previous order risked rotating the PIN, failing the SMS, and
+        // locking the employee out of USSD self-service.
+        DB::transaction(function () use ($employee, $data, $pinPlain) {
+            StaffPhonePin::updateOrCreate(
+                ['employee_id' => $employee->id],
+                [
+                    'phone'           => $data['phone'],
+                    'pin_hash'        => Hash::make($pinPlain),
+                    'pin_expires_at'  => $data['validity_days'] ? now()->addDays((int) $data['validity_days']) : null,
+                    'failed_attempts' => 0,
+                    'locked_until'    => null,
+                ],
+            );
+        });
 
         $this->sms->send(
             toPhone:     $data['phone'],

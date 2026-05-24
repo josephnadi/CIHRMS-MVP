@@ -11,6 +11,9 @@ use App\Models\Applicant;
 use App\Models\JobPosting;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class RecruitmentService
 {
@@ -24,14 +27,28 @@ class RecruitmentService
 
     public function apply(ApplyJobRequest $request, JobPosting $jobPosting): Applicant
     {
-        return $jobPosting->applicants()->create([
-            'name'    => $request->validated('name'),
-            'email'   => $request->validated('email'),
-            'cv_path' => $request->hasFile('cv')
-                ? $request->file('cv')->store('applicant-cvs', 'public')
-                : null,
-            'status'  => ApplicantStatus::Applied,
-        ]);
+        // Store the CV first, then attempt the DB insert inside a transaction.
+        // If the insert (or any subsequent step inside the txn) throws, delete
+        // the now-orphaned file so we don't leak storage on rollback.
+        $cvPath = $request->hasFile('cv')
+            ? $request->file('cv')->store('applicant-cvs', 'public')
+            : null;
+
+        try {
+            return DB::transaction(function () use ($request, $jobPosting, $cvPath) {
+                return $jobPosting->applicants()->create([
+                    'name'    => $request->validated('name'),
+                    'email'   => $request->validated('email'),
+                    'cv_path' => $cvPath,
+                    'status'  => ApplicantStatus::Applied,
+                ]);
+            });
+        } catch (Throwable $e) {
+            if ($cvPath) {
+                Storage::disk('public')->delete($cvPath);
+            }
+            throw $e;
+        }
     }
 
     public function listPostings(bool $openOnly = false): Collection
