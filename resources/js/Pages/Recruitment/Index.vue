@@ -4,7 +4,8 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
-import StatusPill, { STATUS_PILL_REGISTRY } from '@/Components/StatusPill.vue';
+import StatusPill from '@/Components/StatusPill.vue';
+import { STATUS_PILL_REGISTRY } from '@/Components/statusPillRegistry.js';
 
 
 defineOptions({ layout: AuthenticatedLayout });
