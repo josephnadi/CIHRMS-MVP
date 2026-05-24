@@ -77,69 +77,79 @@ class DatabaseSeeder extends Seeder
 
     private function seedFixedAccounts(): void
     {
+        // All fixed accounts are seeded with password "password" + flagged for
+        // forced password change on first login (PR #34 added the gate).
+        // Re-running this seeder re-resets the password — useful when a dev
+        // has changed theirs and locked themselves out of the documented creds.
         $admin = User::updateOrCreate(
             ['email' => 'admin@cihrms.local'],
             [
-                'name'        => 'Super Admin',
-                'staff_id'    => 'ADMIN-001',
-                'role'        => 'super_admin',
-                'permissions' => ['*'],
-                'password'    => bcrypt('password'),
+                'name'                 => 'Super Admin',
+                'staff_id'             => 'ADMIN-001',
+                'role'                 => 'super_admin',
+                'permissions'          => ['*'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
             ]
         );
 
         $hrAdmin = User::updateOrCreate(
             ['email' => 'hr@cihrms.local'],
             [
-                'name'        => 'HR Manager',
-                'staff_id'    => 'HR-001',
-                'role'        => 'hr_admin',
-                'permissions' => User::ROLE_PERMISSIONS['hr_admin'],
-                'password'    => bcrypt('password'),
+                'name'                 => 'HR Manager',
+                'staff_id'             => 'HR-001',
+                'role'                 => 'hr_admin',
+                'permissions'          => User::ROLE_PERMISSIONS['hr_admin'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
             ]
         );
 
         $employeeUser = User::updateOrCreate(
             ['email' => 'employee@cihrms.local'],
             [
-                'name'        => 'Akua Mensah',
-                'staff_id'    => 'GH-HR-821',
-                'role'        => 'employee',
-                'permissions' => User::ROLE_PERMISSIONS['employee'],
-                'password'    => bcrypt('password'),
+                'name'                 => 'Akua Mensah',
+                'staff_id'             => 'GH-HR-821',
+                'role'                 => 'employee',
+                'permissions'          => User::ROLE_PERMISSIONS['employee'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
             ]
         );
 
         $finance = User::updateOrCreate(
             ['email' => 'finance@cihrms.local'],
             [
-                'name'        => 'Kofi Asante',
-                'staff_id'    => 'FIN-001',
-                'role'        => 'finance_officer',
-                'permissions' => User::ROLE_PERMISSIONS['finance_officer'],
-                'password'    => bcrypt('password'),
+                'name'                 => 'Kofi Asante',
+                'staff_id'             => 'FIN-001',
+                'role'                 => 'finance_officer',
+                'permissions'          => User::ROLE_PERMISSIONS['finance_officer'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
             ]
         );
 
         $it = User::updateOrCreate(
             ['email' => 'it@cihrms.local'],
             [
-                'name'        => 'Yaw Boateng',
-                'staff_id'    => 'IT-001',
-                'role'        => 'it_support',
-                'permissions' => User::ROLE_PERMISSIONS['it_support'],
-                'password'    => bcrypt('password'),
+                'name'                 => 'Yaw Boateng',
+                'staff_id'             => 'IT-001',
+                'role'                 => 'it_support',
+                'permissions'          => User::ROLE_PERMISSIONS['it_support'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
             ]
         );
 
         $marketing = User::updateOrCreate(
             ['email' => 'marketing@cihrms.local'],
             [
-                'name'        => 'Ama Owusu',
-                'staff_id'    => 'MKT-001',
-                'role'        => 'marketing',
-                'permissions' => User::ROLE_PERMISSIONS['marketing'],
-                'password'    => bcrypt('password'),
+                'name'                 => 'Ama Owusu',
+                'staff_id'             => 'MKT-001',
+                'role'                 => 'marketing',
+                'permissions'          => User::ROLE_PERMISSIONS['marketing'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
             ]
         );
 
