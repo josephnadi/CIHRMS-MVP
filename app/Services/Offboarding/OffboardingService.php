@@ -21,6 +21,7 @@ use App\Models\LoanAccount;
 use App\Models\LoanRepayment;
 use App\Models\OffboardingCase;
 use App\Models\User;
+use App\Services\Finance\SequenceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -55,7 +56,10 @@ class OffboardingService
         [ClearanceArea::Pension,      'SSNIT discharge form filed; Tier-2 trustee notified', true],
     ];
 
-    public function __construct(private readonly FinalSettlementCalculator $calculator) {}
+    public function __construct(
+        private readonly FinalSettlementCalculator $calculator,
+        private readonly SequenceService $sequences,
+    ) {}
 
     public function initiate(
         Employee $employee,
@@ -403,9 +407,9 @@ class OffboardingService
 
     private function nextReference(): string
     {
-        $year  = now()->year;
-        $count = OffboardingCase::whereYear('created_at', $year)->count() + 1;
-        return sprintf('OFF-%04d-%05d', $year, $count);
+        $year = now()->year;
+        $n    = $this->sequences->next("offboarding:{$year}");
+        return sprintf('OFF-%04d-%05d', $year, $n);
     }
 
     private function toDateString(\DateTimeInterface|string $d): string

@@ -10,6 +10,7 @@ use App\Models\DocumentEvent;
 use App\Models\DocumentRoute;
 use App\Models\DocumentVersion;
 use App\Models\User;
+use App\Services\Finance\SequenceService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,28 +19,22 @@ class DocumentService
 {
     private const DISK = 'local';
 
+    public function __construct(private readonly SequenceService $sequences) {}
+
     public function upload(UploadedFile $file, array $attrs, User $owner): Document
     {
         return DB::transaction(function () use ($file, $attrs, $owner) {
-            // Up to 3 attempts to handle the rare ref_no collision under concurrency.
-            $doc = null;
-            for ($attempt = 1; $attempt <= 3; $attempt++) {
-                try {
-                    $doc = Document::create([
-                        'ref_no'          => $this->nextRefNo(),
-                        'title'           => $attrs['title'],
-                        'description'    => $attrs['description'] ?? null,
-                        'owner_id'        => $owner->id,
-                        'status'          => DocumentStatus::Draft,
-                        'confidentiality' => $attrs['confidentiality'] ?? 'internal',
-                        'tags'            => $attrs['tags'] ?? null,
-                    ]);
-                    break;
-                } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-                    if ($attempt === 3) throw $e;
-                    usleep(50_000 * $attempt); // brief backoff
-                }
-            }
+            // SequenceService row-locks the counter, so the historic retry
+            // loop on ref_no collisions is no longer required.
+            $doc = Document::create([
+                'ref_no'          => $this->nextRefNo(),
+                'title'           => $attrs['title'],
+                'description'    => $attrs['description'] ?? null,
+                'owner_id'        => $owner->id,
+                'status'          => DocumentStatus::Draft,
+                'confidentiality' => $attrs['confidentiality'] ?? 'internal',
+                'tags'            => $attrs['tags'] ?? null,
+            ]);
 
             $version = $this->storeVersion($doc, $file, $owner, versionNo: 1);
             $doc->update(['current_version_id' => $version->id]);
@@ -235,17 +230,10 @@ class DocumentService
 
     private function nextRefNo(): string
     {
-        // PostgreSQL forbids `FOR UPDATE` on aggregate queries (`count()`),
-        // so we cannot serialize on the row read here. Concurrency safety is
-        // therefore delegated to the unique `ref_no` constraint + the retry
-        // loop in `upload()`: if two transactions compute the same count,
-        // the second's INSERT raises a `UniqueConstraintViolationException`,
-        // the retry recomputes the count (now including the first row), and
-        // proceeds. Three attempts is empirically more than enough — a fourth
-        // collision would mean three concurrent uploaders in the same year,
-        // which is exceedingly rare for institutional documents.
+        // Concurrency safety is guaranteed by SequenceService row-locking
+        // the counter for `document_ref:{year}` — no retry loop required.
         $year = now()->year;
-        $count = Document::whereYear('created_at', $year)->count() + 1;
-        return sprintf('CIHRMS/DOC/%d/%04d', $year, $count);
+        $n    = $this->sequences->next("document_ref:{$year}");
+        return sprintf('CIHRMS/DOC/%d/%04d', $year, $n);
     }
 }
