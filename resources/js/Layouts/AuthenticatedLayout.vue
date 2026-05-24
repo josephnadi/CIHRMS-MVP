@@ -657,6 +657,7 @@ const quickActions = computed(() => [
                                             v-for="child in item.children.filter(c => c.visible)"
                                             :key="child.label"
                                             :href="resolveHref(child)"
+                                            prefetch="hover"
                                             class="flex items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-[12.5px] font-semibold transition-all duration-150"
                                             :class="navItemClass(child)"
                                             :style="navItemStyle(child)"
@@ -673,6 +674,7 @@ const quickActions = computed(() => [
                             <Link
                                 v-else
                                 :href="resolveHref(item)"
+                                prefetch="hover"
                                 class="group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-150"
                                 :class="navItemClass(item)"
                                 :style="navItemStyle(item)"
@@ -826,6 +828,7 @@ const quickActions = computed(() => [
                                         <Link
                                             v-for="m in appSwitcherItems" :key="m.label"
                                             :href="m.href"
+                                            prefetch="hover"
                                             class="group flex flex-col items-center gap-1.5 rounded-xl p-2.5 border transition-all duration-150 hover:-translate-y-0.5"
                                             :class="isAppActive(m)
                                                 ? 'border-secondary/30 bg-secondary/5'
@@ -870,6 +873,7 @@ const quickActions = computed(() => [
                                         <Link
                                             v-for="a in quickActions" :key="a.label"
                                             :href="a.href"
+                                            prefetch="hover"
                                             class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-on-surface hover:bg-secondary/[0.06] transition-colors"
                                         >
                                             <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
@@ -951,6 +955,7 @@ const quickActions = computed(() => [
                                 v-for="item in allNavItems.filter(n => n.visible)"
                                 :key="`mobile-${item.label}`"
                                 :href="resolveHref(item)"
+                                prefetch="hover"
                                 class="flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold transition-all"
                                 :class="isItemActive(item)
                                     ? 'bg-secondary text-white shadow-glow-sm'
