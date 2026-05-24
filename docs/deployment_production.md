@@ -85,6 +85,44 @@ SESSION_SECURE_COOKIE=true
 SESSION_SAME_SITE=lax
 ```
 
+## 8a. Password requirement & pre-launch reset
+
+PR #34 added a `password` requirement to `/login`. Before that, the form accepted `name + staff_id` and authenticated anyone who knew both. Any production account that was created against the legacy flow and never given a password hash will be **locked out** as soon as the new code ships. Same for accounts still carrying the dev-default password "password".
+
+`php artisan users:issue-password-resets` handles both cases.
+
+```bash
+# 1. Dry-run — list affected users without writing anything.
+php artisan users:issue-password-resets --dry-run
+
+# 2. Also surface anyone still using the dev-default "password".
+php artisan users:issue-password-resets --dry-run --include-default-password
+
+# 3. Real run: print reset URLs for the operator to distribute via your secure channel
+#    (1Password, internal email signed by the security officer, etc.).
+php artisan users:issue-password-resets --include-default-password
+
+# 4. Or have Laravel email the standard reset link (requires MAIL_* configured).
+php artisan users:issue-password-resets --email --include-default-password
+
+# 5. Skip specific staff IDs (e.g. the break-glass admin account).
+php artisan users:issue-password-resets --exclude=ADMIN-001,SVC-001
+```
+
+Per affected user, the command:
+
+- Sets `password_must_change = true` — the password-change wall fires on first login after the reset.
+- Generates a single-use Laravel password-reset token (the same broker the public `/forgot-password` flow uses).
+- Either prints the reset URL or emails the standard `ResetPassword` notification.
+
+**Pre-launch checklist:**
+
+- [ ] Confirm `MAIL_*` is configured (only if you intend to use `--email`).
+- [ ] Run `--dry-run --include-default-password` against the production DB and review the list.
+- [ ] Run the real command **after** PR #34 is in main but **before** the new login is exposed to staff.
+- [ ] Distribute reset URLs via a secure channel (do NOT paste into a shared chat).
+- [ ] Optionally re-run weekly until everyone has changed their password — `password_must_change` blocks the dashboard until they do.
+
 ## 8. CSA / DPC registration
 
 Two outstanding compliance prerequisites before any government pilot:
