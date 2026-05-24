@@ -4,6 +4,7 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
+import StatusPill, { STATUS_PILL_REGISTRY } from '@/Components/StatusPill.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import LiveBars from '@/Components/charts/LiveBars.vue';
@@ -87,16 +88,11 @@ const clearFilters = () => {
     applyFilters();
 };
 
-// ── Status meta (palette-aligned) ──
-const statusMeta = (s) => ({
-    pending_approval: { label: 'Pending',   bg: 'bg-amber-50 text-amber-700 border-amber-200',  dot: '#d97706' },
-    approved:         { label: 'Approved',  bg: 'bg-cyan-50 text-cyan-700 border-cyan-200',     dot: '#12d9e3' },
-    disbursed:        { label: 'Disbursed', bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#1a237e' },
-    repaying:         { label: 'Repaying',  bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#3949ab' },
-    paid_off:         { label: 'Paid off',  bg: 'bg-green-50 text-green-700 border-green-200',  dot: '#059669' },
-    fully_repaid:     { label: 'Repaid',    bg: 'bg-green-50 text-green-700 border-green-200',  dot: '#059669' },
-    rejected:         { label: 'Rejected',  bg: 'bg-red-50 text-red-700 border-red-200',        dot: '#dc2626' },
-}[s] ?? { label: s, bg: 'bg-slate-100 text-slate-600 border-slate-200', dot: '#64748b' });
+// ── Status dot helper (palette-aligned) ──
+// Colours/labels live in the shared <StatusPill> registry. We only read the
+// dot hex here to drive the card's left-border accent (the pill itself is
+// rendered by <StatusPill>).
+const statusDot = (s) => (STATUS_PILL_REGISTRY[s] ?? { dot: '#64748b' }).dot;
 
 // ── Editorial-Sovereign masthead ──────────────────────────────────
 // Volume = years since CIHRM-GH platform inception (2023). Issue = day-of-year.
@@ -444,7 +440,7 @@ const repayPct = (loan) => {
                     <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-2 p-5">
                         <div v-for="(loan, i) in loanRows" :key="loan.id"
                              class="group rounded-2xl border border-outline-variant/60 bg-surface-container-low/30 p-5 flex flex-col gap-4 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-secondary/30"
-                             :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.04}s;border-left:3px solid ${statusMeta(loan.status).dot};`"
+                             :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.04}s;border-left:3px solid ${statusDot(loan.status)};`"
                              @click="router.get(route('loans.show', loan.id))">
 
                             <!-- Employee + status -->
@@ -456,11 +452,7 @@ const repayPct = (loan) => {
                                     <p class="text-[13.5px] font-bold text-primary leading-tight truncate">{{ loan.employee?.name ?? '—' }}</p>
                                     <p class="text-[10.5px] font-mono text-on-surface-variant/70 leading-tight">{{ loan.employee?.employee_no ?? loan.reference ?? '—' }}</p>
                                 </div>
-                                <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider"
-                                      :class="statusMeta(loan.status).bg">
-                                    <span class="h-1.5 w-1.5 rounded-full" :style="`background:${statusMeta(loan.status).dot}`"></span>
-                                    {{ statusMeta(loan.status).label }}
-                                </span>
+                                <StatusPill :status="loan.status" />
                             </div>
 
                             <!-- Product row -->

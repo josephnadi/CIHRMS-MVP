@@ -113,8 +113,12 @@ const tone = (status) => ({
 
             <div class="space-y-5">
                 <!-- Tabs -->
-                <div class="inline-flex items-center gap-1 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-1 shadow-card">
+                <div class="inline-flex items-center gap-1 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-1 shadow-card"
+                     role="tablist" aria-label="Document categories">
                     <button v-for="t in TABS" :key="t.id" @click="setTab(t.id)"
+                            role="tab"
+                            :aria-selected="tab === t.id"
+                            :tabindex="tab === t.id ? 0 : -1"
                             :class="['rounded-xl px-4 py-2 text-[12px] font-black transition-all',
                                      tab === t.id ? 'bg-secondary/10 text-secondary' : 'text-on-surface-variant hover:text-primary']">
                         {{ t.label }}

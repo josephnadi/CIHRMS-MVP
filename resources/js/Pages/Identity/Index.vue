@@ -102,11 +102,19 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                 <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40 p-5">
                     <h2 class="text-sm font-semibold mb-3">Submit a new verification</h2>
                     <form @submit.prevent="submit" class="grid md:grid-cols-3 gap-3">
-                        <input v-model="form.employee_id" type="number" placeholder="Employee ID"
-                               class="rounded-lg border-outline-variant text-sm" required>
-                        <input v-model="form.ghana_card_number" placeholder="GHA-123456789-1"
-                               class="rounded-lg border-outline-variant text-sm" required>
-                        <PrimaryButton type="submit" :disabled="form.processing">Verify</PrimaryButton>
+                        <div>
+                            <label for="identity-employee-id" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Employee ID</label>
+                            <input id="identity-employee-id" v-model="form.employee_id" type="number" placeholder="Employee ID"
+                                   class="w-full rounded-lg border-outline-variant text-sm" required>
+                        </div>
+                        <div>
+                            <label for="identity-ghana-card" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Ghana Card number</label>
+                            <input id="identity-ghana-card" v-model="form.ghana_card_number" placeholder="GHA-123456789-1"
+                                   class="w-full rounded-lg border-outline-variant text-sm" required>
+                        </div>
+                        <div class="flex items-end">
+                            <PrimaryButton type="submit" :disabled="form.processing">Verify</PrimaryButton>
+                        </div>
                     </form>
 
                     <!-- Biometric evidence: live capture or file upload. The captured JPEG flows

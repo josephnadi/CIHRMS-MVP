@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import StatusPill, { STATUS_PILL_REGISTRY } from '@/Components/StatusPill.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -75,21 +76,15 @@ const submitPip = () => {
 };
 
 // ── Status config ─────────────────────────────────────────────────────────────
-// Status config — borders aligned with brand palette where appropriate.
-// in_progress = cobalt (action). extended = magenta (people-side process).
-const statusConfig = {
-    // Borders use the brand palette. Pills use semantic tailwind families
-    // that already pair with brand hex (gold/cyan/magenta/sky).
-    open:             { pill: 'bg-amber-50 text-amber-700 border-amber-200',     border: '#ffd700', label: 'Open'                  },
-    in_progress:      { pill: 'bg-blue-50 text-blue-700 border-blue-200',        border: '#1a237e', label: 'In Progress'           },
-    extended:         { pill: 'bg-rose-50 text-rose-700 border-rose-200',        border: '#d912e3', label: 'Extended'              },
-    succeeded:        { pill: 'bg-emerald-50 text-emerald-700 border-emerald-200', border: '#059669', label: 'Succeeded'           },
-    failed_demoted:   { pill: 'bg-amber-50 text-amber-700 border-amber-200',     border: '#d97706', label: 'Failed – Demoted'      },
-    failed_terminated:{ pill: 'bg-rose-50 text-rose-700 border-rose-200',        border: '#dc2626', label: 'Failed – Terminated'   },
-    cancelled:        { pill: 'bg-slate-100 text-slate-600 border-slate-200',    border: '#64748b', label: 'Cancelled'             },
+// Pill colours/labels live in the shared <StatusPill> registry. We only read
+// the dot hex here (renamed `border` for the card's left-border accent).
+// Pip-specific override: `open` shows a gold border (institutional accent for
+// a freshly-opened plan) rather than the registry's default amber dot.
+const PIP_BORDER_OVERRIDE = {
+    open: '#ffd700',
 };
-
-const getStatusCfg = (status) => statusConfig[status] ?? { pill: 'bg-surface-container text-on-surface-variant', border: '#9ca3af', label: status };
+const getStatusBorder = (status) =>
+    PIP_BORDER_OVERRIDE[status] ?? STATUS_PILL_REGISTRY[status]?.dot ?? '#9ca3af';
 
 // ── Progress helpers ──────────────────────────────────────────────────────────
 const daysElapsed = (openedOn, targetEnd) => {
@@ -298,7 +293,7 @@ const outcomeMix = computed(() => {
                         <!-- Severity left border -->
                         <div
                             class="absolute inset-y-0 left-0 w-1 rounded-l-2xl"
-                            :style="`background:${getStatusCfg(pip.status).border}`"
+                            :style="`background:${getStatusBorder(pip.status)}`"
                         ></div>
 
                         <div class="pl-5 pr-5 pt-5 pb-4">
@@ -317,10 +312,7 @@ const outcomeMix = computed(() => {
                                         </p>
                                     </div>
                                 </div>
-                                <span
-                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider whitespace-nowrap"
-                                    :class="getStatusCfg(pip.status).pill"
-                                >{{ pip.status_label ?? pip.status }}</span>
+                                <StatusPill :status="pip.status" :label="pip.status_label || null" />
                             </div>
 
                             <!-- Date range + overdue indicator -->

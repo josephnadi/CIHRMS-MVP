@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import StatusPill from '@/Components/StatusPill.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -45,17 +46,19 @@ const SEVERITY_META = {
 const sevMeta = (s) => SEVERITY_META[s] ?? { label: '—', cls: 'bg-slate-100 text-slate-500 border-slate-200', dot: '#94a3b8', accent: '#94a3b8' };
 
 // ── Status meta ──
+// Pill rendering is delegated to <StatusPill /> which sources colour, label,
+// dot and icon from the shared registry. We keep a slim STATUS_META here
+// purely so the filter dropdown can iterate { label } pairs.
 const STATUS_META = {
-    submitted:              { label: 'Submitted',          cls: 'bg-amber-50 text-amber-700 border-amber-200',   dot: '#ffd700', icon: 'inbox' },
-    triaged:                { label: 'Triaged',            cls: 'bg-cyan-50 text-cyan-700 border-cyan-200',      dot: '#12d9e3', icon: 'fact_check' },
-    investigating:          { label: 'Investigating',      cls: 'bg-blue-50 text-blue-700 border-blue-200',      dot: '#3949ab', icon: 'manage_search' },
-    evidence_gathering:     { label: 'Evidence',           cls: 'bg-blue-50 text-blue-700 border-blue-200',      dot: '#1a237e', icon: 'folder_managed' },
-    closed_substantiated:   { label: 'Substantiated',      cls: 'bg-rose-50 text-rose-700 border-rose-200',      dot: '#dc2626', icon: 'gavel' },
-    closed_unsubstantiated: { label: 'Unsubstantiated',    cls: 'bg-green-50 text-green-700 border-green-200',   dot: '#059669', icon: 'check_circle' },
-    closed_referred:        { label: 'Referred',           cls: 'bg-cyan-50 text-cyan-700 border-cyan-200',      dot: '#12d9e3', icon: 'forward' },
-    withdrawn:              { label: 'Withdrawn',          cls: 'bg-slate-100 text-slate-600 border-slate-200',  dot: '#64748b', icon: 'cancel' },
+    submitted:              { label: 'Submitted' },
+    triaged:                { label: 'Triaged' },
+    investigating:          { label: 'Investigating' },
+    evidence_gathering:     { label: 'Evidence' },
+    closed_substantiated:   { label: 'Substantiated' },
+    closed_unsubstantiated: { label: 'Unsubstantiated' },
+    closed_referred:        { label: 'Referred' },
+    withdrawn:              { label: 'Withdrawn' },
 };
-const statusMeta = (s) => STATUS_META[s] ?? { label: s ?? '—', cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: '#64748b', icon: 'circle' };
 
 // ── Category meta (palette-keyed) ──
 const CATEGORY_META = {
@@ -375,11 +378,7 @@ const editionLabel = computed(() => {
                                         <span v-else class="text-[11px] text-on-surface-variant/40 italic">untriaged</span>
                                     </td>
                                     <td class="px-6 py-3">
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider"
-                                              :class="statusMeta(r.status).cls">
-                                            <span class="material-symbols-outlined text-[11px]">{{ statusMeta(r.status).icon }}</span>
-                                            {{ statusMeta(r.status).label }}
-                                        </span>
+                                        <StatusPill :status="r.status" />
                                     </td>
                                     <td class="px-6 py-3">
                                         <p class="text-[12px] font-semibold text-on-surface">{{ formatDate(r.received_at) }}</p>
