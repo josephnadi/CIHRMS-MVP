@@ -38,5 +38,11 @@ createInertiaApp({
     },
     progress: {
         color: '#0d1452',
+        // Inertia defaults to a 250ms delay before the progress bar appears,
+        // which makes every sub-250ms click feel "dead" (no visual feedback
+        // happens at all) and adds 250ms of silence before slow clicks light
+        // up the bar. Showing the bar immediately makes navigation feel
+        // responsive even when the actual response time is the same.
+        delay: 0,
     },
 });
