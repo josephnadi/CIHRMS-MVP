@@ -198,28 +198,10 @@ class RolePermissionSeeder extends Seeder
      */
     private const ROLE_PERMS = [
         'super_admin' => null, // null = grant ALL permissions
-        'ceo' => [
-            'dashboard.view',
-            'employees.view', 'employees.view_salary',
-            'leave.approve', 'leave.manage',
-            'attendance.view',
-            'payroll.view', 'payroll.view_all', 'payroll.approve',
-            'loans.view', 'loans.approve',
-            'performance.calibrate',
-            'governance.view', 'governance.manage', 'governance.acknowledge',
-            'announcements.manage',
-            'reports.view',
-            'audit.view',
-            'positions.view',
-            'benefits.view', 'benefits.view_all',
-            // Finance read-only oversight across F1–F5
-            'finance.hub',
-            'accounts.view', 'bank_accounts.view',
-            'vendors.view', 'ap_invoices.view', 'journal.view',
-            'customers.view', 'ar_invoices.view', 'statements.view',
-            'gateway.view',
-            'reconciliation.view',
-        ],
+        // CEO mirrors super_admin permission-wise (full access). Kept as a
+        // distinct role for org-chart / audit / reporting reasons; the chief
+        // executive must not hit a permission wall on any module.
+        'ceo' => null,
         'hr_admin' => [
             'dashboard.view', 'employees.view', 'employees.manage', 'employees.transfer',
             'employees.view_salary',
@@ -418,6 +400,17 @@ class RolePermissionSeeder extends Seeder
         User::query()
             ->whereIn('role', ['super_admin', 'ceo', 'hr_admin', 'finance_officer'])
             ->update(['two_factor_required' => true]);
+
+        // 5. Backfill: any existing CEO / super-admin user gets the wildcard
+        // in their per-user permissions JSON so a curated set written before
+        // the role was promoted to full-access (e.g. by an earlier seed run
+        // or by Admin/UserController::store before this update) doesn't
+        // shadow the wildcard. The legacy fallback in User::ROLE_PERMISSIONS
+        // already covers hasPermission() reads — this just keeps the JSON
+        // column from showing stale data in the admin UI.
+        User::query()
+            ->whereIn('role', ['super_admin', 'ceo'])
+            ->update(['permissions' => json_encode(['*'])]);
 
         Cache::flush();
     }

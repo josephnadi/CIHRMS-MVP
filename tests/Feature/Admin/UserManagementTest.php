@@ -124,10 +124,10 @@ it('employee cannot create a user', function () {
     expect(User::where('email', 'h@cihrm.local')->exists())->toBeFalse();
 });
 
-it('CEO role has expected permission set', function () {
+it('CEO role has full access (wildcard, mirrors super_admin)', function () {
     $ceo = User::factory()->create(['role' => 'ceo']);
 
-    // Granted — strategic + governance + read-only finance
+    // Strategic + governance + read-only finance — kept from the original set
     expect($ceo->hasPermission('payroll.approve'))->toBeTrue();
     expect($ceo->hasPermission('loans.approve'))->toBeTrue();
     expect($ceo->hasPermission('governance.manage'))->toBeTrue();
@@ -136,11 +136,14 @@ it('CEO role has expected permission set', function () {
     expect($ceo->hasPermission('reconciliation.view'))->toBeTrue();
     expect($ceo->hasPermission('employees.view_salary'))->toBeTrue();
 
-    // NOT granted — day-to-day operator permissions
-    expect($ceo->hasPermission('employees.manage'))->toBeFalse();
-    expect($ceo->hasPermission('payroll.run'))->toBeFalse();
-    expect($ceo->hasPermission('loans.disburse'))->toBeFalse();
-    expect($ceo->hasPermission('ap_invoices.pay'))->toBeFalse();
-    expect($ceo->hasPermission('ar_invoices.write_off'))->toBeFalse();
-    expect($ceo->hasPermission('journal.post_manual'))->toBeFalse();
+    // Previously curated-out — now granted because CEO mirrors super_admin
+    expect($ceo->hasPermission('employees.manage'))->toBeTrue();
+    expect($ceo->hasPermission('payroll.run'))->toBeTrue();
+    expect($ceo->hasPermission('loans.disburse'))->toBeTrue();
+    expect($ceo->hasPermission('ap_invoices.pay'))->toBeTrue();
+    expect($ceo->hasPermission('ar_invoices.write_off'))->toBeTrue();
+    expect($ceo->hasPermission('journal.post_manual'))->toBeTrue();
+
+    // Wildcard implies any future permission too — including ones we haven't named.
+    expect($ceo->hasPermission('a-future-permission-we-have-not-defined'))->toBeTrue();
 });
