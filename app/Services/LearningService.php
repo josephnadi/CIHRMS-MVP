@@ -123,13 +123,19 @@ class LearningService
             $update['started_at'] = $enrolment->started_at ?? now();
         }
 
-        $enrolment->update($update);
+        // Wrap progress-bump and conditional completion in a single transaction
+        // so that a failure inside completeEnrolment (which has its own inner
+        // transaction → savepoint) rolls the progress update back too. This
+        // prevents the row from drifting to 100% with status still "Active".
+        return DB::transaction(function () use ($enrolment, $pct, $update) {
+            $enrolment->update($update);
 
-        if ($pct >= 100 && $enrolment->status !== EnrolmentStatus::Completed) {
-            $this->completeEnrolment($enrolment);
-        }
+            if ($pct >= 100 && $enrolment->status !== EnrolmentStatus::Completed) {
+                $this->completeEnrolment($enrolment);
+            }
 
-        return $enrolment->fresh(['course']);
+            return $enrolment->fresh(['course']);
+        });
     }
 
     public function completeEnrolment(Enrolment $enrolment, ?float $finalScore = null): Enrolment

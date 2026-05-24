@@ -51,7 +51,9 @@ class PositionService
             throw new \DomainException("Position {$position->code} is not fillable (status: {$position->status->value}).");
         }
 
-        // Headcount ceiling check
+        // First-pass ceiling check (cheap, no lock). Re-validated under lock
+        // inside the transaction below to close the TOCTOU window where two
+        // concurrent assigns both pass this gate.
         if ($position->grade_id && $position->department_id) {
             $fiscalYear = now()->year;
             $ceiling = EstablishmentCeiling::where('department_id', $position->department_id)
@@ -73,7 +75,36 @@ class PositionService
             }
         }
 
-        return DB::transaction(function () use ($position, $employee, $isActing, $reason) {
+        return DB::transaction(function () use ($position, $employee, $actor, $isActing, $reason) {
+            // Re-fetch the position under a row lock and re-validate the
+            // ceiling inside the transaction. This guards against two
+            // concurrent assigns that both passed the cheap pre-check above
+            // and would otherwise overshoot the approved headcount by one.
+            $locked = Position::whereKey($position->id)->lockForUpdate()->first();
+
+            if ($locked && $locked->grade_id && $locked->department_id) {
+                $fiscalYear = now()->year;
+                $ceiling = EstablishmentCeiling::where('department_id', $locked->department_id)
+                    ->where('grade_id', $locked->grade_id)
+                    ->where('fiscal_year', $fiscalYear)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($ceiling) {
+                    $filled = Position::where('department_id', $locked->department_id)
+                        ->where('grade_id', $locked->grade_id)
+                        ->where('status', PositionStatus::Filled->value)
+                        ->lockForUpdate()
+                        ->count();
+
+                    if ($filled >= $ceiling->approved_headcount && ! $actor->hasPermission('establishment.exceed')) {
+                        throw new \DomainException(
+                            "Establishment ceiling of {$ceiling->approved_headcount} reached for this grade in this department for FY{$fiscalYear}."
+                        );
+                    }
+                }
+            }
+
             // Close prior active assignment for this employee
             $employee->positionAssignments()
                 ->whereNull('end_date')
