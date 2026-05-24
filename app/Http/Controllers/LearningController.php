@@ -105,6 +105,17 @@ class LearningController extends Controller
 
     public function recordProgress(RecordProgressRequest $request, Enrolment $enrolment): RedirectResponse
     {
+        // Ownership gate (audit-v2 tier-3 supplement, item 26):
+        // route is gated by `learning.view` for self-service, so without this
+        // guard any viewer could PATCH another employee's enrolment progress.
+        // L&D admins (learning.manage) may update anyone; everyone else only
+        // their own enrolment.
+        abort_unless(
+            $request->user()->hasPermission('learning.manage')
+                || $enrolment->employee_id === $request->user()->employee?->id,
+            403,
+        );
+
         $this->learning->recordProgress($enrolment, (float) $request->input('progress_pct'));
 
         if ($request->filled('final_score')) {

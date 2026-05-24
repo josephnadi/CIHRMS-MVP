@@ -83,6 +83,8 @@ class User extends Authenticatable
             // HR sees every department portal for cross-functional oversight.
             'portal.hr', 'portal.it', 'portal.finance', 'portal.marketing',
             'portal.membership', 'portal.pcp', 'portal.cpd', 'portal.administration',
+            // AI assistant — executives + HR line management get LLM-backed tooling.
+            'ai.use',
         ],
         'manager' => [
             'dashboard.view', 'employees.view',
@@ -97,6 +99,8 @@ class User extends Authenticatable
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
             'reports.view',
+            // AI assistant — line managers get LLM-backed tooling.
+            'ai.use',
         ],
         'dept_head' => [
             'dashboard.view', 'employees.view', 'employees.transfer',
