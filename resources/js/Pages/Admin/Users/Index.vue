@@ -7,13 +7,16 @@ import SlidePanel from '@/Components/SlidePanel.vue';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    users: { type: Object, required: true },
-    roles: { type: Array,  default: () => [] },
+    users:       { type: Object, required: true },
+    roles:       { type: Array,  default: () => [] },
+    departments: { type: Array,  default: () => [] },
 });
 
 const rows = computed(() => props.users.data ?? []);
 
 const PRIVILEGED = ['super_admin', 'ceo', 'hr_admin', 'finance_officer'];
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 const showCreate = ref(false);
 const form = useForm({
@@ -24,6 +27,12 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     two_factor_required: false,
+    // Employee profile (required — without this the new account 404s on HR features)
+    department_id: null,
+    position: '',
+    hire_date: today(),
+    phone: '',
+    employee_no: '', // optional; auto-generated as CIHRM-#### if blank
 });
 
 const privilegedSelected = computed(() => PRIVILEGED.includes(form.role));
@@ -31,6 +40,7 @@ const privilegedSelected = computed(() => PRIVILEGED.includes(form.role));
 const openCreate = () => {
     form.reset();
     form.role = 'employee';
+    form.hire_date = today();
     showCreate.value = true;
 };
 
@@ -169,6 +179,51 @@ const rolePillClass = (slug) => {
                         <span v-if="privilegedSelected" class="block text-[10px] font-bold text-amber-700">Automatically required for {{ roleLabel(form.role) }}.</span>
                     </span>
                 </label>
+
+                <div class="border-t border-outline-variant/40 pt-4">
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant/70 mb-3">Employee profile (required)</p>
+                    <p class="text-[11px] text-on-surface-variant mb-3">Without this, the new account 404s on Attendance, Leave, Profile, and other HR features.</p>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Department</label>
+                            <select v-model.number="form.department_id" required
+                                    class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
+                                <option :value="null">— select —</option>
+                                <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+                            </select>
+                            <p v-if="form.errors.department_id" class="mt-1 text-[11px] text-rose-700">{{ form.errors.department_id }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Position / title</label>
+                            <input v-model="form.position" type="text" required maxlength="120"
+                                   placeholder="Chief Executive Officer"
+                                   class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                            <p v-if="form.errors.position" class="mt-1 text-[11px] text-rose-700">{{ form.errors.position }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Hire date</label>
+                            <input v-model="form.hire_date" type="date" required
+                                   class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                            <p v-if="form.errors.hire_date" class="mt-1 text-[11px] text-rose-700">{{ form.errors.hire_date }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Phone (optional)</label>
+                            <input v-model="form.phone" type="text" maxlength="32" placeholder="+233200000000"
+                                   class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Employee number (optional)</label>
+                        <input v-model="form.employee_no" type="text" maxlength="32" placeholder="Leave blank to auto-generate (CIHRM-####)"
+                               class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px] font-mono" />
+                        <p v-if="form.errors.employee_no" class="mt-1 text-[11px] text-rose-700">{{ form.errors.employee_no }}</p>
+                    </div>
+                </div>
 
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" @click="showCreate = false"
