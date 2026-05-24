@@ -38,7 +38,7 @@ class TicketController extends Controller
 
     private function supportStaff(): array
     {
-        return User::whereIn('role', ['it_support', 'hr_admin', 'super_admin', 'manager'])
+        return User::whereIn('role', ['it_support', 'hr_admin', 'super_admin', 'ceo', 'manager'])
             ->select(['id', 'name', 'role'])
             ->orderBy('name')
             ->get()

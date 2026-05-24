@@ -396,6 +396,7 @@ const getStatusColor = (status) => {
                             <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
                                 <template v-if="$page.props.auth.user.role === 'employee'">Access your personal institutional records and services.</template>
                                 <template v-else-if="$page.props.auth.user.role === 'hr_admin'">Manage workforce operations, recruitment, and compliance.</template>
+                                <template v-else-if="$page.props.auth.user.role === 'ceo'">Executive overview — institution-wide KPIs, approvals, and audit signal.</template>
                                 <template v-else>Real-time institutional performance metrics and workforce intelligence.</template>
                             </p>
                         </div>

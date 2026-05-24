@@ -103,7 +103,7 @@ class WhistleblowerAdminController extends Controller
 
         return Inertia::render('Whistleblower/Admin/Show', [
             'report'       => new WhistleblowerReportResource($report),
-            'investigators' => User::whereIn('role', ['super_admin', 'auditor', 'hr_admin'])
+            'investigators' => User::whereIn('role', ['super_admin', 'ceo', 'auditor', 'hr_admin'])
                 ->orderBy('name')->get(['id', 'name', 'role']),
             'activeModule' => 'whistleblower',
         ]);
