@@ -50,6 +50,28 @@ class User extends Authenticatable
      */
     public const ROLE_PERMISSIONS = [
         'super_admin' => ['*'],
+        'ceo' => [
+            'dashboard.view',
+            'employees.view', 'employees.view_salary',
+            'leave.approve', 'leave.manage',
+            'attendance.view',
+            'payroll.view', 'payroll.view_all', 'payroll.approve',
+            'loans.view', 'loans.approve',
+            'performance.calibrate',
+            'governance.view', 'governance.manage', 'governance.acknowledge',
+            'announcements.manage',
+            'reports.view',
+            'audit.view',
+            'positions.view',
+            'benefits.view', 'benefits.view_all',
+            // Finance read-only oversight across F1–F5
+            'finance.hub',
+            'accounts.view', 'bank_accounts.view',
+            'vendors.view', 'ap_invoices.view', 'journal.view',
+            'customers.view', 'ar_invoices.view', 'statements.view',
+            'gateway.view',
+            'reconciliation.view',
+        ],
         'hr_admin' => [
             'dashboard.view', 'employees.view', 'employees.manage', 'employees.transfer',
             'employees.view_salary',

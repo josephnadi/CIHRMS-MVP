@@ -198,6 +198,28 @@ class RolePermissionSeeder extends Seeder
      */
     private const ROLE_PERMS = [
         'super_admin' => null, // null = grant ALL permissions
+        'ceo' => [
+            'dashboard.view',
+            'employees.view', 'employees.view_salary',
+            'leave.approve', 'leave.manage',
+            'attendance.view',
+            'payroll.view', 'payroll.view_all', 'payroll.approve',
+            'loans.view', 'loans.approve',
+            'performance.calibrate',
+            'governance.view', 'governance.manage', 'governance.acknowledge',
+            'announcements.manage',
+            'reports.view',
+            'audit.view',
+            'positions.view',
+            'benefits.view', 'benefits.view_all',
+            // Finance read-only oversight across F1–F5
+            'finance.hub',
+            'accounts.view', 'bank_accounts.view',
+            'vendors.view', 'ap_invoices.view', 'journal.view',
+            'customers.view', 'ar_invoices.view', 'statements.view',
+            'gateway.view',
+            'reconciliation.view',
+        ],
         'hr_admin' => [
             'dashboard.view', 'employees.view', 'employees.manage', 'employees.transfer',
             'employees.view_salary',
@@ -334,6 +356,7 @@ class RolePermissionSeeder extends Seeder
 
     private const ROLE_LABELS = [
         'super_admin'     => 'Super Administrator',
+        'ceo'             => 'Chief Executive Officer',
         'hr_admin'        => 'HR Administrator',
         'manager'         => 'Line Manager',
         'dept_head'       => 'Department Head',
@@ -389,9 +412,11 @@ class RolePermissionSeeder extends Seeder
             ]);
         });
 
-        // 4. Phase 1 — flag privileged roles as 2FA-required.
+        // 4. Phase 1 — flag privileged roles as 2FA-required. CEO included
+        // because executive sign-offs (payroll.approve, loans.approve) carry
+        // material financial weight and warrant a second factor.
         User::query()
-            ->whereIn('role', ['super_admin', 'hr_admin', 'finance_officer'])
+            ->whereIn('role', ['super_admin', 'ceo', 'hr_admin', 'finance_officer'])
             ->update(['two_factor_required' => true]);
 
         Cache::flush();
