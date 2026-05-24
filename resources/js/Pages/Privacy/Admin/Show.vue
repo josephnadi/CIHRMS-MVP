@@ -59,7 +59,7 @@ const editionLabel = computed(() => {
 
 <template>
     <Head :title="`DPA — ${R.reference}`" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
             <Teleport to="#page-header-mount" defer>
                 <div class="space-y-2">
                     <nav class="flex items-center gap-1.5 text-[12px] font-semibold text-on-surface-variant/60" aria-label="Breadcrumb">

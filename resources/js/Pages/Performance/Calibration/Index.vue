@@ -119,7 +119,7 @@ const editorialMetrics = computed(() => {
 
 <template>
     <Head title="Calibration Sessions" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>

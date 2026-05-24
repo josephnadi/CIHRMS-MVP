@@ -74,7 +74,7 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
 
 <template>
     <Head title="Ghana Card Verification" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
             <Teleport to="#page-header-mount" defer>
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
