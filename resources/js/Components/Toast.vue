@@ -1,24 +1,56 @@
 <script setup>
-import { computed, watch } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { onMounted, onBeforeUnmount } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
 
 const page = usePage();
 const { toasts: toastList, success, error, info, warning, dismiss } = useToast();
 
-// Bridge Inertia flash messages into the singleton queue.
-// Flash bag accepts: success | error | info | warning.
-watch(
-    () => page.props.flash,
-    (flash) => {
-        if (!flash) return;
-        if (flash.success) success(flash.success);
-        if (flash.error)   error(flash.error);
-        if (flash.info)    info(flash.info);
-        if (flash.warning) warning(flash.warning);
-    },
-    { deep: true, immediate: true }
-);
+// Bridge Inertia flash messages into the singleton queue. Flash bag
+// accepts: success | error | info | warning.
+//
+// Why not a `watch(page.props.flash, …, { deep, immediate })`:
+// The previous implementation used that pattern and produced two
+// regressions —
+//   1. Duplicate toasts on the same action (immediate + post-mount
+//      reactivity both fired the same payload).
+//   2. The toast re-appeared every time the user tabbed away and back,
+//      because Inertia re-emits the same `flash` object during partial
+//      reloads / visibility-triggered refreshes, which the deep-watch
+//      treated as a brand-new change.
+//
+// Fix: listen to discrete Inertia router events instead of reactive
+// props, and dedupe by the flash object reference. A WeakSet of
+// already-consumed references ensures the same payload can't fire
+// twice no matter how often Inertia re-hydrates it.
+const consumedFlashes = new WeakSet();
+
+function bridgeFlash(flash) {
+    if (! flash || typeof flash !== 'object') return;
+    if (consumedFlashes.has(flash)) return;
+    consumedFlashes.add(flash);
+
+    if (flash.success) success(flash.success);
+    if (flash.error)   error(flash.error);
+    if (flash.info)    info(flash.info);
+    if (flash.warning) warning(flash.warning);
+}
+
+let removeRouterListener = null;
+onMounted(() => {
+    // 1. Initial mount — surface any flash on the page that just loaded.
+    bridgeFlash(page.props.flash);
+    // 2. Subsequent Inertia requests — bridge exactly once per response.
+    //    `router.on('success')` fires only on actual navigations, not on
+    //    arbitrary prop reactivity, so tabbing away no longer triggers it.
+    removeRouterListener = router.on('success', (event) => {
+        bridgeFlash(event.detail.page.props.flash);
+    });
+});
+
+onBeforeUnmount(() => {
+    if (removeRouterListener) removeRouterListener();
+});
 
 // Per-type visual signature. Each variant pairs a palette-correct tile with
 // its own icon — the matching sound preset is fired in useToast.push().
