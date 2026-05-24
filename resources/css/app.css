@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Inertia.js navigation progress bar — thicker (3px) than the NProgress
+   default (2px) so it's actually visible above the obsidian sidebar at the
+   top of the viewport. Pairs with `delay: 0` in app.js for instant feedback
+   on every sidebar / Link click. */
+#nprogress .bar {
+    height: 3px !important;
+}
+#nprogress .peg {
+    box-shadow: 0 0 10px #0d1452, 0 0 5px #0d1452 !important;
+}
+
 /* ─── Design Token CSS Variables ─────────────────────────
    RGB triplet format so Tailwind opacity modifiers work:
    bg-background/80  â†’  rgb(var(--ct-background) / 0.8)
