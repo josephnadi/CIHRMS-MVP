@@ -4,6 +4,7 @@ import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -50,7 +51,13 @@ const totalWeight = computed(() => (C.value.kpis ?? []).reduce((s, k) => s + Num
                         <h2 class="font-semibold">Key Performance Indicators</h2>
                         <span class="text-xs text-on-surface-variant/60">Weights sum to {{ totalWeight }}%</span>
                     </div>
-                    <table class="w-full text-sm">
+                    <EmptyState
+                        v-if="!((C.kpis ?? []).length)"
+                        title="No KPIs defined"
+                        description="Add weighted KPIs to this performance contract before sending it for signature."
+                        icon="target"
+                    />
+                    <table v-else class="w-full text-sm">
                         <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">KPI</th>

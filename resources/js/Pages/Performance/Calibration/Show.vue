@@ -54,14 +54,14 @@ const act = (b) => Math.round(((props.actual_distribution     ?? {})[b] ?? 0) * 
                 <div class="flex items-center justify-between">
                     <div>
                         <Link :href="route('performance.calibration.index')" class="text-xs text-on-surface-variant/60 hover:underline">← All sessions</Link>
-                        <h1 class="text-2xl font-semibold tracking-tight">{{ S.cycle?.name }} — Calibration</h1>
+                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">{{ S.cycle?.name }} — Calibration</h1>
                         <p class="text-sm text-on-surface-variant/70">{{ S.department?.name ?? 'Org-wide' }}</p>
                     </div>
                     <StatusBadge :status="S.status" :label="S.status_label" class="text-base" />
                 </div>
             </Teleport>
 
-            <div class="py-6 space-y-6">
+            <div class="space-y-6 animate-reveal-up py-6">
                 <!-- Distribution comparison -->
                 <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 p-5">
                     <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/60 mb-3">Distribution vs target</p>

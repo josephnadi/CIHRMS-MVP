@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import BiometricCapture from '@/Components/Identity/BiometricCapture.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -98,13 +99,13 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
             </Teleport>
 
             <div id="identity-verify" class="py-6 space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40 p-5">
                     <h2 class="text-sm font-semibold mb-3">Submit a new verification</h2>
                     <form @submit.prevent="submit" class="grid md:grid-cols-3 gap-3">
                         <input v-model="form.employee_id" type="number" placeholder="Employee ID"
-                               class="rounded-lg border-slate-200 text-sm" required>
+                               class="rounded-lg border-outline-variant text-sm" required>
                         <input v-model="form.ghana_card_number" placeholder="GHA-123456789-1"
-                               class="rounded-lg border-slate-200 text-sm" required>
+                               class="rounded-lg border-outline-variant text-sm" required>
                         <PrimaryButton type="submit" :disabled="form.processing">Verify</PrimaryButton>
                     </form>
 
@@ -113,12 +114,12 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                          pins it to the IdentityVerification row for audit. -->
                     <div class="mt-3 flex items-center gap-2 flex-wrap">
                         <button type="button" @click="showCapture = true"
-                                class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50 transition-colors">
+                                class="flex items-center gap-2 rounded-lg border border-outline-variant px-3 py-2 text-xs font-bold hover:bg-surface-container/40 transition-colors">
                             <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">photo_camera</span>
                             Capture biometric photo
                         </button>
-                        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-600">
-                            <span class="rounded-lg border border-slate-200 px-3 py-2 font-bold hover:bg-slate-50 transition-colors">
+                        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-on-surface-variant">
+                            <span class="rounded-lg border border-outline-variant px-3 py-2 font-bold hover:bg-surface-container/40 transition-colors">
                                 Or upload scan
                             </span>
                             <input type="file" accept=".jpg,.jpeg,.png,.pdf" class="hidden"
@@ -138,9 +139,16 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
 
                 <BiometricCapture :open="showCapture" @captured="onBiometricCaptured" @close="showCapture = false" />
 
-                <div id="identity-register" class="bg-white rounded-2xl shadow-sm border border-slate-100">
-                    <table class="w-full text-sm">
-                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                <div id="identity-register" class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40">
+                    <div v-if="!(verifications?.data?.length)">
+                        <EmptyState
+                            title="No verifications submitted yet"
+                            description="Submit a Ghana Card above to begin building the verified-identity register for this tenant."
+                            icon="badge"
+                        />
+                    </div>
+                    <table v-else class="w-full text-sm">
+                        <thead class="bg-surface-container text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">Employee</th>
                                 <th class="px-5 py-3 text-left">Card</th>
@@ -150,11 +158,11 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                                 <th class="px-5 py-3 text-left">Expires</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr v-for="v in verifications.data" :key="v.id" class="hover:bg-slate-50">
+                        <tbody class="divide-y divide-outline-variant/30">
+                            <tr v-for="v in verifications.data" :key="v.id" class="hover:bg-surface-container/40">
                                 <td class="px-5 py-3">
                                     <div class="font-medium">{{ v.employee?.name ?? '—' }}</div>
-                                    <div class="text-xs text-slate-500">{{ v.employee?.employee_no }}</div>
+                                    <div class="text-xs text-on-surface-variant">{{ v.employee?.employee_no }}</div>
                                 </td>
                                 <td class="px-5 py-3 font-mono text-xs">{{ v.masked_card }}</td>
                                 <td class="px-5 py-3">{{ v.provider_label }}</td>
@@ -164,7 +172,7 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                             </tr>
                         </tbody>
                     </table>
-                    <div class="px-5 py-3 border-t border-slate-100">
+                    <div class="px-5 py-3 border-t border-outline-variant/40">
                         <Pagination :links="verifications?.meta?.links ?? []" />
                     </div>
                 </div>

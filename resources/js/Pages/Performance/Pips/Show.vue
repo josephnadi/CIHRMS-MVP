@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -106,8 +107,14 @@ const stageLabel = computed(() => {
                 <!-- Target metrics -->
                 <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 p-5">
                     <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/60 mb-3">Target metrics</p>
-                    <ul class="space-y-2 text-sm">
-                        <li v-for="(m, i) in P.target_metrics ?? []" :key="i" class="flex justify-between">
+                    <EmptyState
+                        v-if="!(P.target_metrics?.length)"
+                        title="No metrics defined"
+                        description="Add target metrics to this PIP so check-ins can be scored against measurable goals."
+                        icon="flag"
+                    />
+                    <ul v-else class="space-y-2 text-sm">
+                        <li v-for="(m, i) in P.target_metrics" :key="i" class="flex justify-between">
                             <span>{{ m.metric }}</span>
                             <span class="font-mono">Target: {{ m.target }}</span>
                         </li>

@@ -154,19 +154,23 @@ const editionLabel = computed(() => {
 
                     <div v-if="R.tombstone_log" class="mt-4 pt-4 border-t border-outline-variant/40">
                         <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/60 mb-2">Erasure receipt</p>
-                        <div class="text-xs space-y-2">
-                            <div>
-                                <p class="font-bold text-emerald-700">Redacted ({{ (R.tombstone_log.redacted ?? []).length }})</p>
+                        <p v-if="!(R.tombstone_log.redacted?.length) && !(R.tombstone_log.held_back?.length)"
+                           class="text-xs text-on-surface-variant/70">
+                            No erasure receipt yet — fulfil or reject to generate one.
+                        </p>
+                        <div v-else class="text-xs space-y-2">
+                            <div v-if="(R.tombstone_log.redacted ?? []).length">
+                                <p class="font-bold text-emerald-700">Redacted ({{ R.tombstone_log.redacted.length }})</p>
                                 <ul class="ml-3 list-disc">
-                                    <li v-for="(x, i) in (R.tombstone_log.redacted ?? [])" :key="`r-${i}`">
+                                    <li v-for="(x, i) in R.tombstone_log.redacted" :key="`r-${i}`">
                                         {{ x.table }} — {{ Array.isArray(x.fields) ? x.fields.join(', ') : (x.count + ' rows') }}
                                     </li>
                                 </ul>
                             </div>
-                            <div>
-                                <p class="font-bold text-amber-700">Held back under statutory retention ({{ (R.tombstone_log.held_back ?? []).length }})</p>
+                            <div v-if="(R.tombstone_log.held_back ?? []).length">
+                                <p class="font-bold text-amber-700">Held back under statutory retention ({{ R.tombstone_log.held_back.length }})</p>
                                 <ul class="ml-3 list-disc">
-                                    <li v-for="(x, i) in (R.tombstone_log.held_back ?? [])" :key="`h-${i}`">
+                                    <li v-for="(x, i) in R.tombstone_log.held_back" :key="`h-${i}`">
                                         {{ x.table }} ({{ x.count }} rows) — {{ x.statute }}
                                         <span v-if="x.until"> · until {{ x.until }}</span>
                                     </li>
