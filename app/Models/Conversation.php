@@ -78,7 +78,9 @@ class Conversation extends Model
     public function otherParticipant(User $me): ?User
     {
         if ($this->is_group) return null;
-        return $this->participants->firstWhere('id', '!==', $me->id)
-            ?? $this->participants->first(fn ($u) => $u->id !== $me->id);
+        // Note: Eloquent collection firstWhere accepts only ['=','!=','<>','<','<=','>','>=']
+        // — strict-equality operators are silently treated as something else, so use
+        // the explicit closure form for safety.
+        return $this->participants->first(fn ($u) => $u->id !== $me->id);
     }
 }

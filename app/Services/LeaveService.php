@@ -12,6 +12,7 @@ use App\Models\LeaveRequest;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LeaveService
 {
@@ -28,22 +29,24 @@ class LeaveService
     {
         $status = LeaveStatus::from($request->validated('status'));
 
-        $leaveRequest->update([
-            'status'      => $status,
-            'approved_by' => $status === LeaveStatus::Approved ? $request->user()->id : null,
-        ]);
+        DB::transaction(function () use ($status, $leaveRequest, $request) {
+            $leaveRequest->update([
+                'status'      => $status,
+                'approved_by' => $status === LeaveStatus::Approved ? $request->user()->id : null,
+            ]);
 
-        if ($status === LeaveStatus::Approved) {
-            $balance = LeaveBalance::firstOrCreate(
-                [
-                    'employee_id' => $leaveRequest->employee_id,
-                    'type'        => $leaveRequest->type->value,
-                    'year'        => $leaveRequest->start_date->year,
-                ],
-                ['total_days' => 21.0, 'used_days' => 0.0]
-            );
-            $balance->increment('used_days', $leaveRequest->durationInDays());
-        }
+            if ($status === LeaveStatus::Approved) {
+                $balance = LeaveBalance::lockForUpdate()->firstOrCreate(
+                    [
+                        'employee_id' => $leaveRequest->employee_id,
+                        'type'        => $leaveRequest->type->value,
+                        'year'        => $leaveRequest->start_date->year,
+                    ],
+                    ['total_days' => 21.0, 'used_days' => 0.0]
+                );
+                $balance->increment('used_days', $leaveRequest->durationInDays());
+            }
+        });
 
         event(new LeaveStatusUpdated($leaveRequest, $request->user()));
 

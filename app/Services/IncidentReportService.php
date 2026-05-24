@@ -177,6 +177,11 @@ class IncidentReportService
 
     private function attachFile($attachable, UploadedFile $file, User $uploader): IncidentReportAttachment
     {
+        // When the attachable is a freshly-created Message, $attachable->report
+        // is a lazy relation that trips strict mode. Eager-load defensively.
+        if (! $attachable instanceof IncidentReport) {
+            $attachable->loadMissing('report');
+        }
         $dir  = ($attachable instanceof IncidentReport ? $attachable->id : $attachable->report->id);
         $name = Str::uuid() . '-' . $file->getClientOriginalName();
         $path = $file->storeAs((string) $dir, $name, 'incidents');

@@ -23,12 +23,17 @@ class PrivacyController extends Controller
 
     public function myRequests(Request $request): Response
     {
+        // The Vue page treats `requests` as a flat array (filters, length, etc).
+        // Send the resolved collection rather than a paginator-shaped object so
+        // the props match what the page actually expects. Cap at the most
+        // recent 50 — the self-service view has no pagination UI by design.
         $reqs = DataSubjectRequest::where('subject_user_id', $request->user()->id)
             ->latest()
-            ->paginate(20);
+            ->limit(50)
+            ->get();
 
         return Inertia::render('Privacy/MyRequests', [
-            'requests' => DataSubjectRequestResource::collection($reqs),
+            'requests' => DataSubjectRequestResource::collection($reqs)->resolve(),
             'types' => collect(DataSubjectRequestType::cases())->map(fn ($t) => [
                 'value' => $t->value,
                 'label' => $t->label(),

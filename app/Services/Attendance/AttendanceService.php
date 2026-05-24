@@ -324,6 +324,7 @@ class AttendanceService
         }
 
         DB::transaction(function () use ($correction, $reviewer, $notes) {
+            $correction->loadMissing('employee');
             $this->record(
                 $correction->employee,
                 $correction->requested_event_at,

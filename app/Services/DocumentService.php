@@ -120,6 +120,9 @@ class DocumentService
         $posChanged = $before['x_pct'] != $after['x_pct'] || $before['y_pct'] != $after['y_pct'];
         $dimChanged = $before['w_pct'] != $after['w_pct'] || $before['h_pct'] != $after['h_pct'] || $before['rotation'] != $after['rotation'];
 
+        // Eager-load document once for both potential logEvent calls below.
+        $annotation->loadMissing('document');
+
         if ($posChanged) {
             $this->logEvent($annotation->document, $by, DocumentEventType::AnnotationMoved, [
                 'annotation_id' => $annotation->id,
