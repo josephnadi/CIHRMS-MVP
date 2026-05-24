@@ -70,10 +70,10 @@ const vacatePosition = (p) => {
                     <StatCard label="Frozen" :value="stats.frozen" tone="neutral" />
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
-                    <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
+                <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40">
+                    <div class="px-5 py-4 border-b border-outline-variant/40 flex flex-wrap gap-3 items-center">
                         <select v-model="localFilters.status" @change="applyFilters"
-                                class="rounded-lg border-slate-200 text-sm">
+                                class="rounded-lg border-outline-variant text-sm">
                             <option value="">All statuses</option>
                             <option value="vacant">Vacant</option>
                             <option value="filled">Filled</option>
@@ -88,7 +88,7 @@ const vacatePosition = (p) => {
                     </div>
 
                     <table v-else class="w-full text-sm">
-                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                        <thead class="bg-surface-container text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">Code</th>
                                 <th class="px-5 py-3 text-left">Title</th>
@@ -100,8 +100,8 @@ const vacatePosition = (p) => {
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr v-for="p in positions.data" :key="p.id" class="hover:bg-slate-50">
+                        <tbody class="divide-y divide-outline-variant/30">
+                            <tr v-for="p in positions.data" :key="p.id" class="hover:bg-surface-container/40">
                                 <td class="px-5 py-3 font-mono text-xs">{{ p.code }}</td>
                                 <td class="px-5 py-3 font-medium">{{ p.title }}</td>
                                 <td class="px-5 py-3">{{ p.grade?.code }}</td>
@@ -122,7 +122,7 @@ const vacatePosition = (p) => {
                                         <button v-if="p.status !== 'frozen'"
                                                 type="button"
                                                 @click="freezePosition(p)"
-                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-outline-variant bg-surface-container px-2 text-[11px] font-bold text-on-surface-variant hover:bg-surface-container/70 transition-colors"
                                                 title="Freeze (suspend hiring against this slot)">
                                             <span class="material-symbols-outlined text-[14px]">ac_unit</span>
                                             Freeze
@@ -138,7 +138,7 @@ const vacatePosition = (p) => {
                         </tbody>
                     </table>
 
-                    <div class="px-5 py-3 border-t border-slate-100">
+                    <div class="px-5 py-3 border-t border-outline-variant/40">
                         <Pagination :links="positions?.meta?.links ?? []" />
                     </div>
                 </div>

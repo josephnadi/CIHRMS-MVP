@@ -40,18 +40,6 @@ const statCards = computed(() => [
     { label: 'Total Adjustments',   value: stats.value.adjustments, icon: 'tune',             rgb: '255,215,0'  },
 ]);
 
-// ── Rating distribution (derived from current page sessions) ──────────────────
-// Visualises a mock distribution across active cycle sessions
-// Bands: Exceeds ≥ 4, Meets 2.5–3.9, Below < 2.5
-const distributionBands = computed(() => {
-    // Placeholder — real data comes from the show page; index shows a summary indicator
-    return [
-        { label: 'Exceeds',  pct: 20, color: '#059669' },
-        { label: 'Meets',    pct: 65, color: '#1a237e' },
-        { label: 'Below',    pct: 15, color: '#dc2626' },
-    ];
-});
-
 // ── New session panel ─────────────────────────────────────────────────────────
 const showAddPanel = ref(false);
 
@@ -74,7 +62,7 @@ const submitSession = () => {
 const statusTone = {
     open:    'bg-amber-400/15 text-amber-700',
     closed:  'bg-emerald-500/15 text-emerald-700',
-    applied: 'bg-cobalt-500/15 text-cobalt-700',
+    applied: 'bg-secondary/15 text-secondary',
     locked:  'bg-violet-500/15 text-violet-700',
 };
 const statusClass = (s) => statusTone[s] ?? 'bg-surface-container text-on-surface-variant';
@@ -182,39 +170,17 @@ const editorialMetrics = computed(() => {
                     </div>
                 </div>
 
-                <!-- ── Distribution chart ────────────────────────────────────── -->
+                <!-- ── Distribution indicator ────────────────────────────────── -->
                 <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest shadow-card p-5">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between gap-3">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">Rating Distribution</p>
-                            <p class="text-[13px] font-semibold text-on-surface">Current cycle · calibration band indicator</p>
+                            <p class="text-[13px] font-semibold text-on-surface">Distribution shown on individual session pages.</p>
                         </div>
-                        <span class="inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-bold" style="background:rgba(217,18,227,0.10);color:#a30db0">
+                        <span class="inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-bold bg-secondary/10 text-secondary">
                             <span class="material-symbols-outlined text-[14px]">bar_chart</span>
-                            Force distribution
+                            Target 20 / 65 / 15
                         </span>
-                    </div>
-
-                    <!-- Stacked horizontal bar -->
-                    <div class="flex h-8 w-full overflow-hidden rounded-xl">
-                        <div
-                            v-for="band in distributionBands"
-                            :key="band.label"
-                            class="flex items-center justify-center text-[10px] font-black text-white transition-all duration-700"
-                            :style="`width:${band.pct}%;background:${band.color}`"
-                        >
-                            <span v-if="band.pct > 12">{{ band.pct }}%</span>
-                        </div>
-                    </div>
-
-                    <!-- Legend -->
-                    <div class="flex items-center gap-5 mt-3">
-                        <div v-for="band in distributionBands" :key="band.label" class="flex items-center gap-1.5">
-                            <span class="h-2.5 w-2.5 rounded-sm flex-shrink-0" :style="`background:${band.color}`"></span>
-                            <span class="text-[11px] font-semibold text-on-surface-variant">{{ band.label }}</span>
-                            <span class="text-[11px] font-mono text-on-surface">{{ band.pct }}%</span>
-                        </div>
-                        <span class="ml-auto text-[11px] italic text-on-surface-variant/50">Target: 20 / 65 / 15</span>
                     </div>
                 </div>
 
