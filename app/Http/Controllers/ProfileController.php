@@ -40,8 +40,11 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status'          => session('status'),
             'employee'        => $employee ? new EmployeeResource($employee) : null,
+            // ->resolve() turns the ResourceCollection into the bare array
+            // the Vue page's prop declaration expects (`leaveBalances: Array`).
+            // Same pattern used in PrivacyController::myRequests after the V2 audit.
             'leaveBalances'   => $employee
-                ? LeaveBalanceResource::collection($this->leaves->balances($employee->id, now()->year))
+                ? LeaveBalanceResource::collection($this->leaves->balances($employee->id, now()->year))->resolve()
                 : [],
             'recentLeave'     => $employee
                 ? $employee->leaveRequests()->latest()->limit(5)->get()
