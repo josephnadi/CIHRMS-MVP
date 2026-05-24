@@ -947,7 +947,7 @@ html[data-theme="high-contrast"].dark {
     font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #d912e3;     /* magenta spark — reserved error signal */
+    color: #dc2626;     /* rose-600 — matches the rest of the app's danger palette */
 }
 
 .field-row {
