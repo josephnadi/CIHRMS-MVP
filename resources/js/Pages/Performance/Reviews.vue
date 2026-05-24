@@ -377,17 +377,21 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                 <!-- ── Tab nav + filters ─────────────────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
                     <!-- Tab control -->
-                    <div class="flex items-center rounded-xl border border-outline-variant/70 bg-surface-container-low p-0.5 gap-0.5">
+                    <div class="flex items-center rounded-xl border border-outline-variant/70 bg-surface-container-low p-0.5 gap-0.5"
+                         role="tablist" aria-label="Performance review scope">
                         <button
                             v-for="tab in [{ key:'reviewee', label:'As Reviewee', icon:'person' }, { key:'reviewer', label:'As Reviewer', icon:'manage_accounts' }, ...(canManage ? [{ key:'all', label:'All (HR)', icon:'admin_panel_settings' }] : [])]"
                             :key="tab.key"
                             @click="activeTab = tab.key"
+                            role="tab"
+                            :aria-selected="activeTab === tab.key"
+                            :tabindex="activeTab === tab.key ? 0 : -1"
                             class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-bold transition-all"
                             :class="activeTab === tab.key
                                 ? 'bg-secondary text-white shadow-sm'
                                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'"
                         >
-                            <span class="material-symbols-outlined text-[15px]">{{ tab.icon }}</span>
+                            <span class="material-symbols-outlined text-[15px]" aria-hidden="true">{{ tab.icon }}</span>
                             {{ tab.label }}
                         </button>
                     </div>

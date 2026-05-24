@@ -5,6 +5,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 
 import { useToast } from '@/composables/useToast';
 import Sparkline from '@/Components/charts/Sparkline.vue';
 import LiveBars  from '@/Components/charts/LiveBars.vue';
+import StatusPill from '@/Components/StatusPill.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -370,19 +371,9 @@ const moduleLabel = computed(() => {
     return labels[props.activeModule] ?? 'Executive Overview';
 });
 
-const getStatusColor = (status) => {
-    const colors = {
-        pending:    'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700/40',
-        onboarding: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700/40',
-        active:     'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700/40',
-        away:       'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700/40',
-        approved:   'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700/40',
-        rejected:   'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700/40',
-        open:       'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700/40',
-        closed:     'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-600/40',
-    };
-    return colors[status?.toLowerCase()] || 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-600/40';
-};
+// Status pill rendering is delegated to <StatusPill /> — the shared registry
+// in Components/StatusPill.vue holds the colour + label config for every
+// status used across the app.
 </script>
 
 <template>
@@ -490,9 +481,7 @@ const getStatusColor = (status) => {
                                             </td>
                                             <td class="px-6 py-6 text-sm font-bold text-on-surface-variant">{{ employee.department?.name || 'Engineering' }}</td>
                                             <td class="px-6 py-6">
-                                                <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider border" :class="getStatusColor(employee.status || 'Active')">
-                                                    {{ employee.status || 'Active' }}
-                                                </span>
+                                                <StatusPill :status="employee.status || 'active'" />
                                             </td>
                                             <td class="px-6 py-6 text-sm font-bold text-primary">12 Days</td>
                                             <td class="px-6 py-6">
@@ -986,15 +975,17 @@ const getStatusColor = (status) => {
                                 <div class="flex items-center gap-2">
                                     <button @click="success('Clocked in at ' + new Date().toLocaleTimeString('en-GH'))"
                                             type="button"
+                                            aria-label="Clock in for today's shift"
                                             class="rounded-xl px-4 py-2 text-[12px] font-bold text-white shadow-glow-sm"
                                             style="background:linear-gradient(135deg,#059669,#34d399)">
-                                        <span class="material-symbols-outlined text-[16px] align-middle mr-1">login</span>
+                                        <span class="material-symbols-outlined text-[16px] align-middle mr-1" aria-hidden="true">login</span>
                                         Clock In
                                     </button>
                                     <button @click="success('Clocked out at ' + new Date().toLocaleTimeString('en-GH'))"
                                             type="button"
+                                            aria-label="Clock out for today's shift"
                                             class="rounded-xl border border-outline-variant px-4 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container-low">
-                                        <span class="material-symbols-outlined text-[16px] align-middle mr-1">logout</span>
+                                        <span class="material-symbols-outlined text-[16px] align-middle mr-1" aria-hidden="true">logout</span>
                                         Clock Out
                                     </button>
                                 </div>
@@ -1092,15 +1083,19 @@ const getStatusColor = (status) => {
                         <div class="col-span-12 lg:col-span-8 rounded-3xl border border-outline-variant bg-surface-container-lowest p-8 shadow-sm">
                             <div class="flex items-center justify-between mb-8">
                                 <h3 class="text-xl font-black text-primary">Attendance Overview</h3>
-                                <div class="flex gap-2">
+                                <div class="flex gap-2" role="group" aria-label="Attendance time scope">
                                     <button @click="attendanceScope = 'today'"
                                             type="button"
+                                            aria-label="Show today's attendance"
+                                            :aria-pressed="attendanceScope === 'today'"
                                             class="rounded-xl border px-3 py-2 text-xs font-bold transition-all"
                                             :class="attendanceScope === 'today' ? 'border-secondary bg-secondary/10 text-secondary' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'">
                                         Today
                                     </button>
                                     <button @click="attendanceScope = 'week'"
                                             type="button"
+                                            aria-label="Show this week's attendance"
+                                            :aria-pressed="attendanceScope === 'week'"
                                             class="rounded-xl border px-3 py-2 text-xs font-bold transition-all"
                                             :class="attendanceScope === 'week' ? 'border-secondary bg-secondary/10 text-secondary' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'">
                                         This Week
@@ -1853,9 +1848,7 @@ const getStatusColor = (status) => {
                                                     </td>
                                                     <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.department?.name || '—' }}</td>
                                                     <td class="px-6 py-4">
-                                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border" :class="getStatusColor(employee.status || 'active')">
-                                                            {{ employee.status_label || employee.status || 'Active' }}
-                                                        </span>
+                                                        <StatusPill :status="employee.status || 'active'" :label="employee.status_label || null" />
                                                     </td>
                                                     <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">{{ employee.hire_date || '—' }}</td>
                                                     <td class="px-7 py-4 text-right">
@@ -1909,10 +1902,10 @@ const getStatusColor = (status) => {
                                                         <p class="text-[10px] font-medium text-on-surface-variant line-clamp-1">{{ ticket.description }}</p>
                                                     </td>
                                                     <td class="px-6 py-4">
-                                                        <span class="inline-flex rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border" :class="getStatusColor(ticket.priority)">{{ ticket.priority }}</span>
+                                                        <StatusPill :status="ticket.priority || 'medium'" />
                                                     </td>
                                                     <td class="px-6 py-4">
-                                                        <span class="inline-flex rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border" :class="getStatusColor(ticket.status)">{{ ticket.status }}</span>
+                                                        <StatusPill :status="ticket.status || 'open'" />
                                                     </td>
                                                     <td class="px-6 py-4 text-xs font-bold text-on-surface-variant">2d ago</td>
                                                     <td class="px-7 py-4 text-right">

@@ -127,11 +127,11 @@ const editionLabel = computed(() => {
 
                 <!-- Tabs -->
                 <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40">
-                    <div class="px-5 py-3 border-b border-outline-variant/40 flex gap-6 text-sm">
-                        <button @click="tab='case'"      :class="tab==='case'      ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Case detail</button>
-                        <button @click="tab='actions'"   :class="tab==='actions'   ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Actions ({{ R.actions?.length ?? 0 }})</button>
-                        <button @click="tab='thread'"    :class="tab==='thread'    ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Submitter thread</button>
-                        <button @click="tab='evidence'"  :class="tab==='evidence'  ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Evidence ({{ R.evidence?.length ?? 0 }})</button>
+                    <div class="px-5 py-3 border-b border-outline-variant/40 flex gap-6 text-sm" role="tablist" aria-label="Case sections">
+                        <button @click="tab='case'"      role="tab" :aria-selected="tab==='case'"      :tabindex="tab==='case'      ? 0 : -1" :class="tab==='case'      ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Case detail</button>
+                        <button @click="tab='actions'"   role="tab" :aria-selected="tab==='actions'"   :tabindex="tab==='actions'   ? 0 : -1" :class="tab==='actions'   ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Actions ({{ R.actions?.length ?? 0 }})</button>
+                        <button @click="tab='thread'"    role="tab" :aria-selected="tab==='thread'"    :tabindex="tab==='thread'    ? 0 : -1" :class="tab==='thread'    ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Submitter thread</button>
+                        <button @click="tab='evidence'"  role="tab" :aria-selected="tab==='evidence'"  :tabindex="tab==='evidence'  ? 0 : -1" :class="tab==='evidence'  ? 'text-secondary font-semibold' : 'text-on-surface-variant/70'">Evidence ({{ R.evidence?.length ?? 0 }})</button>
                     </div>
 
                     <!-- CASE -->

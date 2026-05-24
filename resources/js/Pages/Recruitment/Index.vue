@@ -4,6 +4,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import StatusPill, { STATUS_PILL_REGISTRY } from '@/Components/StatusPill.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -74,13 +75,10 @@ const filteredJobs = computed(() => {
 });
 
 // ── Status meta ──
-const STATUS_META = {
-    open:   { label: 'Open',   cls: 'bg-cyan-50 text-cyan-700 border-cyan-200',     dot: '#12d9e3' },
-    draft:  { label: 'Draft',  cls: 'bg-amber-50 text-amber-700 border-amber-200',  dot: '#d97706' },
-    closed: { label: 'Closed', cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: '#64748b' },
-    filled: { label: 'Filled', cls: 'bg-green-50 text-green-700 border-green-200',  dot: '#059669' },
-};
-const statusMeta = (s) => STATUS_META[s] ?? STATUS_META.draft;
+// Colours/labels live in the shared <StatusPill> registry. We only read the
+// dot hex here to drive the card's left-border accent (the pill itself is
+// rendered by <StatusPill>).
+const statusDot = (s) => (STATUS_PILL_REGISTRY[s] ?? STATUS_PILL_REGISTRY.draft).dot;
 
 // ── Compose form ──
 const showCreatePanel = ref(false);
@@ -269,16 +267,12 @@ const pipeline = computed(() => {
                         <Link v-for="(job, i) in filteredJobs" :key="job.id"
                               :href="route('jobs.show', job.id)"
                               class="group rounded-2xl border bg-surface-container-low/30 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-secondary/30 flex flex-col"
-                              :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.04}s;border-left:3px solid ${statusMeta(job.status).dot};`">
+                              :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.04}s;border-left:3px solid ${statusDot(job.status)};`">
 
                             <!-- Status + title -->
                             <div class="flex items-start justify-between gap-2 mb-3">
                                 <h3 class="text-[14px] font-black text-primary leading-tight pr-1 group-hover:text-secondary transition-colors">{{ job.title }}</h3>
-                                <span class="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider flex-shrink-0"
-                                      :class="statusMeta(job.status).cls">
-                                    <span class="h-1.5 w-1.5 rounded-full" :style="`background:${statusMeta(job.status).dot}`"></span>
-                                    {{ statusMeta(job.status).label }}
-                                </span>
+                                <StatusPill :status="job.status || 'draft'" class="flex-shrink-0" />
                             </div>
 
                             <!-- Description preview -->
