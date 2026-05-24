@@ -48,7 +48,7 @@ const vacatePosition = (p) => {
 
 <template>
     <Head title="Positions / Establishment" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
             <Teleport to="#page-header-mount" defer>
                 <div>
                     <div class="flex items-center gap-2 mb-1">
