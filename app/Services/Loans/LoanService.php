@@ -12,6 +12,7 @@ use App\Models\LoanAccount;
 use App\Models\LoanProduct;
 use App\Models\LoanRepayment;
 use App\Models\User;
+use App\Services\Finance\SequenceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -27,7 +28,10 @@ use Illuminate\Support\Facades\DB;
  */
 class LoanService
 {
-    public function __construct(private readonly AmortizationCalculator $calc) {}
+    public function __construct(
+        private readonly AmortizationCalculator $calc,
+        private readonly SequenceService $sequences,
+    ) {}
 
     public function apply(
         Employee $employee,
@@ -223,12 +227,10 @@ class LoanService
 
     private function generateReference(): string
     {
-        // Year + zero-padded sequential. Counter sourced from the highest existing reference.
+        // Year-scoped sequential. SequenceService row-locks the counter so
+        // concurrent applications cannot collide on the unique reference.
         $year = now()->year;
-        $last = LoanAccount::where('reference', 'like', "LOAN-{$year}-%")
-            ->orderByDesc('id')
-            ->value('reference');
-        $n = $last ? ((int) substr($last, -5)) + 1 : 1;
+        $n    = $this->sequences->next("loan:{$year}");
         return sprintf('LOAN-%04d-%05d', $year, $n);
     }
 }

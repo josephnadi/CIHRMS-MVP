@@ -12,6 +12,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Finance\SequenceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
+    public function __construct(private readonly SequenceService $sequences) {}
+
     public function index(Request $request): Response
     {
         $users = User::query()
@@ -88,17 +91,13 @@ class UserController extends Controller
     }
 
     /**
-     * Generate a sequential employee_no like CIHRM-0042. Falls back through
-     * the existing maximum so manual inserts (seeders, tinker) don't collide.
+     * Generate a sequential employee_no like CIHRM-0042. SequenceService
+     * row-locks the counter so concurrent inserts cannot collide on the
+     * unique employee_no constraint. Employee numbers are lifetime-unique
+     * (not yearly), so the key is unscoped by year.
      */
     private function nextEmployeeNo(): string
     {
-        $last = Employee::query()
-            ->where('employee_no', 'like', 'CIHRM-%')
-            ->pluck('employee_no')
-            ->map(fn ($s) => (int) substr((string) $s, 6))
-            ->max() ?? 0;
-
-        return sprintf('CIHRM-%04d', $last + 1);
+        return sprintf('CIHRM-%04d', $this->sequences->next('employee_no'));
     }
 }
