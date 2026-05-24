@@ -339,9 +339,9 @@ const ringProps = (pct, r = 28) => {
                         </Link>
                     </div>
                     <div class="rounded-2xl border border-outline-variant/40 bg-surface-container/40 border-dashed p-6 text-center">
-                        <span class="material-symbols-outlined text-[32px] text-on-surface-variant/30" style="font-variation-settings:'FILL' 1">auto_awesome</span>
-                        <p class="mt-2 text-[13px] font-semibold text-on-surface-variant">Personalised recommendations coming soon</p>
-                        <p class="text-[12px] text-on-surface-variant/60 mt-1">Based on your skills inventory and role objectives.</p>
+                        <span class="material-symbols-outlined text-[32px] text-on-surface-variant/30" style="font-variation-settings:'FILL' 1">menu_book</span>
+                        <p class="mt-2 text-[13px] font-semibold text-on-surface-variant">Browse the catalogue to find your next course</p>
+                        <p class="text-[12px] text-on-surface-variant/60 mt-1">Filter by category or skill tag — completed courses grant skills automatically.</p>
                         <Link :href="route('learning.catalog')" class="mt-3 inline-flex items-center gap-1.5 text-[12px] font-bold text-secondary hover:underline">
                             Explore the full catalogue
                             <span class="material-symbols-outlined text-[14px]">arrow_forward</span>

@@ -43,7 +43,9 @@ class BatchDisbursementService
         $created = 0;
         $eLevyRate = $this->resolveELevyRate($run);
 
-        $run->lines()->calculated()->with('employee')->chunk(200, function ($lines) use ($run, $eLevyRate, &$created) {
+        // Eager-load employee.user to avoid an N+1 burst when reading
+        // $employee?->user?->name as `beneficiary_name` further down.
+        $run->lines()->calculated()->with('employee.user')->chunk(200, function ($lines) use ($run, $eLevyRate, &$created) {
             foreach ($lines as $line) {
                 $exists = Disbursement::where('payroll_run_id', $run->id)
                     ->where('payroll_line_id', $line->id)

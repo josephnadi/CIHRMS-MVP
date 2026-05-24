@@ -188,12 +188,9 @@ const clock = async (direction) => {
     }
 };
 
-// ── Face scan stub ───────────────────────────────────────────────────────────
-const faceStatus = ref('');
-const tryFace = async () => {
-    faceStatus.value = 'Face recognition coming soon — please use Employee ID for now.';
-    setTimeout(() => { faceStatus.value = ''; }, 4000);
-};
+// Face-scan path intentionally not shipped in v1 — see C4 in
+// docs/MARKET_READY_PUNCHLIST.md + §9 of docs/deployment_production.md.
+// High-trust contexts use hardware biometric devices via BiometricWebhookController.
 
 const formattedEventTime = computed(() => {
     if (!lastRecord.value?.event_at) return '';
@@ -321,11 +318,7 @@ const formattedEventTime = computed(() => {
                         <span v-if="!isSubmitting">Continue →</span>
                         <span v-else>Verifying…</span>
                     </button>
-                    <button type="button" class="kiosk-ghost" :disabled="isSubmitting" @click="tryFace">
-                        Scan Face Instead
-                    </button>
                 </div>
-                <p v-if="faceStatus" class="mt-1.5 text-[11px] font-semibold tracking-wide text-[#ffd700]">{{ faceStatus }}</p>
             </div>
         </section>
 
@@ -406,7 +399,7 @@ const formattedEventTime = computed(() => {
 
         <footer class="kiosk-footer">
             <span>CIHRMS · Attendance terminal</span>
-            <span class="hidden sm:inline">Press <kbd>Enter</kbd> to submit · Tap "Scan Face" for biometric (coming soon)</span>
+            <span class="hidden sm:inline">Press <kbd>Enter</kbd> to submit</span>
         </footer>
     </main>
 </template>

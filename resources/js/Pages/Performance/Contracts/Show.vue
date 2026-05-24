@@ -30,7 +30,7 @@ const totalWeight = computed(() => (C.value.kpis ?? []).reduce((s, k) => s + Num
 
 <template>
     <Head :title="`Contract — ${C.employee?.name}`" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
             <Teleport to="#page-header-mount" defer>
                 <div class="flex items-center justify-between">
                     <div>

@@ -36,7 +36,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
 
 <template>
     <Head title="Notification Channels" />
-    <div data-page-root="true">
+    <div data-page-root="true" class="space-y-6 animate-reveal-up">
             <Teleport to="#page-header-mount" defer>
                 <div>
                     <div class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant/70 mb-1">

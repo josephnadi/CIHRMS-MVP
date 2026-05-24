@@ -139,19 +139,27 @@ class PerformanceService
             '10+ years'  => 0,
         ];
 
-        Employee::where('status', EmployeeStatus::Active->value)
-            ->whereNotNull('hire_date')
-            ->select('hire_date')
-            ->chunk(500, function ($chunk) use (&$buckets, $now) {
-                foreach ($chunk as $emp) {
-                    $years = $emp->hire_date->diffInYears($now);
-                    if ($years < 1)       $buckets['< 1 year']++;
-                    elseif ($years < 3)   $buckets['1-3 years']++;
-                    elseif ($years < 5)   $buckets['3-5 years']++;
-                    elseif ($years < 10)  $buckets['5-10 years']++;
-                    else                  $buckets['10+ years']++;
-                }
-            });
+        // Single-query bucket aggregation — replaces the chunk-and-iterate
+        // pattern which read every hire_date row into PHP just to bucket it.
+        // Cross-driver: uses date arithmetic that works on SQLite, MySQL,
+        // and Postgres (year() / strftime / extract handled by Carbon::parse
+        // at the row level would be slow; instead we pre-compute thresholds).
+        $thresholds = [
+            '< 1 year'    => $now->copy()->subYear(),
+            '1-3 years'   => $now->copy()->subYears(3),
+            '3-5 years'   => $now->copy()->subYears(5),
+            '5-10 years'  => $now->copy()->subYears(10),
+        ];
+
+        $baseQuery = fn () => Employee::query()
+            ->where('status', EmployeeStatus::Active->value)
+            ->whereNotNull('hire_date');
+
+        $buckets['< 1 year']    = (clone $baseQuery())->where('hire_date', '>', $thresholds['< 1 year'])->count();
+        $buckets['1-3 years']   = (clone $baseQuery())->whereBetween('hire_date', [$thresholds['1-3 years'], $thresholds['< 1 year']])->count();
+        $buckets['3-5 years']   = (clone $baseQuery())->whereBetween('hire_date', [$thresholds['3-5 years'], $thresholds['1-3 years']])->count();
+        $buckets['5-10 years']  = (clone $baseQuery())->whereBetween('hire_date', [$thresholds['5-10 years'], $thresholds['3-5 years']])->count();
+        $buckets['10+ years']   = (clone $baseQuery())->where('hire_date', '<=', $thresholds['5-10 years'])->count();
 
         return collect($buckets)
             ->map(fn ($v, $k) => ['label' => $k, 'value' => $v])
@@ -161,28 +169,43 @@ class PerformanceService
 
     private function deptEfficiency(): array
     {
-        return Department::with(['employees' => fn ($q) => $q->where('status', EmployeeStatus::Active->value)])
+        // Old impl fired 2 ticket-count queries per department. New impl:
+        // - 1 query for departments + active employee IDs
+        // - 1 query aggregating total + resolved ticket counts grouped by department
+        $departments = Department::with(['employees' => fn ($q) =>
+            $q->where('status', EmployeeStatus::Active->value)->select('id', 'department_id')
+        ])->get(['id', 'name', 'code']);
+
+        $resolvedStatuses = [TicketStatus::Resolved->value, TicketStatus::Closed->value];
+
+        $ticketAgg = Ticket::query()
+            ->join('employees', 'tickets.employee_id', '=', 'employees.id')
+            ->whereNotNull('employees.department_id')
+            ->selectRaw('employees.department_id, COUNT(*) as total, SUM(CASE WHEN tickets.status IN (?, ?) THEN 1 ELSE 0 END) as resolved', $resolvedStatuses)
+            ->groupBy('employees.department_id')
             ->get()
-            ->map(function ($dept) {
-                $employeeIds = $dept->employees->pluck('id');
-                if ($employeeIds->isEmpty()) {
+            ->keyBy('department_id');
+
+        return $departments
+            ->map(function ($dept) use ($ticketAgg) {
+                $employeeCount = $dept->employees->count();
+                if ($employeeCount === 0) {
                     return null;
                 }
 
-                $totalTickets    = Ticket::whereIn('employee_id', $employeeIds)->count();
-                $resolvedTickets = Ticket::whereIn('employee_id', $employeeIds)
-                    ->whereIn('status', [TicketStatus::Resolved->value, TicketStatus::Closed->value])
-                    ->count();
+                $row = $ticketAgg->get($dept->id);
+                $total    = (int) ($row->total ?? 0);
+                $resolved = (int) ($row->resolved ?? 0);
 
-                $resolutionRate = $totalTickets > 0
-                    ? round(($resolvedTickets / $totalTickets) * 100, 1)
+                $resolutionRate = $total > 0
+                    ? round(($resolved / $total) * 100, 1)
                     : 100.0;
 
                 return [
                     'name'  => $dept->name,
                     'code'  => $dept->code,
                     'score' => $resolutionRate,
-                    'staff' => $dept->employees->count(),
+                    'staff' => $employeeCount,
                 ];
             })
             ->filter()
