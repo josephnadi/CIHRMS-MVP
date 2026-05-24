@@ -48,6 +48,16 @@ class AttendanceController extends Controller
             ->when($request->department_id, function ($q, $v) {
                 $q->whereHas('employee', fn ($e) => $e->where('department_id', $v));
             })
+            ->when($request->status, fn ($q, $v) => $q->where('status', $v))
+            ->when($request->q, function ($q, $v) {
+                // Cross-driver case-insensitive search against employee name
+                // (joined via users) and the public employee_no identifier.
+                $needle = '%' . strtolower((string) $v) . '%';
+                $q->whereHas('employee', function ($e) use ($needle) {
+                    $e->whereRaw('LOWER(employee_no) LIKE ?', [$needle])
+                      ->orWhereHas('user', fn ($u) => $u->whereRaw('LOWER(name) LIKE ?', [$needle]));
+                });
+            })
             ->orderBy('summary_date')
             ->paginate(50)
             ->withQueryString();
@@ -105,7 +115,7 @@ class AttendanceController extends Controller
             'dailyTrend'         => $dailyTrend,
             'statusDistribution' => $statusDistribution,
             'month'              => $month,
-            'filters'            => $request->only(['department_id']),
+            'filters'            => $request->only(['department_id', 'status', 'q']),
             'activeModule'       => 'attendance',
         ]);
     }

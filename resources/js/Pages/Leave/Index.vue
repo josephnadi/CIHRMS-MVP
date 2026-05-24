@@ -17,9 +17,8 @@ defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     leaves:       Object,  // paginated leave-request collection
     balances:     Array,   // [{ type, label, total_days, used_days, remaining }]
-    pendingCount: Number,
-    myRequests:   Boolean,
-    employees:    Array,
+    pendingCount: Number,  // HR badge — count of pending requests (0 for self-service)
+    employees:    Array,   // HR filter dropdown — [{ id, name, employee_no }]
     filters:      Object,
     activeModule: String,
 });

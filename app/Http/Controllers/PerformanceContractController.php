@@ -26,6 +26,15 @@ class PerformanceContractController extends Controller
             ->with(['cycle', 'employee.user', 'employee.department', 'supervisor.user'])
             ->when($request->cycle_id, fn ($q, $v) => $q->where('cycle_id', $v))
             ->when($request->status,   fn ($q, $v) => $q->where('status', $v))
+            ->when($request->search, function ($q, $v) {
+                // Searches against the most-visible identifiers: employee name
+                // (via users.name) and employee_no. Cross-driver via LOWER LIKE.
+                $needle = '%' . strtolower((string) $v) . '%';
+                $q->whereHas('employee', function ($e) use ($needle) {
+                    $e->whereRaw('LOWER(employee_no) LIKE ?', [$needle])
+                      ->orWhereHas('user', fn ($u) => $u->whereRaw('LOWER(name) LIKE ?', [$needle]));
+                });
+            })
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -33,7 +42,7 @@ class PerformanceContractController extends Controller
         return Inertia::render('Performance/Contracts/Index', [
             'contracts'    => PerformanceContractResource::collection($contracts),
             'cycles'       => ReviewCycle::orderByDesc('starts_at')->get(['id', 'name', 'status']),
-            'filters'      => $request->only(['cycle_id', 'status']),
+            'filters'      => $request->only(['cycle_id', 'status', 'search']),
             'activeModule' => 'performance-contracts',
         ]);
     }
