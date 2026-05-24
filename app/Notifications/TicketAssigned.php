@@ -21,7 +21,7 @@ class TicketAssigned extends Notification implements ShouldQueue
     public function toArray(mixed $notifiable): array
     {
         return [
-            'message'   => "Ticket #{$this->ticket->id} "{$this->ticket->title}" has been assigned to you.",
+            'message'   => "Ticket #{$this->ticket->id} \"{$this->ticket->title}\" has been assigned to you.",
             'ticket_id' => $this->ticket->id,
         ];
     }
