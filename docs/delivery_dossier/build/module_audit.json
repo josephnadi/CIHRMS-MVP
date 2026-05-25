@@ -1,0 +1,1660 @@
+{
+  "as_of": "2026-05-25",
+  "totals": {
+    "module_chapters_audited": 35,
+    "shipped_fully": 12,
+    "shipped_partially": 21,
+    "stubbed_only": 2
+  },
+  "modules": [
+    {
+      "chapter": 3,
+      "title": "Employees",
+      "shipped": [
+        "Employee master CRUD with auto-generated SID-NNNNNN staff ID and CIHRM-NNNN employee_no",
+        "Directory + detail page with 6 tabs (Overview/Documents/Leave/Tickets/Payroll/Benefits)",
+        "Salary visibility gated at resource layer via employees.view_salary",
+        "Visibility scope via Employee::scopeVisibleTo (dept_head sees their team)",
+        "Ghana Card/SSNIT/TIN masked to last 4 digits with click-to-copy",
+        "EmployeeCreated event with 3 listeners (analytics, welcome mail, AI summary)",
+        "Soft delete + benefits enrolment in one transaction on create",
+        "Dormant establishment columns (current_position_id/grade/step/anniversary) now wired live"
+      ],
+      "partial": [
+        "Position field still free-text (Phase 1 swaps to FK on positions)",
+        "Phone validation accepts any string (no format check)"
+      ],
+      "gaps": [
+        "Live NIA validation on national_id not yet wired (Phase 1)",
+        "Audit chain integration noted but not full provenance write on every CRUD"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO 30414 §4.1 workforce composition", "status": "met"},
+        {"standard": "ISO 30414 §4.5 leadership", "status": "met"},
+        {"standard": "DPA Act 843 §17 lawful basis", "status": "met"},
+        {"standard": "DPA Act 843 §40 right to erasure", "status": "partial"},
+        {"standard": "NIA Act 707 Ghana Card integration", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Position/Grade/Step lookups replace free-text position",
+        "Phase 1: Ghana Card NIA adapter sync+async verification",
+        "Phase 1: Tamper-evident audit log writes on every CRUD"
+      ]
+    },
+    {
+      "chapter": 4,
+      "title": "Leave",
+      "shipped": [
+        "7 leave types (Annual/Sick/Maternity/Paternity/Emergency/Study/Unpaid) priced against Labour Act 651",
+        "Apply panel + Approvals Desk + Leave Calendar with Ghana public holidays",
+        "Row-locked balance increments via lockForUpdate prevent double-spend",
+        "LeaveRequested + LeaveStatusUpdated events with analytics + notification listeners",
+        "Manager DM via NotifyManagerOfLeaveRequest (Slack/Teams/WhatsApp)",
+        "Soft-delete withdrawal flow"
+      ],
+      "partial": [
+        "21-day default balance seeding placeholder until per-grade entitlements wired",
+        "Public holidays visible on calendar but not subtracted by durationInDays()",
+        "Supporting Document upload widget present but storage hookup pending"
+      ],
+      "gaps": [
+        "leave_request_history table for decision-comment audit trail",
+        "Dedicated lightweight calendar endpoint (today reads paginated list only)",
+        "Attendance integration to reconcile applied vs taken leave"
+      ],
+      "standards_relevance": [
+        {"standard": "Labour Act 651 §20 Annual Leave", "status": "met"},
+        {"standard": "Labour Act 651 §24 Sick Leave", "status": "partial"},
+        {"standard": "Labour Act 651 §57 Maternity Leave", "status": "met"},
+        {"standard": "DPA Act 843 §18 data minimisation", "status": "met"},
+        {"standard": "Pensions Act 766 Maternity pensionable", "status": "met"},
+        {"standard": "ISO 30414 §4.5 absenteeism", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 2: Per-grade per-type entitlement schedules from establishment table",
+        "Phase 2: leave_request_history audit table",
+        "Phase 2: Public holidays subtracted from working-days computation",
+        "Phase 2: Attendance reconciliation closing applied-vs-taken gap"
+      ]
+    },
+    {
+      "chapter": 5,
+      "title": "Attendance",
+      "shipped": [
+        "Org register + per-employee My Attendance + Corrections kanban + Shift Schedules",
+        "AttendanceService::record() unified for biometric/kiosk/web GPS/manual/webhook sources",
+        "OvertimeCalculator implements Labour Act 651 §35 (1.5x weekday, 2x rest/holiday, deep-OT)",
+        "Server-side geofence on biometric devices (haversine vs geo_radius_m)",
+        "Manual entries require reason (3-layer guard)",
+        "Encrypted shared_secret for biometric devices, hidden from JSON",
+        "HMAC-SHA256 signed biometric webhook with 5-min replay window",
+        "Public v1 API read endpoint",
+        "Approved leave wins over absence (excluded from working-days denominator)"
+      ],
+      "partial": [
+        "Per-shift overtime policies hard-coded; JSON config column planned",
+        "Overnight shifts accepted at validation but calculator treats each day separately"
+      ],
+      "gaps": [
+        "Mobile app with offline buffer (Phase 2)",
+        "Roster-style weekly shift planning (Phase 2)",
+        "Manager bulk approve on corrections kanban",
+        "UI for editing/archiving shifts and assignments (routes exist, no UI)",
+        "Face recognition clock path on kiosk (501 stub)"
+      ],
+      "standards_relevance": [
+        {"standard": "Labour Act 651 §33-39 hours/overtime", "status": "met"},
+        {"standard": "ISO 30414 §4.5 absenteeism", "status": "met"},
+        {"standard": "ISO 30414 §4.7 workforce availability", "status": "met"},
+        {"standard": "DPA Act 843 §17/§18", "status": "met"},
+        {"standard": "DPA Act 843 §20 biometric special-category", "status": "partial"},
+        {"standard": "NIA Act 707 Ghana Card biometric join", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 2: Mobile app + offline IndexedDB buffer",
+        "Phase 2: Per-shift overtime policies as configurable JSON",
+        "Phase 2: Roster-style weekly bulk shift planning",
+        "Phase 2: Manager-side bulk approve corrections"
+      ]
+    },
+    {
+      "chapter": 6,
+      "title": "Performance Management",
+      "shipped": [
+        "Cycles, Goals, Reviews (1-5 ratings on overall/performance/potential), 9-Box matrix",
+        "PSC Performance Contracts with weighted KPIs and dual-signature workflow",
+        "Calibration sessions with target distribution (Ghana 10/25/40/20/5 default) and dual-control apply",
+        "PIPs with check-ins, extensions, closure outcomes (Labour Act §63 compliant)",
+        "End-cycle weighted-achievement computed Σ(weight × score)/Σ(weight)",
+        "Goal mood (green/amber/red) auto-flips At Risk status",
+        "StepIncrementService gates step bump on review ≥ 3.0 (Performance↔Pay loop)"
+      ],
+      "partial": [
+        "Mid-year contract review column exists, form UI pending",
+        "Tier-3 voluntary deduction columns exist, statutory return not yet wired"
+      ],
+      "gaps": [
+        "No 360/multi-source feedback campaign engine (peer/skip/upward enums exist; no orchestration)",
+        "No KPI cascade UI (goals.parent_goal_id exists in schema)",
+        "No automatic PIP suggestion on low-rated reviews",
+        "No compensation/promotion linkage beyond step increments",
+        "Per-manager dashboards beyond institute-wide analytics"
+      ],
+      "standards_relevance": [
+        {"standard": "PSC Performance Management Framework 2015", "status": "met"},
+        {"standard": "Balanced Scorecard (Kaplan & Norton)", "status": "met"},
+        {"standard": "ISO 30414 §4.4 productivity", "status": "met"},
+        {"standard": "ISO 30414 §4.5 leadership/9-box", "status": "met"},
+        {"standard": "Labour Act 651 §17/§63 PIP before termination", "status": "met"},
+        {"standard": "DPA Act 843 §17/§18/§40", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: 360 campaign engine",
+        "Phase 1: KPI cascade UI on goals.parent_goal_id",
+        "Phase 1: Mid-year contract review form",
+        "Phase 1: PIP trigger button on low-rated reviews",
+        "Phase 1: Per-manager dashboards with span-of-control",
+        "Phase 1: Compensation linkage to merit-pay grid"
+      ]
+    },
+    {
+      "chapter": 7,
+      "title": "Learning & Development",
+      "shipped": [
+        "Course catalogue + My Learning + Skills Matrix + external Certifications register",
+        "Enrol-self → progress → completion lifecycle with auto-skill grant",
+        "GrantSkillsOnCourseCompletion listener on CourseCompleted event",
+        "governance:certification-reminders artisan with 30/15/7-day reminder events",
+        "External certification capture (ACCA, ISACA, etc.) with verification_url",
+        "Skill catalog and EmployeeSkill model with proficiency levels",
+        "Skills matrix heatmap with CSV export"
+      ],
+      "partial": [
+        "Prerequisites column not yet migrated (UI stub renders)",
+        "skill_tags on Course is free JSON, not FK to skill_catalog"
+      ],
+      "gaps": [
+        "No in-system content delivery (no video player, PDF viewer, SCORM, xAPI, LTI)",
+        "No in-system quizzes or graded assessments",
+        "No mandatory-training engine",
+        "No compliance dashboards by department/course",
+        "No auto-onboarding curriculum for new hires",
+        "No Performance→Learning recommender",
+        "No certificate generation (column exists for externally-attached PDF)",
+        "No certificate revocation tracking (only expiry)",
+        "No course-edit UI (route+FormRequest exist)",
+        "No dept_head scoping on Skills Matrix",
+        "No demo seeder for courses/enrolments/certs"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO 30414 §4.6 training & development", "status": "partial"},
+        {"standard": "DPA Act 843 §17/§18/§40", "status": "met"},
+        {"standard": "PSC Training Policy 2019", "status": "partial"},
+        {"standard": "WCAG 2.1 AA on catalogue", "status": "met"},
+        {"standard": "Labour Act 651 §10 training right", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Mandatory-training engine with MandatoryAssignment rules",
+        "Phase 1: Prerequisites column + enrolment gate",
+        "Phase 1: Catalogue edit panel",
+        "Phase 1: dompdf-backed completion certificate generator",
+        "Phase 1: Revocation lifecycle (revoked_at, revoked_reason)",
+        "Phase 1: dept_head scoping on Skills Matrix",
+        "Phase 1: Performance→Learning recommender",
+        "Phase 3: In-system content layer (video/PDF/SCORM/xAPI), quiz engine, WCAG AA on content"
+      ]
+    },
+    {
+      "chapter": 8,
+      "title": "Establishment (Positions, Grades, Steps, Ceilings)",
+      "shipped": [
+        "Positions register with status (vacant/filled/frozen/acting) + freeze/vacate actions",
+        "Grades + grade_steps with effective-dated base_salary and Grade::baseSalaryFor()",
+        "position_assignments history with step_at_start snapshot",
+        "establishment_ceilings keyed (department, grade, fiscal_year) with approval_reference",
+        "Row-locked ceiling enforcement closes TOCTOU window",
+        "Single Spine-aware grade structure (GS-08 through GS-20 seed)",
+        "establishment.exceed permission + audit-logged override path",
+        "StepIncrementService nightly job (gates on review ≥ 3.0, idempotent)",
+        "Funding source enum (gog/igf/donor/idf/other) on every post"
+      ],
+      "partial": [
+        "Sidebar entry not yet wired (URL-only access)",
+        "Create panel UI on backlog (data layer + screens shipped)"
+      ],
+      "gaps": [
+        "Department/grade filters accepted but not in UI",
+        "Single Spine pay table CSV loader (Phase 1)",
+        "Tamper-evident audit row on assign/vacate/freeze/exceed (dependency-tracked)"
+      ],
+      "standards_relevance": [
+        {"standard": "Ghana Single Spine Salary Structure 2010", "status": "partial"},
+        {"standard": "PSC establishment control", "status": "met"},
+        {"standard": "Auditor-General establishment audit", "status": "met"},
+        {"standard": "ISO 30414 §4.7 workforce planning", "status": "met"},
+        {"standard": "DPA Act 843", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Sidebar entry + Add Position slide panel + Promote/Transfer flow",
+        "Phase 1: Single Spine pay table CSV loader",
+        "Phase 1: Auditor-General reconciliation report"
+      ]
+    },
+    {
+      "chapter": 9,
+      "title": "Recruitment + Public Careers",
+      "shipped": [
+        "Job posting CRUD + public /careers/{job} apply form (no auth, 5/min throttle)",
+        "6-column applicant kanban (Applied/Shortlisted/Interviewed/Offered/Hired/Rejected)",
+        "ESignProvider contract with Zoho Sign / DocuSign drivers",
+        "Offer-letter PDF rendered via DomPDF + queued envelope dispatch",
+        "ESignWebhookController updates esign_status on signed/declined/voided",
+        "CV stored on public disk under applicant-cvs/"
+      ],
+      "partial": [
+        "Hiring funnel chart uses indicative conversion rates not real per-stage counts"
+      ],
+      "gaps": [
+        "ApplicantHired event class exists + listener wired but NEVER DISPATCHED — chain to Employee creation broken; HR must manually create Employee row",
+        "EnvelopeStatusChanged listener does not advance applicant to hired or fire ApplicantHired",
+        "No applicant_events audit log table",
+        "No privacy notice/consent tick-box on public Careers form",
+        "No de-duplication on (job_posting_id, email)",
+        "No applicant communication from CIHRMS (no apply ack, no shortlist/rejection email)",
+        "Reject action has no required reason",
+        "Postings immutable after creation (no edit UI)",
+        "JobPostingStatus::Draft enum unreachable from UI",
+        "No bulk actions on pipeline",
+        "CVs not in Documents pipeline (no confidential class, no watermark, no audit)",
+        "closes_at not enforced server-side on apply endpoint",
+        "Postings use free-text title not FK to positions table"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO 30414 §4.2.3 recruitment", "status": "partial"},
+        {"standard": "DPA Act 843 §20 consent + pre-contractual", "status": "partial"},
+        {"standard": "DPA Act 843 §40 right to erasure", "status": "partial"},
+        {"standard": "Labour Act 651 §43 equal opportunity", "status": "partial"},
+        {"standard": "Electronic Transactions Act 772 §10 e-signatures", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Wire EnvelopeStatusChanged → ApplicantHired → User + Employee creation",
+        "Phase 1: applicant_events audit table",
+        "Phase 1: Public consent UI + Data Subject Request link",
+        "Phase 1: position_id FK on job_postings",
+        "Phase 1: Bulk multi-select + posting edit panel + required Reject reason",
+        "Phase 1: CVs promoted to Documents pipeline",
+        "Phase 2: hCaptcha on public apply",
+        "Phase 2: Applicant communication mail templates",
+        "Phase 2: Post-hire performance link for ISO 30414 quality-of-hire"
+      ]
+    },
+    {
+      "chapter": 10,
+      "title": "Off-boarding & Clearance",
+      "shipped": [
+        "Initiate→clearance→settlement→approval→termination lifecycle",
+        "12-item default clearance template (IT/Finance/HR/Stores/Security/Handover/Pension)",
+        "FinalSettlement with Labour Act §31 severance (Redundancy only), gratuity, leave encashment, prorated 13th",
+        "Dual-control settlement approval (calculated_by ≠ approved_by, DomainException)",
+        "2fa:fresh middleware on approve and complete",
+        "OffboardingService::closeOutstandingLoans nets loans against settlement",
+        "OffboardingCompleted event + webhook fan-out",
+        "Reference auto-minted via SequenceService(offboarding:{year})",
+        "Soft-delete on cancel preserves audit trail"
+      ],
+      "partial": [
+        "Pension clearance is clerical sign-off (no live SSNIT/NPRA API call)",
+        "rehire_eligible flag captured but not enforced in recruitment shortlist",
+        "exit_interview_summary column exists but no dedicated panel UI"
+      ],
+      "gaps": [
+        "Account deprovisioning is checklist tick only — User.is_active not touched on completion, no force-logout, no SSO logout, no token revoke",
+        "No exit letter or clearance certificate PDF generation",
+        "No automatic SSNIT/NPRA handoff (manual form)",
+        "Assets not pre-flighted from Assets module on case init",
+        "No automatic off-cycle PayrollLine on settlement approval (Finance manually links payroll_line_id)",
+        "Notice-period validation is dumb (no pay-frequency-aware check)"
+      ],
+      "standards_relevance": [
+        {"standard": "Labour Act 651 §17 termination", "status": "met"},
+        {"standard": "Labour Act 651 §18 notice", "status": "partial"},
+        {"standard": "Labour Act 651 §31 redundancy/severance", "status": "met"},
+        {"standard": "Pensions Act 766 Tier-1/Tier-2", "status": "partial"},
+        {"standard": "Pensions Act 883 Tier-3 portability", "status": "stub"},
+        {"standard": "PSC Code of Conduct exit pack", "status": "met"},
+        {"standard": "DPA Act 843 §40 retention", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: OffboardingCompleted listener disables User account, revokes tokens, force SSO logout",
+        "Phase 1: Auto-seed clearance items from open Asset assignments",
+        "Phase 1: Real exit-letter + clearance-certificate PDFs via Documents stamps",
+        "Phase 1: SSNIT and Tier-2 trustee notification mail + discharge PDF",
+        "Phase 1: Auto-mint off-cycle PayrollLine on settlement approval",
+        "Phase 1: Notice-period validation by pay frequency",
+        "Phase 1: rehire-eligible gate in recruitment shortlist",
+        "Phase 2: Full Tier-2 API + automatic SSNIT discharge + DPA-grade redaction job"
+      ]
+    },
+    {
+      "chapter": 11,
+      "title": "Tickets (Service Desk)",
+      "shipped": [
+        "Kanban + List views with status/priority/assignee filters",
+        "4-state lifecycle (open/in_progress/resolved/closed)",
+        "TicketCreated event → RecordAnalyticsEvent (queued)",
+        "TicketResolved notification on terminal transition",
+        "TicketSlaExport class (Excel) ready but no UI button",
+        "Soft delete with audit trail"
+      ],
+      "partial": [
+        "TicketAssigned notification class exists but not dispatched"
+      ],
+      "gaps": [
+        "No SLA matrix (per-priority response/resolution targets)",
+        "No breach escalation cron job",
+        "No categories table (default-priority + default-assignee-group)",
+        "No comments/attachments tables (timeline is 3 system entries only)",
+        "No audit log integration on every CRUD",
+        "No department-scoped visibility (a dept_head with tickets.manage sees the whole desk)",
+        "No SequenceService-backed reference (still integer PK)"
+      ],
+      "standards_relevance": [
+        {"standard": "ITIL 4 Incident & Request Management", "status": "partial"},
+        {"standard": "ISO/IEC 27001:2022 A.5.24-A.5.26 incident management", "status": "partial"},
+        {"standard": "ISO/IEC 20000-1:2018 §8.6 incident management", "status": "partial"},
+        {"standard": "DPA Act 843 §17 lawful basis", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: SLA matrix + breach escalation cron + TicketSlaBreached notification",
+        "Phase 1: ticket_categories table + assignment routing",
+        "Phase 1: ticket_comments + ticket_attachments",
+        "Phase 1: Audit log integration on every CRUD",
+        "Phase 2: Customer-confirmation auto-close",
+        "Phase 2: Public ticket portal for vendors/applicants",
+        "Phase 2: Merge-duplicates flow"
+      ]
+    },
+    {
+      "chapter": 12,
+      "title": "Complaints",
+      "shipped": [
+        "Public track-by-reference endpoint (no auth)",
+        "Management Queue with status filter, inline reassign + status dropdown",
+        "Auto-generated CMP-XXXXXXXX reference (probabilistic uniqueness + DB unique index)",
+        "Named-but-optional anonymity (submitted_by free-string, no FK to users)",
+        "Distinct from Whistleblower (separate table/controller/service/policy/permissions)",
+        "Soft-delete recoverability"
+      ],
+      "partial": [
+        "Dept-head dashboard surfaces org-wide complaints count (no employee_id FK by design)"
+      ],
+      "gaps": [
+        "No ComplaintSubmitted or ComplaintStatusChanged events",
+        "No notification class (no acknowledgement, no status-change fan-out, submitter only learns by polling track endpoint)",
+        "Detail panel is read-only — no comment thread, no investigator notes, no resolution summary",
+        "No submitter contact column (only details body)",
+        "Body stored plaintext (not encrypted) — escalation to Whistleblower not wired",
+        "No SLA timer / overdue banner under Labour Act §65-§66 / PSC 14-day clock",
+        "No throttle on submission endpoint",
+        "No retention schedule"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO 10002 complaints handling", "status": "partial"},
+        {"standard": "Labour Act 651 §64-§67 grievance procedures", "status": "partial"},
+        {"standard": "DPA Act 843 §17", "status": "met"},
+        {"standard": "DPA Act 843 §40 retention", "status": "partial"},
+        {"standard": "PSC HR Handbook §5.4 14-day resolution", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 2: ComplaintSubmitted + ComplaintStatusChanged events + notification fan-out",
+        "Phase 2: In-app message thread on detail panel",
+        "Phase 2: Resolution-summary surface visible to submitter",
+        "Phase 2: SLA timer + overdue banner",
+        "Phase 2: Escalate-to-Whistleblower pathway",
+        "Phase 2: Per-user throttle + admin block-submitter toggle"
+      ]
+    },
+    {
+      "chapter": 13,
+      "title": "Documents",
+      "shipped": [
+        "Year-numbered ref_no via SequenceService('document_ref:'+year)",
+        "Manipulable annotations (signatures/stamps/text/initials) — not flattened until burn time",
+        "Three-scope asset libraries (personal/department/organization) for stamps/letterheads/watermarks",
+        "Sequential routing slip with action_required (sign/review/approve/acknowledge)",
+        "document_events immutable audit trail",
+        "Confidentiality enum (internal/confidential/restricted) — restricted always burns + watermarks",
+        "Per-viewer watermarks on burned PDF for restricted",
+        "Documents v2: manipulable annotations + stamp/letterhead/watermark libraries shipped PR #15",
+        "In-portal HTML composer with letterhead picker + live preview (TCPDF renderer)",
+        "Scan path with camera capture wrapped to single-page PDF",
+        "SHA-256 per version for integrity",
+        "Sign-off lock — annotations linked to completed routes refuse geometry change"
+      ],
+      "partial": [
+        "Composer route uses count()+1 retry loop (Postgres FOR UPDATE on aggregate refused) — known wart"
+      ],
+      "gaps": [
+        "No bulk routing workflow",
+        "Parallel routing column exists, controller treats all as sequential",
+        "eSign integration scoped to Recruitment only (Documents v1 use signature_pad)",
+        "DOCX/XLSX burn-in passes Office docs through unmodified (no LibreOffice headless)",
+        "Per-type retention table (Phase 2)",
+        "DPA §40 redaction job (Phase 2)",
+        "Court-grade evidence ZIP (Phase 2)"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §17/§40", "status": "partial"},
+        {"standard": "Electronic Transactions Act 772 §10 e-signatures", "status": "met"},
+        {"standard": "Evidence Act NRCD 323 §3 admissibility", "status": "partial"},
+        {"standard": "ISO/IEC 27001 A.5.12/A.5.13 classification", "status": "met"},
+        {"standard": "ISO/IEC 27001 A.8.10 information deletion", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Bulk routing workflow",
+        "Phase 1: Parallel routing flag honoured",
+        "Phase 1: eSign integration extended to Documents pipeline",
+        "Phase 1: DOCX/XLSX burn-in via LibreOffice headless",
+        "Phase 2: Per-type retention + redaction job + court-grade evidence ZIP"
+      ]
+    },
+    {
+      "chapter": 14,
+      "title": "Chat",
+      "shipped": [
+        "Single-column directory + 1:1 threads (post-redesign PR #24)",
+        "findOrCreateOneOnOne with sharedLock re-check prevents duplicate-pair race",
+        "4-second poll loop with id-delta + visibilitychange pause",
+        "Optimistic UI bubble + post-send/poll dedupe (fixes race in PR #24)",
+        "Soft-delete on conversations + deleted_for_everyone_at on messages (retraction)",
+        "Read receipts per-user-per-conversation via last_read_at",
+        "COALESCE(last_message_at, created_at) thread sort (fixes new threads in PR #24)",
+        "Conversation policy enforces participant-pivot membership"
+      ],
+      "partial": [],
+      "gaps": [
+        "No in-app notifications or email digest on new chat messages — recipient learns only by unread badge",
+        "No realtime (polling-only, no Reverb/Echo)",
+        "Audit log integration — message create/update/delete do NOT write to tamper-evident audit chain",
+        "No file attachments or image previews",
+        "Schema supports group chats but no UI to name/invite/remove",
+        "chat_messages.body NOT encrypted at rest (DPA §27 gap)"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §17 lawful basis", "status": "met"},
+        {"standard": "DPA Act 843 §27 security of personal data", "status": "partial"},
+        {"standard": "DPA Act 843 §40/§41 erasure/rectification", "status": "partial"},
+        {"standard": "ISO 27001 A.13 communications security", "status": "partial"},
+        {"standard": "ISO 27001 A.8 asset management", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 2: NewChatMessage notification + email digest, opt-out via muted_at",
+        "Phase 2: Realtime via Laravel Reverb + Echo",
+        "Phase 2: Audit log wiring (ChatMessageCreated/Retracted/ConversationCreated events)",
+        "Phase 2: File attachments + image previews",
+        "Phase 2: Group chats UI",
+        "Phase 2: Encryption at rest for chat_messages.body"
+      ]
+    },
+    {
+      "chapter": 15,
+      "title": "Messaging Administration",
+      "shipped": [
+        "Outbound log + inbound stream + send-SMS + USSD PIN issuance",
+        "Pluggable SmsDispatcher (Hubtel/Twilio/log) with provider normalisation",
+        "USSD self-service via *920*HR# with 4-digit PIN (bcrypt-hashed, 15min lockout on 5 misses)",
+        "USSD payslip/leave/clock-in/clock-out/bank-change-confirm flows",
+        "Signature-verified webhooks (webhook.signature:hubtel_sms, hubtel_ussd, whatsapp)",
+        "Inbound keyword parsing (PAYSLIP/LEAVE/CLOCK_IN/CLOCK_OUT/TRACK/OPTOUT)",
+        "WhatsApp Cloud webhook + consent capture (whatsapp_consent_at)",
+        "2fa:fresh gate on PIN issuance"
+      ],
+      "partial": [
+        "STOP/OPTOUT keyword parsed but not enforced — operator can SMS opted-out number"
+      ],
+      "gaps": [
+        "No templates table (every outbound is one-off or system-string)",
+        "No campaigns/audience selection or scheduled sends",
+        "Synchronous dispatch (slow gateway blocks operator request)",
+        "DPA §20 opt-out enforcement on outbound (Phase 1)",
+        "No WhatsApp send UI on dashboard (inbound + system-notifications only)",
+        "No delivery analytics by carrier/template"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §20 direct marketing opt-out", "status": "partial"},
+        {"standard": "DPA Act 843 §17 lawful basis", "status": "met"},
+        {"standard": "DPA Act 843 §40 retention", "status": "partial"},
+        {"standard": "NCA Alphanumeric sender ID registration", "status": "partial"},
+        {"standard": "NCA short-code provisioning", "status": "partial"},
+        {"standard": "WhatsApp 24-hour customer-care window", "status": "met"},
+        {"standard": "ISO/IEC 27001 A.13", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: sms_templates table + Mustache substitution + template picker",
+        "Phase 1: Campaigns + audience selection (department/role/CSV/filters)",
+        "Phase 1: Queue-backed dispatch with retry backoff",
+        "Phase 1: DPA-grade opt-out enforcement (sms_optouts table)",
+        "Phase 1: WhatsApp send panel + unified outbound log",
+        "Phase 1: Delivery analytics by carrier/template/hour",
+        "Phase 2: Bulk CSV/XLSX audience upload, auto-handling inbound, bilingual English+Twi"
+      ]
+    },
+    {
+      "chapter": 16,
+      "title": "Notifications",
+      "shipped": [
+        "Top-bar bell with ring/pulse/heartbeat animations (WCAG 2.3.3 reduced-motion respected)",
+        "Bell dropdown (10 most recent unread) + full /notifications archive page",
+        "Channel preferences screen with email/in_app/whatsapp/slack/teams toggles",
+        "WhatsApp consent capture pairing (consent + phone)",
+        "Sound subsystem with 3 packs (musical/cinematic/gamified) + file-override",
+        "Per-channel driver isConfigured() check disables toggle when missing",
+        "Producers wired: Leave (LeaveStatusChanged + 3-day stale LeaveApprovalReminder), Employees (NewEmployeeWelcome mail), Tickets (TicketAssigned/Resolved), Documents (DocumentAwaitingAction/CompletedNotice), Identity (IdentityExpiringReminder), Audit (AuditChainBroken), DPA (DpaVerificationLink), Incidents (5 listeners)"
+      ],
+      "partial": [
+        "in_app toggle does not yet hard-mute database write (every producer with 'database' in via() writes unconditionally)"
+      ],
+      "gaps": [
+        "No broadcast/realtime — bell is polled via deferred Inertia prop on every navigation, not pushed",
+        "Two-valued read state only (no archived/dismissed)",
+        "No per-row Mark-as-read, no per-row Delete, no Filter-by-type, no Open-linked-entity (data payload has entity ids but UI does not navigate)",
+        "PaymentMarkedPaid icon in palette but producer not shipped",
+        "Complaints, Performance, Learning, Loans, Disbursements producers all roadmapped (Phase 1)",
+        "No quiet hours / digest mode",
+        "No SMS as first-class channel (only WhatsApp)",
+        "Sound preferences localStorage-only (not server-persisted)"
+      ],
+      "standards_relevance": [
+        {"standard": "WCAG 2.1 AA §1.4.3/§2.2.2/§2.3.1/§4.1.3", "status": "met"},
+        {"standard": "DPA Act 843 §17 lawful basis (in-app/email)", "status": "met"},
+        {"standard": "DPA Act 843 §18 consent (WhatsApp/Slack/Teams)", "status": "met"},
+        {"standard": "DPA Act 843 §40 erasure", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Realtime via Laravel Reverb + Echo broadcast channel",
+        "Phase 1: Row-level actions (PATCH read, DELETE, route navigation)",
+        "Phase 1: Preference-aware NotifyService consults notification_channels before via() built",
+        "Phase 1: Sound preferences persisted on users row",
+        "Phase 2: Quiet hours + digest mode + SMS as first-class channel"
+      ]
+    },
+    {
+      "chapter": 17,
+      "title": "Announcements",
+      "shipped": [
+        "Notice Board admin with type/severity/audience/window + pin/active toggles",
+        "Live ticker pinned to top of every authenticated page",
+        "Composite ticker layering: manual notices + auto-generated birthdays/leave-events/tasks",
+        "Audience scoping (everyone/role) enforced server-side via Announcement::scopeForRole",
+        "Lifecycle computed live from (is_active, starts_at, ends_at) — no status column drift",
+        "60-second auto-poll with visibilitychange pause + chime on new item",
+        "WCAG 2.1 AA: aria-live polite, pause control, reduced-motion fallback, mobile collapse",
+        "Hard delete by design (audit log captures deleted-row payload)"
+      ],
+      "partial": [
+        "Audience scoping is role-only (no department-level)"
+      ],
+      "gaps": [
+        "No acknowledgement receipts (compliance announcements)",
+        "No attachments or Markdown-lite body rendering",
+        "No cross-channel fan-out checkbox (broadcast to email+SMS via Messaging)",
+        "Birthday/task auto-layers — no per-employee opt-out"
+      ],
+      "standards_relevance": [
+        {"standard": "WCAG 2.1 AA §1.4.3/§2.2.2/§2.3.3/§4.1.2/§3.1.5", "status": "met"},
+        {"standard": "DPA Act 843 §17/§18/§40", "status": "met"},
+        {"standard": "NCA accessibility advisory 2024", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Department-level audience scoping + announcement_departments pivot",
+        "Phase 1: Compliance announcements with required acknowledgement + announcement_acknowledgements",
+        "Phase 1: Attachments + Markdown body",
+        "Phase 1: Cross-channel fan-out to Messaging admin pipeline"
+      ]
+    },
+    {
+      "chapter": 18,
+      "title": "Payments (one-off payment ledger)",
+      "shipped": [
+        "Quick Payment + Generate Payslip slide panels",
+        "Per-payment Ghana payslip with PAYE + SSNIT Tier-1 5.5% + Tier-3 cap-aware + voluntary deductions",
+        "Index analytics row (this month/pending/lifetime/earnings-vs-deductions) cached 60s",
+        "SSNIT-14th + PAYE-15th compliance reminder cards",
+        "PayrollItem child rows for statutory breakdown",
+        "Employer cost calculator (Tier-1 13% + Tier-2 5% capped at GHS 61k)",
+        "PayrollExport Excel class reachable from Reports module"
+      ],
+      "partial": [
+        "Mark-paid action overwrites processed_by (no separate created_by retained)"
+      ],
+      "gaps": [
+        "No domain events fired on create or markPaid (PaymentMarkedPaid icon waiting in Notifications palette)",
+        "PayslipGenerated event class + UploadPayslipToCloud listener exist but NEVER DISPATCHED — no cloud-mirror of payslips and no PDF emitter wired",
+        "No Cancel or Mark-failed UI action (enum cases exist)",
+        "No PAY-YYYY-NNNN reference column (still integer PK, needs SequenceService convention)",
+        "No per-employee filter in index UI (controller accepts param)",
+        "No Export button on index (uses Reports module)",
+        "Single permission gate — payroll.manage covers viewing, creating, marking paid (no duties separation)",
+        "No reversal trail or Reversed status",
+        "No link back to parent Payroll Run (no payroll_run_id FK)"
+      ],
+      "standards_relevance": [
+        {"standard": "Income Tax Act 896 §116 PAYE", "status": "met"},
+        {"standard": "Pensions Act 766 §3 three-tier", "status": "met"},
+        {"standard": "SSNIT Act PNDCL 247 §64 remittance", "status": "met"},
+        {"standard": "NHIA Act 852 §29 contribution", "status": "met"},
+        {"standard": "DPA Act 843 §§17,18 financial data", "status": "met"},
+        {"standard": "IFRS expense recognition", "status": "partial"},
+        {"standard": "Electronic Transfer Levy Act 1075 E-Levy", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Wire PaymentCreated/PaymentPaid/PaymentCancelled events",
+        "Phase 1: Dispatch PayslipGenerated at tail of generatePayslip() so UploadPayslipToCloud listener fires",
+        "Phase 1: PAY-YYYY-NNNN reference via SequenceService::next('PAY', 4, year)",
+        "Phase 1: Cancel-with-reason action + cancelled_reason column",
+        "Phase 2: Split payroll.create vs payroll.approve permissions",
+        "Phase 2: Nullable payroll_run_id FK",
+        "Phase 3: GIFMIS journal sub-ledger feed for one-off payments"
+      ]
+    },
+    {
+      "chapter": 19,
+      "title": "Payroll Engine",
+      "shipped": [
+        "Period-locked dual-approval runs (Draft→Calculated→Approved→Paid→Reversed)",
+        "PayeCalculator with 2026 7-band monthly bracket (0% to 35%, effective-dated tax_brackets)",
+        "SsnitCalculator (employee 5.5%, employer 13%, NHIA 2.5% split, MIE cap GHS 61k)",
+        "Tier2Calculator (5% employer to NPRA-licensed trustees, 5 seeded trustees)",
+        "OvertimeCalculator implements Labour Act §35",
+        "Ghost-worker gates: hasUsableIdentity (Ghana Card) + zero-attendance check",
+        "Dual-control approval enforced at policy + service layer + 2fa:fresh middleware",
+        "Statutory return generators: PAYE CSV, SSNIT Tier-1 schedule, NHIA allocation, per-trustee Tier-2, GhIPSS bank file",
+        "IPPD2/IPPD3 CAGD export (pipe-delimited, pesewa integer)",
+        "GifmisJournalExporter (balanced JV with debit=credit assertion, GL map per-MDA via env)",
+        "MaterialiseDisbursements listener creates Disbursement rows on approval",
+        "Loan repayment two-phase (collect at calculate, post at approve, rollback-safe)",
+        "DeductionAggregator priority-ordered with 1/3 take-home floor (Labour Act §70)",
+        "Court-ordered garnishments bypass floor",
+        "Reversal with required reason ≥10 chars + 2fa:fresh + PayrollRunReversed event",
+        "Public v1 API for partner MDA pulls",
+        "FanOutWebhooks::handlePayrollRunApproved for partner subscribers"
+      ],
+      "partial": [
+        "Tier-3 voluntary deduction columns exist + 16.5% cap computed but Tier3 statutory return generator stubbed (writes tier3_employee=0 today; the split between voluntary_deductions_total and Tier-3 is pending)",
+        "Department-scoped runs allowed by unique constraint but Create panel UI does not yet expose dropdown",
+        "submitted_at/by/reference columns on statutory_returns exist but 'Mark as filed' action UI not yet wired",
+        "GIFMIS export is download-and-upload, not live REST push (auto-mint flag exists)"
+      ],
+      "gaps": [
+        "PayslipGenerated event never dispatched for batch run — bulk payslip-PDF emission not wired (only per-payment in Ch 18 has the listener wired but producer missing there too)",
+        "Per-payroll-line PDF cloud mirror to OneDrive/Drive not fired (UploadPayslipToCloud listener orphaned)"
+      ],
+      "standards_relevance": [
+        {"standard": "Income Tax Act 896 Sixth Schedule PAYE", "status": "met"},
+        {"standard": "Pensions Act 766 §3 three-tier", "status": "met"},
+        {"standard": "NHIA Act 852 §29", "status": "met"},
+        {"standard": "SSNIT Act PNDCL 247 Tier-1 remittance", "status": "met"},
+        {"standard": "Labour Act 651 §35 overtime", "status": "met"},
+        {"standard": "Electronic Transfer Levy Act 1075", "status": "met"},
+        {"standard": "DPA Act 843 §§17,18", "status": "met"},
+        {"standard": "PFM Act 921 §11 internal controls", "status": "met"},
+        {"standard": "GIFMIS sub-ledger JV format", "status": "met"},
+        {"standard": "IPPD2/IPPD3 CAGD format", "status": "met"},
+        {"standard": "IFRS accruals", "status": "met"},
+        {"standard": "ISO 30414 §4.6 compensation", "status": "met"},
+        {"standard": "NIA Act 707 Ghana Card gate", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Tier-3 voluntary split + Tier3 statutory return generator",
+        "Phase 1: Bulk payslip-PDF emission on approval (extend PayslipGenerated to fire per line)",
+        "Phase 1: Department-scoped runs in Create panel UI",
+        "Phase 1: Mark-as-filed inline action on statutory returns",
+        "Phase 2: Live GRA/SSNIT/NPRA/NHIA submission webhooks",
+        "Phase 3: GIFMIS live REST push under auto_mint_on_paid + IPPD bridge with CAGD certification"
+      ]
+    },
+    {
+      "chapter": 20,
+      "title": "Finance (CoA, AP, AR, Paystack, Bank Reconciliation)",
+      "shipped": [
+        "F1: Chart of Accounts (5 GL families) + Org Bank Accounts + Finance Hub (live cash position, AP outstanding, statutory compliance band)",
+        "F2: Vendors + AP Invoices + AP Payments + Journal Engine (JournalPostingService sole gl_account_balances mutator)",
+        "F3: Customers + AR Invoices + AR Receipts + Customer Statements with aging",
+        "F3: AR Write-off path (Dr Bad Debt Expense, Cr AR for outstanding residual)",
+        "F4: Paystack hosted-checkout with payment intents, signed webhooks (HMAC-SHA512), refunds (single + bulk)",
+        "F5: Bank Reconciliation with CSV/OFX 2.x/MT940 SWIFT parsers + three-tier matcher",
+        "F5: Bank Adjustment journals for fees/interest via JournalSourceType::BankAdjustment",
+        "Dual-control on every invoice approval (creator ≠ approver)",
+        "2fa:fresh on every cash-moving endpoint",
+        "SequenceService for all Finance references (PR #21 closed C3 race condition)",
+        "Double-entry invariants enforced (debits=credits at posting + balance = natural sum of posted lines + source reconstructable both ways)"
+      ],
+      "partial": [
+        "ApPaymentService::void() lacks lockForUpdate on allocations (record() correctly locks)",
+        "MT940 parser is permissive (real-world :61: variants will sharpen it)",
+        "Multi-currency posting is GHS-only (currency column hooks ready for Phase 3 FX)"
+      ],
+      "gaps": [
+        "gateway.refund reserved to super_admin in seeder; finance_officer not yet granted",
+        "PaymentIntentService::expireStale() exists but not yet cron-scheduled",
+        "Bank-rec PDF template is placeholder",
+        "No bulk operator actions on reconciliation",
+        "Manual JE reversal route not yet exposed (service method exists)",
+        "AP external_ref not auto-populated from GhIPSS settlement messages",
+        "Bank-fee adjustment chart not pre-seeded (GL 5500/GL 4500)"
+      ],
+      "standards_relevance": [
+        {"standard": "IFRS / IAS 1 / IAS 8", "status": "met"},
+        {"standard": "IFRS 9 expected credit loss", "status": "partial"},
+        {"standard": "GIFMIS sub-ledger JV format", "status": "met"},
+        {"standard": "CAGD chart of accounts", "status": "met"},
+        {"standard": "Bank of Ghana FX Act 723", "status": "stub"},
+        {"standard": "DPA Act 843 §§17-18", "status": "met"},
+        {"standard": "PFM Act 921 §11 separation of duties", "status": "met"},
+        {"standard": "Electronic Transfer Levy Act 1075", "status": "met"},
+        {"standard": "Cheque Act 70 / Bills of Exchange Act 55", "status": "met"},
+        {"standard": "ISO 27001 webhook signature verification", "status": "met"},
+        {"standard": "ISO 30414 §§4.8/4.9", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: gateway.refund grant to finance_officer",
+        "Phase 1: Schedule PaymentIntentService::expireStale() nightly",
+        "Phase 1: Bank-rec PDF audit-ready template",
+        "Phase 1: Manual JE reversal route + concurrency-safe ApPaymentService::void",
+        "Phase 1: AP external_ref auto-population via GhIPSS settlement bridge",
+        "Phase 2: IFRS-grade trial-balance + income-statement PDF/Excel + IFRS 9 ECL provisioning + GIFMIS auto-mint",
+        "Phase 3: Multi-currency posting + FX gain/loss + Stripe + Flutterwave gateways"
+      ]
+    },
+    {
+      "chapter": 21,
+      "title": "Loans & Advances",
+      "shipped": [
+        "Loan products catalogue (6 types: salary advance, emergency, personal, education, vehicle, housing)",
+        "Apply→Approve→Disburse→Repay lifecycle with LOAN-YYYY-NNNNN via SequenceService",
+        "AmortizationCalculator (straight-line, reducing balance, flat rate)",
+        "Live quote preview (server-side, same code path as disbursement)",
+        "Booking snapshot (booked_interest_rate, booked_amortization_method) — running loans never re-priced",
+        "Dual-control on approval enforced at policy + service (applicant ≠ approver, DomainException)",
+        "2fa:fresh on approve and disburse",
+        "Payroll engine two-phase repayment integration (collect at calculate, post at approve)",
+        "Off-boarding integration: closeOutstandingLoans nets balance against final settlement",
+        "Soft-delete on accounts + repayments",
+        "LoanApproved event fans out webhook"
+      ],
+      "partial": [
+        "Approvals_required column exists (defaults 2) but apply flow is single-step countersign"
+      ],
+      "gaps": [
+        "No affordability/DTI enforcement (max_dti_ratio captured per product, never checked)",
+        "No no-outstanding-loans rule",
+        "No minimum-tenure check (new hire can apply day-one for housing loan)",
+        "No automatic finance journal entries on disburse/repay/settle/write-off (LoanDisbursed event has no listener)",
+        "No audit-log entries on status transitions",
+        "No early repayment, top-up, or restructure paths",
+        "No default-detection job (LoanStatus::Defaulted/WrittenOff enum cases exist, never written)",
+        "No guarantor workflow (loan_guarantors pivot exists, no UI)",
+        "No employee-facing report/PDF statement",
+        "loan.disbursed webhook event missing (only loan.approved)"
+      ],
+      "standards_relevance": [
+        {"standard": "Borrowers and Lenders Act 773 §11 disclosure", "status": "met"},
+        {"standard": "Bank of Ghana lending guidelines (affordability/DTI)", "status": "partial"},
+        {"standard": "DPA Act 843 credit data", "status": "met"},
+        {"standard": "IFRS 9 amortised cost", "status": "partial"},
+        {"standard": "Labour Act 651 §70 wage deduction limits", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 2: LoanEligibilityService (affordability + no-outstanding + min-tenure)",
+        "Phase 2: Finance journal listeners on LoanDisbursed + LoanRepaymentPosted + closeOutstandingLoans",
+        "Phase 2: Audit-log hook on every status transition",
+        "Phase 2: Manipulable schedule (early repayment, top-up, restructure)",
+        "Phase 2: Daily default-detection job + LoanDefaulted event",
+        "Phase 2: Guarantor workflow with consent + call-the-guarantee path",
+        "Phase 2: Employee self-service Loans tab + PDF statement"
+      ]
+    },
+    {
+      "chapter": 22,
+      "title": "Disbursements",
+      "shipped": [
+        "Disbursement ledger (read-only) with stat band (Pending/Sent/Settled/Failed + MoMo YTD + E-Levy YTD)",
+        "BatchDisbursementService::materialise/dispatch/reconcile",
+        "Four provider clients coded: GhIPSS ACH (bulk CSV file), MTN MoMo (OAuth2), Vodafone Cash (HMAC), AirtelTigo (OAuth2)",
+        "E-Levy 1.5% applied per Act 1075 on MoMo channels (StatutoryRate lookup + fallback constant)",
+        "Beneficiary masked on UI",
+        "Channel preferences on employee row (disbursement_channel + mobile_money_number)",
+        "2fa:fresh on dispatch, soft-delete on Disbursement rows",
+        "GhIPSS CSV format matches GCB/Stanbic/Ecobank bulk-pay",
+        "Cash + Cheque rows pass through quietly (no automated provider)",
+        "5-minute reconcile poll with refreshStatus() per provider",
+        "Idempotent materialisation (skip existing (run_id, line_id) pairs)"
+      ],
+      "partial": [
+        "MoMo providers enabled=false by default (coded but not onboarded)",
+        "Settlement reliably surfaced via 5-min reconcile poll; per-provider webhooks not yet wired"
+      ],
+      "gaps": [
+        "E-Levy NOT disclosed on payslip (only on Disbursement Ledger) — PayrollLineResource lacks e_levy field",
+        "No maker/checker dual-control on Dispatch above threshold — one user with 2FA can dispatch any-size run",
+        "No live MoMo provider onboarding (sandbox test pending)",
+        "GhIPSS statement reconciliation (CSV diff) designed but not shipped",
+        "Loan disbursements still produce Payment row not Disbursement row (folding into BatchDisbursementService planned)",
+        "No channel-mix / failure-rate dashboards"
+      ],
+      "standards_relevance": [
+        {"standard": "Electronic Transfer Levy Act 1075 E-Levy", "status": "partial"},
+        {"standard": "GhIPSS direct-credit rules", "status": "met"},
+        {"standard": "Bank of Ghana payments oversight", "status": "met"},
+        {"standard": "DPA Act 843 payee account data", "status": "met"},
+        {"standard": "PCI DSS", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Add e_levy field to PayrollLineResource + payslip template",
+        "Phase 3: Maker/checker dual-control on dispatch above threshold",
+        "Phase 3: Live MoMo provider onboarding (MTN/Vodafone/AirtelTigo sandboxes)",
+        "Phase 3: Per-provider settlement webhook handlers (collapse poll lag from minutes to seconds)",
+        "Phase 3: GhIPSS statement reconciliation",
+        "Phase 3: Loan disbursement through Disbursement table",
+        "Phase 3: Channel-mix + failure-rate reporting"
+      ]
+    },
+    {
+      "chapter": 23,
+      "title": "Benefits",
+      "shipped": [
+        "Plan catalogue admin (7 BenefitType: health/provident_fund/life/dental/vision/wellness/other)",
+        "My Benefits page with coverage snapshot, plan composition bars, claims pipeline",
+        "Enrol panel with premium override + dependant management (cap-aware via active enrolment)",
+        "Claim slide panel with required description (10-1000 chars) + CLM-XXXXXXXX reference",
+        "Claims queue with 4-state lifecycle (submitted → reviewing → approved → paid; rejected at decision)",
+        "guardTransition enforces explicit allow-list",
+        "E-card PDF download via dompdf",
+        "Provident-fund lifetime-contributed view"
+      ],
+      "partial": [
+        "Plan delete is soft-delete only; FK guard against active enrolments planned",
+        "Claim reference is random 8-char (probabilistic uniqueness, ~1 in 200T collision)"
+      ],
+      "gaps": [
+        "BenefitsService::enrol does NOT create payroll Deduction row — monthly_premium never flows into payroll (Ch 19 cross-ref contradicts; DeductionType enum has no BenefitPremium case)",
+        "No termination flow on OffboardingCompleted — terminated employees still appear in monthly premium totals",
+        "No event listeners wired to audit chain (BenefitPlanCreated/BenefitEnroled/etc. fire but no audit log persist)",
+        "Single permission gate — no dual-control on approved → paid",
+        "No finance journals on claim payment",
+        "No Disbursement row materialised on claim Mark Paid (status flip only)",
+        "Open enrolment window is policy not code-enforced",
+        "No pro-rating on mid-period enrolments",
+        "Premium rate changes do not recompute existing enrolments",
+        "No trustee-side balance call for provident fund (computed locally from contributions)",
+        "Dependant national_id stored plaintext (no masking)",
+        "No org-level overview report or cost/uptake/claim-frequency reports",
+        "claim.description treated as DPA §39 sensitive but not encrypted at rest"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §39 sensitive health data", "status": "partial"},
+        {"standard": "NHIA Act 852", "status": "met"},
+        {"standard": "Pensions Act 766 Tier-3 voluntary", "status": "partial"},
+        {"standard": "Labour Act 651 §68 end-of-employment entitlements", "status": "partial"},
+        {"standard": "ISO 30414 §4.4 total rewards", "status": "partial"},
+        {"standard": "PFM Act 921 §11 dual control on payments", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Payroll-deduction bridge — BenefitEnroled listener materialises Deduction with type=BenefitPremium, floor-protected",
+        "Phase 1: Termination listener on OffboardingCompleted closes open enrolments",
+        "Phase 1: Audit-log wiring for all 5 events",
+        "Phase 1: Split benefits.manage into decide vs pay; 2fa:fresh on approved→paid",
+        "Phase 1: Finance journal on claim payment (AP invoice into F2 pipeline)",
+        "Phase 1: SequenceService claim references (CLM-YYYY-NNNNNN)",
+        "Phase 1: /benefits/admin/overview with uptake by plan/department/cost reports",
+        "Phase 1: Trustee-side balance call",
+        "Phase 1: QR-coded e-cards",
+        "Phase 2: Column-level encryption on claim_description and dependant national_id"
+      ]
+    },
+    {
+      "chapter": 24,
+      "title": "Audit Logs",
+      "shipped": [
+        "AuditTrail middleware on every mutating route inside auth+audit group",
+        "WriteAuditLog job dispatches on audit queue (async, non-blocking)",
+        "SHA-256 hash chain (chain_position monotonic + previous_hash + row_hash via canonical JSON)",
+        "lockForUpdate on latest row gives total order under concurrent writes",
+        "audit:verify-chain command walks chain, detects mismatch with constant-time hash_equals",
+        "Nightly schedule at 03:00 with --notify dispatches AuditChainBroken to super_admins",
+        "audit:backfill-chain idempotent for legacy rows",
+        "Sanitised payload (strips password/token/_token, UploadedFile → descriptor, 500-char truncate)",
+        "Auditor-General Report Pack (14 artefacts in ZIP with MANIFEST.md SHA-256 of every file)",
+        "AG pack ships chain_verification.txt + masked Ghana Card register + counts-only whistleblower"
+      ],
+      "partial": [
+        "Verify Chain button reloads page (controller-side Artisan::call('audit:verify-chain --limit=500') wiring on backlog as W1.24.a)",
+        "AuditChainBroken notification routes by legacy users.role enum, not also DB-backed roles pivot (Phase-2 tightening)",
+        "NTP-drift assertion in verifier (W1.24.c)"
+      ],
+      "gaps": [
+        "Action vocabulary widening — service-layer events not 1:1 with a route still log under generic name (Phase 2)",
+        "No per-row detail page at /audit-logs/{id}",
+        "No per-row foreign keys back from high-stakes tables (payroll_runs.audit_log_id etc.) — Phase 2",
+        "Off-site sealed replication every 15min — Phase 3",
+        "WORM mode at DB privilege level — Phase 3",
+        "CSA incident-reporting integration under Act 1038 §59 — Phase 3",
+        "hr_admin deliberately not granted audit.view (segregation of duties)"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §28 security of personal data", "status": "met"},
+        {"standard": "DPA Act 843 §29 breach notification", "status": "partial"},
+        {"standard": "Cybersecurity Act 1038 §41 record-keeping", "status": "partial"},
+        {"standard": "ISO/IEC 27001:2022 A.12.4 logging and monitoring", "status": "met"},
+        {"standard": "ISO/IEC 27001:2022 A.5.7 threat intelligence", "status": "met"},
+        {"standard": "NIST SP 800-92 §4 log integrity", "status": "met"},
+        {"standard": "Auditor-General Act 584 §13", "status": "met"},
+        {"standard": "Whistleblower Act 720 §10 confidentiality", "status": "met"},
+        {"standard": "PFM Act 921 §52 record-keeping", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 2: Widen action vocabulary via AuditLogger::record() service helper",
+        "Phase 2: /audit-logs/{id} detail page with pretty-print + verify-this-row",
+        "Phase 2: audit_log_id pointers on payroll_runs/loan_accounts/data_subject_requests/offboarding_settlements",
+        "Phase 3: Off-site sealed replication to S3 Object Lock every 15 minutes",
+        "Phase 3: CSA Act 1038 §59 incident-reporting integration",
+        "Phase 3: WORM mode at DB privilege level"
+      ]
+    },
+    {
+      "chapter": 25,
+      "title": "Identity Verification & Ghana Card",
+      "shipped": [
+        "Identity register at /identity with masked card display (GHA-•••••••••-N)",
+        "Three pluggable providers via IdentityProviderKind: NiaOfficialProvider (HTTP adapter to api.nia.gov.gh), ThirdPartyKycProvider (uqudo/Smile/Youverify shape), ManualUploadProvider (default)",
+        "Provider chosen via env IDENTITY_PROVIDER (defaults manual_upload)",
+        "Encrypted ghana_card_number column + SHA-256 ghana_card_hash for duplicate detection",
+        "BiometricCapture component (live camera, face + card framing)",
+        "12-month expiry on every verification",
+        "Employee::hasUsableIdentity() is Payroll Gate 1 (Ch 19)",
+        "DuplicateIdentityDetected event dispatched (no listener wired)",
+        "IdentityVerified event → FanOutWebhooks ships identity.verified topic",
+        "identity:expiring artisan command (30-day reminder)",
+        "Back-fills employees.national_id on first successful verification",
+        "Card number masked everywhere (UI/CSV/data-subject export to last digit)"
+      ],
+      "partial": [
+        "Biometric photo captured as audit evidence only — no fingerprint/facial-recognition template match",
+        "No card photo OCR or chip read"
+      ],
+      "gaps": [
+        "Live NIA endpoint not hit from any test/seed — no MoU yet; default driver is manual_upload",
+        "hasUsableIdentity() called by Payroll ONLY — Loans (Ch 21), off-cycle Disbursements (Ch 22), standalone Off-boarding settlements NOT gated by Ghana Card check",
+        "DuplicateIdentityDetected has no listener — fraud indicator fires into the void",
+        "VerifyEmployeeIdentity job exists but not dispatched automatically when employee edits national_id in Profile",
+        "Four stat-cards (verified/pending/failed/unverified) computed by controller, not surfaced on page",
+        "identity:expiring command not yet scheduled in production at 02:00",
+        "No public API read endpoint for register (resource + policy ready, route absent)"
+      ],
+      "standards_relevance": [
+        {"standard": "NIA Act 707 Ghana Card mandate", "status": "partial"},
+        {"standard": "National Identity Register Act 750", "status": "met"},
+        {"standard": "DPA Act 843 §17 sensitive data", "status": "met"},
+        {"standard": "DPA Act 843 §39 security of personal data", "status": "met"},
+        {"standard": "DPA Act 843 §40 right to erasure (with SSNIT 7-yr hold)", "status": "met"},
+        {"standard": "Pensions Act 766 §92 seven-year retention", "status": "met"},
+        {"standard": "Cybersecurity Act 1038 CSA biometric registration", "status": "partial"},
+        {"standard": "ISO/IEC 27001:2022 A.9 access control", "status": "met"},
+        {"standard": "ISO/IEC 29115 entity authentication assurance", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Wire hasUsableIdentity() into LoanService::approve/disburse",
+        "Phase 1: Disbursement::requiresIdentity() predicate for off-cycle path",
+        "Phase 1: Listener for DuplicateIdentityDetected (audit + alert)",
+        "Phase 1: Auto-dispatch VerifyEmployeeIdentity on Profile national_id edit",
+        "Phase 1: Surface four stat-cards on register page",
+        "Phase 1: Schedule identity:expiring command at 02:00 daily",
+        "Phase 2: Biometric template extraction + CSA registration + card OCR/MRZ + Identity Disputed workflow",
+        "Phase 3: Promote NiaOfficialProvider to certified NIA IVS SDK after MoU"
+      ]
+    },
+    {
+      "chapter": 26,
+      "title": "Data Protection (Act 843) & Privacy",
+      "shipped": [
+        "Public DPA portal /dpa (unauthenticated, throttled 10/min) with email magic-link verification",
+        "Authenticated /privacy/my self-service",
+        "DPO Queue at /admin/privacy with overdue banner + SLA ring + composition bars",
+        "Six rights mapped to Act 843 §§17-22 (access/rectification/erasure/portability/objection/information)",
+        "30-day SLA with clock starting at verification for public submissions",
+        "Fulfilment behind 2fa:fresh + privacy.fulfill (Erasure requires privacy.erase, super_admin-only)",
+        "Per-request audit_trail JSON + global tamper-evident audit chain",
+        "Tamper-evident ZIP export with SHA-256 manifest of every file",
+        "ErasureService tombstones PII + records held-back rows under statute (Payroll 6yr Act 896 §43, Pensions Act 766 §92 7yr, audit chain forever)",
+        "WhatsApp consent capture pairing (consent + phone → whatsapp_consent_at)",
+        "Verification token hidden from model (cannot leak via JSON)"
+      ],
+      "partial": [
+        "Auditor doubles as DPO by seed (no conflict with HR by design)"
+      ],
+      "gaps": [
+        "No subject-side sidebar nav for /privacy/my (reached via Profile portal — Ch 32 cross-link)",
+        "No DPA §44 / GDPR Art.33 breach-notification workflow",
+        "No DPC registration metadata in code (no dpc_registration_number, no DPO contact block)",
+        "DataSubjectRequestService::markOverdueRequests() implemented but NOT yet scheduled in routes/console.php",
+        "No defined retention policies + auto-purge command (data_retention_policies table)",
+        "Export ZIPs live in storage/app/dsr-exports forever (no TTL)",
+        "No DPIA workflow (GDPR Art.35 / no Ghana equivalent)",
+        "Reference still count()+1 per year (not yet SequenceService)"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §§17-22 data subject rights", "status": "met"},
+        {"standard": "DPA Act 843 §24 fee position", "status": "met"},
+        {"standard": "DPA Act 843 §27 rejection exemptions", "status": "met"},
+        {"standard": "DPA Act 843 §28 record of processing", "status": "met"},
+        {"standard": "DPA Act 843 §39 sensitive data", "status": "met"},
+        {"standard": "DPA Act 843 §40 erasure with statutory holds", "status": "met"},
+        {"standard": "DPA Act 843 §44 breach notification", "status": "stub"},
+        {"standard": "DPA Act 843 §46 controller registration (DPC)", "status": "stub"},
+        {"standard": "DPA Act 843 §47 cross-border", "status": "stub"},
+        {"standard": "Cybersecurity Act 1038", "status": "partial"},
+        {"standard": "GDPR Art 15/16/17/18/20/21 parity", "status": "met"},
+        {"standard": "GDPR Art 30 records of processing", "status": "met"},
+        {"standard": "GDPR Art 33 72-hour breach notification", "status": "stub"},
+        {"standard": "ISO/IEC 27001 A.18.1 compliance with legal requirements", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 4: Breach-notification workflow with breach_incidents table + 72-hour SLA",
+        "Phase 4: compliance_registrations table for DPC certificate metadata",
+        "Phase 4: Schedule markOverdueRequests nightly at 00:10",
+        "Phase 4: data_retention_policies + privacy:purge-expired + export ZIP TTL",
+        "Phase 4: My Privacy sidebar tile in user-menu dropdown"
+      ]
+    },
+    {
+      "chapter": 27,
+      "title": "Whistleblower (Confidential Disclosure)",
+      "shipped": [
+        "Public /whistleblower form (no auth) with anonymity-default toggle (defaults ON)",
+        "12-character Crockford-base32 tracking code shown ONCE on confirmation (~58 bits entropy)",
+        "SHA-256 tracking_token_hash — plaintext irrecoverable by design",
+        "Encrypted at rest: description, desired_outcome, incident_location, submitter_contact, closure_summary, subject_label, role_context, action notes, evidence caption, message body",
+        "Investigator dashboard at /admin/whistleblower with stat tiles + SLA banner + severity composition + anonymous-filings ribbon",
+        "Triage (2fa:fresh) + assign (2fa:fresh) + action timeline + two-way thread with submitter",
+        "InvestigationActionType enum includes CHRAJ / Auditor-General / Police referral actions",
+        "Closure is one-way (DomainException on closed→open status change)",
+        "11 WhistleblowerCategory values (corruption/fraud/harassment/discrimination/retaliation/safety/environmental/conflict-of-interest/mismanagement/criminal-offence/other)",
+        "Permission gate excludes hr_admin by design",
+        "auditor role holds whistleblower.investigate + whistleblower.view_all by seed (segregation outside HR chain)",
+        "WhistleblowerReportSubmitted + WhistleblowerCaseClosed events (no listener wired)",
+        "AG pack reads counts only per Act 720 §10"
+      ],
+      "partial": [
+        "Public submission deliberately NOT in global audit chain (would create identity trail)",
+        "Per-case whistleblower_actions table is the case-internal append-only audit log"
+      ],
+      "gaps": [
+        "Evidence download surface — files stored & listed but controlled-download endpoint with policy gate + signed URL not yet wired",
+        "Anonymity hardening — public route NOT yet log-scrubbed; standard Laravel request log captures IP and user-agent for /whistleblower POSTs",
+        "No CAPTCHA on submission (only 6/min throttle)",
+        "No submitter-side related-case linking",
+        "whistleblower_messages.read_at column exists but no writer",
+        "No defined retention schedule (soft-delete forever)",
+        "CHRAJ referral records the act but does not auto-courier the case file (manual today)"
+      ],
+      "standards_relevance": [
+        {"standard": "Whistleblower Act 720 §3 protected disclosures", "status": "met"},
+        {"standard": "Whistleblower Act 720 §10 confidentiality", "status": "met"},
+        {"standard": "Whistleblower Act 720 §11 protection from retaliation", "status": "partial"},
+        {"standard": "CHRAJ Act 456", "status": "partial"},
+        {"standard": "DPA Act 843 §39 sensitive data (encrypted)", "status": "met"},
+        {"standard": "DPA Act 843 §40 retention", "status": "partial"},
+        {"standard": "ISO 37002 whistleblowing management systems", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 2: Evidence download endpoint with policy gate + signed URL + audit-action emission",
+        "Phase 2: Anonymity hardening — log scrubbing middleware + CAPTCHA on /whistleblower",
+        "Phase 2: parent_report_id linking for related cases",
+        "Phase 2: read-receipt wiring",
+        "Phase 2: Defined retention schedule per case status + CHRAJ transfer-of-custody hook"
+      ]
+    },
+    {
+      "chapter": 28,
+      "title": "Governance (Policies, Certifications, Incidents)",
+      "shipped": [
+        "Policy register with versioning (one_version_per_publish, append-only)",
+        "Per-version Acknowledgement ledger (typed-signature + IP + user-agent)",
+        "PolicyDrafted/VersionAdded/Published/Acknowledged events → RecordAnalyticsEvent",
+        "Acknowledgement is per-version (publishing v2 resets every staff member's status to pending)",
+        "Certifications register with traffic-light expiry status",
+        "governance:certification-reminders artisan + reminder_sent_at one-shot stamp",
+        "CertificationExpiring / CertificationExpired events → RecordAnalyticsEvent",
+        "Incident Reports module with circle-membership visibility (submitter + active assignees)",
+        "5 incident notification listeners (NotifyAssignee/NotifyUnassigned/NotifyMessageRecipients/NotifySubmitterOnClose/NotifyCircleOnReopen)",
+        "Submitter can invite reviewers + close/reopen flow"
+      ],
+      "partial": [
+        "Markdown renderer is lightweight inline (headings/bullets/paragraphs only)"
+      ],
+      "gaps": [
+        "No risk register table — King IV / ISO 31000 risks side not built",
+        "No board-pack assembly surface",
+        "No committee meeting tracker",
+        "Reminders one-shot per cert — no 30/7/1 cadence",
+        "CertificationExpiring/Expired events not wired to email/SMS to cert holder (analytics-only)",
+        "Anti-bribery declaration recurring acknowledgement (ISO 37001 §7.3 awareness)"
+      ],
+      "standards_relevance": [
+        {"standard": "King IV Principle 5 governance of risk", "status": "partial"},
+        {"standard": "King IV Principle 13 compliance", "status": "met"},
+        {"standard": "ISO 31000 risk management framework", "status": "partial"},
+        {"standard": "ISO 37001 anti-bribery", "status": "partial"},
+        {"standard": "PFM Act 921 internal controls", "status": "met"},
+        {"standard": "DPA Act 843 §17/§18", "status": "met"},
+        {"standard": "Labour Act 651 §63 grievance procedure", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: risks table + /governance/risks register + risk owner sign-off",
+        "Phase 1: Multi-tier certification reminder cadence (30/7/1) + notification listener to cert holder",
+        "Phase 1: Markdown rendering upgrade (Laravel commonmark)",
+        "Phase 1: Board-pack assembler v0",
+        "Phase 2: Committee meeting tracker + retention schedule for ex-employee acks + anti-bribery declaration"
+      ]
+    },
+    {
+      "chapter": 29,
+      "title": "Kiosk (Shared-Device Attendance)",
+      "shipped": [
+        "Single /kiosk page with three sequential stages (Identify→Confirm→Success)",
+        "No auth + no session + no sidebar (deliberately minimal)",
+        "On-screen QWERTY keyboard for tablet use",
+        "Loose substring identity match (case-insensitive trim, 2-char minimum)",
+        "6-second auto-reset to Identify",
+        "Live wall: last 8 kiosk punches today as first-name + direction + time only (no Staff ID/surname leak — tested)",
+        "Routes for verify/clock/recent/face/show, all throttle:60,1",
+        "WCAG 2.1 AA targets (big buttons, high-contrast, aria-live error)",
+        "Same AttendanceService::record() shared with biometric/GPS/manual/webhook"
+      ],
+      "partial": [
+        "Geofence NOT triggered on kiosk punches (no device_id passed; physical location is the guarantee)"
+      ],
+      "gaps": [
+        "/kiosk/face route exists as 501 stub — Ghana Card biometric SDK not wired",
+        "No device registration (no BiometricDevice row with shared_secret/coordinates/last_seen_at)",
+        "No offline buffer / service-worker (network drop loses punches)",
+        "No per-employee PIN fallback option",
+        "No admin page for IT to provision/revoke registered kiosks"
+      ],
+      "standards_relevance": [
+        {"standard": "Labour Act 651 §33-39 hours/overtime", "status": "met"},
+        {"standard": "Cybersecurity Act 1038 §59 CII protection", "status": "partial"},
+        {"standard": "WCAG 2.1 AA", "status": "met"},
+        {"standard": "DPA Act 843 §18 data minimisation", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 2: Face recognition via Ghana Card biometric SDK (Ch 25 dependency)",
+        "Phase 2: Device registration with BiometricDevice + shared_secret + geofence",
+        "Phase 2: Offline IndexedDB buffer with service-worker",
+        "Phase 2: Per-employee 4-digit PIN fallback (Ch 25 USSD PIN reuse)"
+      ]
+    },
+    {
+      "chapter": 30,
+      "title": "Departments",
+      "shipped": [
+        "Departments register card grid with hover-revealed Edit/Delete actions",
+        "Add/Edit slide panel (name, code, description)",
+        "Delete blocks while active employees assigned (DomainException pattern)",
+        "head_user_id column on departments with nullOnDelete",
+        "User::headedDepartments + User::managedDepartmentIds (60s cache)",
+        "DepartmentPolicy update permits HR + dept_head over that department",
+        "8 department portals at /departments/portal/{slug} (IT/HR/Marketing/Finance/Membership/PCP/CPD/Administration)",
+        "Audit middleware wrapped on all routes",
+        "Soft-delete preserves historical pay rows in payroll exports"
+      ],
+      "partial": [
+        "Update path uses inline $request->validate() not UpdateDepartmentRequest (rules diverge on code/description max)",
+        "Unique constraint on name re-checked at DB but not at FormRequest on edit (per-row exclusion missing)",
+        "Portal KPI values are hard-coded constants in PORTALS map (not live)"
+      ],
+      "gaps": [
+        "Departments are FLAT — no parent_id, no nested hierarchy",
+        "Reassign-head picker not in slide panel UI (head_user_id only settable via Tinker/API)",
+        "No /departments/{id} detail page (Phase 2)",
+        "No pagination (assumes < 100 departments per institute)",
+        "No search box on register",
+        "Portal cross-link to Employees does not pre-filter to that department"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO 30414 §4.7 workforce planning", "status": "met"},
+        {"standard": "ISO 30414 §4.6 organisational culture", "status": "partial"},
+        {"standard": "PSC establishment control", "status": "met"},
+        {"standard": "DPA Act 843 §17", "status": "met"},
+        {"standard": "Auditor-General audit trail", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Reassign-head picker + 'Currently head:' card row",
+        "Phase 1: FormRequest consolidation (UpdateDepartmentRequest mirroring StoreDepartmentRequest)",
+        "Phase 1: Portal KPI wiring to real stats endpoints per matching module",
+        "Phase 2: /departments/{id} detail with head + position roster + ceiling + grade breakdown"
+      ]
+    },
+    {
+      "chapter": 31,
+      "title": "Reports & Analytics",
+      "shipped": [
+        "Reports Ledger with 5 XLSX exports (Headcount/Leave Summary/Payroll Export/Ticket SLA/Staff Turnover)",
+        "60s previews cache (sparklines on cards + detail bars)",
+        "Auditor-General Report Pack (14 artefacts in sealed ZIP with SHA-256 manifest)",
+        "Pack generation behind statutory.export + 2fa:fresh",
+        "Dashboard with role-targeted snapshots (Finance, Manager, Dept-Head, Catch-all)",
+        "Executive donut rings + KPI sparkline cards + live activity feed",
+        "60s cache TTL across all dashboard keys",
+        "analytics_events table as append-only event log (24+ event classes pattern-matched)",
+        "RecordAnalyticsEvent listener on analytics queue",
+        "Whistleblower segregation enforced in pack (counts only, Act 720 §10)",
+        "Ghana Card masked to last digit in AG identity register"
+      ],
+      "partial": [
+        "Compliance posture sparkline uses literal array (no compliance.* event family yet)",
+        "Saved report definitions + scheduled email delivery (plumbing ready, UI not)",
+        "Inertia partial-reload tighter interval (no Laravel Echo yet)"
+      ],
+      "gaps": [
+        "No 'build your own report' canvas (Phase 1 saved report definitions + parameterised query builder)",
+        "No nightly snapshot / warehouse / 'report run history'",
+        "AG pack v1.1 additions (per-month payroll variance + HR establishment summary + previous-pack hash chained)",
+        "No no-cache busting on create/update of underlying tables (60s window only)"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO 30414:2018 §4.1 workforce composition", "status": "met"},
+        {"standard": "ISO 30414 §4.5 leadership", "status": "met"},
+        {"standard": "ISO 30414 §4.6 productivity (revenue-per-employee)", "status": "partial"},
+        {"standard": "ISO 30414 §4.7 recruitment", "status": "partial"},
+        {"standard": "ISO 30414 §4.9 turnover", "status": "met"},
+        {"standard": "ISO 30414 §4.10 learning/development", "status": "partial"},
+        {"standard": "Audit Service Act 584 / Article 187", "status": "met"},
+        {"standard": "PFM Act 921", "status": "met"},
+        {"standard": "Income Tax Act 896 PAYE returns", "status": "met"},
+        {"standard": "Pensions Act 766 Tier-1 returns", "status": "met"},
+        {"standard": "NHIA Act 852", "status": "met"},
+        {"standard": "Whistleblower Act 720 segregation", "status": "met"},
+        {"standard": "DPA Act 843 §17/§18", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: Scheduled report delivery (saved definitions, cron, email)",
+        "Phase 1: Realtime activity stream via Laravel Echo",
+        "Phase 1: Compliance posture sparkline (compliance.* event family rollups)",
+        "Phase 1: AG pack v1.1 (variance report, establishment summary, chained-pack hash)"
+      ]
+    },
+    {
+      "chapter": 32,
+      "title": "Profile / Employee Self-Service Portal",
+      "shipped": [
+        "7-tab self-service (Profile/My Leave/My Pay/Benefits/Documents/Tickets/Security)",
+        "Always operates on $request->user()->employee (no /profile/{id} route)",
+        "Avatar upload to public disk",
+        "Three separate write endpoints (PATCH /profile/personal, /emergency, /bank)",
+        "Skills add/remove",
+        "Password change clears password_must_change flag in same update",
+        "ForcePasswordChange middleware redirects new hires to /profile#security",
+        "Salary card omitted from My Pay if viewer lacks employees.view_salary",
+        "Graceful degradation for legacy admin accounts without Employee row (Account+Security only)",
+        "Cross-links to /notifications/channels (Ch 16) and /privacy/my (Ch 26) in user-account dropdown",
+        "Account deletion in Danger Zone (Breeze inheritance)",
+        "WCAG 2.1 AA on forms"
+      ],
+      "partial": [
+        "2FA setup lives on separate /two-factor/enroll page (intentional split, status tile planned on Security tab)"
+      ],
+      "gaps": [
+        "No 2FA status tile + Enrol link on Security tab",
+        "No Ghana Card 'verified' tick on hero (NIA adapter dependency from Ch 25)",
+        "Bank-detail edit is immediate write — BankChangeRequestService scaffolding exists but not wired into portal",
+        "No employee-side document upload (documents.self_upload permission Phase 1)",
+        "No detail page for sibling /privacy/my (Ch 26 — recorded nav gap)"
+      ],
+      "standards_relevance": [
+        {"standard": "DPA Act 843 §38 data subject rights", "status": "met"},
+        {"standard": "DPA Act 843 §17 lawful basis", "status": "met"},
+        {"standard": "DPA Act 843 §18 data quality", "status": "met"},
+        {"standard": "Labour Act 651 leave entitlements", "status": "met"},
+        {"standard": "WCAG 2.1 AA form accessibility", "status": "met"},
+        {"standard": "ISO 30414 §4.1 (self-disclosed gender/DOB)", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 1: 2FA status tile on Security tab",
+        "Phase 1: Ghana Card verified badge on hero (Ch 25 dependency)",
+        "Phase 1: Bank-change approval loop wired to portal",
+        "Phase 1: Employee-side document upload with documents.self_upload + HR approval queue"
+      ]
+    },
+    {
+      "chapter": 33,
+      "title": "Settings",
+      "shipped": [
+        "Three asset libraries (Stamps, Letterheads, Watermarks) with three-scope ownership (personal/department/organization)",
+        "API Tokens admin with audit-note + scope chips + rate limit + expiry",
+        "Sanctum personal access tokens with api_token_metadata sidecar table",
+        "Plaintext shown ONCE on issue via flash store (hash-only at rest)",
+        "Webhooks admin with HMAC-SHA256 signing secret (encrypted at rest, shown once)",
+        "10-failure auto-pause threshold in delivery worker",
+        "API Docs page with Stoplight Elements explorer + OpenAPI YAML/JSON",
+        "Curated endpoint catalogue with verb tone-coding",
+        "AssetOwnerScope enum + policy-enforced scope visibility",
+        "Default letterhead is policy-protected (Remove hidden, seeder reinstates)"
+      ],
+      "partial": [
+        "WebhookSubscription schema/controller drift — migration uses signing_secret/target_url/event_types/consecutive_failures while controller uses secret/callback_url/subscribed_events/failure_count",
+        "Endpoint catalogue is hand-curated (no CI diff against routes/api.php)"
+      ],
+      "gaps": [
+        "No organization_settings table or /settings/organization page — institute name/locale/timezone/currency live in .env only",
+        "No /settings/branding sub-page (logo/favicon/login background/accent/email header)",
+        "API Tokens UI does not expose allowed_ip_cidrs column (API-only today)",
+        "Sidebar 'Settings' link points at My Profile (no central system-config screen)",
+        "No 'Insert into composer' action on asset libraries"
+      ],
+      "standards_relevance": [
+        {"standard": "ISO/IEC 27001:2022 A.5.16 identity management", "status": "met"},
+        {"standard": "ISO/IEC 27001:2022 A.5.17 authentication info", "status": "met"},
+        {"standard": "ISO/IEC 27001:2022 A.8.5 secure authentication", "status": "met"},
+        {"standard": "DPA Act 843 §28 security safeguards", "status": "met"},
+        {"standard": "OpenAPI 3.1", "status": "met"},
+        {"standard": "NIA Act 707 (identity.verified webhook event)", "status": "partial"}
+      ],
+      "roadmap_items": [
+        "Phase 1: OrganizationSetting model + /settings/organization page (name/address/contact/logo/currency/locale/timezone/feature flags)",
+        "Phase 1: /settings/branding (logo/favicon/login bg/accent/email header)",
+        "Phase 1: Fix webhook schema/controller drift (preferred: migrate columns to controller names)",
+        "Phase 1: CI check diffing routes/api.php against endpoint catalogue",
+        "Phase 2: Asset 'Insert into composer' action + per-token IP allow-list UI"
+      ]
+    },
+    {
+      "chapter": 34,
+      "title": "Role-by-Role Tours (cross-cutting)",
+      "shipped": [
+        "Nine roles in UserRole enum (super_admin/ceo/hr_admin/manager/employee/finance_officer/it_support/auditor/dept_head)",
+        "Privileged nav shell for super_admin/ceo/hr_admin (System group)",
+        "Slim shell for manager/employee/finance_officer/it_support/auditor/dept_head",
+        "Per-role dashboards (RoleFinance/RoleManager/RoleDeptHead/RoleOverview) with own KPI bands and cache keys",
+        "CEO mirrors super_admin via PR #38 (FULL_SYSTEM_NAV_ROLES const)",
+        "Quick Actions dropdown shape varies by role",
+        "Three documented cross-role handoffs (Leave, Tickets, Onboarding)"
+      ],
+      "partial": [
+        "marketing role case in UserRole enum but no permissions seeded (Phase 5)"
+      ],
+      "gaps": [
+        "Auditor's Audit Logs reached through App Switcher tile rather than sidebar (minor inconsistency)",
+        "2FA not currently required on auditor role (Phase 5 hardening)",
+        "Manager-on-leave escalation timeout for leave requests (Phase 5)"
+      ],
+      "standards_relevance": [
+        {"standard": "PFM Act 921 §11 segregation of duties", "status": "met"},
+        {"standard": "ISO/IEC 27001 A.5.15 access control", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 5: Seed marketing role permissions",
+        "Phase 5: 2FA required on auditor role",
+        "Phase 5: Manager-on-leave escalation timeout"
+      ]
+    },
+    {
+      "chapter": 35,
+      "title": "Cross-Cutting Features",
+      "shipped": [
+        "Three-layer RBAC (legacy enum + DB roles/permissions pivot + per-user JSON overlay)",
+        "User::hasPermission() 60s cache",
+        "Three sound packs (musical/cinematic/gamified) with file-override architecture (PR #25)",
+        "Animation grammar (animate-reveal-up, stat-card glow, slide-up-fade stagger, shimmer)",
+        "Reduced-motion respected globally",
+        "WCAG 2.1 AA work: contrast verified, focus rings, keyboard nav, skip-to-content, AriaLiveAnnouncer, semantic HTML, status-not-load-bearing-on-colour, high-contrast theme, php artisan a11y:audit static sweep",
+        "Per-module search (Employees/Documents/Tickets/Leave/Audit/Disbursements/Payroll/Whistleblower-admin)",
+        "AI Assistant (Anthropic Claude Haiku 4.5) with PiiRedactor + cache breakpoints + FakeLlmProvider for tests",
+        "Public surfaces: Careers, Whistleblower submit/track, DPA submit/verify/track, Static pages",
+        "Polling-based realtime (Chat 4s, Notifications via Inertia deferred props)",
+        "BROADCAST_CONNECTION=log default (wiring exists but nothing reaches browser)"
+      ],
+      "partial": [
+        "AI Assistant endpoint exists but no user-facing button anywhere in UI",
+        "Anthropic provider built reusably but only EmployeeSummaryService calls it"
+      ],
+      "gaps": [
+        "No global search / Cmd+K palette (Phase 2 Meilisearch with RBAC-baked indexing)",
+        "No live audit-log tail",
+        "No Reverb / Echo websocket layer (Phase 2)",
+        "Third-party WCAG audit pending",
+        "No public Accessibility Statement page",
+        "No multi-tenant AI key vault (Phase 2)",
+        "AI features beyond employee summary (policy drafting, leave triage, chat summarisation) — Phase 4"
+      ],
+      "standards_relevance": [
+        {"standard": "WCAG 2.1 AA", "status": "partial"},
+        {"standard": "Persons with Disability Act 715", "status": "partial"},
+        {"standard": "DPA Act 843 §17/§18", "status": "met"},
+        {"standard": "Whistleblower Act 720", "status": "met"},
+        {"standard": "ISO/IEC 27001 A.5.15 access control", "status": "met"},
+        {"standard": "ISO/IEC 27001 A.13 communications security", "status": "partial"},
+        {"standard": "Anthropic responsible use", "status": "met"}
+      ],
+      "roadmap_items": [
+        "Phase 2: Global search via Meilisearch with RBAC index filters + Cmd+K palette",
+        "Phase 2: Reverb + Echo for chat private channel + notifications",
+        "Phase 2: Live audit-log tail",
+        "Phase 2: Third-party WCAG axe + NVDA + VoiceOver audit",
+        "Phase 2: Public Accessibility Statement page",
+        "Phase 2: Multi-tenant AI key vault",
+        "Phase 4: AI features beyond employee summary"
+      ]
+    },
+    {
+      "chapter": 36,
+      "title": "Architecture & Stack (infrastructure)",
+      "shipped": [
+        "Laravel 13.7 + PHP 8.3 + Vue 3 + Inertia.js v2 + Vite 8 + Tailwind 3",
+        "Sanctum cookie sessions for web + Personal Access Tokens for /api/v1/*",
+        "staff_id-based authentication (not email)",
+        "ForcePasswordChange middleware",
+        "TOTP-only 2FA + 2fa:fresh middleware on sensitive ops",
+        "SAML 2.0 + OIDC SSO adapters",
+        "Database queue with 5 named queues (audit/analytics/notifications/integrations/identity)",
+        "Single-tenant per institute (no tenant_id)",
+        "Canonical Enum → FormRequest → Service → Event → Listener → Resource pattern",
+        "424 routes, 116 migrations, 128 Vue pages, 124 models, 121 services, 97 controllers, 88 enums, 62 events, 25 policies",
+        "182 Feature tests + 10 Unit tests"
+      ],
+      "partial": [
+        "Driver: SQLite for development, PostgreSQL is the production target (Phase 1 migration)"
+      ],
+      "gaps": [
+        "No Horizon (Phase 1, depends on Redis)",
+        "No Redis (Phase 1)",
+        "No horizontal scale (single php-fpm + single Postgres)",
+        "No realtime (broadcast driver = log; Phase 2 Reverb)",
+        "No multi-tenancy",
+        "Uneven queue naming (FanOutWebhooks + MaterialiseDisbursements on default queue)"
+      ],
+      "standards_relevance": [],
+      "roadmap_items": [
+        "Phase 1: SQLite → PostgreSQL production migration",
+        "Phase 1: Redis cache + queue + Horizon",
+        "Phase 1: Queue naming standardisation",
+        "Phase 2: Reverb websocket layer",
+        "Phase 2: Postgres read replica when single instance feels load"
+      ]
+    }
+  ],
+  "cross_module_findings": [
+    "ApplicantHired event class exists, CreateZohoContactOnHire listener wired, but NO CODE PATH DISPATCHES ApplicantHired (Ch 9) — entire hire-to-Employee chain broken; HR manually creates Employee row after candidate signs offer",
+    "EnvelopeStatusChanged on completed signature does not advance applicant to hired or fire ApplicantHired (Ch 9)",
+    "PayslipGenerated event class + UploadPayslipToCloud listener exist + mirror_documents_to_cloud feature flag wired but PayslipGenerated::dispatch(...) NEVER CALLED in any code path — no cloud-mirror of payslips, no PDF emitter (Ch 18 + Ch 19)",
+    "BenefitsService::enrol does NOT create payroll Deduction row — DeductionType enum has no BenefitPremium case; monthly_premium never flows into payroll (Ch 23 contradicts Ch 19 cross-ref)",
+    "PaymentService::create and PaymentService::markPaid do NOT fire events — PaymentMarkedPaid icon waiting in Notifications palette since Ch 16 (Ch 18)",
+    "DuplicateIdentityDetected event fires from detectDuplicates() but NO LISTENER WIRED — ghost-worker fraud indicator goes nowhere (Ch 25)",
+    "VerifyEmployeeIdentity job exists and works queued but NOT DISPATCHED AUTOMATICALLY when employee edits national_id in Profile portal (Ch 25 + Ch 32)",
+    "hasUsableIdentity() Ghana Card gate called by Payroll Calculate ONLY — Loans (Ch 21), off-cycle Disbursements (Ch 22), standalone Off-boarding settlements NOT gated",
+    "OffboardingCompleted does NOT disable User account, revoke tokens, or force SSO logout — only flips Employee.status to terminated (Ch 10)",
+    "OffboardingService::complete does NOT touch benefit_enrolments — terminated employee continues to appear in monthly premium totals (Ch 10 + Ch 23)",
+    "LoanDisbursed event has NO LISTENER — no automatic finance journal entry on disburse/repay/settle/write-off (Ch 21 + Ch 20)",
+    "LoanService writes NOTHING to tamper-evident audit log on status transitions (Ch 21 + Ch 24)",
+    "Chat message create/update/delete do NOT write to tamper-evident audit chain — soft-deletes leave DB breadcrumb only, no hashed audit row (Ch 14 + Ch 24)",
+    "ComplaintSubmitted / ComplaintStatusChanged events DO NOT EXIST — submitter learns of status change ONLY by polling public /complaints/track (Ch 12)",
+    "DataSubjectRequestService::markOverdueRequests() implemented + tested but NOT yet scheduled in routes/console.php (Ch 26)",
+    "identity:expiring artisan command exists but NOT yet scheduled in production at 02:00 (Ch 25)",
+    "PaymentIntentService::expireStale() exists but NOT yet cron-scheduled (Ch 20)",
+    "E-Levy 1.5% applied at disbursement materialisation but NOT disclosed on payslip — PayrollLineResource lacks e_levy field (Ch 22 + Ch 19)",
+    "WebhookSubscription schema/controller drift: migration uses signing_secret/target_url/event_types/consecutive_failures, controller uses secret/callback_url/subscribed_events/failure_count (Ch 33)",
+    "Documents composer route still uses count()+1 retry loop because Postgres FOR UPDATE on aggregate refused — known SequenceService convention wart (Ch 13)",
+    "ApPaymentService::void() lacks lockForUpdate on allocation rows; record() correctly locks (Ch 20)",
+    "BenefitPlanCreated/BenefitEnroled/DependantAdded/BenefitClaimSubmitted/BenefitClaimDecided events fire but NOT YET WIRED to tamper-evident audit log (Ch 23 + Ch 24)",
+    "DataSubjectRequest reference still allocated via count()+1 per year (not yet SequenceService) — concurrency gap (Ch 26)",
+    "BenefitClaim reference is random 8-char (probabilistic uniqueness, ~1 in 200T collision) — should use SequenceService (Ch 23)",
+    "Public /whistleblower submission deliberately bypasses global audit chain (correct per Act 720) but standard Laravel request log STILL captures IP + user-agent — anonymity NOT yet log-scrubbed (Ch 27)",
+    "Employee::scopeVisibleTo on department head only — Tickets module has NO department-scoped visibility (a dept_head with tickets.manage sees whole desk) (Ch 11)",
+    "AR write-off path posts NEW JE for residual (correct IFRS 9 treatment) — but no separate bad-debt provision JE per period-end (Ch 20 + Phase 2 ECL)",
+    "Manual JE reversal callable from service code but no public route for journal-admin reversal (Ch 20)",
+    "AP external_ref auto-population from GhIPSS settlement messages NOT wired — AP reconciliation requires manual links per batch (Ch 20 + Ch 22)",
+    "GIFMIS export is download-and-upload, not live REST push — auto_mint_on_paid flag exists but defaults off (Ch 19 + Ch 20)",
+    "Tier-3 voluntary deduction columns + 16.5% cap exist on PayrollLine but statutory return generator stubbed (writes tier3_employee=0; voluntary_deductions_total split pending) (Ch 19)",
+    "Bulk payslip-PDF emission for batch payroll runs NOT WIRED — Ch 19 calls out the only path is the per-payment Ch 18 producer which itself does not dispatch PayslipGenerated",
+    "BankChangeRequestService scaffolding exists in code but NOT YET wired into Profile portal Bank Details card — self-service bank edit is immediate write (Ch 32)",
+    "TicketAssigned notification class exists and is queue-aware but NEVER DISPATCHED from TicketService::assign() (Ch 11 + Ch 16)",
+    "FanOutWebhooks + MaterialiseDisbursements on default queue rather than a named queue (Ch 36)",
+    "AnalyticsEvent vocabulary widening — service events not 1:1 with a route log under generic name (Ch 24)"
+  ],
+  "standards_summary": {
+    "ghana": [
+      {"name": "IPPD2/IPPD3 CAGD payroll", "status": "met", "evidence": "Ch 19 IppdExporter pipe-delimited pesewa-integer file shipped"},
+      {"name": "GIFMIS sub-ledger JV format", "status": "met", "evidence": "Ch 19 + Ch 20 GifmisJournalExporter ships balanced JV CSV; live REST push Phase 3"},
+      {"name": "Ghana Card / NIA Act 707", "status": "partial", "evidence": "Ch 25 NIA HTTP adapter coded + 12-month expiry + duplicate detection; no live NIA MoU, default driver manual_upload; gate wired only on Payroll, not Loans/Disbursements/standalone Offboarding"},
+      {"name": "NPRA 3-tier pensions (Act 766)", "status": "partial", "evidence": "Ch 19 Tier-1 5.5%/13% + Tier-2 5% with 5 trustees shipped; Tier-3 voluntary cap-aware computed but statutory return stubbed"},
+      {"name": "GRA PAYE (Act 896 §116)", "status": "met", "evidence": "Ch 19 7-band 2026 monthly bracket effective-dated + GRA-format CSV; 15th-of-month reminder on Ch 18 strip"},
+      {"name": "SSNIT Tier-1 (PNDCL 247 §64)", "status": "met", "evidence": "Ch 19 13/5.5 + NHIA 2.5 split + 14-day remittance reminder + portal-ready CSV"},
+      {"name": "NHIA (Act 852 §29)", "status": "met", "evidence": "Ch 19 separate GL code + allocation file shipped"},
+      {"name": "E-Levy (Act 1075)", "status": "partial", "evidence": "Ch 22 applies 1.5% on MoMo channels via statutory_rates lookup; NOT disclosed on payslip (PayrollLineResource lacks e_levy field)"},
+      {"name": "Labour Act 651 §35 overtime", "status": "met", "evidence": "Ch 5 OvertimeCalculator with 1.5x weekday + 2x rest/holiday + deep-OT"},
+      {"name": "Labour Act 651 §17/§18/§31 termination", "status": "partial", "evidence": "Ch 10 §17/§31 met; §18 notice-period validation is dumb (no pay-frequency-aware)"},
+      {"name": "Labour Act 651 §57 maternity", "status": "met", "evidence": "Ch 4 84-day Maternity Leave type with §57 policy hint"},
+      {"name": "Labour Act 651 §63 PIP before termination", "status": "met", "evidence": "Ch 6 PIP module with required check-ins + extensions + closure outcomes"},
+      {"name": "Labour Act 651 §64-§67 grievance", "status": "partial", "evidence": "Ch 12 Complaints module records grievances; statutory time limits not enforced"},
+      {"name": "Labour Act 651 §70 wage deduction limits", "status": "met", "evidence": "Ch 19 DeductionAggregator 1/3 take-home floor + court-order bypass"},
+      {"name": "DPA Act 843 (data subject rights)", "status": "partial", "evidence": "Ch 26 §§17-22 all 6 rights coded with 30-day SLA, magic-link verification, encryption at rest for whistleblower content, ZIP exports with SHA-256 manifest; §44 breach-notification workflow NOT shipped; §46 DPC registration metadata NOT in code"},
+      {"name": "Cybersecurity Act 1038", "status": "partial", "evidence": "Ch 40 audit chain + Ch 24 nightly verification + Ch 27 anonymity model; no CSA registration metadata in code; CSA incident reporting integration Phase 3"},
+      {"name": "Whistleblower Act 720", "status": "partial", "evidence": "Ch 27 anonymous form + tracking code + encrypted-at-rest + CHRAJ/AG/Police referral types + closure one-way; CHRAJ auto-handoff manual; log-scrubbing NOT done on public form"},
+      {"name": "CHRAJ Act 456", "status": "partial", "evidence": "Ch 27 ReferralChraj action type exists; courier still manual"},
+      {"name": "Borrowers and Lenders Act 773 §11", "status": "met", "evidence": "Ch 21 rate disclosure at apply time + booking snapshot preserves rate-of-record"},
+      {"name": "Bank of Ghana lending guidelines (affordability/DTI)", "status": "partial", "evidence": "Ch 21 max_dti_ratio captured but never enforced — single largest gap on lending"},
+      {"name": "NCA sender-ID + USSD code provisioning", "status": "partial", "evidence": "Ch 15 alphanumeric sender ID validated operationally not in code; *920*HR# shortcode env-driven"},
+      {"name": "Public Services Commission framework", "status": "partial", "evidence": "Ch 6 PSC Performance Management Framework 2015 contracts shipped; Ch 7 PSC training policy register shipped but mandatory engine Phase 1; Ch 8 PSC establishment control shipped; Ch 12 PSC HR Handbook §5.4 14-day clock NOT enforced"},
+      {"name": "PFM Act 921 §11 internal controls", "status": "met", "evidence": "Ch 19/Ch 20/Ch 10 dual-control on every approval at policy + service + fresh-2FA layers"},
+      {"name": "Single Spine Salary Structure 2010", "status": "partial", "evidence": "Ch 8 grade structure shaped for Single Spine; demo seed not authoritative; production CSV loader Phase 1"},
+      {"name": "Auditor-General Act 584 §13", "status": "met", "evidence": "Ch 24 AG Report Pack with 14 sealed artefacts + SHA-256 manifest + chain verification output"},
+      {"name": "Persons with Disability Act 715", "status": "partial", "evidence": "Ch 35 WCAG 2.1 AA self-audit + Ch 29 kiosk accessibility; third-party audit pending"},
+      {"name": "Audit Service Act 584 / Article 187", "status": "met", "evidence": "Ch 24 + Ch 31 AG pack generation behind statutory.export + 2fa:fresh"}
+    ],
+    "international": [
+      {"name": "ISO 30414 (HR reporting)", "status": "partial", "evidence": "Ch 31 §4.1/§4.5/§4.9 computable today via Headcount + Workforce donut + Turnover export; §4.4/§4.6/§4.7/§4.10 partial; per-FTE training cost not surfaced"},
+      {"name": "ISO/IEC 27001:2022", "status": "partial", "evidence": "Ch 40 + Ch 24 audit chain + Ch 39 RBAC + 2FA + Ch 25 identity; no formal certification, no third-party pen test"},
+      {"name": "ISO/IEC 27001:2022 A.5.15 access control", "status": "met", "evidence": "Three-layer RBAC documented Ch 35 + Ch 39"},
+      {"name": "ISO/IEC 27001:2022 A.12.4 logging", "status": "met", "evidence": "Ch 24 tamper-evident chain with daily verification"},
+      {"name": "ISO/IEC 27001:2022 A.13 communications", "status": "partial", "evidence": "Ch 14 chat policy-gated participant-only + Ch 15 HMAC webhooks; chat encryption at rest Phase 2"},
+      {"name": "ISO/IEC 27001:2022 A.18.1 legal compliance", "status": "met", "evidence": "Ch 26 privacy module + standards index Ch 44"},
+      {"name": "ISO/IEC 20000-1:2018 §8.6 incident management", "status": "partial", "evidence": "Ch 11 4-state lifecycle aligned; major-incident pathway Phase 1"},
+      {"name": "ISO/IEC 29115 authentication assurance", "status": "met", "evidence": "Ch 25 LoA-1/LoA-2/LoA-3 mapped per identity provider"},
+      {"name": "ISO 10002 complaints handling", "status": "partial", "evidence": "Ch 12 visibility/accessibility/no-fees/confidentiality met; responsiveness (SLA timer) + notification fan-out gaps"},
+      {"name": "ISO 31000 risk management", "status": "partial", "evidence": "Ch 28 policy lifecycle maps to ISO 31000 establish/implement; risk register side NOT built"},
+      {"name": "ISO 37001 anti-bribery", "status": "partial", "evidence": "Ch 28 Conduct category + acknowledgement ledger; ISO 37001 §7.3 recurring declaration NOT yet"},
+      {"name": "ISO 37002 whistleblowing management", "status": "met", "evidence": "Ch 27 receiving/assessing/addressing/concluding all four phases shipped"},
+      {"name": "ITIL 4 incident & request", "status": "partial", "evidence": "Ch 11 4-state lifecycle aligned; no formal certification claim"},
+      {"name": "WCAG 2.1 AA", "status": "partial", "evidence": "Ch 35 + docs/wcag_aa_checklist.md + php artisan a11y:audit static sweep; third-party axe + NVDA + VoiceOver audit pending; no public Accessibility Statement"},
+      {"name": "GDPR parity (EU 2016/679)", "status": "partial", "evidence": "Ch 26 mirrors Articles 15/16/17/18/20/21 substantially with 30-day SLA matching Art 12(3) and records-of-processing matching Art 30; Art 33 72-hour breach + Art 35 DPIA NOT shipped"},
+      {"name": "IFRS general principles (IAS 1/IAS 8)", "status": "met", "evidence": "Ch 20 JournalPostingService double-entry invariant + reversal accounting matches IAS 8"},
+      {"name": "IFRS 9 expected credit loss", "status": "partial", "evidence": "Ch 20 AR write-off posts bad-debt JE for residual; explicit ECL provisioning model Phase 2"},
+      {"name": "Balanced Scorecard (Kaplan & Norton)", "status": "met", "evidence": "Ch 6 KPI scorecard quadrants on PerformanceContract (financial/customer/process/learning)"},
+      {"name": "PCI DSS", "status": "met", "evidence": "Ch 22 disbursements do not touch card data — both inbound and outbound use account/wallet identifiers"},
+      {"name": "King IV Principle 5/13", "status": "partial", "evidence": "Ch 28 policy framework + acknowledgement ledger meet K-IV 13; risk register K-IV 5 NOT built"},
+      {"name": "NIST SP 800-92 log integrity", "status": "met", "evidence": "Ch 24 hash-chain pattern implements §4.4"},
+      {"name": "OpenAPI 3.1", "status": "met", "evidence": "Ch 33 /api/openapi.yaml + .json + Stoplight Elements explorer"}
+    ]
+  },
+  "roadmap_phase_1_priorities": [
+    "Wire ApplicantHired event so EnvelopeStatusChanged → applicant.status=hired → Employee + User creation chain fires (Ch 9 — single biggest deliverable on hire pipeline)",
+    "Add BenefitPremium DeductionType case + BenefitEnroled listener materialises Deduction row with floor protection (Ch 23 wires monthly_premium into Payroll)",
+    "Dispatch PayslipGenerated at tail of PaymentService::generatePayslip() so UploadPayslipToCloud listener mirrors per-payment payslips to OneDrive/Drive (Ch 18)",
+    "Extend PayslipGenerated to fire per payroll_lines row on approval — bulk payslip-PDF emission for batch runs (Ch 19)",
+    "PostgreSQL production migration replacing SQLite + Redis cache + Redis queue + Horizon (Ch 36, Ch 41)",
+    "Wire hasUsableIdentity() into LoanService::approve/disburse + Disbursement::requiresIdentity() for off-cycle path (Ch 21, Ch 22, Ch 25)",
+    "Listener for DuplicateIdentityDetected — write to audit log + page on-call HR (Ch 25)",
+    "Auto-dispatch VerifyEmployeeIdentity when employee edits national_id in Profile portal (Ch 25, Ch 32)",
+    "OffboardingCompleted listener — disable User account + revoke Sanctum tokens + force SSO logout (Ch 10)",
+    "OffboardingService::complete also walks open benefit_enrolments and ends them on last_working_day (Ch 10, Ch 23)",
+    "Auto-mint off-cycle PayrollLine on settlement approval; assets pre-flighted into clearance checklist; exit-letter + clearance-certificate PDFs (Ch 10)",
+    "EnvelopeStatusChanged → ApplicantHired chain + applicant_events audit table + public consent UI + position_id FK on job_postings + bulk multi-select + edit panel + required Reject reason + CVs into Documents pipeline (Ch 9)",
+    "Tier-3 voluntary deduction split + Tier3 statutory return generator (Ch 19)",
+    "Department-scoped runs in Create panel UI + Mark-as-filed inline action on statutory returns (Ch 19)",
+    "Add e_levy field to PayrollLineResource + payslip template (Ch 22 — closes single biggest disclosure gap on the rail)",
+    "Wire PaymentCreated/PaymentPaid/PaymentCancelled events + PAY-YYYY-NNNN SequenceService references + Cancel-with-reason action (Ch 18)",
+    "Realtime notifications via Laravel Reverb + Echo broadcast channels (Ch 16) + per-row read/delete/navigate actions",
+    "SLA matrix + breach escalation cron + ticket_categories + ticket_comments + ticket_attachments + audit-log integration (Ch 11)",
+    "Schedule DataSubjectRequestService::markOverdueRequests nightly at 00:10 (Ch 26)",
+    "Schedule identity:expiring at 02:00 daily (Ch 25)",
+    "Schedule PaymentIntentService::expireStale() nightly + gateway.refund grant to finance_officer + bank-rec PDF audit template + manual JE reversal route + concurrency-safe ApPaymentService::void + AP external_ref auto-population (Ch 20)",
+    "Mandatory-training engine + prerequisites column + catalogue edit panel + dompdf certificate generator + revocation lifecycle + dept_head scoping on Skills Matrix + Performance→Learning recommender (Ch 7)",
+    "360 campaign engine + KPI cascade UI + mid-year contract review form + PIP trigger button + per-manager dashboards + compensation linkage (Ch 6)",
+    "Position/Grade/Step FK lookups on Employee + NIA adapter sync+async + Phase 1 audit chain wiring (Ch 3)",
+    "Establishment sidebar + Add Position panel + Single Spine CSV loader + Auditor-General reconciliation report (Ch 8)",
+    "OrganizationSetting model + /settings/organization + /settings/branding + fix webhook schema/controller drift + CI route↔docs diff check (Ch 33)",
+    "Templates + Campaigns + queue-backed dispatch + DPA opt-out enforcement + WhatsApp send UI + delivery analytics (Ch 15)",
+    "30/7/1 cadence certification reminders + notification listener to cert holder + risks table + /governance/risks + markdown rendering upgrade + board-pack assembler v0 (Ch 28)",
+    "Department audience scoping + acknowledgement receipts + attachments + cross-channel fan-out (Ch 17)",
+    "Audit-log wiring for 5 Benefits events + dual-control on claim payment + Finance journal on claim payment + SequenceService claim refs + /benefits/admin/overview + trustee-side balance call + QR e-cards (Ch 23)",
+    "Sidebar entry for /privacy/my from user-menu dropdown + 2FA status tile on Security tab + Ghana Card verified badge on hero + bank-change approval loop wired (Ch 32)",
+    "Reassign-head picker + UpdateDepartmentRequest consolidation + Portal KPI wiring to real stats (Ch 30)",
+    "Manual JE reversal route + AP external_ref via GhIPSS settlement bridge + IFRS-grade trial-balance + IFRS 9 ECL + GIFMIS auto-mint pilot (Ch 20 Phase 2 deliverables — partial in Phase 1)",
+    "Saved report definitions + scheduled email delivery + AG pack v1.1 (variance + establishment + chained-pack hash) + compliance posture sparkline (Ch 31)"
+  ],
+  "roadmap_phase_2_priorities": [
+    "Per-grade leave entitlements + leave_request_history + lightweight calendar endpoint + public-holiday-aware working-days + Attendance reconciliation (Ch 4)",
+    "Mobile app with offline buffer + per-shift overtime policies + roster shift planning + bulk approve corrections (Ch 5)",
+    "Loans Phase 2: affordability/DTI gate + finance journal hooks + audit-log hook + manipulable schedule (early-repay/top-up/restructure) + default detection + guarantor workflow + employee self-service Loans tab (Ch 21)",
+    "Complaints Phase 2: events + notification fan-out + in-app thread + resolution-summary + SLA timer + escalate-to-Whistleblower + throttle (Ch 12)",
+    "Chat Phase 2: in-app notifications + Reverb realtime + audit log + file attachments + group chats + body encryption at rest (Ch 14)",
+    "Whistleblower Phase 2: evidence download endpoint + anonymity hardening + CAPTCHA + related-case linking + read-receipts + retention schedule + CHRAJ transfer-of-custody hook (Ch 27)",
+    "DPA Phase 4 priorities promoted into Phase 2: breach_incidents table + DPC registration metadata + retention policies + auto-purge + export ZIP TTL + subject sidebar nav (Ch 26 — listed in chapter as Phase 4 but is government-grade-critical)",
+    "Documents: bulk routing + parallel routing + eSign integration extended + DOCX/XLSX burn-in (Ch 13)",
+    "Audit log: action vocabulary widening + per-row detail page + audit_log_id pointers on high-stakes tables (Ch 24)",
+    "Identity Phase 2: biometric template extraction + CSA registration + card OCR/MRZ + Identity Disputed workflow (Ch 25)",
+    "Establishment ceiling enforcement + tamper-evident assign/vacate/freeze audit rows (Ch 8 dependency on Ch 24)",
+    "Templates Phase 2: bulk import audience uploads + auto-handling inbound + bilingual English+Twi (Ch 15)",
+    "Governance Phase 2: committee meeting tracker + retention schedule + ISO 37001 §7.3 recurring acknowledgement (Ch 28)",
+    "Performance: 360 + KPI cascade + mid-year + PIP trigger + per-manager dashboards + compensation linkage (Ch 6 if not in Phase 1)",
+    "Documents v2: per-type retention table + DPA §40 redaction job + court-grade evidence ZIP (Ch 13)",
+    "Reports: scheduled delivery + Echo realtime + compliance sparkline + AG pack v1.1 (Ch 31)",
+    "Profile Portal Phase 2: 2FA status tile + Ghana Card verified badge + bank-change approval loop + employee-side document upload (Ch 32)",
+    "Global Cmd+K search (Meilisearch RBAC-baked indexing) + third-party WCAG audit + Public Accessibility Statement + Multi-tenant AI key vault (Ch 35)",
+    "Tickets Phase 2: customer-confirmation auto-close + public ticket portal + merge-duplicates (Ch 11)",
+    "Postgres read replica when single instance feels load (Ch 36)",
+    "ISO 27001 formal certification + third-party pen test (cross-cutting)",
+    "Recruitment Phase 2: hCaptcha + apply ack/shortlist/rejection email + post-hire performance link (Ch 9)"
+  ],
+  "roadmap_phase_3_priorities": [
+    "Live GRA/SSNIT/NPRA/NHIA submission webhooks + GIFMIS live REST push under auto_mint_on_paid + IPPD bridge CAGD certification (Ch 19, Ch 20)",
+    "Disbursements: maker/checker dual-control above threshold + live MoMo provider onboarding (MTN/Vodafone/AirtelTigo sandboxes) + per-provider settlement webhook handlers + GhIPSS statement reconciliation + loan disbursement through Disbursement table + channel-mix/failure-rate reporting (Ch 22)",
+    "NiaOfficialProvider promoted to certified NIA IVS SDK after MoU (Ch 25)",
+    "Finance Phase 3: multi-currency posting + effective-dated FX rate tables + FX-gain/loss period close + Stripe + Flutterwave second-gateway pair (Ch 20)",
+    "Kiosk: face recognition + device registration + offline buffer + per-employee PIN fallback (Ch 29, Ch 25 dependency)",
+    "Audit log: off-site sealed replication every 15min + CSA Act 1038 §59 incident-reporting integration + WORM mode at DB privilege level (Ch 24)",
+    "Learning Phase 3: in-system content layer (video/PDF/SCORM 1.2/xAPI) + quiz engine with pass marks/proctoring + WCAG AA on content + SCORM Cloud SDK connector (Ch 7)",
+    "AI features beyond employee summary (policy drafting, leave triage, chat summarisation, transcript helper) (Ch 35)"
+  ],
+  "roadmap_phase_4_priorities": [
+    "Marketing role permissions seeded + 2FA required on auditor role + manager-on-leave escalation timeout for leave (Ch 34)",
+    "Anthropic responsible-use Phase 4: multi-tenant key vault completion + Anthropic SLA monitoring (Ch 35)",
+    "DPA Phase 4: breach_incidents workflow + DPC registration metadata + retention policies + auto-purge + export ZIP TTL + subject sidebar nav (Ch 26 — alternative if not promoted)",
+    "Continued government-grade pen testing + ISO 27001 re-certification cadence",
+    "Annual regulatory drift management — PAYE bracket refresh, MIE cap updates, Tier-3 rate revisions, Single Spine pay table reloads (Ch 19, Ch 8)",
+    "Performance Phase 2: KPI cascade + 360 + compensation linkage (if not landed in Phase 1)",
+    "Whistleblower SLA dashboards + cross-case pattern detection",
+    "Operational maturity: Horizon dashboards, on-call rotation tooling, SLO instrumentation",
+    "Phase 4 backlog continuation as institute adoption matures"
+  ]
+}
