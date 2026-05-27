@@ -104,15 +104,19 @@ class AssetController extends Controller
 
     public function myAssets(Request $request): Response
     {
-        $employee = $request->user()->employee
-            ?? throw new \LogicException('Authenticated user has no employee record.');
+        // A user without an Employee row (e.g. unprovisioned super_admin)
+        // sees an empty list rather than a 500. Cleaner UX than aborting
+        // on a read-only endpoint with no actor-specific danger.
+        $employee = $request->user()->employee;
 
-        $assignments = AssetAssignment::query()
-            ->with(['asset', 'assignedBy:id,name'])
-            ->where('employee_id', $employee->id)
-            ->whereNull('returned_at')
-            ->latest('assigned_at')
-            ->get();
+        $assignments = $employee
+            ? AssetAssignment::query()
+                ->with(['asset', 'assignedBy:id,name'])
+                ->where('employee_id', $employee->id)
+                ->whereNull('returned_at')
+                ->latest('assigned_at')
+                ->get()
+            : collect();
 
         return Inertia::render('Assets/My', [
             'assignments' => AssetAssignmentResource::collection($assignments),

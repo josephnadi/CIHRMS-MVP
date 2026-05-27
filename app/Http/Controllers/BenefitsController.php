@@ -91,8 +91,9 @@ class BenefitsController extends Controller
 
     public function enrol(EnrolRequest $request)
     {
-        $employee = $request->user()->employee
-            ?? throw new \LogicException('Authenticated user has no employee record.');
+        $employee = $request->user()->employee;
+        abort_unless($employee, 404, 'No employee record linked to this user.');
+
         $plan = BenefitPlan::findOrFail($request->validated('plan_id'));
 
         try {
@@ -111,8 +112,8 @@ class BenefitsController extends Controller
 
     public function storeDependant(StoreDependantRequest $request)
     {
-        $employee = $request->user()->employee
-            ?? throw new \LogicException('Authenticated user has no employee record.');
+        $employee = $request->user()->employee;
+        abort_unless($employee, 404, 'No employee record linked to this user.');
 
         try {
             $this->service->addDependant($employee, $request->validated(), $request->user());

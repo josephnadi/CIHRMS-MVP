@@ -266,8 +266,11 @@ class AttendanceController extends Controller
 
     public function storeCorrection(StoreCorrectionRequest $request)
     {
-        $employee = $request->user()->employee
-            ?? throw new \LogicException('Authenticated user has no employee record.');
+        // Match the convention in AttendanceController::myAttendance — a 404
+        // is the cleanest signal that the action requires an Employee row
+        // and the requesting user doesn't have one.
+        $employee = $request->user()->employee;
+        abort_unless($employee, 404, 'No employee record linked to this user.');
 
         $this->service->requestCorrection(
             $employee,
