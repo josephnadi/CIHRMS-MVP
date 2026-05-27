@@ -38,13 +38,16 @@ function initialBg(id) {
 }
 
 // L12 audit fix: decode Laravel paginator HTML entities so the pagination
-// labels can render with {{ }} instead of v-html.
+// labels can render with {{ }} instead of v-html. `&amp;` is replaced LAST
+// to avoid double-unescape (a literal `&amp;lt;` must decode to `&lt;`,
+// not `<`). CodeQL js/double-escaping confirmed this on PR #60.
 function decodePaginatorLabel(label) {
     if (typeof label !== 'string') return '';
     return label
         .replace(/&laquo;/g, '«').replace(/&raquo;/g, '»')
-        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ');
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&');
 }
 </script>
 

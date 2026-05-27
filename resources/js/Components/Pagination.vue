@@ -38,15 +38,20 @@ const metaText = computed(() => {
 function decodeHtml(label) {
     if (typeof label !== 'string') return '';
     // Tiny replacement table — sufficient for the paginator's known set.
+    // `&amp;` MUST be last: decoding it first would turn an already-encoded
+    // entity like `&amp;lt;` (literal `&lt;`) into `&lt;` and then into `<`,
+    // which is a double-unescape. With `&amp;` last, `&amp;lt;` decodes to
+    // the literal string `&lt;`, preserving the author's intent. CodeQL
+    // js/double-escaping confirmed this on PR #60.
     return label
         .replace(/&laquo;/g, '«')
         .replace(/&raquo;/g, '»')
-        .replace(/&amp;/g,  '&')
         .replace(/&lt;/g,   '<')
         .replace(/&gt;/g,   '>')
         .replace(/&quot;/g, '"')
         .replace(/&#039;/g, "'")
-        .replace(/&nbsp;/g, ' ');
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g,  '&');
 }
 </script>
 
