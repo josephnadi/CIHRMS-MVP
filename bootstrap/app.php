@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\ForcePasswordChange::class,
+            // Global gate: any authenticated user flagged `two_factor_required`
+            // is bounced to enrolment until `two_factor_confirmed_at` is set.
+            // The middleware self-bypasses on /two-factor/* and /logout so the
+            // gate can never lock the user out of completing it.
+            \App\Http\Middleware\RequireTwoFactor::class,
         ]);
 
         // CSRF cannot apply to the SAML ACS — the IdP POSTs the assertion
