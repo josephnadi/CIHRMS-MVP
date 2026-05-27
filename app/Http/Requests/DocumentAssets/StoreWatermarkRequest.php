@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\DocumentAssets;
 
 use App\Enums\AssetOwnerScope;
+use App\Rules\RealImageContent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -34,6 +35,8 @@ class StoreWatermarkRequest extends FormRequest
             'file'        => [
                 Rule::requiredIf(fn () => $this->input('type') === 'image'),
                 'nullable', 'file', 'mimes:png', 'max:1024',
+                // M10 / L3: re-validate the bytes — extension alone is spoofable.
+                new RealImageContent(['png']),
             ],
             'opacity'     => ['nullable', 'numeric', 'between:0.05,1'],
             'angle_deg'   => ['nullable', 'integer', 'between:-90,90'],

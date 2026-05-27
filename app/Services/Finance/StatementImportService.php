@@ -24,15 +24,32 @@ class StatementImportService
     {
     }
 
+    /** Largest bank statement we'll accept (bytes). M12 DoS cap. */
+    private const MAX_BYTES = 50 * 1024 * 1024;       // 50 MB
+    /** Max number of CSV/MT940/OFX lines we'll parse. M12 DoS cap. */
+    private const MAX_LINES = 100_000;
+
     public function import(
         UploadedFile $file,
         OrgBankAccount $bank,
         User $importer,
         ?string $bankKey = null,
     ): BankStatement {
+        // M12: pre-flight bounds. file->getSize() is from the metadata of the
+        // uploaded part; a hostile client could spoof it, so we re-measure
+        // the actual bytes after reading.
+        if ($file->getSize() !== false && $file->getSize() > self::MAX_BYTES) {
+            throw new DomainException('statement file exceeds 50 MB cap');
+        }
         $raw = file_get_contents($file->getRealPath()) ?: '';
         if ($raw === '') {
             throw new DomainException('uploaded file is empty');
+        }
+        if (strlen($raw) > self::MAX_BYTES) {
+            throw new DomainException('statement file exceeds 50 MB cap');
+        }
+        if (substr_count($raw, "\n") > self::MAX_LINES) {
+            throw new DomainException('statement file exceeds ' . self::MAX_LINES . ' line cap');
         }
 
         $fileHash = hash('sha256', $raw);

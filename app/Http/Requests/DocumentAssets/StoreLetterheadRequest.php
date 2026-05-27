@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\DocumentAssets;
 
 use App\Enums\AssetOwnerScope;
+use App\Rules\RealImageContent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -25,7 +26,7 @@ class StoreLetterheadRequest extends FormRequest
                 Rule::requiredIf(fn () => $this->input('owner_scope') === AssetOwnerScope::Department->value),
                 'nullable', 'integer',
             ],
-            'file'             => ['required', 'file', 'mimes:png,jpg,jpeg', 'max:3072'], // 3 MB
+            'file'             => ['required', 'file', 'mimes:png,jpg,jpeg', 'max:3072', new RealImageContent(['png','jpg','jpeg'])], // 3 MB
             'header_height_mm' => ['nullable', 'integer', 'between:20,80'],
         ];
     }

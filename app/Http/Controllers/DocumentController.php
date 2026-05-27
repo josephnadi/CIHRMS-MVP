@@ -291,11 +291,14 @@ class DocumentController extends Controller
 
         // ref_no carries slashes (e.g. CIHRMS/DOC/2026/0001) which Symfony's
         // Content-Disposition validator rejects. Flatten to a filesystem-safe
-        // slug for the download filename only.
+        // slug for the download filename only. L2 audit fix: when falling back
+        // to the user-supplied `original_name`, run it through
+        // `sanitiseDownloadName` so a crafted upload filename can't smuggle
+        // CR/LF or path-traversal into the response header.
         $safeRefNo = str_replace(['/', '\\'], '-', $document->ref_no);
         $name = $isRestricted
             ? "{$safeRefNo}-restricted.pdf"
-            : ($burned ? "{$safeRefNo}-burned.pdf" : $version->original_name);
+            : ($burned ? "{$safeRefNo}-burned.pdf" : $this->sanitiseDownloadName($version->original_name));
 
         $this->docs->logEvent($document, $request->user(), DocumentEventType::Downloaded, [
             'version_id'  => $version->id,
@@ -345,5 +348,24 @@ class DocumentController extends Controller
         } catch (ConversionNotSupportedException $e) {
             return response()->json(['message' => $e->getMessage()], 501);
         }
+    }
+
+    /**
+     * Strip CR/LF, null bytes, and path separators from a user-supplied
+     * download filename. Keeps the original extension to drive the
+     * browser's Save dialog correctly. L2 audit fix.
+     */
+    private function sanitiseDownloadName(?string $name): string
+    {
+        $name = (string) ($name ?? 'document');
+        $name = preg_replace('/[\r\n\0\\\\\/]+/', '_', $name) ?? 'document';
+        $name = trim(preg_replace('/_+/', '_', $name)) ?: 'document';
+        // Cap length so a 4KB filename can't bloat Content-Disposition.
+        if (strlen($name) > 200) {
+            $ext  = pathinfo($name, PATHINFO_EXTENSION);
+            $name = substr(pathinfo($name, PATHINFO_FILENAME), 0, 180)
+                  . ($ext !== '' ? ('.' . $ext) : '');
+        }
+        return $name;
     }
 }
