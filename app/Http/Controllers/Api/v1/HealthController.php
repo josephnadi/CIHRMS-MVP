@@ -18,13 +18,13 @@ class HealthController extends Controller
             $dbOk = false;
         }
 
+        // Intentionally minimal — does NOT leak `app.env`, build SHA, package
+        // versions, or any operational topology that helps an attacker shape
+        // their next probe. M4 audit fix.
         return response()->json([
-            'service'   => config('app.name', 'CIHRMS'),
-            'version'   => config('app.version', 'unknown'),
-            'env'       => config('app.env'),
-            'time'      => now()->toIso8601String(),
-            'database'  => $dbOk ? 'ok' : 'unreachable',
-            'api'       => ['version' => 'v1'],
+            'service' => config('app.name', 'CIHRMS'),
+            'status'  => $dbOk ? 'ok' : 'degraded',
+            'time'    => now()->toIso8601String(),
         ], $dbOk ? 200 : 503);
     }
 }
