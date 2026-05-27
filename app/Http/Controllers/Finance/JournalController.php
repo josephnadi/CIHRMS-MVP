@@ -12,6 +12,7 @@ use App\Http\Resources\Finance\JournalEntryResource;
 use App\Models\JournalEntry;
 use App\Models\JournalLine;
 use App\Services\Finance\JournalPostingService;
+use App\Services\Finance\SequenceService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,8 +22,10 @@ use Inertia\Response;
 
 class JournalController extends Controller
 {
-    public function __construct(private readonly JournalPostingService $service)
-    {
+    public function __construct(
+        private readonly JournalPostingService $service,
+        private readonly SequenceService $sequences,
+    ) {
     }
 
     public function index(Request $request): Response
@@ -92,8 +95,13 @@ class JournalController extends Controller
 
     private function nextManualRef(): string
     {
+        // Uses SequenceService (FOR UPDATE row lock in finance_sequences)
+        // so two concurrent manual-JE submissions cannot collide on the
+        // same JM-YYYY-NNNNNN reference. Closes the race-condition gap
+        // documented in the 2026-05-26 audit (H11); count()+1 is unsafe
+        // under contention.
         $year = now()->format('Y');
-        $count = JournalEntry::where('reference', 'like', "JM-{$year}-%")->count();
-        return sprintf('JM-%s-%06d', $year, $count + 1);
+        $n    = $this->sequences->next("journal_manual:{$year}");
+        return sprintf('JM-%s-%06d', $year, $n);
     }
 }
