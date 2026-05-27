@@ -14,7 +14,12 @@ it('rejects upload from an unrelated random user', function () {
     $owner = User::factory()->create();
     $emp   = Employee::factory()->create(['user_id' => $owner->id]);
 
-    $randomUser = User::factory()->create(['permissions' => []]);
+    // Pin role to `employee` — the factory randomly picks from
+    // ['employee','manager','hr_admin','finance_officer']; an `hr_admin`
+    // roll grants `employees.manage` via legacy ROLE_PERMISSIONS and the
+    // FormRequest authorize() would (correctly) allow the upload, flaking
+    // this 1-in-4. Same fix applied to EmployeeSelfEditRestrictionTest.
+    $randomUser = User::factory()->create(['role' => 'employee', 'permissions' => []]);
 
     $this->actingAs($randomUser)
         ->post(route('employees.documents.store', $emp), [

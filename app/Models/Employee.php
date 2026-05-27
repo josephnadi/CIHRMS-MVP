@@ -16,6 +16,30 @@ class Employee extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Clean up file uploads on hard delete. SoftDeletes keeps the files
+     * during the soft-delete window (allows restore); forceDelete blasts
+     * them. L4 audit fix — closes storage bloat + enumeration window.
+     */
+    protected static function booted(): void
+    {
+        // Fires BEFORE the DB row is removed so we can still walk the
+        // documents relation. `forceDeleted` runs AFTER cascade delete and
+        // would find the relation empty.
+        static::forceDeleting(function (self $employee) {
+            if ($employee->avatar_path) {
+                Storage::disk('local')->delete($employee->avatar_path);
+                Storage::disk('public')->delete($employee->avatar_path); // legacy
+            }
+            foreach ($employee->documents()->get() as $doc) {
+                if ($doc->file_path) {
+                    Storage::disk('local')->delete($doc->file_path);
+                    Storage::disk('public')->delete($doc->file_path);
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'department_id',
         'user_id',

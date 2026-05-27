@@ -109,6 +109,11 @@ class EmployeeController extends Controller
 
     public function updateDepartment(Request $request, \App\Models\Department $department): RedirectResponse
     {
+        // Defense-in-depth (M7): route middleware already gates on
+        // `permission:employees.manage`, but a policy call here keeps the
+        // controller closed if the middleware is ever moved or refactored.
+        $this->authorize('update', $department);
+
         $data = $request->validate([
             'name'        => ['required', 'string', 'max:120'],
             'code'        => ['nullable', 'string', 'max:20'],
@@ -122,6 +127,8 @@ class EmployeeController extends Controller
 
     public function destroyDepartment(\App\Models\Department $department): RedirectResponse
     {
+        $this->authorize('delete', $department);
+
         try {
             $this->employees->deleteDepartment($department);
         } catch (\DomainException $e) {

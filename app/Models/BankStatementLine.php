@@ -20,6 +20,7 @@ class BankStatementLine extends Model
         'bank_statement_id', 'line_no', 'transaction_date', 'value_date',
         'description', 'reference', 'amount', 'running_balance', 'line_hash',
         'matched_type', 'matched_id', 'confidence', 'reconciled_at',
+        'matched_by', 'matched_at',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class BankStatementLine extends Model
             'amount'           => 'decimal:2',
             'running_balance'  => 'decimal:2',
             'reconciled_at'    => 'datetime',
+            'matched_at'       => 'datetime',
         ];
     }
 

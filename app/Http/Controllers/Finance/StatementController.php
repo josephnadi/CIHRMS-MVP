@@ -28,6 +28,14 @@ class StatementController extends Controller
 
     public function show(Customer $customer, Request $request): Response
     {
+        // Defense-in-depth (M9 audit fix): the route group requires
+        // `statements.view`, but a permission re-check here makes the
+        // controller closed if the middleware moves. Combined with the
+        // existing route-model-binding scoping, this prevents any path
+        // where an unauthenticated/under-privileged caller can enumerate
+        // /statements/{id} for PII + AR aging.
+        abort_unless($request->user()?->hasPermission('statements.view'), 403);
+
         $today = CarbonImmutable::today();
         $defaultFrom = $today->startOfMonth()->subMonths(2);
         $defaultTo   = $today;

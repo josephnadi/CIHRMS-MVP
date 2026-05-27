@@ -36,6 +36,19 @@ function initialBg(id) {
     const hues = ['#0a1138', '#1a237e', '#0c4a6e', '#164e63', '#3f1c5c', '#3b1f0a', '#0f3d2e', '#3a0d2c'];
     return hues[(id ?? 0) % hues.length];
 }
+
+// L12 audit fix: decode Laravel paginator HTML entities so the pagination
+// labels can render with {{ }} instead of v-html. `&amp;` is replaced LAST
+// to avoid double-unescape (a literal `&amp;lt;` must decode to `&lt;`,
+// not `<`). CodeQL js/double-escaping confirmed this on PR #60.
+function decodePaginatorLabel(label) {
+    if (typeof label !== 'string') return '';
+    return label
+        .replace(/&laquo;/g, '«').replace(/&raquo;/g, '»')
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&');
+}
 </script>
 
 <template>
@@ -183,13 +196,12 @@ function initialBg(id) {
                 <div v-if="meta.last_page > 1" class="mt-6 flex items-center justify-center gap-2 flex-wrap">
                     <Link v-for="link in meta.links" :key="link.label"
                           :href="link.url ?? '#'"
-                          v-html="link.label"
                           :class="[
                               'px-3 py-1.5 rounded-xl text-[12px] font-black border',
                               link.active ? 'bg-primary text-white border-primary'
                                           : link.url ? 'bg-surface-container-lowest border-outline-variant text-primary hover:border-secondary'
                                                      : 'opacity-40 cursor-not-allowed border-outline-variant text-on-surface-variant'
-                          ]" />
+                          ]">{{ decodePaginatorLabel(link.label) }}</Link>
                 </div>
             </section>
         </div>

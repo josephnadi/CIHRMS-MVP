@@ -44,11 +44,14 @@ test('password can be reset with valid token', function () {
     $this->post('/forgot-password', ['email' => $user->email]);
 
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        // Must differ from the factory's default password (`password`) — the
+        // L6 reuse-prevention rule (NotRecentPassword) now blocks re-setting
+        // to the current value.
         $response = $this->post('/reset-password', [
             'token' => $notification->token,
             'email' => $user->email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'BrandNewPass!9',
+            'password_confirmation' => 'BrandNewPass!9',
         ]);
 
         $response

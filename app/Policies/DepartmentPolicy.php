@@ -33,4 +33,13 @@ class DepartmentPolicy
         if ($user->hasPermission('employees.manage')) return true;
         return $user->managesDepartment($department->id);
     }
+
+    /**
+     * Deleting a department mutates the org chart — even a dept-head should
+     * not be able to remove their own team. Reserved for HR / super_admin.
+     */
+    public function delete(User $user, Department $department): bool
+    {
+        return $user->hasPermission('employees.manage');
+    }
 }

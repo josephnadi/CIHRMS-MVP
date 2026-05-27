@@ -346,11 +346,17 @@ class User extends Authenticatable
         });
     }
 
-    public function hasPermission(string $permission): bool
+    /**
+     * Accepts either a literal slug string (legacy call sites) or the
+     * typed `Permission` enum case (preferred — L10 audit fix; lets the
+     * IDE catch typos at edit time).
+     */
+    public function hasPermission(\App\Enums\Permission|string $permission): bool
     {
+        $slug  = $permission instanceof \App\Enums\Permission ? $permission->value : $permission;
         $perms = $this->allPermissions();
 
-        return in_array('*', $perms, true) || in_array($permission, $perms, true);
+        return in_array('*', $perms, true) || in_array($slug, $perms, true);
     }
 
     public function isSuperAdmin(): bool

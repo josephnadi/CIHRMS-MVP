@@ -115,7 +115,7 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
                             </div>
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-[0.18em] text-white/45 mb-1">Department Portal</p>
-                                <h1 class="text-[24px] font-black tracking-tight" v-html="portal.title"></h1>
+                                <h1 class="text-[24px] font-black tracking-tight">{{ portal.title }}</h1>
                                 <p class="text-[12.5px] text-white/55">{{ portal.tagline }}</p>
                             </div>
                         </div>
@@ -155,8 +155,8 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
                          :style="`background:${portal.accent}15;border:1px solid ${portal.accent}30`">
                         <span class="material-symbols-outlined text-[20px]" :style="`color:${portal.accent}`">{{ s.icon }}</span>
                     </div>
-                    <h3 class="text-[14px] font-bold text-on-surface" v-html="s.title"></h3>
-                    <p class="mt-1.5 text-[12.5px] leading-relaxed text-on-surface-variant" v-html="s.body"></p>
+                    <h3 class="text-[14px] font-bold text-on-surface">{{ s.title }}</h3>
+                    <p class="mt-1.5 text-[12.5px] leading-relaxed text-on-surface-variant">{{ s.body }}</p>
                 </div>
             </div>
 

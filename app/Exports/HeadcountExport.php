@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Employee;
+use App\Support\Spreadsheet;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -22,12 +23,12 @@ class HeadcountExport implements FromQuery, WithHeadings, WithMapping
     public function map($employee): array
     {
         return [
-            $employee->user?->name,
-            $employee->employee_no,
-            $employee->department?->name,
-            $employee->position,
+            Spreadsheet::escapeCell($employee->user?->name),
+            Spreadsheet::escapeCell($employee->employee_no),
+            Spreadsheet::escapeCell($employee->department?->name),
+            Spreadsheet::escapeCell($employee->position),
             $employee->hire_date?->toDateString(),
-            $employee->status?->label(),
+            Spreadsheet::escapeCell($employee->status?->label()),
         ];
     }
 }

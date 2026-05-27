@@ -20,11 +20,15 @@ class ReconciliationService
         }
 
         return DB::transaction(function () use ($line, $target, $user, $confidence) {
+            // L9 audit fix: write the matcher's identity onto the line itself,
+            // not just the (potentially-deletable) BankTransactionMatch row.
             $line->update([
                 'matched_type'  => get_class($target),
                 'matched_id'    => $target->getKey(),
                 'confidence'    => $confidence,
                 'reconciled_at' => now(),
+                'matched_by'    => $user->id,
+                'matched_at'    => now(),
             ]);
 
             if ($target instanceof \App\Models\ApPayment && empty($target->external_ref) && ! empty($line->reference)) {

@@ -30,6 +30,29 @@ const metaText = computed(() => {
     if (!from && !to) return null;
     return `Showing ${from ?? 0}–${to ?? 0} of ${total ?? 0} results`;
 });
+
+// L12 audit fix: Laravel paginator labels arrive as HTML-entity strings
+// (e.g. `&laquo; Previous`, `Next &raquo;`). Decode them in JS so the
+// template can render with {{ }} instead of v-html. Avoids the entire
+// `v-html` attack surface for what is framework-trusted text.
+function decodeHtml(label) {
+    if (typeof label !== 'string') return '';
+    // Tiny replacement table — sufficient for the paginator's known set.
+    // `&amp;` MUST be last: decoding it first would turn an already-encoded
+    // entity like `&amp;lt;` (literal `&lt;`) into `&lt;` and then into `<`,
+    // which is a double-unescape. With `&amp;` last, `&amp;lt;` decodes to
+    // the literal string `&lt;`, preserving the author's intent. CodeQL
+    // js/double-escaping confirmed this on PR #60.
+    return label
+        .replace(/&laquo;/g, '«')
+        .replace(/&raquo;/g, '»')
+        .replace(/&lt;/g,   '<')
+        .replace(/&gt;/g,   '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g,  '&');
+}
 </script>
 
 <template>
@@ -71,8 +94,7 @@ const metaText = computed(() => {
                             : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface',
                     ]"
                     @click="navigate(link.url)"
-                    v-html="link.label"
-                ></button>
+                >{{ decodeHtml(link.label) }}</button>
             </template>
 
             <!-- Next -->

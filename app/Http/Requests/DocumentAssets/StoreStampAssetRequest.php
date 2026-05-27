@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\DocumentAssets;
 
 use App\Enums\AssetOwnerScope;
+use App\Rules\RealImageContent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -25,7 +26,7 @@ class StoreStampAssetRequest extends FormRequest
                 Rule::requiredIf(fn () => $this->input('owner_scope') === AssetOwnerScope::Department->value),
                 'nullable', 'integer',
             ],
-            'file'          => ['required', 'file', 'mimes:png', 'max:1024'],
+            'file'          => ['required', 'file', 'mimes:png', 'max:1024', new RealImageContent(['png'])],
             'default_w_pct' => ['nullable', 'numeric', 'between:4,80'],
             'default_h_pct' => ['nullable', 'numeric', 'between:4,80'],
         ];

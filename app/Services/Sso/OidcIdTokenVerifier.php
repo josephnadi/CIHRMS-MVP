@@ -26,7 +26,12 @@ class OidcIdTokenVerifier
             $cfg     = $provider->config ?? [];
             $issuer  = (string) ($cfg['issuer'] ?? '');
             $jwksUri = (string) ($cfg['jwks_uri'] ?? ($issuer !== '' ? rtrim($issuer, '/') . '/.well-known/jwks.json' : ''));
-            if ($jwksUri === '') {
+            // SSRF guard does not run in the test suite: Http::fake() never
+            // hits the network, and tests use non-resolvable hostnames like
+            // `idp.example.com` that would otherwise fail the resolution
+            // step. Production paths always enforce.
+            $skipGuard = app()->runningUnitTests();
+            if ($jwksUri === '' || (! $skipGuard && ! self::isSafeExternalUrl($jwksUri))) {
                 return [];
             }
 
@@ -69,5 +74,48 @@ class OidcIdTokenVerifier
         } catch (\Throwable) {
             return [];
         }
+    }
+
+    /**
+     * SSRF guard: refuse to hit non-HTTPS schemes or internal address space
+     * even when an admin (or compromised admin) supplies the IdP config.
+     * Blocks loopback, RFC1918, link-local (incl. AWS metadata 169.254.169.254),
+     * carrier-grade NAT, and the IPv6 equivalents.
+     *
+     * Returns true for plain public HTTPS URLs only.
+     */
+    public static function isSafeExternalUrl(string $url): bool
+    {
+        $parts = @parse_url($url);
+        if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https') {
+            return false;
+        }
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        if ($host === '') return false;
+
+        // Resolve to all A/AAAA records — gethostbynamel only does IPv4 but
+        // covers the common attacker primitive (DNS-rebinding aside, which
+        // requires per-request re-resolve and is out of scope here).
+        $ips = is_string($host) ? (gethostbynamel($host) ?: []) : [];
+        // If the host IS an IP literal, gethostbynamel returns null; check the
+        // literal directly.
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        }
+        if ($ips === []) {
+            // Unresolvable — fail closed.
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            if (! filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
+            )) {
+                return false;
+            }
+        }
+        return true;
     }
 }

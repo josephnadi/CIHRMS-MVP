@@ -17,7 +17,8 @@ class StorePaymentIntentRequest extends FormRequest
     {
         return [
             'ar_invoice_id' => ['required', 'integer', 'exists:ar_invoices,id'],
-            'amount'        => ['required', 'numeric', 'min:0.01'],
+            // M16: 9_999_999.99 GHS ceiling per gateway transaction.
+            'amount'        => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
             'callback_url'  => ['nullable', 'url', 'max:500'],
             'narration'     => ['nullable', 'string', 'max:500'],
         ];

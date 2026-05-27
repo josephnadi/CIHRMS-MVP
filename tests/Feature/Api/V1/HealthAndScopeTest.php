@@ -3,12 +3,14 @@
 use App\Models\ApiTokenMetadata;
 use App\Models\User;
 
-it('exposes /api/v1/health without authentication', function () {
+it('exposes /api/v1/health without authentication and only minimal fields', function () {
     $response = $this->getJson('/api/v1/health');
 
     $response->assertStatus(200);
-    $response->assertJsonStructure(['service', 'version', 'time', 'database', 'api' => ['version']]);
-    expect($response->json('api.version'))->toBe('v1');
+    // M4 audit fix: response trimmed to {service,status,time}. No env / db /
+    // version / api topology leak.
+    $response->assertJsonStructure(['service', 'status', 'time']);
+    expect(array_keys($response->json()))->toEqualCanonicalizing(['service', 'status', 'time']);
 });
 
 it('serves the OpenAPI spec as YAML at /api/v1/openapi.yaml', function () {

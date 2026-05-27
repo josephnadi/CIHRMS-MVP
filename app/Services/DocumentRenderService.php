@@ -85,7 +85,7 @@ class DocumentRenderService
         } else {
             // Per-viewer watermarked file — write to a temp path; the
             // controller streams it as a download and the OS reaps the file.
-            $absolutePath = tempnam(sys_get_temp_dir(), 'wm') . '.pdf';
+            $absolutePath = self::secureTempFile('wm', '.pdf');
         }
         $pdf->Output($absolutePath, 'F');
 
@@ -147,9 +147,31 @@ class DocumentRenderService
         $pageH = $pdf->getPageHeight() - 20;
         $pdf->Image($absoluteImagePath, 10, 10, $pageW, $pageH, '', '', '', false, 300, '', false, false, 0, 'CT');
 
-        $out = tempnam(sys_get_temp_dir(), 'doc') . '.pdf';
+        $out = self::secureTempFile('doc', '.pdf');
         $pdf->Output($out, 'F');
         return $out;
+    }
+
+    /**
+     * Create a tmp file owner-readable only (0600) and tied to PHP's temp
+     * dir. The base file from `tempnam` is created with mode 0600 by PHP
+     * already, but we re-apply after the rename-with-extension dance in case
+     * the platform umask widens it. L1 audit fix.
+     */
+    private static function secureTempFile(string $prefix, string $suffix): string
+    {
+        $base = tempnam(sys_get_temp_dir(), $prefix);
+        if ($base === false) {
+            throw new \RuntimeException('unable to create secure temp file');
+        }
+        $final = $base . $suffix;
+        if (! @rename($base, $final)) {
+            // Fallback — keep the original tempnam path but warn callers via
+            // the original (no suffix) name. The PDF writer doesn't care.
+            $final = $base;
+        }
+        @chmod($final, 0600);
+        return $final;
     }
 
     private function drawAnnotation(Fpdi $pdf, $annotation, float $pageW, float $pageH): void
@@ -164,7 +186,7 @@ class DocumentRenderService
         if ($annotation->type->value === 'signature' || $annotation->type->value === 'initial') {
             $png = $data['png_base64'] ?? null;
             if ($png) {
-                $tmp = tempnam(sys_get_temp_dir(), 'sig') . '.png';
+                $tmp = self::secureTempFile('sig', '.png');
                 file_put_contents($tmp, base64_decode(preg_replace('#^data:image/png;base64,#', '', $png)));
                 $pdf->Image($tmp, $x, $y, $w, $h, 'PNG');
                 @unlink($tmp);
@@ -174,7 +196,7 @@ class DocumentRenderService
 
         if ($annotation->type->value === 'stamp') {
             if (! empty($data['png_base64'])) {
-                $tmp = tempnam(sys_get_temp_dir(), 'stp') . '.png';
+                $tmp = self::secureTempFile('stp', '.png');
                 file_put_contents($tmp, base64_decode(preg_replace('#^data:image/png;base64,#', '', $data['png_base64'])));
                 $pdf->Image($tmp, $x, $y, $w, $h, 'PNG');
                 @unlink($tmp);

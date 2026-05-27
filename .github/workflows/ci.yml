@@ -68,8 +68,21 @@ jobs:
       - name: Install PHP deps
         run: composer install --prefer-dist --no-interaction --no-progress
 
+      - name: Composer security audit
+        # Surfaces any known CVE on a locked dependency. Continues on
+        # error so a freshly-published advisory does not red-bar the build
+        # mid-flight; the warning is visible in the GH job summary. M17 fix.
+        run: composer audit --locked --no-interaction || true
+        continue-on-error: true
+
       - name: Install Node deps
         run: npm ci
+
+      - name: NPM security audit
+        # Reports CVEs at moderate+ level; non-blocking for the same
+        # reasons as composer audit above. M17 fix.
+        run: npm audit --audit-level=moderate || true
+        continue-on-error: true
 
       - name: Prepare env
         run: |
