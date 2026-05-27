@@ -99,6 +99,7 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
         ->middleware('webhook.signature:zoho')
         ->name('zoho');
     Route::post('/esign', [ESignWebhookController::class, 'handle'])
+        ->middleware('webhook.signature:esign')
         ->name('esign');
     Route::post('/ms-graph', [WebhookController::class, 'handle'])
         ->defaults('provider', 'ms_graph')

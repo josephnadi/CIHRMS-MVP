@@ -209,6 +209,13 @@ return [
         'slack' => [
             'signing_secret' => env('SLACK_SIGNING_SECRET'),
         ],
+        // Single eSign endpoint accepts both Zoho Sign and DocuSign callbacks.
+        // The middleware verifies against whichever provider's HMAC header is
+        // present; both schemes are HMAC-SHA256(body) base64-encoded.
+        'esign' => [
+            'zoho_secret'     => env('ZOHO_SIGN_WEBHOOK_SECRET'),
+            'docusign_secret' => env('DOCUSIGN_CONNECT_KEY'),
+        ],
     ],
 
 ];
