@@ -2,6 +2,9 @@
 import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { useSafeHtml } from '@/Composables/useSafeHtml';
+
+const sanitize = useSafeHtml();
 
 defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
@@ -22,7 +25,7 @@ function submitAck() {
 
 const renderedBody = computed(() => {
     const body = props.current?.body ?? '';
-    return body
+    const rendered = body
         .split(/\n\n+/)
         .map(block => {
             if (/^#\s+/.test(block)) return `<h1 class="text-2xl font-black text-primary mt-6 mb-3">${block.replace(/^#\s+/, '')}</h1>`;
@@ -34,6 +37,7 @@ const renderedBody = computed(() => {
             return `<p class="my-3 text-on-surface leading-relaxed">${block.replace(/\n/g, '<br>')}</p>`;
         })
         .join('');
+    return sanitize(rendered);
 });
 
 const myAckStatus = computed(() => props.policy.data?.my_ack_status ?? 'no_version');
