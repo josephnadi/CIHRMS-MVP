@@ -43,8 +43,14 @@ class ArInvoiceController extends Controller
         ]);
     }
 
-    public function show(ArInvoice $arInvoice): Response
+    public function show(ArInvoice $arInvoice, Request $request): Response
     {
+        // Defense-in-depth (M8): the route group requires `ar_invoices.view`,
+        // but a permission re-check here keeps the controller closed if the
+        // middleware is ever refactored or this method is invoked outside
+        // the route stack.
+        abort_unless($request->user()?->hasPermission('ar_invoices.view'), 403);
+
         $arInvoice->load(['customer', 'lines.glAccount', 'accrualJournalEntry', 'writeOffJournalEntry', 'allocations.receipt']);
 
         return Inertia::render('Finance/ArInvoices/Show', [
@@ -78,6 +84,8 @@ class ArInvoiceController extends Controller
 
     public function approve(ArInvoice $arInvoice, Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->hasPermission('ar_invoices.approve'), 403);
+
         try {
             $this->service->approve($arInvoice, $request->user());
         } catch (DomainException $e) {
@@ -88,6 +96,8 @@ class ArInvoiceController extends Controller
 
     public function cancel(ArInvoice $arInvoice, Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->hasPermission('ar_invoices.approve'), 403);
+
         $reason = (string) $request->input('reason', 'no reason given');
         try {
             $this->service->cancel($arInvoice, $request->user(), $reason);

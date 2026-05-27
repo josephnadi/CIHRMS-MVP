@@ -43,8 +43,11 @@ class ApInvoiceController extends Controller
         ]);
     }
 
-    public function show(VendorInvoice $apInvoice): Response
+    public function show(VendorInvoice $apInvoice, Request $request): Response
     {
+        // Defense-in-depth (M8): mirror the route-group permission gate.
+        abort_unless($request->user()?->hasPermission('ap_invoices.view'), 403);
+
         $apInvoice->load(['vendor', 'lines.glAccount', 'accrualJournalEntry', 'allocations.payment']);
 
         return Inertia::render('Finance/ApInvoices/Show', [
@@ -74,6 +77,8 @@ class ApInvoiceController extends Controller
 
     public function approve(VendorInvoice $apInvoice, Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->hasPermission('ap_invoices.approve'), 403);
+
         try {
             $this->service->approve($apInvoice, $request->user());
         } catch (DomainException $e) {
@@ -84,6 +89,8 @@ class ApInvoiceController extends Controller
 
     public function cancel(VendorInvoice $apInvoice, Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->hasPermission('ap_invoices.approve'), 403);
+
         $reason = (string) $request->input('reason', 'no reason given');
         try {
             $this->service->cancel($apInvoice, $request->user(), $reason);

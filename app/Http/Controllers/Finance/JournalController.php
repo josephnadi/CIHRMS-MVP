@@ -47,8 +47,11 @@ class JournalController extends Controller
         ]);
     }
 
-    public function show(JournalEntry $journalEntry): Response
+    public function show(JournalEntry $journalEntry, Request $request): Response
     {
+        // Defense-in-depth (M8): mirror the route-group permission gate.
+        abort_unless($request->user()?->hasPermission('journal.view'), 403);
+
         $journalEntry->load(['lines.glAccount', 'creator:id,name', 'poster:id,name']);
 
         return Inertia::render('Finance/Journal/Index', [
