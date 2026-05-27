@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
@@ -54,6 +55,17 @@ class Customer extends Model
     public function receipts(): HasMany
     {
         return $this->hasMany(ArReceipt::class, 'customer_id');
+    }
+
+    /**
+     * Optional 1:1 link back to the CIHRM Member that owns this Customer.
+     * Most commercial customers won't have a member row; institute members
+     * will. Lets the portal and notification listeners resolve member-side
+     * profile data without forcing AR to know about members. (M1 fix.)
+     */
+    public function member(): HasOne
+    {
+        return $this->hasOne(Member::class);
     }
 
     public function scopeActive(Builder $q): Builder

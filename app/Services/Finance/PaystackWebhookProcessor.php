@@ -155,6 +155,12 @@ class PaystackWebhookProcessor
                 'ar_receipt_id'     => $receipt->id,
             ]);
 
+            // M2: fan out to listeners (notification, analytics, etc.).
+            // Decoupled here so the same hook fires for non-Paystack
+            // sources (manual receipts, M3 USSD top-ups) when they call
+            // the same event from their own code paths.
+            \App\Events\ReceiptProcessed::dispatch($receipt, $intent);
+
             return $receipt;
         });
     }

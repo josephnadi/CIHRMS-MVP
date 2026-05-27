@@ -194,6 +194,14 @@ class RolePermissionSeeder extends Seeder
         // ── AI assistant (audit-v2 tier-3 supplement, item 28) ──
         // Gates per-call LLM provider cost; executives + line management only.
         'ai.use'                => ['AI', 'Use AI assistant features'],
+
+        // ── M1: Billing & Fees (Members + Fee Catalog + Billing runs) ──
+        'members.view'        => ['Billing', 'View the CIHRM member directory'],
+        'members.manage'      => ['Billing', 'Create / edit / remove CIHRM members'],
+        'fee_catalog.view'    => ['Billing', 'View the fee catalog'],
+        'fee_catalog.manage'  => ['Billing', 'Manage fee products in the catalog'],
+        'billing.run'         => ['Billing', 'Execute billing runs (mint AR invoices from fee assignments)'],
+        'billing.cancel'      => ['Billing', 'Cancel a pending fee assignment'],
     ];
 
     /**
@@ -232,6 +240,9 @@ class RolePermissionSeeder extends Seeder
             'integrations.manage', 'users.manage',
             // AI assistant — executives + HR line management get LLM-backed tooling.
             'ai.use',
+            // M1 — HR owns the member directory (CIHRM members + students).
+            'members.view', 'members.manage',
+            'fee_catalog.view',
         ],
         'manager' => [
             'dashboard.view', 'employees.view',
@@ -300,6 +311,10 @@ class RolePermissionSeeder extends Seeder
             'gateway.view', 'gateway.create', 'gateway.refund',
             // F5 — Bank Reconciliation
             'reconciliation.view', 'reconciliation.import', 'reconciliation.match', 'reconciliation.adjust',
+            // M1 — Billing & Fees (finance owns the catalog and runs)
+            'members.view',
+            'fee_catalog.view', 'fee_catalog.manage',
+            'billing.run', 'billing.cancel',
         ],
         'it_support' => [
             'dashboard.view',
