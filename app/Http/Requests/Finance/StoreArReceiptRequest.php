@@ -18,14 +18,15 @@ class StoreArReceiptRequest extends FormRequest
         return [
             'customer_id'         => ['required', 'integer', 'exists:customers,id'],
             'receipt_date'        => ['required', 'date'],
-            'amount'              => ['required', 'numeric', 'min:0.01'],
+            // M16: 9_999_999.99 GHS ceiling per receipt — fits decimal(18,2).
+            'amount'              => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
             'currency'            => ['sometimes', 'string', 'size:3'],
             'org_bank_account_id' => ['required', 'integer', 'exists:org_bank_accounts,id'],
             'external_ref'        => ['nullable', 'string', 'max:100'],
             'narration'           => ['nullable', 'string', 'max:500'],
             'allocations'                       => ['required', 'array', 'min:1'],
             'allocations.*.ar_invoice_id'       => ['required', 'integer', 'exists:ar_invoices,id'],
-            'allocations.*.allocated_amount'    => ['required', 'numeric', 'min:0.01'],
+            'allocations.*.allocated_amount'    => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
         ];
     }
 }

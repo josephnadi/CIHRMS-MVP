@@ -112,9 +112,16 @@ class ReportsController extends Controller
 
     public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
-        $type = $request->validate([
-            'type' => 'required|in:headcount,leave,payroll,tickets,turnover',
-        ])['type'];
+        // M13 audit fix: every input that flows into an exporter is validated
+        // tightly. Year must be a realistic integer; month must be Y-m.
+        // Without bounds, `?year=999999999` reaches whereYear() and pollutes
+        // caches with nonsense keys.
+        $data = $request->validate([
+            'type'  => 'required|in:headcount,leave,payroll,tickets,turnover',
+            'year'  => 'sometimes|integer|min:2000|max:' . (now()->year + 1),
+            'month' => 'sometimes|date_format:Y-m',
+        ]);
+        $type = $data['type'];
 
         $exportClass = match ($type) {
             'headcount' => \App\Exports\HeadcountExport::class,
@@ -125,8 +132,8 @@ class ReportsController extends Controller
         };
 
         $args = match ($type) {
-            'leave'   => [$request->input('year', now()->year)],
-            'payroll' => [$request->input('month', now()->format('Y-m'))],
+            'leave'   => [(int) ($data['year']  ?? now()->year)],
+            'payroll' => [(string) ($data['month'] ?? now()->format('Y-m'))],
             default   => [],
         };
 
