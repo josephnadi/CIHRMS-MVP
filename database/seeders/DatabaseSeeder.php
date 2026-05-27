@@ -89,6 +89,18 @@ class DatabaseSeeder extends Seeder
         // forced password change on first login (PR #34 added the gate).
         // Re-running this seeder re-resets the password — useful when a dev
         // has changed theirs and locked themselves out of the documented creds.
+        //
+        // 2FA: privileged roles (super_admin, ceo, hr_admin, finance_officer)
+        // get `two_factor_required = true` flipped on by RolePermissionSeeder
+        // step 4. Without `two_factor_confirmed_at` set, the H5 global gate
+        // (PR #60) would bounce every login through `/two-factor/enroll`
+        // before reaching the dashboard, blocking the demo flow on a fresh
+        // DB. We pre-confirm enrollment on every seeded fixed account so the
+        // demo path is single-redirect (password change) only. Devs who want
+        // to demo the 2FA challenge flow can disable + re-enroll via
+        // /two-factor/enroll like any real user.
+        $demoConfirmed = ['two_factor_confirmed_at' => now()];
+
         $admin = User::updateOrCreate(
             ['email' => 'admin@cihrms.local'],
             [
@@ -98,7 +110,7 @@ class DatabaseSeeder extends Seeder
                 'permissions'          => ['*'],
                 'password'             => bcrypt('password'),
                 'password_must_change' => true,
-            ]
+            ] + $demoConfirmed
         );
 
         $hrAdmin = User::updateOrCreate(
@@ -110,7 +122,7 @@ class DatabaseSeeder extends Seeder
                 'permissions'          => User::ROLE_PERMISSIONS['hr_admin'],
                 'password'             => bcrypt('password'),
                 'password_must_change' => true,
-            ]
+            ] + $demoConfirmed
         );
 
         $employeeUser = User::updateOrCreate(
@@ -122,7 +134,7 @@ class DatabaseSeeder extends Seeder
                 'permissions'          => User::ROLE_PERMISSIONS['employee'],
                 'password'             => bcrypt('password'),
                 'password_must_change' => true,
-            ]
+            ] + $demoConfirmed
         );
 
         $finance = User::updateOrCreate(
@@ -134,7 +146,7 @@ class DatabaseSeeder extends Seeder
                 'permissions'          => User::ROLE_PERMISSIONS['finance_officer'],
                 'password'             => bcrypt('password'),
                 'password_must_change' => true,
-            ]
+            ] + $demoConfirmed
         );
 
         $it = User::updateOrCreate(
@@ -146,7 +158,7 @@ class DatabaseSeeder extends Seeder
                 'permissions'          => User::ROLE_PERMISSIONS['it_support'],
                 'password'             => bcrypt('password'),
                 'password_must_change' => true,
-            ]
+            ] + $demoConfirmed
         );
 
         $marketing = User::updateOrCreate(
@@ -158,7 +170,7 @@ class DatabaseSeeder extends Seeder
                 'permissions'          => User::ROLE_PERMISSIONS['marketing'],
                 'password'             => bcrypt('password'),
                 'password_must_change' => true,
-            ]
+            ] + $demoConfirmed
         );
 
         $hr = Department::firstOrCreate(
