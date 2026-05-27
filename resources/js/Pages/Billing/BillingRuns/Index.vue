@@ -70,7 +70,7 @@ function submit() {
         <EmptyState v-if="runs.length === 0" title="No billing runs yet" subtitle="Click 'Start a billing run' to mint your first batch of invoices." />
     </div>
 
-    <SlidePanel v-if="showForm" @close="showForm = false" title="Start a billing run">
+    <SlidePanel :open="showForm" @close="showForm = false" title="Start a billing run">
         <form @submit.prevent="submit" class="space-y-4">
             <p class="text-xs text-on-surface-variant">
                 Re-running for an existing (fee × period) is a no-op — members already billed are skipped.

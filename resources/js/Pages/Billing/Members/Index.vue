@@ -116,7 +116,7 @@ function submit() {
         <EmptyState v-if="rows.length === 0" title="No members yet" subtitle="Click 'Register member' to add the first CIHRM member or student." />
     </div>
 
-    <SlidePanel v-if="showForm" @close="showForm = false" title="Register CIHRM member">
+    <SlidePanel :open="showForm" @close="showForm = false" title="Register CIHRM member">
         <form @submit.prevent="submit" class="space-y-4">
             <div>
                 <InputLabel for="class" value="Class" />
