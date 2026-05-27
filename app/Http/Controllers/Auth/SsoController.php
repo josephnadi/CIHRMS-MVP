@@ -19,7 +19,7 @@ class SsoController extends Controller
         $provider = SsoIdentityProvider::active()->where('slug', $slug)->firstOrFail();
         $adapter  = $this->sso->adapterFor($provider);
 
-        $intended = (string) ($request->query('intended') ?: route('dashboard'));
+        $intended = self::safeIntended($request->query('intended'));
         $bundle   = $adapter->initiate($provider, $intended);
 
         // Stash the session payload + provider id under a single namespaced key
@@ -55,7 +55,31 @@ class SsoController extends Controller
         Auth::login($user, remember: true);
         $request->session()->regenerate();
 
-        $intended = $flow['session']['intended'] ?? route('dashboard');
+        $intended = self::safeIntended($flow['session']['intended'] ?? null);
         return redirect()->intended($intended);
+    }
+
+    /**
+     * Constrain the post-login redirect target to the application host (or a
+     * relative path). External hosts are dropped to prevent open-redirect /
+     * phishing pipelines via `?intended=https://attacker.com`.
+     */
+    public static function safeIntended(?string $intended): string
+    {
+        if (!is_string($intended) || $intended === '') {
+            return route('dashboard');
+        }
+        $parsed = @parse_url($intended);
+        if ($parsed === false) {
+            return route('dashboard');
+        }
+        $host = $parsed['host'] ?? null;
+        if ($host !== null) {
+            $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+            if ($host !== $appHost) {
+                return route('dashboard');
+            }
+        }
+        return $intended;
     }
 }
