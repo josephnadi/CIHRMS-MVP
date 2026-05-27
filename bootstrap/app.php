@@ -26,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // The middleware self-bypasses on /two-factor/* and /logout so the
             // gate can never lock the user out of completing it.
             \App\Http\Middleware\RequireTwoFactor::class,
+            // Default-deny security headers (X-Frame-Options DENY, nosniff,
+            // Referrer-Policy, Permissions-Policy, HSTS on HTTPS). M2 audit fix.
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
         // CSRF cannot apply to the SAML ACS — the IdP POSTs the assertion
