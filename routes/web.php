@@ -1067,6 +1067,38 @@ Route::prefix('auth/sso')->name('sso.')->middleware('throttle:30,1')->group(func
     Route::match(['get', 'post'], '{slug}/callback', [\App\Http\Controllers\Auth\SsoController::class, 'callback'])->name('callback');
 });
 
+// ── M1: Billing & Fees (Members + Fee Catalog + Billing runs) ──
+Route::middleware(['auth', 'audit'])->group(function () {
+    Route::prefix('admin')->name('billing.')->group(function () {
+        // Member directory
+        Route::middleware('permission:members.view')->group(function () {
+            Route::get('/members',            [\App\Http\Controllers\Billing\MemberController::class, 'index'])->name('members.index');
+            Route::get('/members/{member}',   [\App\Http\Controllers\Billing\MemberController::class, 'show'])->name('members.show');
+        });
+        Route::middleware('permission:members.manage')->group(function () {
+            Route::post('/members',           [\App\Http\Controllers\Billing\MemberController::class, 'store'])->name('members.store');
+            Route::patch('/members/{member}', [\App\Http\Controllers\Billing\MemberController::class, 'update'])->name('members.update');
+            Route::delete('/members/{member}',[\App\Http\Controllers\Billing\MemberController::class, 'destroy'])->name('members.destroy');
+        });
+
+        // Fee catalog
+        Route::middleware('permission:fee_catalog.view')->group(function () {
+            Route::get('/fee-catalog',                  [\App\Http\Controllers\Billing\FeeProductController::class, 'index'])->name('fee-catalog.index');
+        });
+        Route::middleware('permission:fee_catalog.manage')->group(function () {
+            Route::post('/fee-catalog',                 [\App\Http\Controllers\Billing\FeeProductController::class, 'store'])->name('fee-catalog.store');
+            Route::patch('/fee-catalog/{feeProduct}',   [\App\Http\Controllers\Billing\FeeProductController::class, 'update'])->name('fee-catalog.update');
+            Route::delete('/fee-catalog/{feeProduct}',  [\App\Http\Controllers\Billing\FeeProductController::class, 'destroy'])->name('fee-catalog.destroy');
+        });
+
+        // Billing runs (mint AR invoices from assignments)
+        Route::get('/billing-runs',   [\App\Http\Controllers\Billing\BillingRunController::class, 'index'])
+            ->middleware('permission:billing.run')->name('runs.index');
+        Route::post('/billing-runs',  [\App\Http\Controllers\Billing\BillingRunController::class, 'store'])
+            ->middleware(['permission:billing.run', '2fa:fresh'])->name('runs.store');
+    });
+});
+
 // SSO provider admin (authenticated, audit-trailed)
 Route::middleware(['auth', 'audit'])->group(function () {
     Route::prefix('admin/sso/providers')->name('sso-admin.')->group(function () {

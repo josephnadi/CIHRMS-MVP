@@ -161,4 +161,12 @@ enum Permission: string
     case IncidentsReview         = 'incidents.review';
 
     case AiUse                   = 'ai.use';
+
+    // ── M1: Billing & Fees ──
+    case MembersView             = 'members.view';
+    case MembersManage           = 'members.manage';
+    case FeeCatalogView          = 'fee_catalog.view';
+    case FeeCatalogManage        = 'fee_catalog.manage';
+    case BillingRun              = 'billing.run';
+    case BillingCancel           = 'billing.cancel';
 }

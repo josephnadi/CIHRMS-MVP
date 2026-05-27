@@ -269,6 +269,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Document::class,                        DocumentPolicy::class);
         Gate::policy(\App\Models\DocumentAnnotation::class,  DocumentPolicy::class);
         Gate::policy(\App\Models\StampAsset::class,          \App\Policies\StampAssetPolicy::class);
+
+        // Billing & Fees (M1) — Members + Fee catalog + Fee assignments.
+        Gate::policy(\App\Models\Member::class,         \App\Policies\MemberPolicy::class);
+        Gate::policy(\App\Models\FeeProduct::class,     \App\Policies\FeeProductPolicy::class);
+        Gate::policy(\App\Models\FeeAssignment::class,  \App\Policies\FeeAssignmentPolicy::class);
         Gate::policy(\App\Models\LetterheadTemplate::class,  \App\Policies\LetterheadTemplatePolicy::class);
         Gate::policy(\App\Models\WatermarkTemplate::class,   \App\Policies\WatermarkTemplatePolicy::class);
         Gate::policy(\App\Models\Conversation::class,        \App\Policies\ConversationPolicy::class);
