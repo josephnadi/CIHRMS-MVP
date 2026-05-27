@@ -27,12 +27,17 @@ class ForcePasswordChange
         return $next($request);
     }
 
+    /**
+     * Minimal allowlist. Was previously wide enough to let a user navigate
+     * around the must-change gate (profile.update, profile.personal, etc.).
+     * Now: only the route that DISPLAYS the form (`profile.edit`), the route
+     * that ACCEPTS the new password (`profile.password`), and the escape
+     * hatches (`logout`, `password.confirm`). M6 audit fix.
+     */
     private function isAllowedRoute(Request $request): bool
     {
         $allowed = [
             'profile.edit',
-            'profile.update',
-            'profile.personal',
             'profile.password',
             'logout',
             'password.confirm',
