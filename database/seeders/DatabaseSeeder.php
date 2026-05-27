@@ -53,20 +53,28 @@ class DatabaseSeeder extends Seeder
         // Phase 2 — Ghana 2026 statutory holidays.
         $this->call(GhanaPublicHolidaySeeder::class);
 
-        $this->seedFixedAccounts();
-        $this->seedDepartmentsAndEmployees();
-        $this->seedLeave();
-        $this->seedTickets();
-        $this->seedPayroll();
-        $this->seedRecruitment();
-        $this->seedComplaints();
+        // Demo data — fixed-credential accounts (password=password), random
+        // employees/leave/tickets/payroll, demo establishment + biometric +
+        // announcement fixtures. NEVER run in production: leaking
+        // password=password admin/finance accounts would be game over.
+        // To intentionally seed demo data in production, set
+        // CIHRMS_ALLOW_DEMO_SEEDERS=true in the environment.
+        if (! app()->environment('production') || filter_var(env('CIHRMS_ALLOW_DEMO_SEEDERS'), FILTER_VALIDATE_BOOL)) {
+            $this->seedFixedAccounts();
+            $this->seedDepartmentsAndEmployees();
+            $this->seedLeave();
+            $this->seedTickets();
+            $this->seedPayroll();
+            $this->seedRecruitment();
+            $this->seedComplaints();
 
-        // Establishment demo data has to run AFTER departments exist.
-        $this->call(EstablishmentDemoSeeder::class);
-        $this->call(BiometricDeviceDemoSeeder::class);
+            // Establishment demo data has to run AFTER departments exist.
+            $this->call(EstablishmentDemoSeeder::class);
+            $this->call(BiometricDeviceDemoSeeder::class);
 
-        // Communications: seed sample notices for the top-of-page ticker.
-        $this->call(AnnouncementSeeder::class);
+            // Communications: seed sample notices for the top-of-page ticker.
+            $this->call(AnnouncementSeeder::class);
+        }
 
         // Re-run RBAC sync so newly created users (factory-created) pick up role pivots,
         // and so any new permissions land on existing roles.
