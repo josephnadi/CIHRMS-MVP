@@ -8,7 +8,11 @@ it('strips HR-only fields when a self-editing employee tries to mutate them', fu
     $deptA = Department::factory()->create(['code' => 'AAA', 'name' => 'A']);
     $deptB = Department::factory()->create(['code' => 'BBB', 'name' => 'B']);
 
-    $user = User::factory()->create(['permissions' => []]);
+    // Pin the role to `employee` — the User factory randomly picks from
+    // ['employee','manager','hr_admin','finance_officer'], and a roll of
+    // hr_admin grants `employees.manage` via the legacy ROLE_PERMISSIONS
+    // mapping, which would bypass the strip and flake this test 1-in-4.
+    $user = User::factory()->create(['role' => 'employee', 'permissions' => []]);
     $emp  = Employee::factory()->create([
         'user_id'       => $user->id,
         'department_id' => $deptA->id,
