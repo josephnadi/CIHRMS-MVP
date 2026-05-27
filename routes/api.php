@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\v1\AttendanceController as AttendanceApiController;
 use App\Http\Controllers\Api\v1\EmployeesApiController;
 use App\Http\Controllers\Api\v1\HealthController as HealthApiController;
 use App\Http\Controllers\Api\v1\MeController as MeApiController;
+use App\Http\Controllers\Api\v1\MembersApiController;
 use App\Http\Controllers\Api\v1\OpenApiController as OpenApiSpecController;
 use App\Http\Controllers\Api\v1\PayrollApiController;
 use App\Http\Controllers\Api\v1\PayrollController as PayrollV1Controller;
@@ -72,6 +73,26 @@ Route::middleware(['auth:sanctum', 'audit', 'throttle:api'])
         // Attendance
         Route::middleware('api.scope:attendance:read')->group(function () {
             Route::get('/attendance/summaries', [AttendanceApiController::class, 'index'])->name('attendance.summaries');
+        });
+
+        // ── M3: Billing & Fees partner-sync API ──
+        // Read-only listing — `members:read` scope.
+        Route::middleware('api.scope:members:read')->group(function () {
+            Route::get('/members',          [MembersApiController::class, 'index'])->name('members.index');
+            Route::get('/members/{member}', [MembersApiController::class, 'show'])->name('members.show');
+        });
+        // Invoices for a member — needs both scopes so a token can read
+        // members but not their financials unless explicitly granted.
+        Route::middleware(['api.scope:members:read', 'api.scope:invoices:read'])->group(function () {
+            Route::get('/members/{member}/invoices', [MembersApiController::class, 'invoices'])
+                ->name('members.invoices');
+        });
+        // Mint a Paystack link for a partner-driven payment — reuses the
+        // existing `gateway:create` scope so the same audit trail and
+        // 2FA-fresh policy applies as in the admin UI.
+        Route::middleware(['api.scope:members:read', 'api.scope:gateway:create'])->group(function () {
+            Route::post('/members/{member}/payment-intents', [MembersApiController::class, 'paymentIntent'])
+                ->name('members.payment-intents.store');
         });
 
         // Webhook subscriptions (only tokens with webhooks:manage)

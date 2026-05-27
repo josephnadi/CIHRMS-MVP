@@ -44,7 +44,7 @@ it('shows the welcome screen when the session is brand new', function () {
 
     expect($out)->toStartWith('CON ');
     expect($out)->toContain('CIHRMS Self-Service');
-    expect($out)->toContain('Enter your Staff ID');
+    expect($out)->toContain('enter Staff ID');
 });
 
 it('walks through staff-id → PIN → main menu on correct PIN', function () {
