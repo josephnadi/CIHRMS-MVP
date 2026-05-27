@@ -56,6 +56,7 @@ class LoginRequest extends FormRequest
 
         if (! $user || ! Hash::check((string) $this->password, (string) $user->password)) {
             RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->globalStaffIdKey(), 900);  // 15-min window
 
             throw ValidationException::withMessages([
                 'staff_id' => trans('auth.failed'),
@@ -65,22 +66,35 @@ class LoginRequest extends FormRequest
         Auth::login($user, $this->boolean('remember'));
 
         RateLimiter::clear($this->throttleKey());
+        RateLimiter::clear($this->globalStaffIdKey());
     }
 
     /**
      * Ensure the login request is not rate limited.
      *
+     * Two layers:
+     *   1. Per-(staff_id + IP), 5 attempts in the default 60s decay — protects
+     *      a single staff_id from a single source.
+     *   2. Per-staff_id globally, 10 attempts in 15 min — protects a single
+     *      staff_id from credential-stuffing across a botnet (M5 audit fix).
+     *
      * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        $ipLimited     = RateLimiter::tooManyAttempts($this->throttleKey(), 5);
+        $globalLimited = RateLimiter::tooManyAttempts($this->globalStaffIdKey(), 10);
+
+        if (! $ipLimited && ! $globalLimited) {
             return;
         }
 
         event(new Lockout($this));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+        $seconds = max(
+            RateLimiter::availableIn($this->throttleKey()),
+            RateLimiter::availableIn($this->globalStaffIdKey()),
+        );
 
         throw ValidationException::withMessages([
             'staff_id' => trans('auth.throttle', [
@@ -91,10 +105,19 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the rate limiting throttle key for the request.
+     * Per-(staff_id + IP) throttle key — Layer 1.
      */
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('staff_id')).'|'.$this->ip());
+    }
+
+    /**
+     * Per-staff_id global throttle key — Layer 2. Catches credential stuffing
+     * across rotating source IPs that would otherwise reset Layer 1.
+     */
+    public function globalStaffIdKey(): string
+    {
+        return 'login_staff_global:' . Str::transliterate(Str::lower($this->string('staff_id')));
     }
 }
