@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { useSafeHtml } from '@/Composables/useSafeHtml';
+import { useSafeHtml } from '@/composables/useSafeHtml';
 
 const sanitize = useSafeHtml();
 
