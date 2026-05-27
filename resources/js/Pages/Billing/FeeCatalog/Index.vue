@@ -86,7 +86,7 @@ function submit() {
         <EmptyState v-if="rows.length === 0" title="No fee products yet" subtitle="Add one to start billing members." />
     </div>
 
-    <SlidePanel v-if="showForm" @close="showForm = false" title="New fee product">
+    <SlidePanel :open="showForm" @close="showForm = false" title="New fee product">
         <form @submit.prevent="submit" class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
                 <div>
