@@ -11,6 +11,16 @@ it('drops an external intended url', function () {
     expect($safe)->not->toContain('attacker.com');
 });
 
+it('drops a protocol-relative intended url (//attacker.com)', function () {
+    $safe = SsoController::safeIntended('//attacker.com/steal');
+    expect($safe)->not->toContain('attacker.com');
+});
+
+it('drops a backslash protocol-relative intended url (\\\\attacker.com)', function () {
+    $safe = SsoController::safeIntended('\\\\attacker.com/steal');
+    expect($safe)->not->toContain('attacker.com');
+});
+
 it('keeps a same-host absolute intended url', function () {
     $safe = SsoController::safeIntended('https://cihrms.test/finance');
     expect($safe)->toBe('https://cihrms.test/finance');
