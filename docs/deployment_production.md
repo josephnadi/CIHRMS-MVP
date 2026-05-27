@@ -131,6 +131,27 @@ Two outstanding compliance prerequisites before any government pilot:
 
 These are organisational, not code, but block production go-live.
 
+## 8a. GitHub branch protection (REQUIRED — pre-launch fix)
+
+The `.github/workflows/ci.yml` workflow runs `npm run build` + the full Pest suite on every PR. The build step catches Vue SFC compile errors that PHP-only tests miss (e.g. the StatusPill `<script setup>` `export` regression caught during the V2 audit cycle).
+
+**Issue:** as of the audit V2 wave, PR #51 was merged into main **despite a failing CI build**. The repo doesn't currently have a branch-protection rule that gates merges on green CI. That has to be configured on GitHub before any external contributor merges — and ideally before any further internal merges.
+
+**Apply via GitHub UI:**
+
+1. Repo → Settings → Branches → "Add branch ruleset" (or edit the existing one) targeting `main`
+2. Enable **"Require status checks to pass before merging"**
+3. Add required checks:
+   - `PHP 8.4 / Pest · sqlite`
+   - `PHP 8.4 / Pest · pgsql`
+   - `Analyze (actions)` (CodeQL)
+   - `Analyze (javascript-typescript)` (CodeQL)
+4. Enable **"Require branches to be up to date before merging"** so stale-against-main PRs are caught
+5. Enable **"Restrict who can push to matching branches"** with the maintainer team — prevents accidental direct push to `main`
+6. **Don't** allow administrators to bypass — bypass defeats the gate entirely
+
+After this is configured, `gh pr merge` will refuse to merge a PR whose required checks haven't all reported success. That's the safety net.
+
 ## 9. Attendance kiosk — face-scan limitation
 
 The shared attendance kiosk at `/kiosk` ships **without face recognition** in the v1 launch. The face-scan tile in [resources/js/Pages/Kiosk/Index.vue](../resources/js/Pages/Kiosk/Index.vue) is intentionally a no-op (status text "Face recognition coming soon"). Vendor integration (Face++, AWS Rekognition, or ZKTeco SDK) is tracked as post-launch work — see C4 in [docs/MARKET_READY_PUNCHLIST.md](MARKET_READY_PUNCHLIST.md).
