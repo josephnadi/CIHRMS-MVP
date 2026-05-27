@@ -28,6 +28,8 @@ use Illuminate\Support\Str;
  */
 class OidcSsoAdapter implements SsoAdapter
 {
+    public function __construct(private readonly OidcIdTokenVerifier $verifier) {}
+
     public function type(): string
     {
         return 'oidc';
@@ -94,8 +96,11 @@ class OidcSsoAdapter implements SsoAdapter
 
         $tokens = $tokenResp->json() ?? [];
 
-        // Pull claims either from the userinfo endpoint or by decoding id_token.
-        $claims = $this->fetchUserInfo($cfg, $tokens) ?: $this->decodeIdToken($tokens['id_token'] ?? '');
+        // Pull claims either from the userinfo endpoint or by verifying id_token.
+        // The id_token MUST be signature-verified against the provider's JWKS —
+        // trusting an unsigned payload would let a malicious IdP / MITM forge claims.
+        $claims = $this->fetchUserInfo($cfg, $tokens)
+            ?: $this->verifier->verify((string) ($tokens['id_token'] ?? ''), $provider);
         if (! $claims) {
             return SsoAuthResult::failure(SsoLoginOutcome::ClaimMissing, 'No claims retrievable from userinfo or id_token');
         }
@@ -126,17 +131,6 @@ class OidcSsoAdapter implements SsoAdapter
             return null;
         }
         return $resp->successful() ? ($resp->json() ?? null) : null;
-    }
-
-    /** Decode JWT id_token without signature verification — safe because we already exchanged code over TLS. */
-    private function decodeIdToken(string $idToken): ?array
-    {
-        if ($idToken === '') return null;
-        $parts = explode('.', $idToken);
-        if (count($parts) !== 3) return null;
-
-        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/'), true), true);
-        return is_array($payload) ? $payload : null;
     }
 
     private function resolveConfig(SsoIdentityProvider $provider): array
