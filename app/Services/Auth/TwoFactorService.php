@@ -20,7 +20,8 @@ use Illuminate\Support\Str;
  *
  * Fresh-challenge cache: when a privileged action (payroll approve, role
  * elevation) needs proof of recent 2FA, the middleware sets
- * `2fa_fresh:{user_id}` with a 5-minute TTL on successful challenge.
+ * `2fa_fresh:{user_id}` with a 5-minute TTL on successful challenge. The
+ * key is cleared on login and logout to prevent cross-session reuse.
  */
 class TwoFactorService
 {
@@ -100,6 +101,17 @@ class TwoFactorService
     public function isFresh(User $user): bool
     {
         return Cache::has($this->freshKey($user));
+    }
+
+    /**
+     * Drop the freshness marker for this user. Called on login and logout so
+     * that a stale "2FA recently completed" flag from a previous session
+     * cannot satisfy a fresh-required action in a new session — closes the
+     * cross-session leak documented in the 2026-05-26 audit (H4).
+     */
+    public function clearFresh(User $user): void
+    {
+        Cache::forget($this->freshKey($user));
     }
 
     public function provisioningUri(string $secret, string $accountLabel, string $issuer = 'CIHRMS'): string
