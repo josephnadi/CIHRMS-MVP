@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\NotRecentPassword;
+use App\Services\Auth\PasswordHistoryService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,12 +35,17 @@ class NewPasswordController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, PasswordHistoryService $history): RedirectResponse
     {
+        // Resolve the user up-front so the L6 reuse check has a user model.
+        // If the email doesn't match anything, the broker will fail below
+        // with a generic message; we don't leak that here.
+        $candidate = \App\Models\User::where('email', $request->email)->first();
+
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', Rules\Password::defaults(), new NotRecentPassword($candidate)],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
@@ -46,11 +53,14 @@ class NewPasswordController extends Controller
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
+            function ($user) use ($request, $history) {
+                $hash = Hash::make($request->password);
                 $user->forceFill([
-                    'password' => Hash::make($request->password),
+                    'password' => $hash,
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                $history->record($user, $hash);
 
                 // Invalidate every existing session for this user. A captured
                 // session cookie remains live across a password change unless
