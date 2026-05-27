@@ -42,6 +42,7 @@ class UssdSessionHandler
     public function __construct(
         private readonly AttendanceService $attendance,
         private readonly BankChangeRequestService $bankChanges,
+        private readonly MemberFeesHandler $memberFees,
     ) {}
 
     /**
@@ -78,6 +79,16 @@ class UssdSessionHandler
             return $this->cont('Enter your whistleblower tracking code:');
         }
 
+        // M3: any "Member*" state delegates to MemberFeesHandler.
+        if (in_array($state, [
+            UssdState::MemberAwaitingPin,
+            UssdState::MemberMainMenu,
+            UssdState::MemberFeeSelect,
+            UssdState::MemberFeeConfirm,
+        ], true)) {
+            return $this->memberFees->dispatch($session, $input);
+        }
+
         return match (true) {
             $state === UssdState::Welcome           => $this->onWelcome($session, $input),
             $state === UssdState::AwaitingStaffId   => $this->onStaffId($session, $input),
@@ -95,15 +106,27 @@ class UssdSessionHandler
 
     private function onWelcome(UssdSession $session, string $input): string
     {
-        // First display — no input yet (text is empty). Otherwise treat anything
-        // they entered as the staff id immediately.
+        // First display — no input yet (text is empty).
         if ($input === '') {
             return $this->cont(
                 "CIHRMS Self-Service\n"
-                . "Enter your Staff ID:\n"
-                . "(or enter 0 to track a whistleblower case)"
+                . "1. Staff (payslip / leave / clock)\n"
+                . "2. CIHRM member fees\n"
+                . "0. Track a whistleblower case\n"
+                . "(or enter Staff ID directly)"
             );
         }
+
+        // Reserved menu picks. `0` is handled in dispatch().
+        if ($input === '1') {
+            $session->update(['state' => UssdState::AwaitingStaffId->value]);
+            return $this->cont('Enter your Staff ID:');
+        }
+        if ($input === '2') {
+            return $this->memberFees->enterMemberFlow($session);
+        }
+
+        // Backward-compatible legacy path: anything else = staff ID directly.
         return $this->onStaffId($session, $input);
     }
 

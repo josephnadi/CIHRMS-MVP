@@ -22,6 +22,12 @@ enum UssdState: string
     case Terminated        = 'terminated';
     case PinLocked         = 'pin_locked';
 
+    // ── M3: CIHRM member fee flows (parallel to staff self-service) ──
+    case MemberAwaitingPin   = 'member_awaiting_pin';   // member identified by msisdn, asking for PIN
+    case MemberMainMenu      = 'member_main_menu';      // 1=fees 2=pay 3=last receipt 4=exit
+    case MemberFeeSelect     = 'member_fee_select';     // listing payable invoices
+    case MemberFeeConfirm    = 'member_fee_confirm';    // confirm before mint payment link
+
     public function isAuthenticated(): bool
     {
         return ! in_array($this, [
@@ -32,6 +38,7 @@ enum UssdState: string
             self::Terminated,
             self::WhistleblowerCode,
             self::WhistleblowerStatus,
+            self::MemberAwaitingPin,
         ], true);
     }
 }
