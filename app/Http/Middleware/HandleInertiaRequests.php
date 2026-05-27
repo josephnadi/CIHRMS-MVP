@@ -19,16 +19,33 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        // Eager-load the employee relation so the `avatar` accessor
-        // (which reads $this->employee->avatar_url) doesn't trigger a
-        // lazy query on every Inertia response. `loadMissing` is a
-        // no-op when the relation is already loaded.
-        $user = $request->user()?->loadMissing('employee');
+        // Staff (web guard) → User with employee relation eagerly loaded so
+        // the avatar accessor doesn't lazy-load on every Inertia response.
+        // Portal (member guard) → Member, which has no employee relation
+        // and a much smaller projection. Distinguished by `auth.kind` so the
+        // Vue layer can render the right chrome.
+        // Explicitly resolve via named guards. The bare `$request->user()`
+        // returns whichever guard was named on the route's `auth:` middleware,
+        // so on portal routes it would return a Member and explode on
+        // `->loadMissing('employee')`. Named lookups are guard-safe.
+        $user   = $request->user('web');
+        if ($user) {
+            $user = $user->loadMissing('employee');
+        }
+        $member = $request->user('member');
 
         return [
             ...parent::share($request),
             'auth' => [
+                'kind'        => $user ? 'staff' : ($member ? 'member' : 'guest'),
                 'user'        => $user,
+                'member'      => $member ? [
+                    'id'        => $member->id,
+                    'member_no' => $member->member_no,
+                    'name'      => $member->name,
+                    'class'     => is_object($member->class) ? $member->class->value : (string) $member->class,
+                    'email'     => $member->email,
+                ] : null,
                 'role'        => $user?->role,
                 'roles'       => fn () => $user?->allRoleSlugs() ?? [],
                 'permissions' => fn () => $user?->allPermissions() ?? [],

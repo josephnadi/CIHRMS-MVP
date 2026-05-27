@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * A CIHRM member or student — the billable party for the Billing & Fees
@@ -23,12 +24,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * (class, charter date, Ghana Card hash); Customer holds the AR identity.
  *
  * Extending `Authenticatable` so the member-portal guard introduced in
- * M2 can hash + verify passwords against the `password` column. M1 ships
- * with `password = null` and no portal — the column simply waits.
+ * M2 can hash + verify passwords against the `password` column.
+ * `Notifiable` added in M2 so PaymentReceived (and friends) can be sent
+ * via $member->notify(...) — Foundation\Auth\User does not include it
+ * by default.
  */
 class Member extends Authenticatable
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'member_no',

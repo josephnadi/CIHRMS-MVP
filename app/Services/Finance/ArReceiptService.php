@@ -143,6 +143,73 @@ class ArReceiptService
         });
     }
 
+    /**
+     * Record a receipt and FIFO-allocate it across the customer's open
+     * invoices in invoice_date ASC order until the amount is exhausted.
+     * Used by M3 USSD top-ups and any other inbound payment that does
+     * not target a specific invoice up-front. Falls back to leaving the
+     * receipt unallocated (one-line, no allocations row) when the
+     * customer has no open invoices — that's a stand-alone receipt the
+     * finance team can allocate manually later.
+     *
+     * @param  array<string, mixed>  $data  same shape as record() but
+     *                                       MUST omit the 'allocations' key
+     */
+    public function recordWithFifoAllocation(array $data, User $creator): ArReceipt
+    {
+        if (!empty($data['allocations'])) {
+            throw new DomainException('recordWithFifoAllocation cannot be called with explicit allocations — use record() instead.');
+        }
+        if (empty($data['customer_id'])) {
+            throw new DomainException('recordWithFifoAllocation requires customer_id.');
+        }
+
+        $amount = (float) $data['amount'];
+
+        return DB::transaction(function () use ($data, $creator, $amount) {
+            // Walk the customer's open invoices, oldest-first, under a row lock
+            // so two concurrent payments can't double-allocate against the same
+            // remaining balance.
+            $invoices = ArInvoice::query()
+                ->where('customer_id', $data['customer_id'])
+                ->whereIn('status', [
+                    \App\Enums\ArInvoiceStatus::Approved->value,
+                    \App\Enums\ArInvoiceStatus::PartiallyPaid->value,
+                ])
+                ->orderBy('invoice_date')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            $remaining   = $amount;
+            $allocations = [];
+            foreach ($invoices as $inv) {
+                if ($remaining < 0.01) break;
+                $outstanding = $inv->outstandingAmount();
+                if ($outstanding < 0.01) continue;
+
+                $take = min($remaining, $outstanding);
+                $allocations[] = [
+                    'ar_invoice_id'    => $inv->id,
+                    'allocated_amount' => round($take, 2),
+                ];
+                $remaining -= $take;
+            }
+
+            // No open invoices? Drop a stand-alone receipt with no allocations.
+            // The journal still balances: Dr Bank for the full amount, Cr a
+            // suspense/clearing account would be the right move, but for the
+            // M2 surface (Paystack always targets an invoice) we never hit
+            // this branch in practice. M3 will revisit when wallet-style
+            // top-ups need handling.
+            if (empty($allocations)) {
+                throw new DomainException("Customer has no open invoices to allocate {$amount} against.");
+            }
+
+            return $this->record(array_merge($data, ['allocations' => $allocations]), $creator);
+        });
+    }
+
     public function void(ArReceipt $receipt, User $by, string $reason): ArReceipt
     {
         if ($receipt->status !== ArReceiptStatus::Processed) {

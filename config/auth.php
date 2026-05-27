@@ -42,6 +42,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // M2: member self-service portal. Separate session guard so a
+        // member logging into /portal/* does NOT mix with staff sessions
+        // on /dashboard. Uses the same cookie infra; just a distinct
+        // session key.
+        'member' => [
+            'driver' => 'session',
+            'provider' => 'members',
+        ],
     ],
 
     /*
@@ -65,6 +73,15 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        // M2: Eloquent provider for the Member model — the portal guard
+        // resolves members through here. Keep the table separate from
+        // `users` so a staff/admin account and a member account with the
+        // same email never collide.
+        'members' => [
+            'driver' => 'eloquent',
+            'model'  => \App\Models\Member::class,
         ],
 
         // 'users' => [

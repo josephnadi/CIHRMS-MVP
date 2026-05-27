@@ -14,6 +14,16 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // M2: member self-service portal routes. Loaded into the same `web`
+        // middleware group as staff routes, so they get CSRF + session +
+        // SecurityHeaders. The staff-only middleware (ForcePasswordChange,
+        // RequireTwoFactor) resolve `$request->user()` against the default
+        // `web` guard, which returns null for portal-authenticated members,
+        // so they self-bypass without explicit configuration.
+        then: function () {
+            Illuminate\Support\Facades\Route::middleware('web')
+                ->group(base_path('routes/portal.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
