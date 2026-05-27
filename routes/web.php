@@ -246,6 +246,19 @@ Route::middleware(['auth', 'audit'])->group(function () {
         Route::post('{employee}/avatar',        [EmployeeController::class, 'uploadAvatar'])    ->name('avatar.store');
         Route::post('{employee}/skills',        [EmployeeController::class, 'storeSkill'])      ->name('skills.store');
         Route::delete('{employee}/skills/{skill}', [EmployeeController::class, 'destroySkill']) ->name('skills.destroy');
+
+        // Signed streaming endpoints for files now stored on the private disk
+        // (H10 audit fix). Avatar/document URLs are minted via
+        // URL::temporarySignedRoute with a 15-min TTL.
+        Route::prefix('{employee}/files')->name('files.')->group(function () {
+            Route::get('avatar', [\App\Http\Controllers\EmployeeFileController::class, 'avatar'])
+                ->middleware('signed')
+                ->name('avatar');
+            Route::get('documents/{document}', [\App\Http\Controllers\EmployeeFileController::class, 'document'])
+                ->middleware('signed')
+                ->scopeBindings()
+                ->name('document');
+        });
     });
 
     // Leave requests

@@ -79,9 +79,17 @@ class Employee extends Model
      */
     public function avatarUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->avatar_path
-            ? '/storage/'.ltrim($this->avatar_path, '/')
-            : null);
+        return Attribute::get(function () {
+            if (! $this->avatar_path) return null;
+            // Avatars now live on the private `local` disk (H10 audit fix).
+            // Mint a short-lived signed URL pointing at the streaming endpoint;
+            // the public `/storage/` symlink no longer surfaces these files.
+            return \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'employees.files.avatar',
+                now()->addMinutes(15),
+                ['employee' => $this->id],
+            );
+        });
     }
 
     /** Years of service as a fractional number for tenure displays. */

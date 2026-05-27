@@ -89,7 +89,9 @@ class EmployeeService
 
     public function uploadDocument(UploadDocumentRequest $request, Employee $employee): EmployeeDocument
     {
-        $path = $request->file('document')->store('employee-documents', 'public');
+        // Private disk: files served via signed `employees.files.document`
+        // route, never via the /storage/ symlink. H10 audit fix.
+        $path = $request->file('document')->store('employee-documents', 'local');
 
         return $employee->documents()->create([
             'title'     => $request->validated('title'),
@@ -101,10 +103,12 @@ class EmployeeService
     public function uploadAvatar(Employee $employee, UploadedFile $file): Employee
     {
         if ($employee->avatar_path) {
+            Storage::disk('local')->delete($employee->avatar_path);
+            // Sweep the legacy public-disk copy if migration hasn't run yet.
             Storage::disk('public')->delete($employee->avatar_path);
         }
 
-        $path = $file->store('avatars', 'public');
+        $path = $file->store('avatars', 'local');
         $employee->update(['avatar_path' => $path]);
 
         return $employee->fresh();
