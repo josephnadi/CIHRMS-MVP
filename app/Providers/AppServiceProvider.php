@@ -62,6 +62,7 @@ use App\Services\TicketService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -211,6 +212,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Belt-and-braces HTTPS enforcement. The load balancer typically
+        // redirects HTTP → HTTPS, but if the app is ever served directly or
+        // a misconfigured proxy forwards plain HTTP, this forces every
+        // generated URL (including signed routes) onto https://.
+        if ($this->app->isProduction()) {
+            URL::forceScheme('https');
+        }
 
         // ── API rate-limiter (referenced by throttle:api on /api/v1/* routes) ──
         // 60/min per token (auth'd) or per IP (anonymous) — generous for HRMS

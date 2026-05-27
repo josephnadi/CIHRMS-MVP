@@ -22,9 +22,25 @@ class UpdateEmployeeRequest extends FormRequest
         return false;
     }
 
+    /**
+     * Fields only HR / dept-heads may edit. A self-editing employee with
+     * neither role gets these stripped from their submission before
+     * validation runs — silently ignoring instead of erroring keeps the
+     * legitimate-self-edit happy-path quiet while preventing privilege
+     * escalation (changing your own department, manager, or status).
+     */
+    private const HR_ONLY_FIELDS = [
+        'department_id',
+        'manager_id',
+        'employee_no',
+        'position',
+        'hire_date',
+        'status',
+    ];
+
     public function rules(): array
     {
-        return [
+        $allRules = [
             'department_id' => ['sometimes', 'nullable', 'integer', 'exists:departments,id'],
             'manager_id'    => ['sometimes', 'nullable', 'integer', 'exists:employees,id'],
             'employee_no'   => ['sometimes', 'string', 'max:50',
@@ -59,5 +75,33 @@ class UpdateEmployeeRequest extends FormRequest
                 },
             ],
         ];
+
+        if (! $this->callerCanEditHrFields()) {
+            foreach (self::HR_ONLY_FIELDS as $hr) {
+                unset($allRules[$hr]);
+            }
+        }
+
+        return $allRules;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (! $this->callerCanEditHrFields()) {
+            // Drop disallowed keys from the input set before validation
+            // so the controller can never see them via $request->input().
+            $this->replace($this->except(self::HR_ONLY_FIELDS));
+        }
+    }
+
+    private function callerCanEditHrFields(): bool
+    {
+        $employee = $this->route('employee');
+        $user     = $this->user();
+        if (! $user) return false;
+
+        if ($user->hasPermission('employees.manage'))               return true;
+        if ($user->managesDepartment($employee?->department_id))    return true;
+        return false;
     }
 }

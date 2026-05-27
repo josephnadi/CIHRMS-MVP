@@ -8,7 +8,16 @@ class UploadDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasPermission('employees.manage');
+        $employee = $this->route('employee');
+        $user     = $this->user();
+        if (! $user || ! $employee) return false;
+
+        // HR can upload to anyone; a dept head to anyone in their department;
+        // an employee to their own record. No more "any user with
+        // employees.manage can impersonate any employee" — H9 audit fix.
+        if ($user->hasPermission('employees.manage'))             return true;
+        if ($user->managesDepartment($employee->department_id))   return true;
+        return $employee->user_id === $user->id;
     }
 
     public function rules(): array

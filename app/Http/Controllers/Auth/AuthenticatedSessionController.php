@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\SsoIdentityProvider;
+use App\Services\Auth\TwoFactorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,11 +44,14 @@ class AuthenticatedSessionController extends Controller
      * link they were trying to reach when they got bounced to login — the
      * dashboard is the canonical landing surface for all roles.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, TwoFactorService $totp): RedirectResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        // Drop any leftover 2FA-fresh marker from a previous session.
+        $totp->clearFresh($request->user());
 
         return redirect()->route('dashboard');
     }
@@ -55,8 +59,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, TwoFactorService $totp): RedirectResponse
     {
+        if ($user = $request->user()) {
+            $totp->clearFresh($user);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

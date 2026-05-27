@@ -112,6 +112,9 @@ return [
     |
     */
 
-    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    // Window during which a recent `password.confirm` satisfies sensitive
+    // actions (2FA disable, security settings, etc.). 15 min keeps the
+    // re-confirmation cost bounded for ops, well under a typical shift.
+    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 900),
 
 ];

@@ -6,7 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CloseIncidentReportRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        $report = $this->route('report');
+        return $report !== null && $this->user()?->can('close', $report) === true;
+    }
 
     public function rules(): array
     {

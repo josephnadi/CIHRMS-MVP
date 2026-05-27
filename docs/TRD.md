@@ -172,7 +172,7 @@ Plus per-model **Policies** (`EmployeePolicy`, `LeaveRequestPolicy`, `TicketPoli
 | **CSP** | (P7) Content-Security-Policy header restricting `script-src`, `style-src`, `img-src`. |
 | **2FA** | TOTP, RFC 6238; 30-second window; 6-digit codes; encrypted secret column; 8 recovery codes (one-time). |
 | **Session** | HttpOnly, SameSite=Lax, secure, 2 h idle timeout. Re-authentication for sensitive routes via `2fa:fresh`. |
-| **Password** | Argon2id (Laravel default). Minimum 10 chars, 1 number, 1 symbol, blocked against the 1k common-password list. |
+| **Password** | bcrypt cost 12 (Argon2id was evaluated and rejected for per-login PHP-FPM cost variance — see `docs/delivery_dossier/chapters/40_security.md`). Minimum 10 chars, 1 number, 1 symbol, blocked against the 1k common-password list. |
 | **Webhook signatures** | Each provider verified by `VerifyWebhookSignature` middleware: WhatsApp HMAC-SHA256, Zoho shared-secret, MS Graph clientState, Google channel-token, Slack v0-signature with 5-min replay window, biometric per-device HMAC, Hubtel SMS/USSD HMAC. |
 | **Audit log** | Every authenticated mutating request → `AuditTrail` middleware → `WriteAuditLog` job (`audit` queue) → tamper-evident `audit_logs` row chained by `prev_hash`. |
 | **Rate limits** | Public: careers `5/min`, kiosk `60/min`, whistleblower `6/min`, SSO `30/min`. Authed: self-clock `10/min`. |

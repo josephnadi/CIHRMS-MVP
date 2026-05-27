@@ -8,7 +8,11 @@ use Illuminate\Validation\Rule;
 
 class AssignIncidentReportRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        $report = $this->route('report');
+        return $report !== null && $this->user()?->can('assign', $report) === true;
+    }
 
     public function rules(): array
     {

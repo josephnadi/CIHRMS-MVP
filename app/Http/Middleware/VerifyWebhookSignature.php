@@ -30,6 +30,7 @@ class VerifyWebhookSignature
             'biometric'   => $this->verifyBiometric($request),
             'hubtel_sms'  => $this->verifyHubtelSms($request),
             'hubtel_ussd' => $this->verifyHubtelUssd($request),
+            'esign'       => $this->verifyEsign($request),
             default       => false,
         };
 
@@ -190,6 +191,34 @@ class VerifyWebhookSignature
             header:    'X-Hubtel-Signature',
             secretKey: 'messaging.ussd.webhook_secret',
         );
+    }
+
+    /**
+     * Verify Zoho Sign and DocuSign Connect webhooks. Both providers send
+     * base64-encoded HMAC-SHA256(body) — Zoho via X-Zs-Webhook-Hmac-Sha256,
+     * DocuSign via X-DocuSign-Signature-1. The endpoint accepts whichever
+     * provider is calling; we pick the verifier by which signature header
+     * was supplied. Missing both headers, or both secrets unconfigured, fails.
+     */
+    protected function verifyEsign(Request $request): bool
+    {
+        $body    = $request->getContent();
+        $zohoSig = (string) $request->header('X-Zs-Webhook-Hmac-Sha256');
+        $dsSig   = (string) $request->header('X-DocuSign-Signature-1');
+
+        if ($zohoSig !== '') {
+            $secret = (string) config('integrations.webhooks.esign.zoho_secret');
+            if ($secret === '') return false;
+            $expected = base64_encode(hash_hmac('sha256', $body, $secret, true));
+            return hash_equals($expected, $zohoSig);
+        }
+        if ($dsSig !== '') {
+            $secret = (string) config('integrations.webhooks.esign.docusign_secret');
+            if ($secret === '') return false;
+            $expected = base64_encode(hash_hmac('sha256', $body, $secret, true));
+            return hash_equals($expected, $dsSig);
+        }
+        return false;
     }
 
     /**
