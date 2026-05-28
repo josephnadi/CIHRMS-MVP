@@ -112,7 +112,35 @@ const navSections = computed(() => {
                     { label: 'Leave',        route: 'modules.leave',        module: 'leave',       icon: 'calendar_month', visible: true },
                     { label: 'Payroll',      route: 'modules.payroll',      module: 'payroll',     icon: 'payments',       visible: true },
                     { label: 'Loans',        route: 'loans.index',          module: 'loans',       icon: 'request_quote',  visible: can('loans.view') || can('loans.apply') },
-                    { label: 'Finance',       route: 'finance.hub',          module: 'finance',     icon: 'account_balance', visible: can('finance.hub') },
+                    { label: 'Benefits',     route: 'benefits.index',       module: 'benefits',    icon: 'diversity_3',    visible: can('benefits.view') || can('benefits.view_all') },
+                    {
+                        label: 'Finance', icon: 'account_balance', expandable: true,
+                        visible: can('finance.hub') || can('accounts.view') || can('bank_accounts.view') || can('vendors.view') || can('ap_invoices.view') || can('journal.view') || can('customers.view') || can('ar_invoices.view') || can('statements.view') || can('gateway.view') || can('reconciliation.view'),
+                        children: [
+                            { label: 'Hub',            route: 'finance.hub',                     module: 'finance',                  icon: 'account_balance',         visible: can('finance.hub') },
+                            { label: 'Chart of Accounts', route: 'finance.accounts.index',       module: 'finance-accounts',         icon: 'account_tree',            visible: can('accounts.view') },
+                            { label: 'Bank Accounts',  route: 'finance.bank-accounts.index',     module: 'finance-bank-accounts',    icon: 'account_balance_wallet',  visible: can('bank_accounts.view') },
+                            { label: 'Vendors',        route: 'finance.vendors.index',           module: 'finance-vendors',          icon: 'store',                   visible: can('vendors.view') },
+                            { label: 'AP Invoices',    route: 'finance.ap-invoices.index',       module: 'finance-ap-invoices',      icon: 'receipt_long',            visible: can('ap_invoices.view') },
+                            { label: 'AP Payments',    route: 'finance.ap-payments.index',       module: 'finance-ap-payments',      icon: 'payments',                visible: can('ap_invoices.view') },
+                            { label: 'Customers',      route: 'finance.customers.index',         module: 'finance-customers',        icon: 'storefront',              visible: can('customers.view') },
+                            { label: 'AR Invoices',    route: 'finance.ar-invoices.index',       module: 'finance-ar-invoices',      icon: 'request_quote',           visible: can('ar_invoices.view') },
+                            { label: 'AR Receipts',    route: 'finance.ar-receipts.index',       module: 'finance-ar-receipts',      icon: 'savings',                 visible: can('ar_invoices.view') },
+                            { label: 'Statements',     route: 'finance.statements.index',        module: 'finance-statements',       icon: 'description',             visible: can('statements.view') },
+                            { label: 'Payment Links',  route: 'finance.payment-intents.index',   module: 'finance-payment-intents',  icon: 'link',                    visible: can('gateway.view') },
+                            { label: 'Reconciliation', route: 'finance.reconciliation.index',    module: 'finance-reconciliation',   icon: 'compare_arrows',          visible: can('reconciliation.view') },
+                            { label: 'Journal',        route: 'finance.journal.index',           module: 'finance-journal',          icon: 'list_alt',                visible: can('journal.view') },
+                        ],
+                    },
+                    {
+                        label: 'Billing', icon: 'card_membership', expandable: true,
+                        visible: can('members.view') || can('members.manage') || can('fee_catalog.view') || can('fee_catalog.manage') || can('billing.run'),
+                        children: [
+                            { label: 'Members',      route: 'billing.members.index',     module: 'billing-members',     icon: 'badge',         visible: can('members.view') || can('members.manage') },
+                            { label: 'Fee Catalog',  route: 'billing.fee-catalog.index', module: 'billing-fee-catalog', icon: 'receipt',       visible: can('fee_catalog.view') || can('fee_catalog.manage') },
+                            { label: 'Billing Runs', route: 'billing.runs.index',        module: 'billing-runs',        icon: 'playlist_play', visible: can('billing.run') },
+                        ],
+                    },
                     { label: 'Off-boarding', route: 'offboarding.index',    module: 'offboarding', icon: 'logout',         visible: can('offboarding.view') || can('offboarding.initiate') },
                     {
                         label: 'Performance', icon: 'monitoring', expandable: true, visible: can('performance.view'),
@@ -241,7 +269,7 @@ const navSections = computed(() => {
                 { label: 'Tasks',            route: 'modules.tickets',  module: 'tickets',    icon: 'task_alt',       visible: true },
                 { label: 'Documents',        route: 'documents.index',  module: 'documents',  icon: 'description',    visible: can('documents.view') },
                 { label: 'Leave & Time-Off', route: 'modules.leave',    module: 'leave',      icon: 'calendar_today', visible: true },
-                { label: 'Benefits',         route: 'dashboard',        module: 'benefits',   icon: 'diversity_3',    visible: true },
+                { label: 'Benefits',         route: 'benefits.index',   module: 'benefits',   icon: 'diversity_3',    visible: can('benefits.view') || can('benefits.view_all') },
                 { label: 'Learning & Dev',   route: 'learning.catalog', module: 'learning',   icon: 'school',         visible: true },
             ],
         },
@@ -267,6 +295,17 @@ const navSections = computed(() => {
                 { label: 'Payment Links',  route: 'finance.payment-intents.index', module: 'finance-payment-intents', icon: 'link', visible: can('gateway.view') },
                 { label: 'Reconciliation', route: 'finance.reconciliation.index', module: 'finance-reconciliation', icon: 'compare_arrows', visible: can('reconciliation.view') },
                 { label: 'Journal',        route: 'finance.journal.index',     module: 'finance-journal',     icon: 'list_alt',       visible: can('journal.view') },
+            ],
+        });
+    }
+
+    if (can('members.view') || can('members.manage') || can('fee_catalog.view') || can('fee_catalog.manage') || can('billing.run')) {
+        sections.push({
+            title: 'Billing',
+            items: [
+                { label: 'Members',      route: 'billing.members.index',     module: 'billing-members',     icon: 'badge',         visible: can('members.view') || can('members.manage') },
+                { label: 'Fee Catalog',  route: 'billing.fee-catalog.index', module: 'billing-fee-catalog', icon: 'receipt',       visible: can('fee_catalog.view') || can('fee_catalog.manage') },
+                { label: 'Billing Runs', route: 'billing.runs.index',        module: 'billing-runs',        icon: 'playlist_play', visible: can('billing.run') },
             ],
         });
     }
@@ -439,8 +478,8 @@ const navItemClass = (item) => {
 const navItemStyle = (item) => {
     if (isItemActive(item)) {
         return isDark.value
-            ? 'background:rgba(26, 35, 126,0.22);border:1px solid rgba(59,130,246,0.25);box-shadow:0 0 16px rgba(26, 35, 126,0.12);'
-            : 'background:rgba(26, 35, 126,0.08);border:1px solid rgba(26, 35, 126,0.15);';
+            ? 'background:rgba(26, 35, 126,0.28);border:1px solid rgba(59,130,246,0.30);box-shadow:inset 2px 0 0 0 #ffd700, 0 0 16px rgba(26, 35, 126,0.16);'
+            : 'background:rgba(26, 35, 126,0.14);border:1px solid rgba(26, 35, 126,0.20);box-shadow:inset 2px 0 0 0 #ffd700;';
     }
     return 'border:1px solid transparent;';
 };
@@ -500,6 +539,11 @@ const SIDEBAR_ICON_COLORS = {
     'finance-payment-intents':  '#3949ab',
     'finance-reconciliation':   '#3949ab',
     'finance-journal':          '#3949ab',
+
+    // Billing (member fees) — keep in the finance blue family
+    'billing-members':          '#3949ab',
+    'billing-fee-catalog':      '#3949ab',
+    'billing-runs':             '#3949ab',
 };
 const SIDEBAR_ICON_DEFAULT = '#7986cb';
 
@@ -509,6 +553,8 @@ const SIDEBAR_GROUP_COLORS = {
     'Performance': '#d912e3',   // magenta
     'Learning':    '#12d9e3',   // cyan
     'Reports':     '#ffd700',   // gold (flagship)
+    'Finance':     '#3949ab',   // blue family
+    'Billing':     '#3949ab',   // blue family (finance-adjacent)
 };
 
 const iconColor = (item) =>
