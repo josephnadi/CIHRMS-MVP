@@ -44,7 +44,7 @@ Route::get('/v1/openapi-legacy', [OpenApiController::class, 'show'])
 | metadata table (revoked / expired / IP-allowlist checks).
 */
 
-Route::middleware(['auth:sanctum', 'audit', 'throttle:api'])
+Route::middleware(['auth:sanctum', 'throttle:api'])
     ->prefix('v1')->name('api.v1.')->group(function () {
 
         // Token introspection — every authenticated token can hit this

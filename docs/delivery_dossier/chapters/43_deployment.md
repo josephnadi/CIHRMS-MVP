@@ -315,11 +315,10 @@ These are read by `config/backup.php`, which is a skeleton waiting for `spatie/l
 
 Ch 41 §41.2.4 has the full `supervisord` config. The summary here is operational.
 
-There are seven `supervisord` programs in production today — one per named queue, plus the implicit `default`:
+There are six `supervisord` programs in production today — one per named queue, plus the implicit `default`. The audit queue no longer has a worker: `AuditTrail` middleware uses `dispatchAfterResponse()` so the hash-chained write runs in the FPM process itself, after the response is flushed.
 
 | Program | Queue | numprocs | Notes |
 |---|---|---|---|
-| `queue-audit` | `audit` | 2 | One job per mutating HTTP request; serialised on `lockForUpdate()` of the latest `audit_logs` row. Two workers is plenty — more workers do not parallelise, they queue on the lock. |
 | `queue-identity` | `identity` | 1 | NIA-rate-limited externally; one worker is the natural throttle. |
 | `queue-integrations` | `integrations` | 2 | Zoho/Twilio/SignWell/S3 calls; needs its own retry envelope and a slow provider should not block the user. |
 | `queue-notifications` | `notifications` | 2 | User-facing; latency matters. Isolated from `analytics` to avoid head-of-line blocking. |
@@ -336,7 +335,7 @@ Operator routines:
 - **Drain before maintenance.** `php artisan queue:work --once --stop-when-empty` against the queue you want to drain, before stopping its worker. Combined with `php artisan down --secret=<token>` to lock the HTTP surface, this is the maintenance-window pattern.
 - **Recover failed jobs.** `php artisan queue:failed` lists, `php artisan queue:retry {uuid}` retries one, `php artisan queue:retry all --queue=<name>` retries a queue, `php artisan queue:flush` empties the failed_jobs table (rarely used — failures are forensic evidence and we keep them).
 
-Until Horizon lands, there is no real-time view of "how full is queue-audit right now". The closest thing is `php artisan tinker` plus `DB::table('jobs')->where('queue', 'audit')->count()`. That is acceptable at MVP scale; it is also the strongest argument for shipping Horizon as soon as Redis lands (see §43.10).
+Until Horizon lands, there is no real-time view of "how full is queue-identity right now". The closest thing is `php artisan tinker` plus `DB::table('jobs')->where('queue', '<name>')->count()`. That is acceptable at MVP scale; it is also the strongest argument for shipping Horizon as soon as Redis lands (see §43.10).
 
 ---
 

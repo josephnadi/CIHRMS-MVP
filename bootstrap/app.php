@@ -39,6 +39,16 @@ return Application::configure(basePath: dirname(__DIR__))
             // Default-deny security headers (X-Frame-Options DENY, nosniff,
             // Referrer-Policy, Permissions-Policy, HSTS on HTTPS). M2 audit fix.
             \App\Http\Middleware\SecurityHeaders::class,
+            // Audit trail — captures every authenticated mutating request
+            // (POST/PUT/PATCH/DELETE) on the `web` guard into the hash-chained
+            // audit_logs table. Self-bypasses GETs and unauthenticated
+            // requests. Lives globally so coverage is total, not per-group.
+            \App\Http\Middleware\AuditTrail::class,
+        ]);
+
+        // Sanctum-authenticated API routes get the same audit coverage as web.
+        $middleware->api(append: [
+            \App\Http\Middleware\AuditTrail::class,
         ]);
 
         // CSRF cannot apply to the SAML ACS — the IdP POSTs the assertion
@@ -52,7 +62,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role'              => \App\Http\Middleware\EnsureRole::class,
             'permission'        => \App\Http\Middleware\EnsurePermission::class,
-            'audit'             => \App\Http\Middleware\AuditTrail::class,
             'webhook.signature' => \App\Http\Middleware\VerifyWebhookSignature::class,
             'paystack.signature' => \App\Http\Middleware\VerifyPaystackSignature::class,
             '2fa'               => \App\Http\Middleware\RequireTwoFactor::class,
