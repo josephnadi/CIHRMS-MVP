@@ -357,5 +357,10 @@ class AppServiceProvider extends ServiceProvider
         // These are auto-discovered by Laravel 11's listener scanner (typed
         // handle() parameters).  Explicit Event::listen() registrations here
         // would double-register them, firing each listener twice per event.
+
+        // ── N2 notifications: loans ──
+        Event::listen(\App\Events\LoanApproved::class,    \App\Listeners\Notifications\SendLoanNotifications::class);
+        Event::listen(\App\Events\LoanDisbursed::class,   \App\Listeners\Notifications\SendLoanNotifications::class);
+        Event::listen(\App\Events\LoanFullyRepaid::class, \App\Listeners\Notifications\SendLoanNotifications::class);
     }
 }
