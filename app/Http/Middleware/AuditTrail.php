@@ -26,7 +26,12 @@ class AuditTrail
     {
         $response = $next($request);
 
-        if (! $request->user()) {
+        // Explicit `web` guard resolution. Bare `$request->user()` defaults
+        // to whichever guard is named on the route's `auth:` middleware —
+        // on member-portal routes (member guard) we don't audit because
+        // audit_logs.user_id is FK-constrained to the `users` table.
+        $user = $request->user('web');
+        if (! $user) {
             return $response;
         }
 
@@ -36,8 +41,12 @@ class AuditTrail
 
         $payload = $this->sanitize($request->except(self::SENSITIVE_FIELDS));
 
-        WriteAuditLog::dispatch([
-            'user_id'    => $request->user()->id,
+        // dispatchAfterResponse runs the job in the same PHP process AFTER
+        // the response is flushed — no queue worker required. Previously
+        // this used ::dispatch(), which queued to the `audit` queue and
+        // silently dropped every event in environments without a worker.
+        WriteAuditLog::dispatchAfterResponse([
+            'user_id'    => $user->id,
             'action'     => $request->route()?->getName() ?? 'unnamed-action',
             'route_name' => $request->route()?->getName(),
             'method'     => $request->method(),

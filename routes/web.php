@@ -197,7 +197,7 @@ Route::middleware(['auth', 'verified'])->prefix('departments')->name('department
         ->name('portal');
 });
 
-Route::middleware(['auth', 'audit'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Locale preference (Phase 4 / WS20). Any authenticated user can set their own.
     Route::post('/locale', [\App\Http\Controllers\LocaleController::class, 'update'])->name('locale.update');
 
@@ -1068,7 +1068,7 @@ Route::prefix('auth/sso')->name('sso.')->middleware('throttle:30,1')->group(func
 });
 
 // ── M1: Billing & Fees (Members + Fee Catalog + Billing runs) ──
-Route::middleware(['auth', 'audit'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::prefix('admin')->name('billing.')->group(function () {
         // Member directory
         Route::middleware('permission:members.view')->group(function () {
@@ -1099,8 +1099,8 @@ Route::middleware(['auth', 'audit'])->group(function () {
     });
 });
 
-// SSO provider admin (authenticated, audit-trailed)
-Route::middleware(['auth', 'audit'])->group(function () {
+// SSO provider admin (authenticated; audit captured globally)
+Route::middleware(['auth'])->group(function () {
     Route::prefix('admin/sso/providers')->name('sso-admin.')->group(function () {
         Route::get('/',          [\App\Http\Controllers\Admin\SsoProviderController::class, 'index'])
             ->middleware('permission:sso.manage')->name('index');

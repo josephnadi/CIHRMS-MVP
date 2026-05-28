@@ -9,16 +9,19 @@ Supervisor unit files for the queue workers and Laravel scheduler.
 
 | File | Purpose |
 |---|---|
-| `cihrms-queue-audit.conf` | Worker for the `audit` queue (single process — audit writes are sequential and idempotent). |
 | `cihrms-queue-analytics.conf` | Worker for the `analytics` queue (2 processes — high-volume, parallelisable). |
 | `cihrms-scheduler.conf` | Replaces `* * * * * php artisan schedule:run` cron with a long-lived process. |
+
+Audit log writes do **not** need a queue worker. `App\Http\Middleware\AuditTrail`
+uses `dispatchAfterResponse()`, which runs the write in the same PHP-FPM
+process after the response is flushed.
 
 Install:
 ```bash
 sudo cp deploy/supervisor/*.conf /etc/supervisor/conf.d/
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start cihrms-queue-audit:* cihrms-queue-analytics:* cihrms-scheduler
+sudo supervisorctl start cihrms-queue-analytics:* cihrms-scheduler
 ```
 
 ## Production `.env` checklist

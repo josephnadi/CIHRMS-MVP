@@ -44,11 +44,15 @@ The unevenness is real and will be cleaned up. There are three concrete inconsis
 
 ### 41.2.1  How a job actually moves through the system
 
-Take the canonical example, `WriteAuditLog`. The middleware `AuditTrail` runs after the response is sent, calls `WriteAuditLog::dispatch($payload)`, and returns. Laravel's bus serialises the job to JSON, opens a row in `jobs` with `queue='audit'`, `available_at=now()`, and `attempts=0`, and commits. The HTTP request is now done as far as the user is concerned.
+> **Audit-trail update (post-fix):** `AuditTrail` middleware now uses `WriteAuditLog::dispatchAfterResponse(...)`. The write runs in the same PHP-FPM process after the response is flushed, *not* through the `jobs` table — so no `queue-audit` worker exists. The job's `handle()` body and the hash-chain semantics described below are unchanged; only the delivery mechanism is. The other queued jobs and listeners (`VerifyEmployeeIdentity`, `ProcessPaystackWebhook`, the sixteen listeners) still move through the queue as described.
 
-A worker started with `php artisan queue:work --queue=audit` (or `queue:listen` in dev) polls the `jobs` table, picks the oldest available row whose `queue='audit'`, marks it reserved with `reserved_at=now()`, increments `attempts`, deserialises, and calls `handle()`. The handler opens its own transaction, takes a `lockForUpdate()` on the latest row of `audit_logs` to serialise concurrent appenders, inserts the new row with `previous_hash` pointing at the predecessor, computes `row_hash` after the id and `created_at` are settled, and `saveQuietly()`s the hash back. On success the worker deletes the `jobs` row. On exception the row stays reserved until `retry_after` (90s) elapses, then becomes available again; after `$tries=3` it moves to `failed_jobs` with the exception payload.
+Take a queued job — `VerifyEmployeeIdentity`. A service calls `VerifyEmployeeIdentity::dispatch($payload)`. Laravel's bus serialises the job to JSON, opens a row in `jobs` with `queue='identity'`, `available_at=now()`, and `attempts=0`, and commits. The HTTP request is now done as far as the user is concerned.
 
-The four levers the operator has are: which queues are running (`--queue=audit,identity` runs both, in that priority order; `--queue=audit` runs only audit), how many workers (more workers = more parallel handlers, bounded by the `lockForUpdate()` serialisation on `audit_logs`), how long the worker runs before recycling (`--max-time=3600` or `--max-jobs=1000` are the typical guards against accumulated memory), and `retry_after` (the staleness window for reserved jobs). None of these are tuned in code; they all live in the `supervisord` units described in the operational runbook (Chapter 44, planned).
+A worker started with `php artisan queue:work --queue=identity` (or `queue:listen` in dev) polls the `jobs` table, picks the oldest available row whose `queue='identity'`, marks it reserved with `reserved_at=now()`, increments `attempts`, deserialises, and calls `handle()`. On success the worker deletes the `jobs` row. On exception the row stays reserved until `retry_after` (90s) elapses, then becomes available again; after `$tries=3` it moves to `failed_jobs` with the exception payload.
+
+`WriteAuditLog::handle()` itself works the same whether invoked via queue or `dispatchAfterResponse`: it opens a transaction, takes a `lockForUpdate()` on the latest row of `audit_logs` to serialise concurrent appenders, inserts the new row with `previous_hash` pointing at the predecessor, computes `row_hash` after the id and `created_at` are settled, and `saveQuietly()`s the hash back.
+
+The four levers the operator has are: which queues are running (`--queue=identity,integrations` runs both, in that priority order), how many workers (more workers = more parallel handlers), how long the worker runs before recycling (`--max-time=3600` or `--max-jobs=1000` are the typical guards against accumulated memory), and `retry_after` (the staleness window for reserved jobs). None of these are tuned in code; they all live in the `supervisord` units described in the operational runbook (Chapter 44, planned).
 
 ### 41.2.2  Retry policy
 
@@ -71,13 +75,9 @@ Everything else is event-driven. `EmployeeCreated` fires once at the end of `Emp
 
 In development the worker is one process: `composer dev` boots `npm run dev`, `php artisan serve`, `php artisan queue:listen --tries=1 --timeout=0`, and `php artisan pail` together. `queue:listen` (not `queue:work`) restarts the worker between every job so code changes are picked up without a manual restart. `--tries=1` means an exception fails the job immediately — you want to see the failure in the Pail tail, not have it re-queued silently.
 
-In production the worker is one `supervisord` unit per queue. The conservative starting point is:
+In production the worker is one `supervisord` unit per queue. There is **no** `queue-audit` unit — audit writes run after-response in the FPM worker itself. The conservative starting point is:
 
 ```
-[program:queue-audit]
-command=php artisan queue:work --queue=audit --tries=3 --max-time=3600 --sleep=1
-numprocs=2
-
 [program:queue-identity]
 command=php artisan queue:work --queue=identity --tries=3 --max-time=3600 --sleep=3
 numprocs=1
