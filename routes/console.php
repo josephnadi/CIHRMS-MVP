@@ -57,3 +57,10 @@ Schedule::command('identity:expiring --window=30')->dailyAt('07:30')->withoutOve
 Schedule::call(function () {
     app(\App\Services\Finance\PaymentIntentService::class)->expireStale();
 })->dailyAt('02:15')->name('payment-intents:expire-stale')->onOneServer();
+
+// Belt-and-braces SMS retry sweep — every 5 minutes, picks up any
+// SmsMessage row stuck in Queued for > 10 min (worker crash, queue pause)
+// and re-dispatches SendSmsJob. The job is idempotent.
+Schedule::command('messaging:sweep-stuck-sms')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
