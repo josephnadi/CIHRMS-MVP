@@ -324,30 +324,47 @@ const navSections = computed(() => {
 const isItemActive = (item) => {
     if (!item) return false;
     const currentModule = page.props.activeModule;
+    const hasModuleSignal = item.module && currentModule !== undefined && currentModule !== null;
 
-    // 1. Route-name match (preferred when the item points to a dedicated route).
-    //    We skip this for items routed to `dashboard` because every dashboard
-    //    sub-module shares the same route and disambiguates via `?module=`.
-    //    This stops sibling children (e.g. Performance > Analytics) lighting up
-    //    when the page sets a generic activeModule shared with the group.
-    if (item.route && item.route !== 'dashboard') {
-        if (item.routeParams) {
-            try {
-                if (route().current() !== item.route) return false;
-                const params = route().params ?? {};
-                return Object.entries(item.routeParams).every(([k, v]) => String(params[k]) === String(v));
-            } catch (e) { return false; }
-        }
-        return route().current(item.route);
+    // Items without a real route (or pointed at `dashboard`, which every
+    // sub-module shares) can only disambiguate via the module prop.
+    if (!item.route || item.route === 'dashboard') {
+        return hasModuleSignal && item.module === currentModule;
     }
 
-    // 2. Module-prop match — fallback for dashboard sub-modules and any item
-    //    that doesn't declare a specific route.
-    if (currentModule !== undefined && currentModule !== null) {
-        return item.module === currentModule;
+    // Items bound to a route with explicit params (e.g. department portal
+    // slugs) need every declared param to match the current URL.
+    if (item.routeParams) {
+        try {
+            if (route().current() !== item.route) return false;
+            const params = route().params ?? {};
+            return Object.entries(item.routeParams).every(([k, v]) => String(params[k]) === String(v));
+        } catch (e) { return false; }
     }
 
-    return false;
+    // Exact route-name match. When both `item.module` and `page.activeModule`
+    // are set, also require module agreement so two items sharing the same
+    // route (e.g. My Profile + Settings → profile.edit) don't both light up.
+    if (route().current(item.route)) {
+        return !hasModuleSignal || item.module === currentModule;
+    }
+
+    // Wildcard match on the route namespace so a CRUD detail page lights its
+    // index sibling — `billing.members.index` covers `.show` / `.edit` / etc.
+    // Restricted to CRUD-shaped names so unrelated siblings like
+    // `modules.recruitment` don't broaden to `modules.*`.
+    const crud = item.route.match(/^(.*)\.(index|show|create|edit|store|update|destroy)$/);
+    if (crud) {
+        try {
+            if (route().current(`${crud[1]}.*`)) {
+                return !hasModuleSignal || item.module === currentModule;
+            }
+        } catch (e) { /* older Ziggy w/o wildcard — fall through to module match */ }
+    }
+
+    // Last-resort module fallback. Catches controllers that set
+    // `activeModule` but route to a name absent from the nav config.
+    return hasModuleSignal && item.module === currentModule;
 };
 
 // True if the expandable group `item` contains any active child.
