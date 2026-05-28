@@ -6,12 +6,15 @@ namespace App\Jobs\Messaging;
 
 use App\Enums\SmsStatus;
 use App\Models\SmsMessage;
+use App\Models\User;
+use App\Notifications\SmsDispatchExhausted;
 use App\Services\Messaging\Sms\SmsDispatcher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -58,6 +61,36 @@ class SendSmsJob implements ShouldQueue
             // Provider returned transient failure — dispatcher marked it back
             // to Queued and recorded the reason; throw to trigger queue retry.
             throw new \RuntimeException($message->failure_reason ?? 'transient SMS failure');
+        }
+    }
+
+    /**
+     * Called once after $tries exhausted. Marks the row Failed and pings
+     * users with messaging.manage perm (rate-limited to 1 per recipient
+     * per 15 min so an upstream outage doesn't spam admins).
+     */
+    public function failed(\Throwable $exception): void
+    {
+        $message = SmsMessage::find($this->messageId);
+        if (! $message) return;
+
+        if ($message->status !== SmsStatus::Failed) {
+            $message->update([
+                'status'         => SmsStatus::Failed->value,
+                'failure_reason' => $exception->getMessage(),
+            ]);
+        }
+
+        $admins = User::whereJsonContains('permissions', 'messaging.manage')->get();
+        $alert = SmsDispatchExhausted::for($message, $exception);
+
+        foreach ($admins as $admin) {
+            $cacheKey = "sms_exhausted_alert:{$admin->id}";
+            if (Cache::has($cacheKey)) {
+                continue;
+            }
+            Cache::put($cacheKey, true, now()->addMinutes(15));
+            $admin->notify($alert);
         }
     }
 }
