@@ -231,6 +231,22 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // ── SMS rate limiters (N1 reliability — N3 broadcast inherits) ──
+        // Transactional context bypasses throttling: "leave approved" SMS must
+        // always reach the user. We still register the limiter so the
+        // dispatcher API surface is symmetric and downstream broadcast code
+        // (N3) can opt into a tighter limiter without conditional logic.
+        \Illuminate\Support\Facades\RateLimiter::for('sms:transactional', function ($key) {
+            return [\Illuminate\Cache\RateLimiting\Limit::none()];
+        });
+
+        // Marketing context — 5 messages per phone per hour. Used by the
+        // admin broadcast surface in N3; in N1 only the limiter registration
+        // ships, so nothing currently hits this path.
+        \Illuminate\Support\Facades\RateLimiter::for('sms:marketing', function ($key) {
+            return [\Illuminate\Cache\RateLimiting\Limit::perHour(5)->by($key)];
+        });
+
         // Strict mode — opt in selectively. We keep:
         //   • preventLazyLoading             — catches N+1 in dev
         //   • preventSilentlyDiscardingAttributes — catches typos in fillable

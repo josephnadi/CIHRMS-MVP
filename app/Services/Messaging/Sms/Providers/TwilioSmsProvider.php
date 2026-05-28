@@ -37,23 +37,30 @@ class TwilioSmsProvider implements SmsProvider
                     'Body' => $body,
                 ]);
         } catch (\Throwable $e) {
-            return SmsResult::failed("Twilio transport error: {$e->getMessage()}");
+            return SmsResult::failedTransient("Twilio transport error: {$e->getMessage()}");
         }
 
-        if (! $response->successful()) {
-            $body = $response->json() ?? [];
-            return SmsResult::failed(
-                "Twilio rejected: " . ($body['message'] ?? "HTTP {$response->status()}"),
-                $body,
+        $payload = $response->json() ?? [];
+
+        if ($response->serverError()) {
+            return SmsResult::failedTransient(
+                "Twilio upstream (HTTP {$response->status()}): " . ($payload['message'] ?? 'unknown'),
+                $payload,
             );
         }
 
-        $body = $response->json() ?? [];
+        if (! $response->successful()) {
+            return SmsResult::failed(
+                "Twilio rejected: " . ($payload['message'] ?? "HTTP {$response->status()}"),
+                $payload,
+            );
+        }
+
         return SmsResult::sent(
-            messageId: (string) ($body['sid'] ?? ''),
-            segments:  (int) ($body['num_segments'] ?? 1),
-            cost:      (float) ($body['price'] ?? 0),
-            raw:       $body,
+            messageId: (string) ($payload['sid'] ?? ''),
+            segments:  (int) ($payload['num_segments'] ?? 1),
+            cost:      (float) ($payload['price'] ?? 0),
+            raw:       $payload,
         );
     }
 

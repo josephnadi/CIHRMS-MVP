@@ -20,6 +20,7 @@ it('persists an SMS row and marks it Sent on success', function () {
         toPhone:     '+233200000099',
         body:        'Test message',
         triggeredBy: $user,
+        sync:        true,
     );
 
     expect($msg->status)->toBe(SmsStatus::Sent);
@@ -30,13 +31,13 @@ it('persists an SMS row and marks it Sent on success', function () {
 
 it('computes segments for long messages (over 160 chars)', function () {
     $long = str_repeat('a', 165);
-    $msg = $this->dispatcher->send('+233200000099', $long);
+    $msg = $this->dispatcher->send('+233200000099', $long, sync: true);
 
     expect($msg->segments)->toBeGreaterThanOrEqual(2);
 });
 
 it('marks Sent → Delivered via the delivery-receipt path', function () {
-    $msg = $this->dispatcher->send('+233200000099', 'hi');
+    $msg = $this->dispatcher->send('+233200000099', 'hi', sync: true);
 
     $delivered = $this->dispatcher->markDelivered($msg->provider_message_id);
 
@@ -54,7 +55,7 @@ it('writes a Failed row when the provider rejects', function () {
     };
 
     $dispatcher = new SmsDispatcher($failingProvider);
-    $msg = $dispatcher->send('+233200000099', 'will fail');
+    $msg = $dispatcher->send('+233200000099', 'will fail', sync: true);
 
     expect($msg->status)->toBe(SmsStatus::Failed);
     expect($msg->failure_reason)->toContain('Mock failure');
@@ -67,6 +68,7 @@ it('attaches context metadata for traceability', function () {
         body:        'Your payslip for May is ready.',
         contextType: 'payroll',
         contextId:   42,
+        sync:        true,
     );
 
     expect($msg->context_type)->toBe('payroll');

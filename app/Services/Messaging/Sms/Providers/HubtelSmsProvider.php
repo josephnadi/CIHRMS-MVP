@@ -44,23 +44,30 @@ class HubtelSmsProvider implements SmsProvider
                     'content'      => $body,
                 ]);
         } catch (\Throwable $e) {
-            return SmsResult::failed("Hubtel transport error: {$e->getMessage()}");
+            return SmsResult::failedTransient("Hubtel transport error: {$e->getMessage()}");
         }
 
-        $body = $response->json() ?? [];
+        $payload = $response->json() ?? [];
 
-        if (! $response->successful() || (int) ($body['status'] ?? -1) !== 0) {
+        if ($response->serverError()) {
+            return SmsResult::failedTransient(
+                "Hubtel upstream (HTTP {$response->status()}): " . ($payload['statusDescription'] ?? 'unknown'),
+                $payload,
+            );
+        }
+
+        if (! $response->successful() || (int) ($payload['status'] ?? -1) !== 0) {
             return SmsResult::failed(
-                "Hubtel rejected (HTTP {$response->status()}): " . ($body['statusDescription'] ?? 'unknown'),
-                $body,
+                "Hubtel rejected (HTTP {$response->status()}): " . ($payload['statusDescription'] ?? 'unknown'),
+                $payload,
             );
         }
 
         return SmsResult::sent(
-            messageId: (string) ($body['messageId'] ?? ''),
-            segments:  (int) ($body['rate']  ?? 1),
-            cost:      (float) ($body['rate'] ?? 0),
-            raw:       $body,
+            messageId: (string) ($payload['messageId'] ?? ''),
+            segments:  (int) ($payload['rate']  ?? 1),
+            cost:      (float) ($payload['rate'] ?? 0),
+            raw:       $payload,
         );
     }
 
