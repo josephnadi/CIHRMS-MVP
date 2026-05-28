@@ -63,4 +63,5 @@ Schedule::call(function () {
 // and re-dispatches SendSmsJob. The job is idempotent.
 Schedule::command('messaging:sweep-stuck-sms')
     ->everyFiveMinutes()
-    ->withoutOverlapping();
+    ->withoutOverlapping()
+    ->onOneServer();

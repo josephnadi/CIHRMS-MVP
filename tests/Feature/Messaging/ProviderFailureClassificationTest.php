@@ -35,6 +35,17 @@ it('classifies Hubtel transport exception as transient failure', function () {
     expect($r->failureReason)->toContain('transport');
 });
 
+it('classifies Twilio transport exception as transient failure', function () {
+    Http::fake(function () {
+        throw new \Illuminate\Http\Client\ConnectionException('cURL timeout');
+    });
+
+    $r = (new TwilioSmsProvider('SID', 'token', '+15551234567'))->send('+233200000099', 'hi');
+    expect($r->success)->toBeFalse();
+    expect($r->retryable)->toBeTrue();
+    expect($r->failureReason)->toContain('transport');
+});
+
 it('classifies Twilio 4xx as permanent failure', function () {
     Http::fake([
         'api.twilio.com/*' => Http::response(['message' => 'Invalid To phone'], 400),
