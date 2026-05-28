@@ -28,16 +28,18 @@ class SweepStuckSmsCommand extends Command
         $minutes = (int) $this->option('stuck-after');
         $cutoff = now()->subMinutes($minutes);
 
-        $stuck = SmsMessage::where('status', SmsStatus::Queued->value)
+        $count = 0;
+        SmsMessage::where('status', SmsStatus::Queued->value)
             ->where('created_at', '<', $cutoff)
-            ->get();
+            ->chunkById(500, function ($chunk) use (&$count) {
+                foreach ($chunk as $message) {
+                    SendSmsJob::dispatch($message->id);
+                    $count++;
+                }
+            });
 
-        foreach ($stuck as $message) {
-            SendSmsJob::dispatch($message->id);
-        }
-
-        $count = $stuck->count();
-        $this->info("Re-dispatched {$count} stuck SMS rows (Queued > {$minutes} min).");
+        $noun = $count === 1 ? 'row' : 'rows';
+        $this->info("Re-dispatched {$count} stuck SMS {$noun} (Queued > {$minutes} min).");
         Log::info('messaging:sweep-stuck-sms', ['count' => $count, 'minutes' => $minutes]);
 
         return self::SUCCESS;
