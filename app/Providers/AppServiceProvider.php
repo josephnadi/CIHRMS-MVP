@@ -366,5 +366,9 @@ class AppServiceProvider extends ServiceProvider
         // ── N2 notifications: benefits ──
         Event::listen(\App\Events\BenefitClaimSubmitted::class, \App\Listeners\Notifications\SendBenefitsNotifications::class);
         Event::listen(\App\Events\BenefitClaimDecided::class,   \App\Listeners\Notifications\SendBenefitsNotifications::class);
+
+        // ── N2 notifications: attendance corrections ──
+        Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\Notifications\SendAttendanceCorrectionNotifications::class);
+        Event::listen(\App\Events\AttendanceCorrectionDecided::class,   \App\Listeners\Notifications\SendAttendanceCorrectionNotifications::class);
     }
 }
