@@ -357,5 +357,34 @@ class AppServiceProvider extends ServiceProvider
         // These are auto-discovered by Laravel 11's listener scanner (typed
         // handle() parameters).  Explicit Event::listen() registrations here
         // would double-register them, firing each listener twice per event.
+
+        // ── N2 notifications: loans ──
+        Event::listen(\App\Events\LoanApproved::class,    \App\Listeners\Notifications\SendLoanNotifications::class);
+        Event::listen(\App\Events\LoanDisbursed::class,   \App\Listeners\Notifications\SendLoanNotifications::class);
+        Event::listen(\App\Events\LoanFullyRepaid::class, \App\Listeners\Notifications\SendLoanNotifications::class);
+
+        // ── N2 notifications: benefits ──
+        Event::listen(\App\Events\BenefitClaimSubmitted::class, \App\Listeners\Notifications\SendBenefitsNotifications::class);
+        Event::listen(\App\Events\BenefitClaimDecided::class,   \App\Listeners\Notifications\SendBenefitsNotifications::class);
+
+        // ── N2 notifications: attendance corrections ──
+        Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\Notifications\SendAttendanceCorrectionNotifications::class);
+        Event::listen(\App\Events\AttendanceCorrectionDecided::class,   \App\Listeners\Notifications\SendAttendanceCorrectionNotifications::class);
+
+        // ── N2 notifications: payroll ──
+        Event::listen(\App\Events\PayrollRunApproved::class,   \App\Listeners\Notifications\SendPayrollNotifications::class);
+        Event::listen(\App\Events\PayrollRunCalculated::class, \App\Listeners\Notifications\SendPayrollNotifications::class);
+        Event::listen(\App\Events\PayrollRunPaid::class,       \App\Listeners\Notifications\SendPayrollNotifications::class);
+
+        // ── N2 notifications: offboarding ──
+        Event::listen(\App\Events\OffboardingInitiated::class, \App\Listeners\Notifications\SendOffboardingNotifications::class);
+        Event::listen(\App\Events\OffboardingCompleted::class, \App\Listeners\Notifications\SendOffboardingNotifications::class);
+
+        // ── N2 notifications: assets ──
+        Event::listen(\App\Events\AssetAssigned::class, \App\Listeners\Notifications\SendAssetNotifications::class);
+        Event::listen(\App\Events\AssetReturned::class, \App\Listeners\Notifications\SendAssetNotifications::class);
+
+        // ── N2 notifications: documents ──
+        Event::listen(\App\Events\DocumentSigned::class, \App\Listeners\Notifications\SendDocumentNotifications::class);
     }
 }

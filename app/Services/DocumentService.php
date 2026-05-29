@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\DocumentEventType;
 use App\Enums\DocumentStatus;
+use App\Events\DocumentSigned;
 use App\Models\Document;
 use App\Models\DocumentAnnotation;
 use App\Models\DocumentEvent;
@@ -93,6 +94,10 @@ class DocumentService
                 'page'          => $annotation->page,
                 'type'          => $annotation->type->value,
             ]);
+
+            if (in_array($attrs['type'], ['signature', 'initial'], true)) {
+                event(new DocumentSigned($doc, $annotation));
+            }
 
             return $annotation;
         });
