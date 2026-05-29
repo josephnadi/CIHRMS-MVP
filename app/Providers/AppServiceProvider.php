@@ -370,5 +370,10 @@ class AppServiceProvider extends ServiceProvider
         // ── N2 notifications: attendance corrections ──
         Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\Notifications\SendAttendanceCorrectionNotifications::class);
         Event::listen(\App\Events\AttendanceCorrectionDecided::class,   \App\Listeners\Notifications\SendAttendanceCorrectionNotifications::class);
+
+        // ── N2 notifications: payroll ──
+        Event::listen(\App\Events\PayrollRunApproved::class,   \App\Listeners\Notifications\SendPayrollNotifications::class);
+        Event::listen(\App\Events\PayrollRunCalculated::class, \App\Listeners\Notifications\SendPayrollNotifications::class);
+        Event::listen(\App\Events\PayrollRunPaid::class,       \App\Listeners\Notifications\SendPayrollNotifications::class);
     }
 }

@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayrollLine extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'payroll_run_id', 'employee_id', 'position_id', 'grade_id', 'step', 'payment_id',
         'basic', 'allowance_total', 'gross', 'ssnit_base',
