@@ -362,5 +362,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\LoanApproved::class,    \App\Listeners\Notifications\SendLoanNotifications::class);
         Event::listen(\App\Events\LoanDisbursed::class,   \App\Listeners\Notifications\SendLoanNotifications::class);
         Event::listen(\App\Events\LoanFullyRepaid::class, \App\Listeners\Notifications\SendLoanNotifications::class);
+
+        // ── N2 notifications: benefits ──
+        Event::listen(\App\Events\BenefitClaimSubmitted::class, \App\Listeners\Notifications\SendBenefitsNotifications::class);
+        Event::listen(\App\Events\BenefitClaimDecided::class,   \App\Listeners\Notifications\SendBenefitsNotifications::class);
     }
 }
