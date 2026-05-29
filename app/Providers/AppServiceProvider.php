@@ -379,5 +379,9 @@ class AppServiceProvider extends ServiceProvider
         // ── N2 notifications: offboarding ──
         Event::listen(\App\Events\OffboardingInitiated::class, \App\Listeners\Notifications\SendOffboardingNotifications::class);
         Event::listen(\App\Events\OffboardingCompleted::class, \App\Listeners\Notifications\SendOffboardingNotifications::class);
+
+        // ── N2 notifications: assets ──
+        Event::listen(\App\Events\AssetAssigned::class, \App\Listeners\Notifications\SendAssetNotifications::class);
+        Event::listen(\App\Events\AssetReturned::class, \App\Listeners\Notifications\SendAssetNotifications::class);
     }
 }
