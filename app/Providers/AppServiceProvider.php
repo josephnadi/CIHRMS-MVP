@@ -375,5 +375,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\PayrollRunApproved::class,   \App\Listeners\Notifications\SendPayrollNotifications::class);
         Event::listen(\App\Events\PayrollRunCalculated::class, \App\Listeners\Notifications\SendPayrollNotifications::class);
         Event::listen(\App\Events\PayrollRunPaid::class,       \App\Listeners\Notifications\SendPayrollNotifications::class);
+
+        // ── N2 notifications: offboarding ──
+        Event::listen(\App\Events\OffboardingInitiated::class, \App\Listeners\Notifications\SendOffboardingNotifications::class);
+        Event::listen(\App\Events\OffboardingCompleted::class, \App\Listeners\Notifications\SendOffboardingNotifications::class);
     }
 }
