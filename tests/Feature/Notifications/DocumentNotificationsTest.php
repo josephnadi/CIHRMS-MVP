@@ -4,6 +4,7 @@ use App\Events\DocumentSigned;
 use App\Jobs\Messaging\SendSmsJob;
 use App\Models\Document;
 use App\Models\DocumentAnnotation;
+use App\Models\DocumentRoute;
 use App\Models\DocumentVersion;
 use App\Models\Employee;
 use App\Models\User;
@@ -74,4 +75,31 @@ it('notifies the document owner with SMS when DocumentSigned fires (owner has ph
 
     Notification::assertSentTo($owner, DocumentSignedNotification::class);
     Bus::assertDispatchedTimes(SendSmsJob::class, 1);
+});
+
+it('also notifies the next signer in the routing workflow when DocumentSigned fires', function () {
+    $owner = User::factory()->create(['role' => 'employee']);
+    $signer = User::factory()->create(['role' => 'employee']);
+    $nextSigner = User::factory()->create(['role' => 'employee']);
+    $doc = Document::factory()->for($owner, 'owner')->create();
+
+    $currentRoute = DocumentRoute::factory()
+        ->for($doc, 'document')
+        ->state(['sequence' => 1, 'to_user_id' => $signer->id])
+        ->create();
+    $nextRoute = DocumentRoute::factory()
+        ->for($doc, 'document')
+        ->state(['sequence' => 2, 'to_user_id' => $nextSigner->id])
+        ->create();
+
+    $annotation = DocumentAnnotation::factory()
+        ->for($doc, 'document')
+        ->for($signer, 'user')
+        ->state(['type' => 'signature', 'route_id' => $currentRoute->id])
+        ->create();
+
+    event(new DocumentSigned($doc, $annotation));
+
+    Notification::assertSentTo($owner, DocumentSignedNotification::class);
+    Notification::assertSentTo($nextSigner, DocumentSignedNotification::class);
 });

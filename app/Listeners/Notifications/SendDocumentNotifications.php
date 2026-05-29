@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners\Notifications;
 
 use App\Events\DocumentSigned;
+use App\Models\DocumentRoute;
 use App\Models\User;
 use App\Notifications\DocumentSignedNotification;
 use App\Services\Messaging\Sms\SmsDispatcher;
@@ -23,22 +24,40 @@ class SendDocumentNotifications implements ShouldQueue
 
     private function onSigned(DocumentSigned $event): void
     {
-        $owner = $event->document->owner;
-        if (! $owner) {
-            return;
+        $document   = $event->document;
+        $annotation = $event->annotation;
+        $owner      = $document->owner;
+        $notification = new DocumentSignedNotification($document, $annotation);
+
+        if ($owner) {
+            $owner->notify($notification);
+            $phone = $owner->employee?->phone;
+            if ($phone) {
+                $this->sms->send(
+                    toPhone:     $phone,
+                    body:        $notification->toSmsBody($owner),
+                    contextType: 'document',
+                    contextId:   $document->id,
+                );
+            }
         }
 
-        $notification = new DocumentSignedNotification($event->document, $event->annotation);
-        $owner->notify($notification);
+        // Notify the next signer in the routing workflow (if any).
+        $currentRoute = $annotation->route_id
+            ? DocumentRoute::find($annotation->route_id)
+            : null;
 
-        $phone = $owner->employee?->phone;
-        if ($phone) {
-            $this->sms->send(
-                toPhone:     $phone,
-                body:        $notification->toSmsBody($owner),
-                contextType: 'document',
-                contextId:   $event->document->id,
-            );
+        if ($currentRoute) {
+            $nextRoute = DocumentRoute::query()
+                ->where('document_id', $document->id)
+                ->where('sequence', '>', $currentRoute->sequence)
+                ->orderBy('sequence')
+                ->first();
+
+            $nextSigner = $nextRoute?->toUser;
+            if ($nextSigner && $nextSigner->id !== $owner?->id) {
+                $nextSigner->notify($notification);
+            }
         }
     }
 }
