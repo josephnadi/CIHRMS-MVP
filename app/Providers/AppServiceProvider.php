@@ -383,5 +383,8 @@ class AppServiceProvider extends ServiceProvider
         // ── N2 notifications: assets ──
         Event::listen(\App\Events\AssetAssigned::class, \App\Listeners\Notifications\SendAssetNotifications::class);
         Event::listen(\App\Events\AssetReturned::class, \App\Listeners\Notifications\SendAssetNotifications::class);
+
+        // ── N2 notifications: documents ──
+        Event::listen(\App\Events\DocumentSigned::class, \App\Listeners\Notifications\SendDocumentNotifications::class);
     }
 }
