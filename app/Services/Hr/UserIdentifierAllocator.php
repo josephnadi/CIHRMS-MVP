@@ -17,9 +17,11 @@ use RuntimeException;
  * The New User form shows a live preview of the next ID. When two admins
  * open the form concurrently, both see the same value — whoever submits
  * second would otherwise hit the UNIQUE constraint as a validation error
- * for something they never typed. The resolve* methods absorb that race
- * by advancing past taken slots, so operators only see "already exists"
- * for values they actually typed.
+ * for something they never typed. StoreUserRequest no longer validates
+ * uniqueness for these fields; the resolve* methods own the contract:
+ * an unused supplied value passes through, otherwise the allocator
+ * advances past taken slots and the operator gets the next free ID
+ * with no error surfaced.
  *
  * Formats:
  *  - Staff ID:    GH-{DEPT_CODE}-NNNN (per-department counter), or
