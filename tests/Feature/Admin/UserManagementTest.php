@@ -201,3 +201,125 @@ it('CEO role has full access (wildcard, mirrors super_admin)', function () {
     // Wildcard implies any future permission too — including ones we haven't named.
     expect($ceo->hasPermission('a-future-permission-we-have-not-defined'))->toBeTrue();
 });
+
+// ── Auto-populate staff_id + employee_no ────────────────────────────────
+
+it('auto-generates staff_id from department code when omitted', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+    $fin = Department::firstOrCreate(['code' => 'FIN'], ['name' => 'Finance']);
+
+    $this->actingAs($admin)
+        ->post('/admin/users', basePayload([
+            'name'          => 'Akua Mensah',
+            'email'         => 'akua@cihrm.local',
+            'staff_id'      => null,
+            'department_id' => $fin->id,
+        ]))
+        ->assertRedirect();
+
+    $created = User::where('email', 'akua@cihrm.local')->firstOrFail();
+    expect($created->staff_id)->toMatch('/^GH-FIN-\d{4}$/');
+});
+
+it('staff_id auto-counter is per-department and sequential', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+    $hr = $this->dept; // HR
+
+    // First HR auto-gen
+    $this->actingAs($admin)->post('/admin/users', basePayload([
+        'email' => 'a@x.local', 'staff_id' => null, 'department_id' => $hr->id,
+    ]))->assertRedirect();
+    $a = User::where('email', 'a@x.local')->firstOrFail();
+
+    // Second HR auto-gen — next number
+    $this->actingAs($admin)->post('/admin/users', basePayload([
+        'email' => 'b@x.local', 'staff_id' => null, 'department_id' => $hr->id,
+    ]))->assertRedirect();
+    $b = User::where('email', 'b@x.local')->firstOrFail();
+
+    [, $aN] = explode('-', $a->staff_id);
+    [, $bN] = sscanf($b->staff_id, 'GH-HR-%d') ? ['GH-HR', sscanf($b->staff_id, 'GH-HR-%d')[0]] : [null, null];
+
+    expect($a->staff_id)->toMatch('/^GH-HR-\d{4}$/');
+    expect($b->staff_id)->toMatch('/^GH-HR-\d{4}$/');
+    // The second should be one greater than the first
+    $first  = (int) substr($a->staff_id, -4);
+    $second = (int) substr($b->staff_id, -4);
+    expect($second)->toBe($first + 1);
+});
+
+it('falls back to GH-#### when no department code resolves', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+    // Department exists but with NO code — implementation should skip the
+    // dept-scoped key and fall back to the org-wide GH counter.
+    $deptNoCode = Department::create(['name' => 'No Code Dept', 'code' => '']);
+
+    $this->actingAs($admin)
+        ->post('/admin/users', basePayload([
+            'email'         => 'fallback@x.local',
+            'staff_id'      => null,
+            'department_id' => $deptNoCode->id,
+        ]))
+        ->assertRedirect();
+
+    $u = User::where('email', 'fallback@x.local')->firstOrFail();
+    expect($u->staff_id)->toMatch('/^GH-\d{4}$/');
+});
+
+it('still honours an operator-supplied staff_id', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+
+    $this->actingAs($admin)
+        ->post('/admin/users', basePayload([
+            'email'    => 'manual@x.local',
+            'staff_id' => 'CUSTOM-007',
+        ]))
+        ->assertRedirect();
+
+    $u = User::where('email', 'manual@x.local')->firstOrFail();
+    expect($u->staff_id)->toBe('CUSTOM-007');
+});
+
+// ── Preview endpoint ────────────────────────────────────────────────────
+
+it('GET /admin/users/preview-ids returns suggested staff_id + employee_no', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+    $hr = $this->dept;
+
+    $r = $this->actingAs($admin)
+        ->get(route('admin.users.preview-ids', ['department_id' => $hr->id]))
+        ->assertOk();
+
+    $data = $r->json();
+    expect($data['staff_id'])->toMatch('/^GH-HR-\d{4}$/');
+    expect($data['employee_no'])->toMatch('/^CIHRM-\d{4}$/');
+});
+
+it('preview-ids is non-mutating — calling it twice returns the same value', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+
+    $a = $this->actingAs($admin)->get(route('admin.users.preview-ids',
+        ['department_id' => $this->dept->id]))->json();
+    $b = $this->actingAs($admin)->get(route('admin.users.preview-ids',
+        ['department_id' => $this->dept->id]))->json();
+
+    expect($a['staff_id'])->toBe($b['staff_id']);
+    expect($a['employee_no'])->toBe($b['employee_no']);
+});
+
+it('preview-ids is gated by users.manage perm', function () {
+    $user = User::factory()->create(['role' => 'employee']);
+    $this->actingAs($user)
+        ->get(route('admin.users.preview-ids', ['department_id' => $this->dept->id]))
+        ->assertForbidden();
+});
+
+it('SequenceService::peek does not increment the counter', function () {
+    $svc = app(\App\Services\Finance\SequenceService::class);
+
+    expect($svc->peek('test_seq'))->toBe(1);
+    expect($svc->peek('test_seq'))->toBe(1);
+    expect($svc->next('test_seq'))->toBe(1);
+    expect($svc->peek('test_seq'))->toBe(2);
+    expect($svc->next('test_seq'))->toBe(2);
+});

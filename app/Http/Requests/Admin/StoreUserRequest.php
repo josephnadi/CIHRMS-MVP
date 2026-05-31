@@ -24,7 +24,10 @@ class StoreUserRequest extends FormRequest
             // Account
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class, 'email')],
-            'staff_id' => ['required', 'string', 'max:64', Rule::unique(User::class, 'staff_id')],
+            // Optional: when blank the controller auto-generates GH-{DEPT_CODE}-####
+            // via SequenceService. The form's live preview shows the value the
+            // operator would get on submit; they can override by typing.
+            'staff_id' => ['nullable', 'string', 'max:64', Rule::unique(User::class, 'staff_id')],
             'role'     => ['required', Rule::enum(UserRole::class)],
             'password' => ['required', 'confirmed', Password::defaults()],
             // Privileged roles default to true; the form auto-checks them but

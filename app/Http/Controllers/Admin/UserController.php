@@ -13,6 +13,7 @@ use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Finance\SequenceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class UserController extends Controller
             $user = User::create([
                 'name'                  => $data['name'],
                 'email'                 => $data['email'],
-                'staff_id'              => $data['staff_id'],
+                'staff_id'              => $data['staff_id'] ?? $this->nextStaffId($data['department_id'] ?? null),
                 'role'                  => $data['role'],
                 'password'              => Hash::make($data['password']),
                 'permissions'           => User::ROLE_PERMISSIONS[$data['role']] ?? [],
@@ -91,6 +92,27 @@ class UserController extends Controller
     }
 
     /**
+     * Live preview for the New User form. Returns the staff_id and
+     * employee_no that would be allocated right now, given the selected
+     * department. Non-mutating — uses SequenceService::peek so opening
+     * the form doesn't burn sequence numbers.
+     *
+     * GET /admin/users/preview-ids?department_id=5
+     */
+    public function previewIds(Request $request): JsonResponse
+    {
+        // Same perm gate as the form itself.
+        abort_unless($request->user()->hasPermission('users.manage'), 403);
+
+        $deptId = $request->integer('department_id') ?: null;
+
+        return response()->json([
+            'staff_id'    => $this->previewStaffId($deptId),
+            'employee_no' => sprintf('CIHRM-%04d', $this->sequences->peek('employee_no')),
+        ]);
+    }
+
+    /**
      * Generate a sequential employee_no like CIHRM-0042. SequenceService
      * row-locks the counter so concurrent inserts cannot collide on the
      * unique employee_no constraint. Employee numbers are lifetime-unique
@@ -99,5 +121,36 @@ class UserController extends Controller
     private function nextEmployeeNo(): string
     {
         return sprintf('CIHRM-%04d', $this->sequences->next('employee_no'));
+    }
+
+    /**
+     * Format the next staff_id given an optional department.
+     *  - With department: `GH-{DEPT_CODE}-{####}` (e.g. GH-HR-0007)
+     *  - Without:        `GH-{####}`
+     * The sequence key is scoped by department code so each dept gets its
+     * own counter — HR-0001 and FIN-0001 coexist.
+     */
+    public function nextStaffId(?int $departmentId): string
+    {
+        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
+        return sprintf('%s-%04d', $prefix, $this->sequences->next($key));
+    }
+
+    private function previewStaffId(?int $departmentId): string
+    {
+        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
+        return sprintf('%s-%04d', $prefix, $this->sequences->peek($key));
+    }
+
+    /** @return array{0:string, 1:string} [sequence_key, staff_id_prefix] */
+    private function staffIdSequenceFor(?int $departmentId): array
+    {
+        if ($departmentId) {
+            $code = strtoupper((string) Department::whereKey($departmentId)->value('code'));
+            if ($code !== '') {
+                return ["staff_id:GH:{$code}", "GH-{$code}"];
+            }
+        }
+        return ['staff_id:GH', 'GH'];
     }
 }
