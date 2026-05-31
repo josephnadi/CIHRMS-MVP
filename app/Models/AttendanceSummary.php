@@ -36,6 +36,12 @@ class AttendanceSummary extends Model
     {
         $from = $from instanceof \DateTimeInterface ? $from->format('Y-m-d') : $from;
         $to   = $to   instanceof \DateTimeInterface ? $to->format('Y-m-d')   : $to;
-        return $q->whereBetween('summary_date', [$from, $to]);
+        // whereDate wraps the column in DATE(...) so the comparison works on
+        // both Postgres (native DATE) and SQLite (where Laravel's `date` cast
+        // writes 'YYYY-MM-DD HH:MM:SS' as TEXT — a plain BETWEEN against
+        // 'YYYY-MM-DD' upper bound would drop end-of-month rows because the
+        // longer string is lexicographically greater).
+        return $q->whereDate('summary_date', '>=', $from)
+                 ->whereDate('summary_date', '<=', $to);
     }
 }
