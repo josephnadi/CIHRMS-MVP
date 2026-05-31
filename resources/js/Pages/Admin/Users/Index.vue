@@ -44,20 +44,32 @@ const employeeNoEdited = ref(false);
 
 const privilegedSelected = computed(() => PRIVILEGED.includes(form.role));
 
-const openCreate = () => {
+// Single source of truth for the panel's reset state — used by openCreate,
+// the Cancel button, and the onSuccess close path. Resets the form fields,
+// the edited-flags that gate auto-preview, and the panel's open state.
+const closePanel = () => {
+    showCreate.value = false;
     form.reset();
     form.role = 'employee';
     form.hire_date = today();
     staffIdEdited.value = false;
     employeeNoEdited.value = false;
-    showCreate.value = true;
-    fetchPreview(); // populate with the GH-#### fallback immediately
+    form.clearErrors();
+};
+
+const openCreate = () => {
+    closePanel();           // start from a clean slate
+    showCreate.value = true; // …then open
+    fetchPreview();          // populate the GH-#### fallback immediately
 };
 
 const submit = () => {
     form.post(route('admin.users.store'), {
         preserveScroll: true,
-        onSuccess: () => { showCreate.value = false; form.reset(); },
+        // Inertia fires onSuccess when the store() redirect returns. Closing
+        // here ensures the panel disappears the moment the user is created
+        // — the toast (auth shared `flash.success`) confirms what happened.
+        onSuccess: closePanel,
     });
 };
 
@@ -152,7 +164,7 @@ const rolePillClass = (slug) => {
             </table>
         </div>
 
-        <SlidePanel :open="showCreate" @close="showCreate = false" title="Create User Account" size="md">
+        <SlidePanel :open="showCreate" @close="closePanel" title="Create User Account" size="md">
             <form @submit.prevent="submit" class="space-y-4 p-6">
 
                 <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 flex items-start gap-2.5">
@@ -268,7 +280,7 @@ const rolePillClass = (slug) => {
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" @click="showCreate = false"
+                    <button type="button" @click="closePanel"
                             class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>
                     <button type="submit" :disabled="form.processing"
                             class="rounded-xl bg-primary text-on-primary px-3 py-2 text-[12px] font-bold disabled:opacity-60">Create user</button>
