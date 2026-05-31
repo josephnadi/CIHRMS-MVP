@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 
@@ -35,13 +36,22 @@ const form = useForm({
     employee_no: '', // optional; auto-generated as CIHRM-#### if blank
 });
 
+// Track whether the operator has manually edited the auto-generated fields.
+// Once they type their own value we stop overwriting it — the form preview
+// only ever AUTO-FILLS empty/unedited fields.
+const staffIdEdited = ref(false);
+const employeeNoEdited = ref(false);
+
 const privilegedSelected = computed(() => PRIVILEGED.includes(form.role));
 
 const openCreate = () => {
     form.reset();
     form.role = 'employee';
     form.hire_date = today();
+    staffIdEdited.value = false;
+    employeeNoEdited.value = false;
     showCreate.value = true;
+    fetchPreview(); // populate with the GH-#### fallback immediately
 };
 
 const submit = () => {
@@ -50,6 +60,32 @@ const submit = () => {
         onSuccess: () => { showCreate.value = false; form.reset(); },
     });
 };
+
+// ── Live ID preview ───────────────────────────────────────────────────
+// When role or department changes, hit /admin/users/preview-ids to see
+// what staff_id + employee_no the backend WOULD assign right now. Only
+// updates the form fields that haven't been manually edited. Non-mutating
+// on the server — SequenceService::peek doesn't burn counter values.
+let previewTimer = null;
+async function fetchPreview() {
+    try {
+        const r = await axios.get(route('admin.users.preview-ids'), {
+            params: {
+                department_id: form.department_id ?? '',
+            },
+        });
+        if (! staffIdEdited.value)    form.staff_id    = r.data.staff_id;
+        if (! employeeNoEdited.value) form.employee_no = r.data.employee_no;
+    } catch (e) {
+        // Silent — admin can still type values manually.
+    }
+}
+
+watch([() => form.role, () => form.department_id], () => {
+    clearTimeout(previewTimer);
+    if (! showCreate.value) return;
+    previewTimer = setTimeout(fetchPreview, 200);
+});
 
 const roleLabel = (slug) => props.roles.find(r => r.value === slug)?.label ?? slug;
 
@@ -135,8 +171,11 @@ const rolePillClass = (slug) => {
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Staff ID</label>
-                        <input aria-label="Staff ID" v-model="form.staff_id" type="text" required placeholder="GH-HR-042" autocomplete="off"
+                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">
+                            Staff ID
+                            <span class="ml-1 text-[10px] font-medium text-on-surface-variant/70">auto · editable</span>
+                        </label>
+                        <input aria-label="Staff ID" v-model="form.staff_id" @input="staffIdEdited = true" type="text" placeholder="GH-HR-0042" autocomplete="off"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px] font-mono" />
                         <p v-if="form.errors.staff_id" class="mt-1 text-[11px] text-rose-700">{{ form.errors.staff_id }}</p>
                     </div>
@@ -218,8 +257,11 @@ const rolePillClass = (slug) => {
                     </div>
 
                     <div class="mt-3">
-                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Employee number (optional)</label>
-                        <input aria-label="Employee number (optional)" v-model="form.employee_no" type="text" maxlength="32" placeholder="Leave blank to auto-generate (CIHRM-####)"
+                        <label class="block text-[11px] font-bold text-on-surface-variant mb-1">
+                            Employee number
+                            <span class="ml-1 text-[10px] font-medium text-on-surface-variant/70">auto · editable</span>
+                        </label>
+                        <input aria-label="Employee number" v-model="form.employee_no" @input="employeeNoEdited = true" type="text" maxlength="32" placeholder="CIHRM-0042"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px] font-mono" />
                         <p v-if="form.errors.employee_no" class="mt-1 text-[11px] text-rose-700">{{ form.errors.employee_no }}</p>
                     </div>

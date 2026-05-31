@@ -852,8 +852,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin → User management (create super_admin / CEO / role users)
     Route::prefix('admin/users')->name('admin.users.')->middleware('permission:users.manage')->group(function () {
-        Route::get('/',   [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
-        Route::post('/',  [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
+        Route::get('/',             [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+        Route::post('/',            [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
+        // Live ID preview for the New User form — non-mutating, peeks at the
+        // sequence so the operator sees what staff_id/employee_no would be
+        // assigned without burning a counter value.
+        Route::get('/preview-ids',  [\App\Http\Controllers\Admin\UserController::class, 'previewIds'])->name('preview-ids');
     });
 
     // Admin → Integrations marketplace + OAuth callbacks
