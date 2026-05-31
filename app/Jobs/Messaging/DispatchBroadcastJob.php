@@ -80,8 +80,6 @@ class DispatchBroadcastJob implements ShouldQueue
                 $broadcast, $type, $renderer, $sms, $hasSms, $hasMail, &$counts,
             ) {
                 foreach ($chunk as $recipient) {
-                    $counts['recipient_count']++;
-
                     $recipientClass = $type->recipientClass();
                     // Idempotency: skip if BroadcastRecipient row already exists
                     $exists = BroadcastRecipient::where([
@@ -90,6 +88,8 @@ class DispatchBroadcastJob implements ShouldQueue
                         'recipient_id'   => $recipient->id,
                     ])->exists();
                     if ($exists) continue;
+
+                    $counts['recipient_count']++;
 
                     $row = [
                         'broadcast_id'   => $broadcast->id,

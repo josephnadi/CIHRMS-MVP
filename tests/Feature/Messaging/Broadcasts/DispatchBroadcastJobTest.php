@@ -182,4 +182,8 @@ it('is idempotent — does not double-send on rerun', function () {
     );
 
     expect(BroadcastRecipient::where('broadcast_id', $b->id)->count())->toBe(1);
+
+    $b->refresh();
+    expect($b->recipient_count)->toBe(1);
+    expect($b->mail_sent_count)->toBe(1);
 });
