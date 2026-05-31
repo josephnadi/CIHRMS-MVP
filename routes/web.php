@@ -654,6 +654,16 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:broadcasts.manage')->name('broadcasts.cancel');
         Route::post('broadcasts/preview',       [\App\Http\Controllers\BroadcastController::class, 'preview'])
             ->middleware('permission:broadcasts.manage')->name('broadcasts.preview');
+
+        // ── N3 Broadcast Templates ──
+        Route::get('templates',              [\App\Http\Controllers\BroadcastTemplateController::class, 'index'])
+            ->middleware('permission:broadcasts.view')->name('templates.index');
+        Route::post('templates',             [\App\Http\Controllers\BroadcastTemplateController::class, 'store'])
+            ->middleware('permission:broadcasts.manage')->name('templates.store');
+        Route::patch('templates/{template}', [\App\Http\Controllers\BroadcastTemplateController::class, 'update'])
+            ->middleware('permission:broadcasts.manage')->name('templates.update');
+        Route::delete('templates/{template}',[\App\Http\Controllers\BroadcastTemplateController::class, 'destroy'])
+            ->middleware('permission:broadcasts.manage')->name('templates.destroy');
     });
 
     // ── Phase 3: API token + webhook admin (WS16) ──
