@@ -139,16 +139,52 @@ it('rejects when employee profile fields are missing', function () {
     expect(User::where('email', 'noemp@cihrm.local')->exists())->toBeFalse();
 });
 
-it('rejects a duplicate staff_id', function () {
+it('silently regenerates staff_id when the supplied one is taken', function () {
+    // Simulates the stale-preview UX collision: admin sees a previewed value,
+    // someone else grabs it before they submit, controller should silently
+    // bump to the next available value instead of throwing a validation
+    // error.
     $admin = User::factory()->create(['role' => 'super_admin']);
-    User::factory()->create(['staff_id' => 'CLASH-1']);
+    User::factory()->create(['staff_id' => 'GH-HR-0001']);
 
     $this->actingAs($admin)
         ->post('/admin/users', basePayload([
-            'email'    => 'x@cihrm.local',
-            'staff_id' => 'CLASH-1',
+            'email'         => 'collide@cihrm.local',
+            'staff_id'      => 'GH-HR-0001',
+            'department_id' => $this->dept->id,
         ]))
-        ->assertSessionHasErrors('staff_id');
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $u = User::where('email', 'collide@cihrm.local')->firstOrFail();
+    expect($u->staff_id)->not->toBe('GH-HR-0001');
+    expect($u->staff_id)->toMatch('/^GH-HR-\d{4}$/');
+});
+
+it('silently regenerates employee_no when the supplied one is taken', function () {
+    $admin = User::factory()->create(['role' => 'super_admin']);
+    $existing = User::factory()->create();
+    Employee::create([
+        'user_id'       => $existing->id,
+        'department_id' => $this->dept->id,
+        'employee_no'   => 'CIHRM-0001',
+        'position'      => 'Existing',
+        'hire_date'     => '2026-01-01',
+        'status'        => \App\Enums\EmployeeStatus::Active->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->post('/admin/users', basePayload([
+            'email'       => 'empcollide@cihrm.local',
+            'staff_id'    => 'EC-001',
+            'employee_no' => 'CIHRM-0001',
+        ]))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $u = User::where('email', 'empcollide@cihrm.local')->firstOrFail();
+    expect($u->employee->employee_no)->not->toBe('CIHRM-0001');
+    expect($u->employee->employee_no)->toMatch('/^CIHRM-\d{4}$/');
 });
 
 it('rejects mismatched password confirmation', function () {

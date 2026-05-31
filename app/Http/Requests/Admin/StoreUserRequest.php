@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Enums\UserRole;
-use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,7 +26,11 @@ class StoreUserRequest extends FormRequest
             // Optional: when blank the controller auto-generates GH-{DEPT_CODE}-####
             // via SequenceService. The form's live preview shows the value the
             // operator would get on submit; they can override by typing.
-            'staff_id' => ['nullable', 'string', 'max:64', Rule::unique(User::class, 'staff_id')],
+            // Uniqueness is NOT validated here — the controller silently bumps
+            // to the next available value if a concurrent admin grabbed the
+            // previewed number first. This avoids a confusing "already exists"
+            // error from a stale preview.
+            'staff_id' => ['nullable', 'string', 'max:64'],
             'role'     => ['required', Rule::enum(UserRole::class)],
             'password' => ['required', 'confirmed', Password::defaults()],
             // Privileged roles default to true; the form auto-checks them but
@@ -42,7 +45,10 @@ class StoreUserRequest extends FormRequest
             'position'      => ['required', 'string', 'max:120'],
             'hire_date'     => ['required', 'date'],
             'phone'         => ['nullable', 'string', 'max:32'],
-            'employee_no'   => ['nullable', 'string', 'max:32', Rule::unique(Employee::class, 'employee_no')],
+            // Uniqueness handled by controller — collisions silently regenerate
+            // via SequenceService::next() rather than throwing a validation
+            // error, so a stale preview never blocks the operator.
+            'employee_no'   => ['nullable', 'string', 'max:32'],
         ];
     }
 

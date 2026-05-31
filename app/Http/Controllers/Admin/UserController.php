@@ -12,7 +12,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Finance\SequenceService;
+use App\Services\Hr\UserIdentifierAllocator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +23,7 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly SequenceService $sequences) {}
+    public function __construct(private readonly UserIdentifierAllocator $ids) {}
 
     public function index(Request $request): Response
     {
@@ -56,7 +56,7 @@ class UserController extends Controller
             $user = User::create([
                 'name'                  => $data['name'],
                 'email'                 => $data['email'],
-                'staff_id'              => $data['staff_id'] ?? $this->nextStaffId($data['department_id'] ?? null),
+                'staff_id'              => $this->ids->resolveStaffId($data['staff_id'] ?? null, $data['department_id'] ?? null),
                 'role'                  => $data['role'],
                 'password'              => Hash::make($data['password']),
                 'permissions'           => User::ROLE_PERMISSIONS[$data['role']] ?? [],
@@ -78,7 +78,7 @@ class UserController extends Controller
             Employee::create([
                 'user_id'       => $user->id,
                 'department_id' => $data['department_id'],
-                'employee_no'   => $data['employee_no'] ?? $this->nextEmployeeNo(),
+                'employee_no'   => $this->ids->resolveEmployeeNo($data['employee_no'] ?? null),
                 'position'      => $data['position'],
                 'hire_date'     => $data['hire_date'],
                 'phone'         => $data['phone'] ?? null,
@@ -107,50 +107,8 @@ class UserController extends Controller
         $deptId = $request->integer('department_id') ?: null;
 
         return response()->json([
-            'staff_id'    => $this->previewStaffId($deptId),
-            'employee_no' => sprintf('CIHRM-%04d', $this->sequences->peek('employee_no')),
+            'staff_id'    => $this->ids->previewStaffId($deptId),
+            'employee_no' => $this->ids->previewEmployeeNo(),
         ]);
-    }
-
-    /**
-     * Generate a sequential employee_no like CIHRM-0042. SequenceService
-     * row-locks the counter so concurrent inserts cannot collide on the
-     * unique employee_no constraint. Employee numbers are lifetime-unique
-     * (not yearly), so the key is unscoped by year.
-     */
-    private function nextEmployeeNo(): string
-    {
-        return sprintf('CIHRM-%04d', $this->sequences->next('employee_no'));
-    }
-
-    /**
-     * Format the next staff_id given an optional department.
-     *  - With department: `GH-{DEPT_CODE}-{####}` (e.g. GH-HR-0007)
-     *  - Without:        `GH-{####}`
-     * The sequence key is scoped by department code so each dept gets its
-     * own counter — HR-0001 and FIN-0001 coexist.
-     */
-    public function nextStaffId(?int $departmentId): string
-    {
-        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
-        return sprintf('%s-%04d', $prefix, $this->sequences->next($key));
-    }
-
-    private function previewStaffId(?int $departmentId): string
-    {
-        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
-        return sprintf('%s-%04d', $prefix, $this->sequences->peek($key));
-    }
-
-    /** @return array{0:string, 1:string} [sequence_key, staff_id_prefix] */
-    private function staffIdSequenceFor(?int $departmentId): array
-    {
-        if ($departmentId) {
-            $code = strtoupper((string) Department::whereKey($departmentId)->value('code'));
-            if ($code !== '') {
-                return ["staff_id:GH:{$code}", "GH-{$code}"];
-            }
-        }
-        return ['staff_id:GH', 'GH'];
     }
 }
