@@ -640,6 +640,30 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:messaging.send')->name('send');
         Route::post('/pins',      [MessagingController::class, 'issuePin'])
             ->middleware(['permission:messaging.manage', '2fa:fresh'])->name('pins.issue');
+
+        // ── N3 Broadcasts ──
+        Route::get('broadcasts',                [\App\Http\Controllers\BroadcastController::class, 'index'])
+            ->middleware('permission:broadcasts.view')->name('broadcasts.index');
+        Route::get('broadcasts/create',         [\App\Http\Controllers\BroadcastController::class, 'create'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.create');
+        Route::post('broadcasts',               [\App\Http\Controllers\BroadcastController::class, 'store'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.store');
+        Route::get('broadcasts/{broadcast}',    [\App\Http\Controllers\BroadcastController::class, 'show'])
+            ->middleware('permission:broadcasts.view')->name('broadcasts.show');
+        Route::post('broadcasts/{broadcast}/cancel', [\App\Http\Controllers\BroadcastController::class, 'cancel'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.cancel');
+        Route::post('broadcasts/preview',       [\App\Http\Controllers\BroadcastController::class, 'preview'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.preview');
+
+        // ── N3 Broadcast Templates ──
+        Route::get('templates',              [\App\Http\Controllers\BroadcastTemplateController::class, 'index'])
+            ->middleware('permission:broadcasts.view')->name('templates.index');
+        Route::post('templates',             [\App\Http\Controllers\BroadcastTemplateController::class, 'store'])
+            ->middleware('permission:broadcasts.manage')->name('templates.store');
+        Route::patch('templates/{template}', [\App\Http\Controllers\BroadcastTemplateController::class, 'update'])
+            ->middleware('permission:broadcasts.manage')->name('templates.update');
+        Route::delete('templates/{template}',[\App\Http\Controllers\BroadcastTemplateController::class, 'destroy'])
+            ->middleware('permission:broadcasts.manage')->name('templates.destroy');
     });
 
     // ── Phase 3: API token + webhook admin (WS16) ──

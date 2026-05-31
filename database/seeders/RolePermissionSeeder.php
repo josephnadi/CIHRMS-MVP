@@ -133,6 +133,11 @@ class RolePermissionSeeder extends Seeder
         'messaging.send'    => ['Messaging', 'Send one-off SMS to a phone number'],
         'messaging.manage'  => ['Messaging', 'Issue / rotate USSD self-service PINs'],
 
+        // ── N3: Broadcasts (admin SMS+mail to pre-defined audiences) ──
+        'broadcasts.view'             => ['Broadcasts', 'View broadcast history + recipient outcomes'],
+        'broadcasts.manage'           => ['Broadcasts', 'Compose, schedule, send, cancel broadcasts'],
+        'broadcasts.bypass_throttle'  => ['Broadcasts', 'Bypass the sms:marketing per-phone rate limiter on a broadcast (audit-logged)'],
+
         // ── Phase 4: SSO (NITA / OIDC / SAML) ──
         'sso.manage'        => ['SSO',       'Configure identity providers (NITA, Azure, ghana.gov)'],
         'sso.audit_view'    => ['SSO',       'View SSO login attempt audit log'],
@@ -232,6 +237,7 @@ class RolePermissionSeeder extends Seeder
             'performance.calibrate', 'performance.pip_manage',
             'assets.view', 'assets.manage', 'assets.assign',
             'messaging.view', 'messaging.send', 'messaging.manage',
+            'broadcasts.view', 'broadcasts.manage', 'broadcasts.bypass_throttle',
             'sso.manage', 'sso.audit_view',
             'benefits.view', 'benefits.view_all', 'benefits.manage', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
@@ -315,6 +321,8 @@ class RolePermissionSeeder extends Seeder
             'members.view',
             'fee_catalog.view', 'fee_catalog.manage',
             'billing.run', 'billing.cancel',
+            // N3 — Broadcasts
+            'broadcasts.view', 'broadcasts.manage',
         ],
         'it_support' => [
             'dashboard.view',
