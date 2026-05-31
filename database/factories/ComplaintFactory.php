@@ -17,7 +17,7 @@ class ComplaintFactory extends Factory
     public function definition(): array
     {
         return [
-            'reference'    => 'CMP-' . strtoupper(fake()->bothify('?####')),
+            'reference'    => 'CMP-' . strtoupper(fake()->unique()->bothify('?####')),
             'submitted_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'details'      => fake()->paragraph(4),
             'status'       => fake()->randomElement([
