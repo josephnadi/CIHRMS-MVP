@@ -446,7 +446,7 @@ const mapValid = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Slug <span class="text-rose-500">*</span></label>
-                            <input v-model="form.slug" required placeholder="nita" pattern="[a-z0-9-]+"
+                            <input aria-label="Slug" v-model="form.slug" required placeholder="nita" pattern="[a-z0-9-]+"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low font-mono text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                         <div>
@@ -468,19 +468,19 @@ const mapValid = computed(() => {
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Display name <span class="text-rose-500">*</span></label>
-                        <input v-model="form.name" required placeholder="NITA IDM"
+                        <input aria-label="Display name" v-model="form.name" required placeholder="NITA IDM"
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Button label</label>
-                            <input v-model="form.button_label" placeholder="Sign in with NITA"
+                            <input aria-label="Button label" v-model="form.button_label" placeholder="Sign in with NITA"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Icon (material name)</label>
-                            <input v-model="form.button_icon" placeholder="vpn_key"
+                            <input aria-label="Icon (material name)" v-model="form.button_icon" placeholder="vpn_key"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </div>
@@ -497,7 +497,7 @@ const mapValid = computed(() => {
                         </div>
                         <div v-if="form.auto_provision" class="mt-3 pt-3 border-t border-cyan-200/60 dark:border-cyan-800/40">
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Default role for new users</label>
-                            <input v-model="form.default_role"
+                            <input aria-label="Default role" v-model="form.default_role"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-lowest text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </label>
@@ -506,7 +506,7 @@ const mapValid = computed(() => {
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Allowed email domains
                             <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(comma-separated, blank = any)</span>
                         </label>
-                        <input v-model="form.domains" placeholder="mofep.gov.gh, cihrm.gov.gh"
+                        <input aria-label="Allowed email domains (comma-separated, blank = any)" v-model="form.domains" placeholder="mofep.gov.gh, cihrm.gov.gh"
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low font-mono text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                     </div>
 
@@ -519,7 +519,7 @@ const mapValid = computed(() => {
                                 {{ cfgValid ? 'Valid JSON' : 'Invalid JSON' }}
                             </span>
                         </div>
-                        <textarea v-model="form.config_json" rows="6"
+                        <textarea aria-label="Config json" v-model="form.config_json" rows="6"
                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[11.5px] font-mono focus:border-secondary focus:ring-secondary/20 resize-none"
                                   :class="{ 'border-rose-300': !cfgValid }"></textarea>
                     </div>
@@ -533,7 +533,7 @@ const mapValid = computed(() => {
                                 {{ mapValid ? 'Valid' : 'Invalid' }}
                             </span>
                         </div>
-                        <textarea v-model="form.claim_mapping_json" rows="3"
+                        <textarea aria-label="Claim mapping json" v-model="form.claim_mapping_json" rows="3"
                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[11.5px] font-mono focus:border-secondary focus:ring-secondary/20 resize-none"
                                   :class="{ 'border-rose-300': !mapValid }"></textarea>
                     </div>

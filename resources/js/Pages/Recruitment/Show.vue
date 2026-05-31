@@ -244,7 +244,7 @@ const initials = (name) => {
                         <form @submit.prevent="submitOffer" class="space-y-4 p-5">
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70 mb-1.5">Annual gross salary (GHS)</label>
-                                <input
+                                <input aria-label="Annual gross salary (GHS)"
                                     v-model="offerForm.salary"
                                     type="number" step="0.01" min="0"
                                     class="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px]"
@@ -253,7 +253,7 @@ const initials = (name) => {
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70 mb-1.5">Proposed start date</label>
-                                <input
+                                <input aria-label="Proposed start date"
                                     v-model="offerForm.start_date"
                                     type="date"
                                     class="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px]"
@@ -261,7 +261,7 @@ const initials = (name) => {
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70 mb-1.5">Offer valid for (days)</label>
-                                <input
+                                <input aria-label="Offer valid for (days)"
                                     v-model.number="offerForm.expires_in"
                                     type="number" min="1" max="30"
                                     class="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px]"

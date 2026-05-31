@@ -459,14 +459,14 @@ const coveredNow = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Shift code <span class="text-rose-500">*</span></label>
-                            <input v-model="newShift.code" maxlength="20" required placeholder="e.g. MORNING"
+                            <input aria-label="Shift code" v-model="newShift.code" maxlength="20" required placeholder="e.g. MORNING"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low font-mono uppercase text-[13px] focus:border-secondary focus:ring-secondary/20"
                                    :class="{ 'border-rose-400': newShift.errors.code }"/>
                             <p v-if="newShift.errors.code" class="mt-1 text-[11px] text-rose-500">{{ newShift.errors.code }}</p>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Shift name <span class="text-rose-500">*</span></label>
-                            <input v-model="newShift.name" maxlength="80" required placeholder="e.g. Morning Standard"
+                            <input aria-label="Shift name" v-model="newShift.name" maxlength="80" required placeholder="e.g. Morning Standard"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                                    :class="{ 'border-rose-400': newShift.errors.name }"/>
                             <p v-if="newShift.errors.name" class="mt-1 text-[11px] text-rose-500">{{ newShift.errors.name }}</p>
@@ -476,12 +476,12 @@ const coveredNow = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Start time <span class="text-rose-500">*</span></label>
-                            <input v-model="newShift.start_time" type="time" required
+                            <input aria-label="Start time" v-model="newShift.start_time" type="time" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">End time <span class="text-rose-500">*</span></label>
-                            <input v-model="newShift.end_time" type="time" required
+                            <input aria-label="End time" v-model="newShift.end_time" type="time" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </div>
@@ -502,24 +502,24 @@ const coveredNow = computed(() => {
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Grace (min)</label>
-                            <input v-model.number="newShift.grace_period_minutes" type="number" min="0" max="120"
+                            <input aria-label="Grace (min)" v-model.number="newShift.grace_period_minutes" type="number" min="0" max="120"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Full day (h)</label>
-                            <input v-model.number="newShift.full_day_hours" type="number" step="0.25" min="1" max="24"
+                            <input aria-label="Full day (h)" v-model.number="newShift.full_day_hours" type="number" step="0.25" min="1" max="24"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Half day (h)</label>
-                            <input v-model.number="newShift.half_day_hours" type="number" step="0.25" min="0.5" max="12"
+                            <input aria-label="Half day (h)" v-model.number="newShift.half_day_hours" type="number" step="0.25" min="0.5" max="12"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Department (optional)</label>
-                        <select v-model="newShift.department_id"
+                        <select aria-label="Department (optional)" v-model="newShift.department_id"
                                 class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                             <option :value="null">— Any department —</option>
                             <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
@@ -556,7 +556,7 @@ const coveredNow = computed(() => {
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Employee <span class="text-rose-500">*</span></label>
-                        <select v-model="newAssignment.employee_id" required
+                        <select aria-label="Employee" v-model="newAssignment.employee_id" required
                                 class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                                 :class="{ 'border-rose-400': newAssignment.errors.employee_id }">
                             <option value="" disabled>Select employee…</option>
@@ -569,7 +569,7 @@ const coveredNow = computed(() => {
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Shift <span class="text-rose-500">*</span></label>
-                        <select v-model="newAssignment.shift_id" required
+                        <select aria-label="Shift" v-model="newAssignment.shift_id" required
                                 class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                                 :class="{ 'border-rose-400': newAssignment.errors.shift_id }">
                             <option value="" disabled>Select shift…</option>
@@ -583,12 +583,12 @@ const coveredNow = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Effective from <span class="text-rose-500">*</span></label>
-                            <input v-model="newAssignment.effective_from" type="date" required
+                            <input aria-label="Effective from" v-model="newAssignment.effective_from" type="date" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Effective to <span class="ml-1 font-normal text-on-surface-variant/50">(opt.)</span></label>
-                            <input v-model="newAssignment.effective_to" type="date"
+                            <input aria-label="Effective to (opt.)" v-model="newAssignment.effective_to" type="date"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </div>

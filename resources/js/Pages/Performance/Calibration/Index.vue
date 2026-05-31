@@ -300,7 +300,7 @@ const editorialMetrics = computed(() => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Review Cycle <span class="text-red-500">*</span></label>
-                        <select
+                        <select aria-label="Review Cycle"
                             v-model="form.cycle_id"
                             required
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -317,7 +317,7 @@ const editorialMetrics = computed(() => {
                             Department ID
                             <span class="ml-1 font-normal text-on-surface-variant/60">(leave blank for org-wide)</span>
                         </label>
-                        <input
+                        <input aria-label="Department ID (leave blank for org-wide)"
                             v-model="form.department_id"
                             type="number"
                             placeholder="e.g. 4 — leave blank for full org"

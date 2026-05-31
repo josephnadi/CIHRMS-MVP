@@ -242,7 +242,7 @@ const pipeline = computed(() => {
                         </div>
                         <div class="relative ml-auto w-full sm:w-60">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">search</span>
-                            <input v-model="search" placeholder="Search title or description…"
+                            <input aria-label="Search" v-model="search" placeholder="Search title or description…"
                                    class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </div>
@@ -311,7 +311,7 @@ const pipeline = computed(() => {
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Job title <span class="text-rose-500">*</span></label>
-                        <input v-model="form.title" type="text" required placeholder="e.g. Senior Backend Engineer"
+                        <input aria-label="Job title" v-model="form.title" type="text" required placeholder="e.g. Senior Backend Engineer"
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                                :class="{ 'border-rose-400': form.errors.title }"/>
                         <p v-if="form.errors.title" class="mt-1 text-[11px] text-rose-500">{{ form.errors.title }}</p>
@@ -319,7 +319,7 @@ const pipeline = computed(() => {
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Description <span class="text-rose-500">*</span></label>
-                        <textarea v-model="form.description" rows="8" required
+                        <textarea aria-label="Description" v-model="form.description" rows="8" required
                                   placeholder="Describe the role, responsibilities, required qualifications, and benefits…"
                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20 resize-none"
                                   :class="{ 'border-rose-400': form.errors.description }"></textarea>
@@ -328,7 +328,7 @@ const pipeline = computed(() => {
 
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Closing date <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(blank = open until filled)</span></label>
-                        <input v-model="form.closes_at" type="date"
+                        <input aria-label="Closing date (blank = open until filled)" v-model="form.closes_at" type="date"
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                     </div>
                 </form>

@@ -103,7 +103,7 @@ const charCount = computed(() => (form.description || '').length);
                 <!-- Short title -->
                 <div>
                     <label class="block text-sm font-semibold mb-2">Short title</label>
-                    <input v-model="form.subject_summary" maxlength="255" required
+                    <input aria-label="Short title" v-model="form.subject_summary" maxlength="255" required
                            placeholder="A one-line summary the investigator will see in the dashboard"
                            class="w-full rounded-lg border-outline-variant">
                     <p v-if="form.errors.subject_summary" class="text-rose-600 text-xs mt-1">{{ form.errors.subject_summary }}</p>
@@ -112,7 +112,7 @@ const charCount = computed(() => (form.description || '').length);
                 <!-- Description -->
                 <div>
                     <label class="block text-sm font-semibold mb-2">Tell us what happened</label>
-                    <textarea v-model="form.description" rows="8" required minlength="30" maxlength="20000"
+                    <textarea aria-label="Tell us what happened" v-model="form.description" rows="8" required minlength="30" maxlength="20000"
                               class="w-full rounded-lg border-outline-variant"
                               placeholder="Describe the incident in your own words. Include who, what, where, when, and how you know."></textarea>
                     <div class="flex justify-between text-xs text-on-surface-variant/70 mt-1">
@@ -133,7 +133,7 @@ const charCount = computed(() => (form.description || '').length);
                             </div>
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">Where did it happen?</label>
-                                <input v-model="form.incident_location" class="w-full rounded-lg border-outline-variant"
+                                <input aria-label="Where did it happen?" v-model="form.incident_location" class="w-full rounded-lg border-outline-variant"
                                        placeholder="Office, department, location">
                             </div>
                         </div>
@@ -150,7 +150,7 @@ const charCount = computed(() => (form.description || '').length);
 
                         <div>
                             <label class="block text-xs text-on-surface-variant mb-1">Desired outcome</label>
-                            <textarea v-model="form.desired_outcome" rows="3" class="w-full rounded-lg border-outline-variant"
+                            <textarea aria-label="Desired outcome" v-model="form.desired_outcome" rows="3" class="w-full rounded-lg border-outline-variant"
                                       placeholder="What would resolution look like for you?"></textarea>
                         </div>
 

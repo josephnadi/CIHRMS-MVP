@@ -234,7 +234,7 @@ const formattedEventTime = computed(() => {
                 <div class="mt-3 grid gap-2.5">
                     <label class="kiosk-field" :class="{ 'kiosk-field-active': activeField === 'employee_no' }">
                         <span>Employee ID</span>
-                        <input
+                        <input aria-label="EmployeeNo"
                             ref="employeeNoInput"
                             v-model="employeeNo"
                             type="text"
@@ -247,7 +247,7 @@ const formattedEventTime = computed(() => {
                     </label>
                     <label class="kiosk-field" :class="{ 'kiosk-field-active': activeField === 'name' }">
                         <span>Your Name</span>
-                        <input
+                        <input aria-label="FullName"
                             ref="nameInput"
                             v-model="fullName"
                             type="text"

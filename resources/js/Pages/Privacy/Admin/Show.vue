@@ -118,7 +118,7 @@ const editionLabel = computed(() => {
                             <p class="text-xs text-on-surface-variant/70" v-if="R.request_type === 'erasure'">
                                 Tombstones PII fields. Statutory holds (payroll 6yr, SSNIT 7yr, audit chain) are preserved and reported.
                             </p>
-                            <textarea v-model="fulfillForm.summary" rows="3" minlength="20" maxlength="5000" required
+                            <textarea aria-label="Summary" v-model="fulfillForm.summary" rows="3" minlength="20" maxlength="5000" required
                                       class="w-full rounded-lg border-outline-variant text-sm"
                                       placeholder="Decision summary (min 20 chars, shown to the subject)"></textarea>
                             <p v-if="fulfillForm.errors.summary" class="text-[11px] text-rose-700">{{ fulfillForm.errors.summary }}</p>
@@ -128,11 +128,11 @@ const editionLabel = computed(() => {
                         <div class="rounded-2xl border border-rose-200 bg-rose-50/40 p-5 space-y-3">
                             <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-800">Reject request</p>
                             <p class="text-xs text-on-surface-variant/70">Cite the statutory basis (e.g. "Act 843 §27(e) — public-interest archive").</p>
-                            <textarea v-model="rejectForm.statutory_basis" rows="2" minlength="5" maxlength="500" required
+                            <textarea aria-label="Statutory basis" v-model="rejectForm.statutory_basis" rows="2" minlength="5" maxlength="500" required
                                       class="w-full rounded-lg border-outline-variant text-sm"
                                       placeholder="Statutory basis for rejection (min 5 chars)"></textarea>
                             <p v-if="rejectForm.errors.statutory_basis" class="text-[11px] text-rose-700">{{ rejectForm.errors.statutory_basis }}</p>
-                            <textarea v-model="rejectForm.summary" rows="3" minlength="20" maxlength="5000" required
+                            <textarea aria-label="Summary" v-model="rejectForm.summary" rows="3" minlength="20" maxlength="5000" required
                                       class="w-full rounded-lg border-outline-variant text-sm"
                                       placeholder="Explanation summary (min 20 chars, shown to the subject)"></textarea>
                             <p v-if="rejectForm.errors.summary" class="text-[11px] text-rose-700">{{ rejectForm.errors.summary }}</p>

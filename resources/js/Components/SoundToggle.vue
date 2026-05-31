@@ -88,7 +88,7 @@ onBeforeUnmount(() => document.removeEventListener('click', close));
                         <span class="sfx-label">Volume</span>
                         <span class="sfx-vol-val">{{ Math.round(volume * 100) }}%</span>
                     </div>
-                    <input type="range" min="0" max="1" step="0.05"
+                    <input aria-label="Sound effect volume" type="range" min="0" max="1" step="0.05"
                            class="sfx-range"
                            :value="volume"
                            :disabled="isMuted"

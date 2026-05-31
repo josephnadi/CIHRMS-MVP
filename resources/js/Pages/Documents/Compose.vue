@@ -199,7 +199,7 @@ const TOOLS = [
                 <div class="grid grid-cols-1 gap-3">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Title</label>
-                        <input v-model="form.title" required maxlength="255"
+                        <input aria-label="Title" v-model="form.title" required maxlength="255"
                                class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px] font-bold"
                                placeholder="e.g. Memo to Finance — Q2 budget submission" />
                         <p v-if="form.errors.title" class="text-rose-600 text-xs mt-1">{{ form.errors.title }}</p>
@@ -215,7 +215,7 @@ const TOOLS = [
                         </div>
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Description (optional)</label>
-                            <input v-model="form.description" maxlength="2000"
+                            <input aria-label="Description (optional)" v-model="form.description" maxlength="2000"
                                    class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]"
                                    placeholder="Short note for the audit trail" />
                         </div>

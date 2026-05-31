@@ -698,7 +698,7 @@ const formatDate = (d) => {
 
                     <div class="relative ml-auto">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">calendar_month</span>
-                        <input
+                        <input aria-label="Month"
                             v-model="localFilters.month"
                             @change="applyFilters"
                             type="month"
@@ -814,7 +814,7 @@ const formatDate = (d) => {
                 <form @submit.prevent="submit" class="space-y-5 p-6">
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee <span class="text-red-500">*</span></label>
-                        <select
+                        <select aria-label="Employee"
                             v-model="form.employee_id"
                             required
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -830,7 +830,7 @@ const formatDate = (d) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Description"
                             v-model="form.description"
                             type="text"
                             placeholder="e.g. Monthly Salary - May 2026"
@@ -844,7 +844,7 @@ const formatDate = (d) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Amount <span class="text-red-500">*</span></label>
-                            <input
+                            <input aria-label="Amount"
                                 v-model="form.amount"
                                 type="number"
                                 step="0.01"
@@ -858,7 +858,7 @@ const formatDate = (d) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Currency</label>
-                            <select
+                            <select aria-label="Currency"
                                 v-model="form.currency"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             >
@@ -904,7 +904,7 @@ const formatDate = (d) => {
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="text-[11px] font-bold text-on-surface-variant mb-1.5 block uppercase tracking-wider">Employee <span class="text-red-500">*</span></label>
-                                <select
+                                <select aria-label="Employee"
                                     v-model="payslipForm.employee_id"
                                     required
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
@@ -917,7 +917,7 @@ const formatDate = (d) => {
                             </div>
                             <div>
                                 <label class="text-[11px] font-bold text-on-surface-variant mb-1.5 block uppercase tracking-wider">Pay Period <span class="text-red-500">*</span></label>
-                                <input
+                                <input aria-label="Pay Period"
                                     v-model="payslipForm.period"
                                     type="month"
                                     required
@@ -929,7 +929,7 @@ const formatDate = (d) => {
                         <!-- Basic salary -->
                         <div class="mb-5">
                             <label class="text-[11px] font-bold text-on-surface-variant mb-1.5 block uppercase tracking-wider">Basic Monthly Salary (GHS) <span class="text-red-500">*</span></label>
-                            <input
+                            <input aria-label="Basic Monthly Salary (GHS)"
                                 v-model="payslipForm.basic"
                                 type="number"
                                 step="0.01"
@@ -962,13 +962,13 @@ const formatDate = (d) => {
                             </div>
 
                             <div v-for="(row, i) in payslipForm.allowances" :key="`a-${i}`" class="flex gap-2 mb-2">
-                                <input
+                                <input aria-label="Label"
                                     v-model="row.label"
                                     type="text"
                                     placeholder="e.g. Fuel Allowance"
                                     class="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
                                 />
-                                <input
+                                <input aria-label="Amount"
                                     v-model="row.amount"
                                     type="number" step="0.01" min="0"
                                     placeholder="0.00"
@@ -991,7 +991,7 @@ const formatDate = (d) => {
                                 <span class="material-symbols-outlined text-[14px]">savings</span>
                                 SSNIT Tier 3 (voluntary, tax-deductible)
                             </label>
-                            <input
+                            <input aria-label="savings SSNIT Tier 3 (voluntary, tax-deductible)"
                                 v-model="payslipForm.tier3_employee"
                                 type="number" step="0.01" min="0"
                                 placeholder="0.00"
@@ -1022,13 +1022,13 @@ const formatDate = (d) => {
                             </div>
 
                             <div v-for="(row, i) in payslipForm.voluntary_deductions" :key="`d-${i}`" class="flex gap-2 mb-2">
-                                <input
+                                <input aria-label="Label"
                                     v-model="row.label"
                                     type="text"
                                     placeholder="e.g. Loan repayment"
                                     class="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
                                 />
-                                <input
+                                <input aria-label="Amount"
                                     v-model="row.amount"
                                     type="number" step="0.01" min="0"
                                     placeholder="0.00"

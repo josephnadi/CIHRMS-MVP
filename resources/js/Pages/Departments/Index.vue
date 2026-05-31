@@ -233,7 +233,7 @@ const goToEmployees = (deptId) => {
                 <form @submit.prevent="submit" class="space-y-5 p-6">
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Department Name <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Department Name"
                             v-model="form.name"
                             type="text"
                             placeholder="e.g. Information Technology"
@@ -249,7 +249,7 @@ const goToEmployees = (deptId) => {
                             Department Code <span class="text-red-500">*</span>
                             <span class="ml-1 font-normal text-on-surface-variant/60">(2—10 chars)</span>
                         </label>
-                        <input
+                        <input aria-label="Department Code * (2—10 chars)"
                             v-model="form.code"
                             type="text"
                             placeholder="e.g. IT"
@@ -263,7 +263,7 @@ const goToEmployees = (deptId) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description</label>
-                        <textarea
+                        <textarea aria-label="Description"
                             v-model="form.description"
                             rows="3"
                             placeholder="Brief description of this department's purpose…"

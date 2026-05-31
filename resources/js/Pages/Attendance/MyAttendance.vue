@@ -311,7 +311,7 @@ const attendancePct = computed(() => {
                             <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">
                                 {{ period?.label ?? '' }}
                             </p>
-                            <input
+                            <input aria-label="MonthValue"
                                 v-model="monthValue"
                                 type="month"
                                 @change="changeMonth"
@@ -436,7 +436,7 @@ const attendancePct = computed(() => {
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             Event Date & Time <span class="text-red-500">*</span>
                         </label>
-                        <input
+                        <input aria-label="Event Date &amp; Time"
                             v-model="correctionForm.requested_event_at"
                             type="datetime-local"
                             required
@@ -485,7 +485,7 @@ const attendancePct = computed(() => {
                             Reason <span class="text-red-500">*</span>
                             <span class="ml-1 font-normal text-on-surface-variant/60">(min 8 characters)</span>
                         </label>
-                        <textarea
+                        <textarea aria-label="Reason * (min 8 characters)"
                             v-model="correctionForm.reason"
                             required
                             minlength="8"

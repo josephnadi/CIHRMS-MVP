@@ -47,7 +47,7 @@ const SCOPES = ['personal', 'department', 'organization'];
 
         <form @submit.prevent="submit" enctype="multipart/form-data"
               class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card mb-6 grid md:grid-cols-6 gap-3">
-            <input v-model="form.name" required placeholder="Name"
+            <input aria-label="Name" v-model="form.name" required placeholder="Name"
                    class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
             <select v-model="form.owner_scope" aria-label="Ownership scope" class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                 <option v-for="s in SCOPES" :key="s" :value="s"
@@ -58,7 +58,7 @@ const SCOPES = ['personal', 'department', 'organization'];
                 <option value="image">Image (PNG)</option>
             </select>
             <template v-if="form.type === 'text'">
-                <input v-model="form.text" required placeholder="WATERMARK TEXT"
+                <input aria-label="Text" v-model="form.text" required placeholder="WATERMARK TEXT"
                        class="rounded-lg border border-outline-variant px-3 py-2 text-[13px] font-bold uppercase" />
                 <input v-model="form.color" type="color" aria-label="Watermark colour" class="rounded-lg border border-outline-variant w-full h-10" />
             </template>

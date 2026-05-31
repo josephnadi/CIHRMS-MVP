@@ -208,7 +208,7 @@ const initials = (name) => {
                             <span class="material-symbols-outlined text-[17px]" style="font-variation-settings:'FILL' 1">tune</span>
                             Calibration
                         </Link>
-                        <select
+                        <select aria-label="SelectedCycle"
                             v-model="selectedCycle"
                             class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                         >

@@ -127,7 +127,7 @@ const reports = computed(() => props.reports?.data ?? []);
                 </div>
                 <div>
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant/70 mb-2">Search</p>
-                    <input v-model="localFilters.q" placeholder="Title…"
+                    <input aria-label="Q" v-model="localFilters.q" placeholder="Title…"
                            class="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                 </div>
             </aside>
@@ -172,13 +172,13 @@ const reports = computed(() => props.reports?.data ?? []);
                 </div>
                 <div>
                     <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Title</label>
-                    <input v-model="form.title" required minlength="6" maxlength="180"
+                    <input aria-label="Title" v-model="form.title" required minlength="6" maxlength="180"
                            class="w-full rounded-xl border border-outline-variant px-4 py-2.5 text-[13px]" />
                     <p v-if="form.errors.title" class="mt-1 text-[11px] text-red-500">{{ form.errors.title }}</p>
                 </div>
                 <div>
                     <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Details</label>
-                    <textarea v-model="form.body" rows="8" required minlength="20" maxlength="10000"
+                    <textarea aria-label="Details" v-model="form.body" rows="8" required minlength="20" maxlength="10000"
                               class="w-full rounded-xl border border-outline-variant px-4 py-2.5 text-[13px]" />
                     <p v-if="form.errors.body" class="mt-1 text-[11px] text-red-500">{{ form.errors.body }}</p>
                 </div>

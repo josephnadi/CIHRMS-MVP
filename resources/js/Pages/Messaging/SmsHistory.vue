@@ -195,7 +195,7 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GH', { day: '2-dig
 
                     <div class="relative flex-1 min-w-[200px] max-w-xs">
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">phone</span>
-                        <input v-model="localFilters.to_phone" @keyup.enter="applyFilters"
+                        <input aria-label="To phone" v-model="localFilters.to_phone" @keyup.enter="applyFilters"
                                placeholder="Filter by phone…"
                                class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                     </div>
@@ -335,7 +335,7 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GH', { day: '2-dig
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                         Recipient phone <span class="text-rose-500">*</span>
                     </label>
-                    <input v-model="sendForm.to_phone" required placeholder="0200000099 or 233200000099"
+                    <input aria-label="Recipient phone" v-model="sendForm.to_phone" required placeholder="0200000099 or 233200000099"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': sendForm.errors.to_phone }"/>
                     <p v-if="sendForm.errors.to_phone" class="mt-1 text-[11px] text-rose-500">{{ sendForm.errors.to_phone }}</p>
@@ -345,7 +345,7 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GH', { day: '2-dig
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                         Message body <span class="text-rose-500">*</span>
                     </label>
-                    <textarea v-model="sendForm.body" rows="5" required maxlength="1600"
+                    <textarea aria-label="Message body" v-model="sendForm.body" rows="5" required maxlength="1600"
                               class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20 resize-none"
                               :class="{ 'border-rose-400': sendForm.errors.body }"></textarea>
                     <p class="mt-1.5 flex items-center justify-between text-[11px]">
@@ -392,7 +392,7 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GH', { day: '2-dig
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                         Employee ID <span class="text-rose-500">*</span>
                     </label>
-                    <input v-model.number="pinForm.employee_id" type="number" required
+                    <input aria-label="Employee ID" v-model.number="pinForm.employee_id" type="number" required
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': pinForm.errors.employee_id }"/>
                 </div>
@@ -401,7 +401,7 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GH', { day: '2-dig
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                         Phone <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(E.164 or 0XXXXXXXXX)</span> <span class="text-rose-500">*</span>
                     </label>
-                    <input v-model="pinForm.phone" required
+                    <input aria-label="Phone (E.164 or 0XXXXXXXXX)" v-model="pinForm.phone" required
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"/>
                 </div>
 
@@ -409,7 +409,7 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GH', { day: '2-dig
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                         Validity <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(days)</span>
                     </label>
-                    <input v-model.number="pinForm.validity_days" type="number" min="1" max="730"
+                    <input aria-label="Validity (days)" v-model.number="pinForm.validity_days" type="number" min="1" max="730"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
             </form>

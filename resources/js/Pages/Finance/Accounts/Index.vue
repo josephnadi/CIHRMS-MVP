@@ -126,7 +126,7 @@ const typeColor = (typeValue) => ({
                         : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-secondary/40']">
                 {{ t.label }}
             </button>
-            <input v-model="searchTerm" type="text" placeholder="Search code or name..."
+            <input aria-label="SearchTerm" v-model="searchTerm" type="text" placeholder="Search code or name..."
                    class="ml-auto rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest" />
         </div>
 
@@ -182,7 +182,7 @@ const typeColor = (typeValue) => ({
                 </div>
                 <div>
                     <InputLabel for="type" value="Type" />
-                    <select id="type" v-model="form.type"
+                    <select aria-label="Type" id="type" v-model="form.type"
                             class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                         <option value="asset">Asset</option>
                         <option value="liability">Liability</option>
@@ -194,7 +194,7 @@ const typeColor = (typeValue) => ({
                 </div>
                 <div>
                     <InputLabel for="parent_id" value="Parent account" />
-                    <select id="parent_id" v-model="form.parent_id"
+                    <select aria-label="Parent id" id="parent_id" v-model="form.parent_id"
                             class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                         <option :value="null">— (root)</option>
                         <option v-for="acc in flatRows" :key="acc.id"
@@ -207,7 +207,7 @@ const typeColor = (typeValue) => ({
                 </div>
                 <div>
                     <InputLabel for="description" value="Description" />
-                    <textarea id="description" v-model="form.description" rows="3"
+                    <textarea aria-label="Description" id="description" v-model="form.description" rows="3"
                               class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
                     <InputError :message="form.errors.description" />
                 </div>

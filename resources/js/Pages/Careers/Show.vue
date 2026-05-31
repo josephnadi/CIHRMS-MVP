@@ -132,7 +132,7 @@ const formatDate = (d) => {
                         <form @submit.prevent="submit" class="space-y-4">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Full Name <span class="text-red-500">*</span></label>
-                                <input
+                                <input aria-label="Full Name"
                                     v-model="form.name"
                                     type="text"
                                     placeholder="Your full name"
@@ -145,7 +145,7 @@ const formatDate = (d) => {
 
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Email Address <span class="text-red-500">*</span></label>
-                                <input
+                                <input aria-label="Email Address"
                                     v-model="form.email"
                                     type="email"
                                     placeholder="you@example.com"

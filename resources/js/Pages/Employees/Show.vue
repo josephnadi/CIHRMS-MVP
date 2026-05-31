@@ -546,7 +546,7 @@ const priorityColors = {
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Document Title</label>
-                                <input
+                                <input aria-label="Document Title"
                                     v-model="docForm.title"
                                     type="text"
                                     placeholder="e.g. Employment Contract"
@@ -792,7 +792,7 @@ const priorityColors = {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Department</label>
-                            <select
+                            <select aria-label="Department"
                                 v-model="editForm.department_id"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             >
@@ -802,31 +802,31 @@ const priorityColors = {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee No.</label>
-                            <input v-model="editForm.employee_no" type="text"
+                            <input aria-label="Employee No." v-model="editForm.employee_no" type="text"
                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Position</label>
-                            <input v-model="editForm.position" type="text" placeholder="e.g. Senior Analyst"
+                            <input aria-label="Position" v-model="editForm.position" type="text" placeholder="e.g. Senior Analyst"
                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Phone</label>
-                            <input v-model="editForm.phone" type="tel" placeholder="+233 24 000 0000"
+                            <input aria-label="Phone" v-model="editForm.phone" type="tel" placeholder="+233 24 000 0000"
                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Hire Date</label>
-                            <input v-model="editForm.hire_date" type="date"
+                            <input aria-label="Hire Date" v-model="editForm.hire_date" type="date"
                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Status</label>
-                            <select v-model="editForm.status"
+                            <select aria-label="Status" v-model="editForm.status"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all">
                                 <option value="active">Active</option>
                                 <option value="on_leave">On Leave</option>

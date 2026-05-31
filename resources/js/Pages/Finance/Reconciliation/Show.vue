@@ -179,12 +179,12 @@ const rematch = () => {
                 <form @submit.prevent="submitAdjust" class="space-y-3">
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Offset GL Account ID</label>
-                        <input v-model.number="adjForm.gl_account_id" type="number" min="1"
+                        <input aria-label="Offset GL Account ID" v-model.number="adjForm.gl_account_id" type="number" min="1"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Narration</label>
-                        <input v-model="adjForm.narration" type="text"
+                        <input aria-label="Narration" v-model="adjForm.narration" type="text"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                     </div>
                     <div class="flex justify-end gap-2 pt-2">

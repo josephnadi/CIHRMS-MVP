@@ -240,10 +240,10 @@ const initials = (name) => {
                         </div>
                         <div class="relative flex-1 min-w-[200px] max-w-xs">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">search</span>
-                            <input v-model="localFilters.search" placeholder="Search employee name or staff ID…"
+                            <input aria-label="Search" v-model="localFilters.search" placeholder="Search employee name or staff ID…"
                                    class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
-                        <select v-model="localFilters.status" @change="applyFilters"
+                        <select aria-label="Status" v-model="localFilters.status" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All statuses</option>
                             <option value="pending">Pending</option>
@@ -420,7 +420,7 @@ const initials = (name) => {
                                         <span v-if="reviewForm.decision === 'reject'" class="text-rose-500">*</span>
                                         <span v-else class="ml-1 font-normal text-on-surface-variant/60 normal-case">(optional)</span>
                                     </label>
-                                    <textarea v-model="reviewForm.decision_notes" rows="3"
+                                    <textarea aria-label="Decision notes * (optional)" v-model="reviewForm.decision_notes" rows="3"
                                               :required="reviewForm.decision === 'reject'"
                                               :placeholder="reviewForm.decision === 'approve'
                                                 ? 'Add any notes for the employee (optional)…'

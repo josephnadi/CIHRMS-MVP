@@ -81,14 +81,14 @@ const rows = props.templates.data ?? props.templates ?? [];
                 </div>
                 <div>
                     <InputLabel for="audience_type" value="Audience type" />
-                    <select id="audience_type" v-model="form.audience_type" required
+                    <select aria-label="Audience type" id="audience_type" v-model="form.audience_type" required
                             class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm">
                         <option v-for="t in audienceTypes" :key="t.value" :value="t.value">{{ t.label }}</option>
                     </select>
                 </div>
                 <div>
                     <InputLabel for="sms_body" value="SMS body (optional)" />
-                    <textarea id="sms_body" v-model="form.sms_body" rows="3"
+                    <textarea aria-label="Sms body" id="sms_body" v-model="form.sms_body" rows="3"
                               class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm font-mono"></textarea>
                     <InputError :message="form.errors.sms_body" class="mt-1" />
                 </div>
@@ -99,7 +99,7 @@ const rows = props.templates.data ?? props.templates ?? [];
                 </div>
                 <div>
                     <InputLabel for="mail_body" value="Mail body (optional)" />
-                    <textarea id="mail_body" v-model="form.mail_body" rows="6"
+                    <textarea aria-label="Mail body" id="mail_body" v-model="form.mail_body" rows="6"
                               class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm"></textarea>
                     <InputError :message="form.errors.mail_body" class="mt-1" />
                 </div>

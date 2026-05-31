@@ -95,7 +95,7 @@ async function pickAsset(asset) {
                 </div>
                 <div class="mt-4 border-t border-outline-variant/40 pt-3">
                     <div class="flex items-center gap-2">
-                        <input v-model="customText" placeholder="STAMP TEXT" maxlength="20"
+                        <input aria-label="CustomText" v-model="customText" placeholder="STAMP TEXT" maxlength="20"
                                class="flex-1 rounded-lg border border-outline-variant text-[13px] px-3 py-2 font-bold uppercase" />
                         <input v-model="customColor" type="color" aria-label="Custom stamp colour" class="rounded-lg border border-outline-variant w-10 h-10" />
                         <button :disabled="! customText.trim()"

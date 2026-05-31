@@ -110,7 +110,7 @@ const assigneeIds = computed(() => new Set((r.value.assignees ?? []).map(a => a.
                 <form v-if="r.status !== 'closed'" @submit.prevent="sendReply"
                       class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card space-y-3"
                       enctype="multipart/form-data">
-                    <textarea v-model="reply.body" rows="3" required maxlength="10000"
+                    <textarea aria-label="Body" v-model="reply.body" rows="3" required maxlength="10000"
                               placeholder="Write a reply…"
                               class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] resize-none" />
                     <div class="flex items-center justify-between gap-3">

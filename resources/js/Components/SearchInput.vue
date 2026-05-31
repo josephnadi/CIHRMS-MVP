@@ -53,7 +53,7 @@ function clear() {
         </span>
 
         <!-- Input -->
-        <input
+        <input aria-label="placeholder"
             type="text"
             :value="internalValue"
             :placeholder="placeholder"

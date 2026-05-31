@@ -280,7 +280,7 @@ const areaIcon = (area) => ({
                     <!-- Cancel inline form -->
                     <div v-if="showCancel" class="rounded-xl border border-red-300/50 bg-red-50/30 dark:bg-red-950/20 p-4 space-y-3">
                         <p class="text-[12px] font-bold text-red-700">Cancellation reason <span class="text-red-500">*</span></p>
-                        <textarea
+                        <textarea aria-label="Reason"
                             v-model="cancelForm.reason"
                             rows="2"
                             placeholder="Provide a reason for cancellation…"
@@ -399,7 +399,7 @@ const areaIcon = (area) => ({
                                             <label class="text-[11px] font-semibold text-amber-700 mb-1 block">
                                                 Reason for waiving <span class="text-red-500">*</span>
                                             </label>
-                                            <input
+                                            <input aria-label="Reason for waiving"
                                                 v-model="waiveForm.notes"
                                                 class="w-full rounded-xl border border-amber-300/60 bg-white dark:bg-surface-container-low px-4 py-2 text-[13px] text-on-surface focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
                                                 placeholder="Enter waive reason…"
@@ -446,7 +446,7 @@ const areaIcon = (area) => ({
                         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-5">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Gratuity (months/yr)</label>
-                                <input
+                                <input aria-label="Gratuity (months/yr)"
                                     v-model.number="settleForm.gratuity_months_per_year"
                                     type="number"
                                     step="0.1"
@@ -455,7 +455,7 @@ const areaIcon = (area) => ({
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Severance (months/yr)</label>
-                                <input
+                                <input aria-label="Severance (months/yr)"
                                     v-model.number="settleForm.severance_months_per_year"
                                     type="number"
                                     step="0.1"
@@ -464,7 +464,7 @@ const areaIcon = (area) => ({
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Working days / month</label>
-                                <input
+                                <input aria-label="Working days / month"
                                     v-model.number="settleForm.working_days_per_month"
                                     type="number"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -472,7 +472,7 @@ const areaIcon = (area) => ({
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Ex-gratia (GHS)</label>
-                                <input
+                                <input aria-label="Ex-gratia (GHS)"
                                     v-model.number="settleForm.ex_gratia"
                                     type="number"
                                     step="0.01"
@@ -481,7 +481,7 @@ const areaIcon = (area) => ({
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Prorated 13th month</label>
-                                <input
+                                <input aria-label="Prorated 13th month"
                                     v-model.number="settleForm.prorated_13th_month"
                                     type="number"
                                     step="0.01"
@@ -490,7 +490,7 @@ const areaIcon = (area) => ({
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Other deductions</label>
-                                <input
+                                <input aria-label="Other deductions"
                                     v-model.number="settleForm.other_deductions"
                                     type="number"
                                     step="0.01"

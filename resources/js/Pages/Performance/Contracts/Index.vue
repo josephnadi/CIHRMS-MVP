@@ -236,7 +236,7 @@ const editorialMetrics = computed(() => {
                         <SearchInput v-model="localFilters.search" placeholder="Search employee name, no…" />
                     </div>
 
-                    <select
+                    <select aria-label="Cycle id"
                         v-model="localFilters.cycle_id"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -245,7 +245,7 @@ const editorialMetrics = computed(() => {
                         <option v-for="c in cycles" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
 
-                    <select
+                    <select aria-label="Status"
                         v-model="localFilters.status"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -429,7 +429,7 @@ const editorialMetrics = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Review Cycle <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Review Cycle"
                                 v-model="form.cycle_id"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -440,7 +440,7 @@ const editorialMetrics = computed(() => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee ID <span class="text-red-500">*</span></label>
-                            <input
+                            <input aria-label="Employee ID"
                                 v-model="form.employee_id"
                                 type="number"
                                 placeholder="Employee ID"
@@ -453,7 +453,7 @@ const editorialMetrics = computed(() => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Supervisor ID</label>
-                        <input
+                        <input aria-label="Supervisor ID"
                             v-model="form.supervisor_id"
                             type="number"
                             placeholder="Supervisor employee ID (optional)"
@@ -465,7 +465,7 @@ const editorialMetrics = computed(() => {
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             KPIs <span class="text-on-surface-variant/50 font-normal">(JSON array)</span>
                         </label>
-                        <textarea
+                        <textarea aria-label="KPIs (JSON array)"
                             v-model="form.kpis"
                             rows="6"
                             placeholder='[{"title":"Reduce report turnaround","weight":30,"target_value":3,"unit":"days"}]'

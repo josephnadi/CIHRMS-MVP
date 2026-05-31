@@ -248,7 +248,7 @@ const rowClass = (r) => {
                     <!-- Reject inline form -->
                     <div v-if="showReject" class="rounded-xl border border-red-300/50 bg-red-50/30 dark:bg-red-950/20 p-4 space-y-3">
                         <p class="text-[12px] font-bold text-red-700">Rejection reason <span class="text-red-500">*</span></p>
-                        <textarea
+                        <textarea aria-label="Reason"
                             v-model="decideForm.reason"
                             rows="3"
                             placeholder="Provide a clear reason for rejection…"
@@ -272,7 +272,7 @@ const rowClass = (r) => {
                     <!-- First repayment period for disburse (shown when status=approved) -->
                     <div v-if="L.status === 'approved' && L.can?.disburse" class="flex items-center gap-3">
                         <label class="text-[12px] font-semibold text-on-surface-variant whitespace-nowrap">First repayment period</label>
-                        <input
+                        <input aria-label="First repayment period"
                             v-model="disburseForm.first_repayment_period"
                             type="month"
                             class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"

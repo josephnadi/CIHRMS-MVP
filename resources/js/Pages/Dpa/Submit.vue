@@ -33,13 +33,13 @@ const submit = () => form.post(route('dpa.submit'));
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <label class="block">
                         <span class="text-[12px] font-bold text-slate-700">Full name</span>
-                        <input v-model="form.subject_full_name" required type="text"
+                        <input aria-label="Subject full name" v-model="form.subject_full_name" required type="text"
                                class="mt-1 w-full rounded-lg border-slate-300 text-[13px]" />
                         <span v-if="form.errors.subject_full_name" class="text-[11px] text-rose-600">{{ form.errors.subject_full_name }}</span>
                     </label>
                     <label class="block">
                         <span class="text-[12px] font-bold text-slate-700">Email</span>
-                        <input v-model="form.subject_email" required type="email"
+                        <input aria-label="Subject email" v-model="form.subject_email" required type="email"
                                class="mt-1 w-full rounded-lg border-slate-300 text-[13px]" />
                         <span v-if="form.errors.subject_email" class="text-[11px] text-rose-600">{{ form.errors.subject_email }}</span>
                     </label>
@@ -55,7 +55,7 @@ const submit = () => form.post(route('dpa.submit'));
 
                 <label class="block">
                     <span class="text-[12px] font-bold text-slate-700">Your request</span>
-                    <textarea v-model="form.subject_statement" required rows="5" minlength="10"
+                    <textarea aria-label="Subject statement" v-model="form.subject_statement" required rows="5" minlength="10"
                               class="mt-1 w-full rounded-lg border-slate-300 text-[13px]"
                               placeholder="Briefly describe what you want — e.g. 'A copy of all personal data you hold about me'."></textarea>
                     <span v-if="form.errors.subject_statement" class="text-[11px] text-rose-600">{{ form.errors.subject_statement }}</span>

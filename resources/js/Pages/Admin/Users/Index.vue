@@ -128,7 +128,7 @@ const rolePillClass = (slug) => {
 
                 <div>
                     <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Full name</label>
-                    <input v-model="form.name" type="text" required autocomplete="off"
+                    <input aria-label="Full name" v-model="form.name" type="text" required autocomplete="off"
                            class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                     <p v-if="form.errors.name" class="mt-1 text-[11px] text-rose-700">{{ form.errors.name }}</p>
                 </div>
@@ -136,13 +136,13 @@ const rolePillClass = (slug) => {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Staff ID</label>
-                        <input v-model="form.staff_id" type="text" required placeholder="GH-HR-042" autocomplete="off"
+                        <input aria-label="Staff ID" v-model="form.staff_id" type="text" required placeholder="GH-HR-042" autocomplete="off"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px] font-mono" />
                         <p v-if="form.errors.staff_id" class="mt-1 text-[11px] text-rose-700">{{ form.errors.staff_id }}</p>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Email</label>
-                        <input v-model="form.email" type="email" required autocomplete="off"
+                        <input aria-label="Email" v-model="form.email" type="email" required autocomplete="off"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                         <p v-if="form.errors.email" class="mt-1 text-[11px] text-rose-700">{{ form.errors.email }}</p>
                     </div>
@@ -150,7 +150,7 @@ const rolePillClass = (slug) => {
 
                 <div>
                     <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Role</label>
-                    <select v-model="form.role" required
+                    <select aria-label="Role" v-model="form.role" required
                             class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                         <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
                     </select>
@@ -160,13 +160,13 @@ const rolePillClass = (slug) => {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Password</label>
-                        <input v-model="form.password" type="password" required autocomplete="new-password"
+                        <input aria-label="Password" v-model="form.password" type="password" required autocomplete="new-password"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                         <p v-if="form.errors.password" class="mt-1 text-[11px] text-rose-700">{{ form.errors.password }}</p>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Confirm password</label>
-                        <input v-model="form.password_confirmation" type="password" required autocomplete="new-password"
+                        <input aria-label="Confirm password" v-model="form.password_confirmation" type="password" required autocomplete="new-password"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                     </div>
                 </div>
@@ -187,7 +187,7 @@ const rolePillClass = (slug) => {
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Department</label>
-                            <select v-model.number="form.department_id" required
+                            <select aria-label="Department" v-model.number="form.department_id" required
                                     class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                                 <option :value="null">— select —</option>
                                 <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
@@ -196,7 +196,7 @@ const rolePillClass = (slug) => {
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Position / title</label>
-                            <input v-model="form.position" type="text" required maxlength="120"
+                            <input aria-label="Position / title" v-model="form.position" type="text" required maxlength="120"
                                    placeholder="Chief Executive Officer"
                                    class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                             <p v-if="form.errors.position" class="mt-1 text-[11px] text-rose-700">{{ form.errors.position }}</p>
@@ -206,20 +206,20 @@ const rolePillClass = (slug) => {
                     <div class="grid grid-cols-2 gap-3 mt-3">
                         <div>
                             <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Hire date</label>
-                            <input v-model="form.hire_date" type="date" required
+                            <input aria-label="Hire date" v-model="form.hire_date" type="date" required
                                    class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                             <p v-if="form.errors.hire_date" class="mt-1 text-[11px] text-rose-700">{{ form.errors.hire_date }}</p>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Phone (optional)</label>
-                            <input v-model="form.phone" type="text" maxlength="32" placeholder="+233200000000"
+                            <input aria-label="Phone (optional)" v-model="form.phone" type="text" maxlength="32" placeholder="+233200000000"
                                    class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
                         </div>
                     </div>
 
                     <div class="mt-3">
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Employee number (optional)</label>
-                        <input v-model="form.employee_no" type="text" maxlength="32" placeholder="Leave blank to auto-generate (CIHRM-####)"
+                        <input aria-label="Employee number (optional)" v-model="form.employee_no" type="text" maxlength="32" placeholder="Leave blank to auto-generate (CIHRM-####)"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px] font-mono" />
                         <p v-if="form.errors.employee_no" class="mt-1 text-[11px] text-rose-700">{{ form.errors.employee_no }}</p>
                     </div>

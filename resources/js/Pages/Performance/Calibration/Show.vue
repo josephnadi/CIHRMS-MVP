@@ -150,7 +150,7 @@ const act = (b) => Math.round(((props.actual_distribution     ?? {})[b] ?? 0) * 
                         <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">New rating (1-5)</label>
-                                <input v-model.number="adjustForm.adjusted_rating" type="number" step="0.25" min="1" max="5"
+                                <input aria-label="New rating (1-5)" v-model.number="adjustForm.adjusted_rating" type="number" step="0.25" min="1" max="5"
                                        class="w-full rounded-lg border-outline-variant text-sm">
                             </div>
                             <div class="col-span-2">

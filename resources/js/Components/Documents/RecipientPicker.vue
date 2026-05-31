@@ -69,7 +69,7 @@ onBeforeUnmount(() => { if (debounceTimer) clearTimeout(debounceTimer); });
 <template>
     <div class="relative flex-1">
         <div class="flex items-center gap-1">
-            <input v-model="query"
+            <input aria-label="Query" v-model="query"
                    @input="onInput"
                    @focus="open = results.length > 0"
                    placeholder="Search by name or staff ID…"

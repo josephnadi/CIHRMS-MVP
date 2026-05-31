@@ -95,7 +95,7 @@ const channelClass = (c) => ({
 
                 <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40">
                     <div class="px-5 py-4 border-b border-outline-variant/40 flex flex-wrap gap-3 items-center">
-                        <input v-model="localFilters.run_id" type="number" placeholder="Run ID"
+                        <input aria-label="Run id" v-model="localFilters.run_id" type="number" placeholder="Run ID"
                                @keyup.enter="applyFilters"
                                class="rounded-lg border-outline-variant text-sm w-24">
                         <select v-model="localFilters.channel" @change="applyFilters" aria-label="Filter by channel" class="rounded-lg border-outline-variant text-sm">

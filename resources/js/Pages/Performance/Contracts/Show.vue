@@ -122,12 +122,12 @@ const totalWeight = computed(() => (C.value.kpis ?? []).reduce((s, k) => s + Num
                         <div class="grid grid-cols-2 gap-3">
                             <div v-for="(k, i) in (C.kpis ?? [])" :key="`actual-${i}`" class="text-sm">
                                 <label class="block text-xs text-on-surface-variant mb-1">{{ k.name }} — actual</label>
-                                <input v-model.number="evalForm.actuals[k.id]" type="number" step="0.01"
+                                <input aria-label="— actual" v-model.number="evalForm.actuals[k.id]" type="number" step="0.01"
                                        :placeholder="`target ${k.target} ${k.unit ?? ''}`"
                                        class="w-full rounded-lg border-outline-variant text-sm">
                             </div>
                         </div>
-                        <textarea v-model="evalForm.end_year_note" rows="2"
+                        <textarea aria-label="— actual" v-model="evalForm.end_year_note" rows="2"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="End-of-cycle note (optional)"></textarea>
                         <PrimaryButton @click="evaluate" :disabled="evalForm.processing">Evaluate (2FA)</PrimaryButton>

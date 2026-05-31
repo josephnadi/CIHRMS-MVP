@@ -85,7 +85,7 @@ function submit() {
 
             <div>
                 <InputLabel for="audience_type" value="Audience" />
-                <select id="audience_type" v-model="form.audience_type" required
+                <select aria-label="Audience type" id="audience_type" v-model="form.audience_type" required
                         class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm">
                     <option v-for="t in audienceTypes" :key="t.value" :value="t.value">{{ t.label }}</option>
                 </select>
@@ -113,7 +113,7 @@ function submit() {
 
             <div v-if="compatibleTemplates.length">
                 <InputLabel for="template_id" value="Use saved template (optional)" />
-                <select id="template_id" v-model.number="form.template_id"
+                <select aria-label="Email" id="template_id" v-model.number="form.template_id"
                         class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm">
                     <option :value="null">— None —</option>
                     <option v-for="t in compatibleTemplates" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -122,7 +122,7 @@ function submit() {
 
             <div v-if="form.channels.includes('sms')">
                 <InputLabel for="sms_body" value="SMS body" />
-                <textarea id="sms_body" v-model="form.sms_body" rows="3"
+                <textarea aria-label="Sms body" id="sms_body" v-model="form.sms_body" rows="3"
                           class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm font-mono"></textarea>
                 <InputError :message="form.errors.sms_body" class="mt-1" />
             </div>
@@ -133,7 +133,7 @@ function submit() {
                 <InputError :message="form.errors.mail_subject" class="mt-1" />
 
                 <InputLabel for="mail_body" value="Email body" class="mt-3" />
-                <textarea id="mail_body" v-model="form.mail_body" rows="8"
+                <textarea aria-label="Mail body" id="mail_body" v-model="form.mail_body" rows="8"
                           class="mt-1 w-full rounded-xl border border-outline-variant px-3 py-2 text-sm"></textarea>
                 <InputError :message="form.errors.mail_body" class="mt-1" />
             </div>

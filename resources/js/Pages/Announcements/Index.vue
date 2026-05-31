@@ -262,7 +262,7 @@ const fmtWhen = (d) => {
                             <!-- Title -->
                             <div>
                                 <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Title <span class="text-rose-500">*</span></label>
-                                <input v-model="form.title" type="text" required maxlength="180"
+                                <input aria-label="Title" v-model="form.title" type="text" required maxlength="180"
                                        placeholder="Office closes 1pm Friday for staff retreat"
                                        class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13.5px] focus:border-secondary focus:ring-secondary/20"
                                        :class="{ 'border-rose-400': form.errors.title }"/>
@@ -272,7 +272,7 @@ const fmtWhen = (d) => {
                             <!-- Body -->
                             <div>
                                 <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Details <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
-                                <textarea v-model="form.body" rows="3" maxlength="2000"
+                                <textarea aria-label="Details (optional)" v-model="form.body" rows="3" maxlength="2000"
                                           placeholder="Add context, dates, location, or a brief explanation."
                                           class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13.5px] focus:border-secondary focus:ring-secondary/20 resize-none"></textarea>
                             </div>
@@ -298,21 +298,21 @@ const fmtWhen = (d) => {
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Severity</label>
-                                    <select v-model="form.severity"
+                                    <select aria-label="Severity" v-model="form.severity"
                                             class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                                         <option v-for="(meta, k) in SEVERITY_META" :key="k" :value="k">{{ meta.label }}</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Audience</label>
-                                    <select v-model="form.audience_role"
+                                    <select aria-label="Audience" v-model="form.audience_role"
                                             class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                                         <option v-for="r in audienceRoles" :key="r.value" :value="r.value">{{ r.label }}</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Link <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
-                                    <input v-model="form.link_url" type="url" placeholder="https://…"
+                                    <input aria-label="Link (optional)" v-model="form.link_url" type="url" placeholder="https://…"
                                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                                 </div>
                             </div>
@@ -321,12 +321,12 @@ const fmtWhen = (d) => {
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Starts <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
-                                    <input v-model="form.starts_at" type="datetime-local"
+                                    <input aria-label="Starts (optional)" v-model="form.starts_at" type="datetime-local"
                                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Ends <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
-                                    <input v-model="form.ends_at" type="datetime-local"
+                                    <input aria-label="Ends (optional)" v-model="form.ends_at" type="datetime-local"
                                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                                 </div>
                                 <div class="flex items-center gap-3">
@@ -483,20 +483,20 @@ const fmtWhen = (d) => {
                         </div>
                         <div class="relative flex-1 min-w-[200px] max-w-xs">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">search</span>
-                            <input v-model="search" placeholder="Search title or body…"
+                            <input aria-label="Search" v-model="search" placeholder="Search title or body…"
                                    class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
-                        <select v-model="typeFilter"
+                        <select aria-label="TypeFilter" v-model="typeFilter"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All types</option>
                             <option v-for="(meta, k) in TYPE_META" :key="k" :value="k">{{ meta.label }}</option>
                         </select>
-                        <select v-model="severityFilter"
+                        <select aria-label="SeverityFilter" v-model="severityFilter"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All severities</option>
                             <option v-for="(meta, k) in SEVERITY_META" :key="k" :value="k">{{ meta.label }}</option>
                         </select>
-                        <select v-model="statusFilter"
+                        <select aria-label="StatusFilter" v-model="statusFilter"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All statuses</option>
                             <option value="active">Active</option>

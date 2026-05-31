@@ -101,7 +101,7 @@ const statusToneClass = (statusValue) => ({
                 <form v-if="['submitted','triaged','investigating','evidence_gathering'].includes(S.status)"
                       @submit.prevent="reply" class="border-t border-outline-variant/40 p-5 space-y-3">
                     <label class="block text-xs font-semibold text-on-surface-variant">Send a message to the investigator</label>
-                    <textarea v-model="replyForm.body" rows="3" required
+                    <textarea aria-label="Send a message to the investigator" v-model="replyForm.body" rows="3" required
                               class="w-full rounded-lg border-outline-variant text-sm"
                               placeholder="Encrypted. Only the assigned investigator can read this."></textarea>
                     <div class="flex justify-end">

@@ -137,7 +137,7 @@ const inputClass = 'w-full rounded-xl border border-outline-variant bg-surface-c
             <div class="flex-1 min-w-[140px]">
                 <label class="block text-[11px] font-semibold text-on-surface-variant/60 mb-1 uppercase tracking-wide">From</label>
                 <div class="relative">
-                    <input
+                    <input aria-label="From"
                         type="date"
                         :value="start"
                         :min="min"
@@ -157,7 +157,7 @@ const inputClass = 'w-full rounded-xl border border-outline-variant bg-surface-c
             <div class="flex-1 min-w-[140px]">
                 <label class="block text-[11px] font-semibold text-on-surface-variant/60 mb-1 uppercase tracking-wide">To</label>
                 <div class="relative">
-                    <input
+                    <input aria-label="To"
                         type="date"
                         :value="end"
                         :min="endMin"
