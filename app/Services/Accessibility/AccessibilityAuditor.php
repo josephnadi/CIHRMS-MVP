@@ -58,11 +58,17 @@ class AccessibilityAuditor
                 $findings,
                 $this->checkImg($relativePath, $lineNumber, $line),
                 $this->checkIconButton($relativePath, $lineNumber, $line),
-                $this->checkInputLabel($relativePath, $lineNumber, $line, $lines),
                 $this->checkAnchorText($relativePath, $lineNumber, $line),
                 $this->checkPositiveTabindex($relativePath, $lineNumber, $line),
             );
         }
+
+        // Input/select/textarea label check runs against the whole source so
+        // multi-line tags (the common pattern: `<input v-model="..."` on one
+        // line, `class="..."` on the next) are not skipped. The per-line
+        // sweep above misses them because their opening tag has no closing
+        // `>` until a later line.
+        $findings = array_merge($findings, $this->checkInputLabel($relativePath, $source));
 
         return $findings;
     }
@@ -132,34 +138,57 @@ class AccessibilityAuditor
         return $out;
     }
 
-    /** WCAG 3.3.2 — Labels or Instructions. Each <input>/select/textarea needs a label or aria-label. */
-    private function checkInputLabel(string $file, int $line, string $source, array $allLines): array
+    /**
+     * WCAG 3.3.2 — Labels or Instructions. Each <input>/select/textarea
+     * needs a label or aria-label.
+     *
+     * Runs once against the whole source (not per-line) so the common
+     * multi-line tag pattern (`<input v-model="..."` on one line then
+     * `class="..."` on the next) is captured. Line number is recovered
+     * from the match offset.
+     */
+    private function checkInputLabel(string $file, string $source): array
     {
-        if (! preg_match_all('/<(input|select|textarea)\b([^>]*)>/i', $source, $m, PREG_OFFSET_CAPTURE)) return [];
+        // `s` flag → dot matches newlines, so we span multi-line tags.
+        // The attrs group walks (a) quoted strings or (b) anything that is
+        // neither `>` nor a quote. That keeps `=>` inside attribute values
+        // (e.g. `@change="ev => fn(x)"`) from terminating the tag early.
+        $pattern = '/<(input|select|textarea)\b((?:"[^"]*"|\'[^\']*\'|[^>\'"])*)\/?>/is';
+        if (! preg_match_all($pattern, $source, $m, PREG_OFFSET_CAPTURE)) {
+            return [];
+        }
+
         $out = [];
         foreach ($m[0] as $i => $match) {
-            $tag   = strtolower($m[1][$i][0]);
-            $attrs = $m[2][$i][0];
+            $tag    = strtolower($m[1][$i][0]);
+            $attrs  = $m[2][$i][0];
+            $offset = $match[1];
 
-            // Skip hidden / submit / button / checkbox-toggle types — those are not "fields".
-            if (preg_match('/\btype\s*=\s*["\'](hidden|submit|button|reset|image)["\']/i', $attrs)) continue;
+            // Skip non-field input types.
+            if (preg_match('/\btype\s*=\s*["\'](hidden|submit|button|reset|image|file|checkbox|radio)["\']/i', $attrs)) {
+                continue;
+            }
 
-            // aria-label / aria-labelledby / :id-bound label = ok.
-            if (preg_match('/(aria-label|aria-labelledby|:aria-label)\s*=/i', $attrs)) continue;
+            // aria-label / aria-labelledby = ok.
+            if (preg_match('/(aria-label|aria-labelledby|:aria-label|v-bind:aria-label)\s*=/i', $attrs)) {
+                continue;
+            }
 
-            // Look for a `for=...` <label> referencing this id within the same file (very rough).
+            // Look for a `for=...` <label> referencing this id within the same file.
             if (preg_match('/\bid\s*=\s*["\']([\w:-]+)["\']/i', $attrs, $idMatch)) {
                 $id = $idMatch[1];
-                $haystack = implode("\n", $allLines);
-                if (preg_match('/<label\b[^>]*\bfor\s*=\s*["\']' . preg_quote($id, '/') . '["\']/i', $haystack)) {
+                if (preg_match('/<label\b[^>]*\bfor\s*=\s*["\']' . preg_quote($id, '/') . '["\']/i', $source)) {
                     continue;
                 }
             }
 
             $out[] = [
-                'file' => $file, 'line' => $line, 'rule' => "{$tag}-missing-label",
-                'wcag' => '3.3.2', 'severity' => 'error',
-                'snippet' => trim($match[0]),
+                'file' => $file,
+                'line' => substr_count(substr($source, 0, $offset), "\n") + 1,
+                'rule' => "{$tag}-missing-label",
+                'wcag' => '3.3.2',
+                'severity' => 'error',
+                'snippet' => trim(preg_replace('/\s+/', ' ', $match[0])),
             ];
         }
         return $out;

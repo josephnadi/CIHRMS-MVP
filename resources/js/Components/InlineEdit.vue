@@ -148,7 +148,7 @@ const inputClass = 'rounded-lg border border-secondary/50 bg-surface-container-l
                 @keydown="onKeydown"
             >
                 <!-- Text / Number input -->
-                <input
+                <input aria-label="EditValue"
                     v-if="type !== 'select'"
                     ref="inputRef"
                     v-model="editValue"
@@ -161,7 +161,7 @@ const inputClass = 'rounded-lg border border-secondary/50 bg-surface-container-l
                 />
 
                 <!-- Select input -->
-                <select
+                <select aria-label="EditValue"
                     v-else
                     ref="inputRef"
                     v-model="editValue"

@@ -307,7 +307,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             <SearchInput v-model="localFilters.search" placeholder="Search courses, providers…" />
                         </div>
 
-                        <select
+                        <select aria-label="Category"
                             v-model="localFilters.category"
                             @change="applyFilters"
                             class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -315,7 +315,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             <option v-for="c in categories" :key="c.v" :value="c.v">{{ c.l }}</option>
                         </select>
 
-                        <select
+                        <select aria-label="Format"
                             v-model="localFilters.format"
                             @change="applyFilters"
                             class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -634,7 +634,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <!-- Course identity -->
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Course Title <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Course Title"
                             v-model="createForm.title"
                             type="text"
                             required
@@ -648,7 +648,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description</label>
-                        <textarea
+                        <textarea aria-label="Description"
                             v-model="createForm.description"
                             rows="3"
                             placeholder="What will learners gain from this course?"
@@ -659,7 +659,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Category <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Category"
                                 v-model="createForm.category"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -669,7 +669,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Format <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Format"
                                 v-model="createForm.format"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -682,7 +682,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Provider</label>
-                            <input
+                            <input aria-label="Provider"
                                 v-model="createForm.provider"
                                 type="text"
                                 maxlength="120"
@@ -692,7 +692,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Duration (min)</label>
-                            <input
+                            <input aria-label="Duration (min)"
                                 v-model.number="createForm.duration_minutes"
                                 type="number"
                                 min="0"
@@ -701,7 +701,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Price (GHS)</label>
-                            <input
+                            <input aria-label="Price (GHS)"
                                 v-model.number="createForm.price"
                                 type="number"
                                 step="0.01"
@@ -725,7 +725,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                     <span class="material-symbols-outlined text-[12px]">close</span>
                                 </button>
                             </span>
-                            <input
+                            <input aria-label="TagInput"
                                 v-model="tagInput"
                                 @keydown.enter.prevent="addTag"
                                 @keydown.,.prevent="addTag"

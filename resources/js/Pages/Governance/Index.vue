@@ -315,10 +315,10 @@ const editionLabel = computed(() => {
                         </div>
                         <div class="relative flex-1 min-w-[220px] max-w-xs">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">search</span>
-                            <input v-model="search" placeholder="Search title or summary…"
+                            <input aria-label="Search" v-model="search" placeholder="Search title or summary…"
                                    class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
-                        <select v-model="categoryFilter"
+                        <select aria-label="CategoryFilter" v-model="categoryFilter"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All categories</option>
                             <option v-for="(meta, key) in CATEGORIES" :key="key" :value="key">{{ meta.label }}</option>

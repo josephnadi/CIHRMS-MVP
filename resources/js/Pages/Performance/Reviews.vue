@@ -396,7 +396,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         </button>
                     </div>
 
-                    <select
+                    <select aria-label="Cycle id"
                         v-model="localFilters.cycle_id"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -405,7 +405,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         <option v-for="c in cycleList" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
 
-                    <select
+                    <select aria-label="Type"
                         v-model="localFilters.type"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -418,7 +418,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         <option value="upward">Upward</option>
                     </select>
 
-                    <select
+                    <select aria-label="Status"
                         v-model="localFilters.status"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -598,7 +598,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Cycle <span class="text-red-500">*</span></label>
-                            <select v-model="form.cycle_id" required
+                            <select aria-label="Cycle" v-model="form.cycle_id" required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 :class="{ 'border-red-400': form.errors.cycle_id }">
                                 <option value="" disabled>Select cycle</option>
@@ -608,7 +608,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Type <span class="text-red-500">*</span></label>
-                            <select v-model="form.type" required
+                            <select aria-label="Type" v-model="form.type" required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all">
                                 <option value="self">Self review</option>
                                 <option value="manager">Manager review</option>
@@ -622,14 +622,14 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee ID <span class="text-red-500">*</span></label>
-                            <input v-model="form.employee_id" type="number" required
+                            <input aria-label="Employee ID" v-model="form.employee_id" type="number" required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 :class="{ 'border-red-400': form.errors.employee_id }" />
                             <p v-if="form.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_id }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Reviewer User ID <span class="text-red-500">*</span></label>
-                            <input v-model="form.reviewer_id" type="number" required
+                            <input aria-label="Reviewer User ID" v-model="form.reviewer_id" type="number" required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 :class="{ 'border-red-400': form.errors.reviewer_id }" />
                             <p v-if="form.errors.reviewer_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.reviewer_id }}</p>
@@ -641,17 +641,17 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Overall</label>
-                                <input v-model="form.overall_rating" type="number" step="0.1" min="1" max="5"
+                                <input aria-label="Overall" v-model="form.overall_rating" type="number" step="0.1" min="1" max="5"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Performance</label>
-                                <input v-model="form.performance_rating" type="number" step="0.1" min="1" max="5"
+                                <input aria-label="Performance" v-model="form.performance_rating" type="number" step="0.1" min="1" max="5"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Potential</label>
-                                <input v-model="form.potential_rating" type="number" step="0.1" min="1" max="5"
+                                <input aria-label="Potential" v-model="form.potential_rating" type="number" step="0.1" min="1" max="5"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                             </div>
                         </div>
@@ -659,19 +659,19 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Strengths</label>
-                        <textarea v-model="form.strengths" rows="3" placeholder="What did this person do exceptionally well?"
+                        <textarea aria-label="Strengths" v-model="form.strengths" rows="3" placeholder="What did this person do exceptionally well?"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
                     </div>
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Opportunities</label>
-                        <textarea v-model="form.opportunities" rows="3" placeholder="What should this person focus on next?"
+                        <textarea aria-label="Opportunities" v-model="form.opportunities" rows="3" placeholder="What should this person focus on next?"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
                     </div>
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Additional Comments</label>
-                        <textarea v-model="form.comments" rows="4" placeholder="Any further context or examples…"
+                        <textarea aria-label="Additional Comments" v-model="form.comments" rows="4" placeholder="Any further context or examples…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
                     </div>
                 </form>
@@ -695,7 +695,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                 <form @submit.prevent="submitCycle" class="space-y-5 p-6">
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Cycle Name <span class="text-red-500">*</span></label>
-                        <input v-model="cycleForm.name" type="text" placeholder="e.g. Q2 2026 Performance" required
+                        <input aria-label="Cycle Name" v-model="cycleForm.name" type="text" placeholder="e.g. Q2 2026 Performance" required
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             :class="{ 'border-red-400': cycleForm.errors.name }" />
                         <p v-if="cycleForm.errors.name" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.name }}</p>
@@ -703,7 +703,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Cadence <span class="text-red-500">*</span></label>
-                        <select v-model="cycleForm.cadence" required
+                        <select aria-label="Cadence" v-model="cycleForm.cadence" required
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all">
                             <option value="annual">Annual</option>
                             <option value="half_year">Half-yearly</option>
@@ -715,12 +715,12 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Starts On <span class="text-red-500">*</span></label>
-                            <input v-model="cycleForm.starts_at" type="date" required
+                            <input aria-label="Starts On" v-model="cycleForm.starts_at" type="date" required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Ends On <span class="text-red-500">*</span></label>
-                            <input v-model="cycleForm.ends_at" type="date" required
+                            <input aria-label="Ends On" v-model="cycleForm.ends_at" type="date" required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 :class="{ 'border-red-400': cycleForm.errors.ends_at }" />
                             <p v-if="cycleForm.errors.ends_at" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.ends_at }}</p>
@@ -732,17 +732,17 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                         <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1 block">Self due</label>
-                                <input v-model="cycleForm.self_review_due" type="date"
+                                <input aria-label="Self due" v-model="cycleForm.self_review_due" type="date"
                                     class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50" />
                             </div>
                             <div>
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1 block">Peer due</label>
-                                <input v-model="cycleForm.peer_review_due" type="date"
+                                <input aria-label="Peer due" v-model="cycleForm.peer_review_due" type="date"
                                     class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50" />
                             </div>
                             <div>
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1 block">Mgr due</label>
-                                <input v-model="cycleForm.manager_review_due" type="date"
+                                <input aria-label="Mgr due" v-model="cycleForm.manager_review_due" type="date"
                                     class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50" />
                             </div>
                         </div>

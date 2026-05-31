@@ -102,7 +102,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
                     <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
-                        <select v-model="localFilters.status" @change="applyFilters"
+                        <select aria-label="Status" v-model="localFilters.status" @change="applyFilters"
                                 class="rounded-lg border-slate-200 text-sm">
                             <option value="">All statuses</option>
                             <option value="draft">Draft</option>
@@ -111,7 +111,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
                             <option value="paid">Paid</option>
                             <option value="reversed">Reversed</option>
                         </select>
-                        <input v-model="localFilters.year" @change="applyFilters" type="number"
+                        <input aria-label="Year" v-model="localFilters.year" @change="applyFilters" type="number"
                                placeholder="Year" class="rounded-lg border-slate-200 text-sm w-24">
                     </div>
 
@@ -166,12 +166,12 @@ const submit = () => form.post(route('payroll-runs.store'), {
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Month</label>
-                        <input v-model="form.period_month" type="number" min="1" max="12"
+                        <input aria-label="Month" v-model="form.period_month" type="number" min="1" max="12"
                                class="w-full rounded-lg border-slate-200" required>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Reason (optional)</label>
-                        <textarea v-model="form.reason" rows="3"
+                        <textarea aria-label="Reason (optional)" v-model="form.reason" rows="3"
                                   class="w-full rounded-lg border-slate-200"></textarea>
                     </div>
                     <PrimaryButton type="submit" :disabled="form.processing">Create draft</PrimaryButton>

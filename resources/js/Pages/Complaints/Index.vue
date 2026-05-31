@@ -219,7 +219,7 @@ const formatDate = (d) => {
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                                     Your Name <span class="text-on-surface-variant/60 font-normal">(optional)</span>
                                 </label>
-                                <input
+                                <input aria-label="Your Name (optional)"
                                     v-model="form.submitted_by"
                                     type="text"
                                     placeholder="Leave blank to remain anonymous"
@@ -231,7 +231,7 @@ const formatDate = (d) => {
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                                     Complaint Details <span class="text-red-500">*</span>
                                 </label>
-                                <textarea
+                                <textarea aria-label="Complaint Details"
                                     v-model="form.details"
                                     rows="8"
                                     placeholder="Provide a clear and detailed account of your complaint. Include dates, locations, persons involved, and any relevant context…"
@@ -267,7 +267,7 @@ const formatDate = (d) => {
                         </p>
 
                         <div class="flex gap-2">
-                            <input
+                            <input aria-label="TrackRef"
                                 v-model="trackRef"
                                 type="text"
                                 placeholder="CMP-XXXXXXXX"
@@ -299,7 +299,7 @@ const formatDate = (d) => {
 
                     <!-- Status filter -->
                     <div class="flex items-center gap-3">
-                        <select
+                        <select aria-label="StatusFilter"
                             v-model="statusFilter"
                             @change="applyFilter"
                             class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -359,8 +359,7 @@ const formatDate = (d) => {
                                             <StatusBadge :status="c.status" type="complaint" />
                                         </td>
                                         <td class="px-4 py-3.5" @click.stop>
-                                            <select
-                                                :value="c.assigned_to ?? ''"
+                                            <select :value="c.assigned_to ?? ''"
                                                 @change="ev => reassign(c, ev.target.value ? Number(ev.target.value) : null)"
                                                 aria-label="Assign investigator"
                                                 class="rounded-lg border border-outline-variant/60 bg-surface-container-low px-2 py-1 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50 max-w-[160px]"
@@ -370,8 +369,7 @@ const formatDate = (d) => {
                                             </select>
                                         </td>
                                         <td class="px-4 py-3.5" @click.stop>
-                                            <select
-                                                :value="c.status"
+                                            <select :value="c.status"
                                                 @change="ev => updateStatus(c, ev.target.value)"
                                                 aria-label="Update status"
                                                 class="rounded-lg border border-outline-variant/60 bg-surface-container-low px-2 py-1 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"

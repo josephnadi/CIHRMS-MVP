@@ -101,7 +101,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
 
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70 mb-1.5">WhatsApp phone</label>
-                        <input
+                        <input aria-label="WhatsApp phone"
                             v-model="form.whatsapp_phone"
                             placeholder="+233244123456"
                             class="w-full max-w-xs rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px] font-mono"
@@ -134,7 +134,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                             </p>
                         </div>
                     </div>
-                    <input
+                    <input aria-label="Slack user id"
                         v-model="form.slack_user_id"
                         placeholder="U01ABC234"
                         class="w-full max-w-xs rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px] font-mono"

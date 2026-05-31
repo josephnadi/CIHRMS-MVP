@@ -992,7 +992,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label :class="labelCls">Start Date</label>
-                            <input
+                            <input aria-label="Start Date"
                                 type="date"
                                 v-model="leaveForm.start_date"
                                 :class="inputCls"
@@ -1003,7 +1003,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         </div>
                         <div>
                             <label :class="labelCls">End Date</label>
-                            <input
+                            <input aria-label="End Date"
                                 type="date"
                                 v-model="leaveForm.end_date"
                                 :class="inputCls"
@@ -1026,7 +1026,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                     <!-- Reason -->
                     <div>
                         <label :class="labelCls">Reason</label>
-                        <textarea
+                        <textarea aria-label="Reason"
                             v-model="leaveForm.reason"
                             :class="inputCls + ' resize-none'"
                             rows="3"
@@ -1268,7 +1268,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                 <!-- Comment -->
                                 <div>
                                     <label :class="labelCls">Comment <span class="normal-case font-medium text-on-surface-variant/40">(optional)</span></label>
-                                    <textarea
+                                    <textarea aria-label="Comment (optional)"
                                         v-model="actionComment"
                                         :class="inputCls + ' resize-none'"
                                         rows="3"

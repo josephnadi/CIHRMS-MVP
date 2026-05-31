@@ -144,7 +144,7 @@ const stageLabel = computed(() => {
                     <form v-if="!isClosed" @submit.prevent="submitCheckin"
                           class="px-5 py-4 border-t border-outline-variant/40 space-y-3 bg-brand-navy/[0.02]">
                         <p class="text-xs font-semibold">Add check-in</p>
-                        <textarea v-model="checkinForm.note" rows="3" required
+                        <textarea aria-label="Note" v-model="checkinForm.note" rows="3" required
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Notes on observed progress, blockers, and next steps."></textarea>
                         <label class="flex items-center gap-2 text-sm">
@@ -160,9 +160,9 @@ const stageLabel = computed(() => {
                     <div class="rounded-2xl border border-outline-variant/40 p-5 space-y-3 bg-amber-50/30">
                         <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-800">Extend PIP</p>
                         <p class="text-xs text-on-surface-variant/70">Extensions used: {{ P.extensions_used }} / {{ P.max_extensions }}</p>
-                        <input v-model.number="extendForm.additional_days" type="number" min="14" max="90"
+                        <input aria-label="Additional days" v-model.number="extendForm.additional_days" type="number" min="14" max="90"
                                class="w-full rounded-lg border-outline-variant text-sm" placeholder="Additional days">
-                        <textarea v-model="extendForm.reason" rows="2" required
+                        <textarea aria-label="Reason" v-model="extendForm.reason" rows="2" required
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Reason for extension"></textarea>
                         <PrimaryButton @click="submitExtend" :disabled="extendForm.processing || P.extensions_used >= P.max_extensions">
@@ -178,7 +178,7 @@ const stageLabel = computed(() => {
                             <option value="failed_terminated">Failed — Terminate (opens off-boarding)</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
-                        <textarea v-model="closeForm.summary" rows="3" required minlength="10"
+                        <textarea aria-label="Summary" v-model="closeForm.summary" rows="3" required minlength="10"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Outcome summary — included in employee's permanent record."></textarea>
                         <DangerButton v-if="closeForm.outcome.startsWith('failed')" @click="submitClose" :disabled="closeForm.processing">

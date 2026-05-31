@@ -239,7 +239,7 @@ const outcomeMix = computed(() => {
 
                 <!-- ── Filter strip ───────────────────────────────────────────── -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <select
+                    <select aria-label="Status"
                         v-model="localFilters.status"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -423,7 +423,7 @@ const outcomeMix = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee ID <span class="text-red-500">*</span></label>
-                            <input
+                            <input aria-label="Employee ID"
                                 v-model="form.employee_id"
                                 type="number"
                                 placeholder="Employee database ID"
@@ -433,7 +433,7 @@ const outcomeMix = computed(() => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Mentor / HR Partner ID</label>
-                            <input
+                            <input aria-label="Mentor / HR Partner ID"
                                 v-model="form.mentor_id"
                                 type="number"
                                 placeholder="Optional — mentor employee ID"
@@ -455,7 +455,7 @@ const outcomeMix = computed(() => {
                                     ? 'border-secondary/50 bg-secondary/10 text-secondary'
                                     : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'"
                             >{{ d }} days</button>
-                            <input
+                            <input aria-label="Duration days"
                                 v-model="form.duration_days"
                                 type="number"
                                 min="30"
@@ -470,7 +470,7 @@ const outcomeMix = computed(() => {
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             Target Metrics <span class="text-on-surface-variant/50 font-normal">(JSON array)</span>
                         </label>
-                        <textarea
+                        <textarea aria-label="Target Metrics (JSON array)"
                             v-model="form.target_metrics"
                             rows="5"
                             placeholder='[{"metric":"Attendance","target":"95%"},{"metric":"Report quality","target":"No rewrites"}]'

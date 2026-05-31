@@ -276,7 +276,7 @@ const reportCategories = computed(() => {
                         <div class="space-y-3 flex-1">
                             <div v-if="selected === 'leave'">
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1.5 block">Year</label>
-                                <select
+                                <select aria-label="Year"
                                     v-model="year"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                                 >
@@ -286,7 +286,7 @@ const reportCategories = computed(() => {
 
                             <div v-if="selected === 'payroll'">
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1.5 block">Month</label>
-                                <input
+                                <input aria-label="Month"
                                     v-model="month"
                                     type="month"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"

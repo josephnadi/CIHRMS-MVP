@@ -299,17 +299,17 @@ const editionLabel = computed(() => {
                             <span class="material-symbols-outlined text-[16px] text-secondary">filter_list</span>
                             <span class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">Filter</span>
                         </div>
-                        <select v-model="localFilters.status" @change="applyFilters"
+                        <select aria-label="Status" v-model="localFilters.status" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All statuses</option>
                             <option v-for="(meta, k) in STATUS_META" :key="k" :value="k">{{ meta.label }}</option>
                         </select>
-                        <select v-model="localFilters.severity" @change="applyFilters"
+                        <select aria-label="Severity" v-model="localFilters.severity" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All severities</option>
                             <option v-for="(meta, k) in SEVERITY_META" :key="k" :value="k">{{ meta.label }}</option>
                         </select>
-                        <select v-model="localFilters.category" @change="applyFilters"
+                        <select aria-label="Category" v-model="localFilters.category" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All categories</option>
                             <option v-for="(meta, k) in CATEGORY_META" :key="k" :value="k">{{ meta.label }}</option>

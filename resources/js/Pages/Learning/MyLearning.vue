@@ -513,7 +513,7 @@ const ringProps = (pct, r = 28) => {
                             <label class="text-[12px] font-semibold text-on-surface-variant">Progress</label>
                             <span class="text-[16px] font-black text-on-surface">{{ progressForm.progress_pct }}%</span>
                         </div>
-                        <input
+                        <input aria-label="Progress"
                             v-model.number="progressForm.progress_pct"
                             type="range"
                             min="0" max="100" step="1"
@@ -544,7 +544,7 @@ const ringProps = (pct, r = 28) => {
                     <!-- Final score (only at 100%) -->
                     <div v-if="progressForm.progress_pct >= 100">
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Final Score (optional)</label>
-                        <input
+                        <input aria-label="Final Score (optional)"
                             v-model="progressForm.final_score"
                             type="number"
                             step="0.01" min="0" max="100"
@@ -589,7 +589,7 @@ const ringProps = (pct, r = 28) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Certification Name <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Certification Name"
                             v-model="certForm.name"
                             type="text"
                             required
@@ -604,7 +604,7 @@ const ringProps = (pct, r = 28) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Issuing Organisation</label>
-                            <input
+                            <input aria-label="Issuing Organisation"
                                 v-model="certForm.issuer"
                                 type="text"
                                 maxlength="120"
@@ -614,7 +614,7 @@ const ringProps = (pct, r = 28) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Credential ID</label>
-                            <input
+                            <input aria-label="Credential ID"
                                 v-model="certForm.credential_id"
                                 type="text"
                                 maxlength="120"
@@ -627,7 +627,7 @@ const ringProps = (pct, r = 28) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Issue Date</label>
-                            <input
+                            <input aria-label="Issue Date"
                                 v-model="certForm.issued_at"
                                 type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -635,7 +635,7 @@ const ringProps = (pct, r = 28) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Expiry Date</label>
-                            <input
+                            <input aria-label="Expiry Date"
                                 v-model="certForm.expires_at"
                                 type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -645,7 +645,7 @@ const ringProps = (pct, r = 28) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Verification URL</label>
-                        <input
+                        <input aria-label="Verification URL"
                             v-model="certForm.verification_url"
                             type="url"
                             maxlength="255"

@@ -511,7 +511,7 @@ const formatDate = (d) => {
 
                     <div class="relative">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">corporate_fare</span>
-                        <select
+                        <select aria-label="Department id"
                             v-model="localFilters.department_id"
                             @change="applyFilters"
                             class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -526,7 +526,7 @@ const formatDate = (d) => {
 
                     <div class="relative">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">workspaces</span>
-                        <select
+                        <select aria-label="Status"
                             v-model="localFilters.status"
                             @change="applyFilters"
                             class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -728,7 +728,7 @@ const formatDate = (d) => {
                         <!-- Name -->
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Full Name <span class="text-red-500">*</span></label>
-                            <input
+                            <input aria-label="Full Name"
                                 v-model="form.user_name"
                                 type="text"
                                 placeholder="e.g. Ama Asante"
@@ -743,7 +743,7 @@ const formatDate = (d) => {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Email <span class="text-red-500">*</span></label>
-                                <input
+                                <input aria-label="Email"
                                     v-model="form.user_email"
                                     type="email"
                                     placeholder="employee@cihrm.gov.gh"
@@ -758,7 +758,7 @@ const formatDate = (d) => {
                                     Staff ID
                                     <span class="ml-1 text-[10px] font-bold uppercase tracking-wider text-secondary">Auto</span>
                                 </label>
-                                <input
+                                <input aria-label="Staff ID Auto"
                                     v-model="form.staff_id"
                                     type="text"
                                     placeholder="Auto-generated (e.g. SID-000123)"
@@ -774,7 +774,7 @@ const formatDate = (d) => {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">System Role <span class="text-red-500">*</span></label>
-                                <select
+                                <select aria-label="System Role"
                                     v-model="form.user_role"
                                     required
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -792,7 +792,7 @@ const formatDate = (d) => {
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Temporary Password <span class="text-red-500">*</span></label>
-                                <input
+                                <input aria-label="Temporary Password"
                                     v-model="form.user_password"
                                     type="password"
                                     autocomplete="new-password"
@@ -810,7 +810,7 @@ const formatDate = (d) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Department <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Department"
                                 v-model="form.department_id"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -827,7 +827,7 @@ const formatDate = (d) => {
                                 Employee No
                                 <span class="ml-1 text-[10px] font-bold uppercase tracking-wider text-secondary">Auto</span>
                             </label>
-                            <input
+                            <input aria-label="Employee No Auto"
                                 v-model="form.employee_no"
                                 type="text"
                                 placeholder="Auto-generated (e.g. CIHRM-0042)"
@@ -843,7 +843,7 @@ const formatDate = (d) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Position</label>
-                            <input
+                            <input aria-label="Position"
                                 v-model="form.position"
                                 type="text"
                                 placeholder="e.g. Senior Analyst"
@@ -852,7 +852,7 @@ const formatDate = (d) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Phone</label>
-                            <input
+                            <input aria-label="Phone"
                                 v-model="form.phone"
                                 type="tel"
                                 placeholder="+233 24 000 0000"
@@ -865,7 +865,7 @@ const formatDate = (d) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Hire Date</label>
-                            <input
+                            <input aria-label="Hire Date"
                                 v-model="form.hire_date"
                                 type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -873,7 +873,7 @@ const formatDate = (d) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Status</label>
-                            <select
+                            <select aria-label="Status"
                                 v-model="form.status"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             >
@@ -968,7 +968,7 @@ const formatDate = (d) => {
                 <form @submit.prevent="submitDepartment" class="space-y-5 p-6">
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Department Name <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Department Name"
                             v-model="deptForm.name"
                             type="text"
                             placeholder="e.g. Information Technology"
@@ -984,7 +984,7 @@ const formatDate = (d) => {
                             Department Code <span class="text-red-500">*</span>
                             <span class="ml-1 font-normal text-on-surface-variant/60">(2—10 chars, uppercase)</span>
                         </label>
-                        <input
+                        <input aria-label="Department Code * (2—10 chars, uppercase)"
                             v-model="deptForm.code"
                             type="text"
                             placeholder="e.g. IT"
@@ -998,7 +998,7 @@ const formatDate = (d) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description</label>
-                        <textarea
+                        <textarea aria-label="Description"
                             v-model="deptForm.description"
                             rows="3"
                             placeholder="Brief description of this department…"

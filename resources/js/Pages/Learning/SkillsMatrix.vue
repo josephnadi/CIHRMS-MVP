@@ -243,7 +243,7 @@ const exportMatrix = () => {
                         <SearchInput v-model="localFilters.search" placeholder="Search employees by name, role…" />
                     </div>
 
-                    <select
+                    <select aria-label="Department"
                         v-if="allDepartments.length"
                         v-model="localFilters.department"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -511,7 +511,7 @@ const exportMatrix = () => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Skill Name <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Skill Name"
                             v-model="skillForm.name"
                             type="text"
                             required
@@ -525,7 +525,7 @@ const exportMatrix = () => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Category</label>
-                        <select
+                        <select aria-label="Category"
                             v-model="skillForm.category"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                         >
@@ -540,7 +540,7 @@ const exportMatrix = () => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description</label>
-                        <textarea
+                        <textarea aria-label="Description"
                             v-model="skillForm.description"
                             rows="3"
                             placeholder="Brief description of this skill and how it's assessed…"

@@ -130,7 +130,7 @@ const nextDueLabel = computed(() => {
                     <form @submit.prevent="submit" class="flex flex-wrap items-end gap-3">
                         <div>
                             <label class="block text-xs font-medium text-on-surface-variant mb-1">Fiscal year</label>
-                            <input v-model.number="form.year" type="number" min="2000" max="2100"
+                            <input aria-label="Fiscal year" v-model.number="form.year" type="number" min="2000" max="2100"
                                    class="rounded-lg border-outline-variant text-sm w-32" required>
                         </div>
                         <div>

@@ -129,7 +129,7 @@ const daysSince = (d) => {
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Status</label>
-                                <select
+                                <select aria-label="Status"
                                     v-model="newStatus"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 >
@@ -141,7 +141,7 @@ const daysSince = (d) => {
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Assigned To</label>
-                                <select
+                                <select aria-label="Assigned To"
                                     v-model="newAssignee"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 >

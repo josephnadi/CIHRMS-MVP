@@ -206,7 +206,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         />
                     </div>
 
-                    <select
+                    <select aria-label="Status"
                         v-model="localFilters.status"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -220,7 +220,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <option value="cancelled">Cancelled</option>
                     </select>
 
-                    <select
+                    <select aria-label="Exit type"
                         v-model="localFilters.exit_type"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -381,7 +381,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             Employee ID <span class="text-red-500">*</span>
                         </label>
-                        <input
+                        <input aria-label="Employee ID"
                             v-model="form.employee_id"
                             type="number"
                             placeholder="Employee record ID"
@@ -397,7 +397,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                             Exit Type <span class="text-red-500">*</span>
                         </label>
-                        <select
+                        <select aria-label="Exit Type"
                             v-model="form.exit_type"
                             required
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -421,7 +421,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                                 Notice Received On <span class="text-red-500">*</span>
                             </label>
-                            <input
+                            <input aria-label="Notice Received On"
                                 v-model="form.notice_received_on"
                                 type="date"
                                 required
@@ -434,7 +434,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">
                                 Last Working Day <span class="text-red-500">*</span>
                             </label>
-                            <input
+                            <input aria-label="Last Working Day"
                                 v-model="form.last_working_day"
                                 type="date"
                                 required
@@ -448,7 +448,7 @@ const submitCase = () => form.post(route('offboarding.store'), {
                     <!-- Reason -->
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Reason / Context</label>
-                        <textarea
+                        <textarea aria-label="Reason / Context"
                             v-model="form.reason"
                             rows="3"
                             placeholder="Briefly describe the circumstances…"

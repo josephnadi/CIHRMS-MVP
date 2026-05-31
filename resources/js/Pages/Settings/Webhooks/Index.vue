@@ -350,14 +350,14 @@ const hostOf = (url) => {
 
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Partner name <span class="text-rose-500">*</span></label>
-                    <input v-model="form.partner_name" required maxlength="120" placeholder="e.g. GIFMIS / IPPD / Ghana Card NIA"
+                    <input aria-label="Partner name" v-model="form.partner_name" required maxlength="120" placeholder="e.g. GIFMIS / IPPD / Ghana Card NIA"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': form.errors.partner_name }"/>
                 </div>
 
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Callback URL <span class="text-rose-500">*</span></label>
-                    <input v-model="form.callback_url" type="url" required placeholder="https://partner.gov.gh/webhooks/cihrms"
+                    <input aria-label="Callback URL" v-model="form.callback_url" type="url" required placeholder="https://partner.gov.gh/webhooks/cihrms"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': form.errors.callback_url }"/>
                     <p class="mt-1 text-[10.5px] text-on-surface-variant/60">HTTPS is required. The signing handshake is HMAC-SHA256.</p>

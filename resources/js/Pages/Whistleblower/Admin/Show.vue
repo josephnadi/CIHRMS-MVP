@@ -121,7 +121,7 @@ const editionLabel = computed(() => {
                         </div>
                         <PrimaryButton @click="submitTriage" :disabled="triageForm.processing">Triage</PrimaryButton>
                     </div>
-                    <textarea v-model="triageForm.notes" rows="2" placeholder="Triage notes (optional)"
+                    <textarea aria-label="Notes" v-model="triageForm.notes" rows="2" placeholder="Triage notes (optional)"
                               class="w-full rounded-lg border-outline-variant text-sm"></textarea>
                 </div>
 
@@ -205,9 +205,9 @@ const editionLabel = computed(() => {
                                     </select>
                                 </div>
                             </div>
-                            <textarea v-model="actionForm.notes" rows="3" placeholder="Notes (encrypted)"
+                            <textarea aria-label="Notes" v-model="actionForm.notes" rows="3" placeholder="Notes (encrypted)"
                                       class="w-full rounded-lg border-outline-variant text-sm"></textarea>
-                            <textarea v-if="['closed_substantiated','closed_unsubstantiated','closed_referred'].includes(actionForm.new_status)"
+                            <textarea aria-label="Closure summary" v-if="['closed_substantiated','closed_unsubstantiated','closed_referred'].includes(actionForm.new_status)"
                                       v-model="actionForm.closure_summary" rows="2" placeholder="Closure summary (visible to submitter)"
                                       class="w-full rounded-lg border-outline-variant text-sm"></textarea>
                             <PrimaryButton @click="submitAction" :disabled="actionForm.processing">Log action</PrimaryButton>
@@ -244,7 +244,7 @@ const editionLabel = computed(() => {
                         </div>
                         <form @submit.prevent="submitMessage" class="space-y-3 pt-3 border-t border-outline-variant/40">
                             <label class="block text-xs font-semibold text-on-surface-variant">Reply to submitter</label>
-                            <textarea v-model="messageForm.body" rows="3" required
+                            <textarea aria-label="Reply to submitter" v-model="messageForm.body" rows="3" required
                                       class="w-full rounded-lg border-outline-variant text-sm"
                                       placeholder="The submitter sees this via their tracking code only."></textarea>
                             <PrimaryButton type="submit" :disabled="messageForm.processing">Post message</PrimaryButton>

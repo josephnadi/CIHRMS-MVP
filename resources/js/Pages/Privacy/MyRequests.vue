@@ -184,21 +184,21 @@ const editionLabel = computed(() => {
 
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Statement</label>
-                        <textarea v-model="form.subject_statement" rows="4" required minlength="10"
+                        <textarea aria-label="Statement" v-model="form.subject_statement" rows="4" required minlength="10"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Describe your request in your own words."></textarea>
                     </div>
 
                     <div v-if="form.request_type === 'rectification'">
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">What needs correcting?</label>
-                        <textarea v-model="form.rectification_details" rows="3"
+                        <textarea aria-label="What needs correcting?" v-model="form.rectification_details" rows="3"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Field name + current value + proposed correction"></textarea>
                     </div>
 
                     <div v-if="form.request_type === 'objection'">
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Which processing do you object to?</label>
-                        <textarea v-model="form.objection_purpose" rows="3"
+                        <textarea aria-label="Which processing do you object to?" v-model="form.objection_purpose" rows="3"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="e.g. marketing communications, profiling for performance review"></textarea>
                     </div>

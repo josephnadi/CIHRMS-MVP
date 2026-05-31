@@ -106,7 +106,7 @@ const statusColor = (val) => ({
                                          : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-secondary/40']">
                 {{ t.label }}
             </button>
-            <input v-model="searchTerm" type="text" placeholder="Search code, name, tax id..."
+            <input aria-label="SearchTerm" v-model="searchTerm" type="text" placeholder="Search code, name, tax id..."
                    class="ml-auto rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest" />
         </div>
 
@@ -149,7 +149,7 @@ const statusColor = (val) => ({
                     </div>
                     <div>
                         <InputLabel for="status" value="Status" />
-                        <select id="status" v-model="form.status"
+                        <select aria-label="Status" id="status" v-model="form.status"
                                 class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -179,7 +179,7 @@ const statusColor = (val) => ({
                     </div>
                     <div>
                         <InputLabel for="default_bank_account_id" value="Default bank account" />
-                        <select id="default_bank_account_id" v-model="form.default_bank_account_id"
+                        <select aria-label="Default bank account id" id="default_bank_account_id" v-model="form.default_bank_account_id"
                                 class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                             <option :value="null">—</option>
                             <option v-for="b in bankAccounts" :key="b.id" :value="b.id">{{ b.bank_name }} — {{ b.account_name }}</option>
@@ -188,7 +188,7 @@ const statusColor = (val) => ({
                 </div>
                 <div>
                     <InputLabel for="default_expense_gl_account_id" value="Default expense GL" />
-                    <select id="default_expense_gl_account_id" v-model="form.default_expense_gl_account_id"
+                    <select aria-label="Default expense gl account id" id="default_expense_gl_account_id" v-model="form.default_expense_gl_account_id"
                             class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                         <option :value="null">—</option>
                         <option v-for="a in expenseAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
@@ -197,7 +197,7 @@ const statusColor = (val) => ({
                 </div>
                 <div>
                     <InputLabel for="default_ap_gl_account_id" value="Default AP liability GL" />
-                    <select id="default_ap_gl_account_id" v-model="form.default_ap_gl_account_id"
+                    <select aria-label="Default ap gl account id" id="default_ap_gl_account_id" v-model="form.default_ap_gl_account_id"
                             class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                         <option :value="null">— (defaults to GL 2100)</option>
                         <option v-for="a in apAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>

@@ -619,7 +619,7 @@ const ops = computed(() => {
                                 <!-- Search input -->
                                 <div class="relative px-2.5 pt-2 pb-1.5">
                                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[15px] text-on-surface-variant/50">search</span>
-                                    <input v-model="assigneeSearch"
+                                    <input aria-label="AssigneeSearch" v-model="assigneeSearch"
                                            placeholder="Search team by name…"
                                            autofocus
                                            class="w-full rounded-lg border border-outline-variant/60 bg-surface-container-low pl-7 pr-2 py-1.5 text-[12.5px] focus:border-secondary focus:ring-2 focus:ring-secondary/15" />
@@ -673,7 +673,7 @@ const ops = computed(() => {
                     <!-- Inline search with "/" hotkey hint -->
                     <div class="relative flex-1 min-w-[200px] max-w-[260px] ml-auto">
                         <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px] text-on-surface-variant/50">search</span>
-                        <input
+                        <input aria-label="Search"
                             ref="boardSearchEl"
                             v-model="localFilters.search"
                             placeholder="Search board…"
@@ -728,7 +728,7 @@ const ops = computed(() => {
 
                     <div class="relative">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">workspaces</span>
-                        <select
+                        <select aria-label="Status"
                             v-model="localFilters.status"
                             @change="applyFilters"
                             class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -744,7 +744,7 @@ const ops = computed(() => {
 
                     <div class="relative">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">flag</span>
-                        <select
+                        <select aria-label="Priority"
                             v-model="localFilters.priority"
                             @change="applyFilters"
                             class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -760,7 +760,7 @@ const ops = computed(() => {
 
                     <div v-if="canManage" class="relative">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
-                        <select
+                        <select aria-label="Assigned to"
                             v-model="localFilters.assigned_to"
                             @change="applyFilters"
                             class="appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -1037,7 +1037,7 @@ const ops = computed(() => {
                                     </td>
 
                                     <td class="px-4 py-3.5" @click.stop>
-                                        <select
+                                        <select aria-label="Assign ticket to staff member"
                                             v-if="canManage"
                                             :value="ticket.assigned_to?.id ?? ''"
                                             @change="ev => quickAssign(ticket, ev.target.value)"
@@ -1116,7 +1116,7 @@ const ops = computed(() => {
                 <form @submit.prevent="submit" class="space-y-5 p-6">
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Title <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Title"
                             v-model="form.title"
                             type="text"
                             placeholder="Brief description of the issue"
@@ -1129,7 +1129,7 @@ const ops = computed(() => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description <span class="text-red-500">*</span></label>
-                        <textarea
+                        <textarea aria-label="Description"
                             v-model="form.description"
                             rows="5"
                             placeholder="Provide detailed information about the issue, steps to reproduce, and expected outcome…"
@@ -1143,7 +1143,7 @@ const ops = computed(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Priority <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Priority"
                                 v-model="form.priority"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -1156,7 +1156,7 @@ const ops = computed(() => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Due Date</label>
-                            <input
+                            <input aria-label="Due Date"
                                 v-model="form.due_at"
                                 type="datetime-local"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -1254,7 +1254,7 @@ const ops = computed(() => {
                     <!-- Assignee inline editor -->
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-black uppercase tracking-[0.14em] text-on-surface-variant/60 min-w-[60px]">Assignee</span>
-                        <select
+                        <select aria-label="Assignee"
                             :value="drawerTicket.assigned_to?.id ?? ''"
                             @change="ev => canManage && quickAssign(drawerTicket, ev.target.value || null)"
                             :disabled="!canManage"

@@ -370,7 +370,7 @@ const sparkPath = (values) => {
                         <SearchInput v-model="localFilters.search" placeholder="Search goals…" />
                     </div>
 
-                    <select
+                    <select aria-label="Cycle id"
                         v-model="localFilters.cycle_id"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -379,7 +379,7 @@ const sparkPath = (values) => {
                         <option v-for="c in cycleList" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
 
-                    <select
+                    <select aria-label="Employee id"
                         v-if="canManage"
                         v-model="localFilters.employee_id"
                         @change="applyFilters"
@@ -389,7 +389,7 @@ const sparkPath = (values) => {
                         <option v-for="e in employees" :key="e.id" :value="e.id">{{ e.label }}</option>
                     </select>
 
-                    <select
+                    <select aria-label="Status"
                         v-model="localFilters.status"
                         @change="applyFilters"
                         class="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -597,7 +597,7 @@ const sparkPath = (values) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Employee"
                                 v-model="form.employee_id"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -610,7 +610,7 @@ const sparkPath = (values) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Review Cycle</label>
-                            <select
+                            <select aria-label="Review Cycle"
                                 v-model="form.cycle_id"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             >
@@ -622,7 +622,7 @@ const sparkPath = (values) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Title <span class="text-red-500">*</span></label>
-                        <input
+                        <input aria-label="Title"
                             v-model="form.title"
                             type="text"
                             placeholder="e.g. Reduce ticket resolution time to under 4 hours"
@@ -635,7 +635,7 @@ const sparkPath = (values) => {
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Description</label>
-                        <textarea
+                        <textarea aria-label="Description"
                             v-model="form.description"
                             rows="3"
                             placeholder="What does success look like? Why does it matter?"
@@ -646,7 +646,7 @@ const sparkPath = (values) => {
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Cadence <span class="text-red-500">*</span></label>
-                            <select
+                            <select aria-label="Cadence"
                                 v-model="form.cadence"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
@@ -660,12 +660,12 @@ const sparkPath = (values) => {
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Weight (0—100)</label>
-                            <input v-model="form.weight" type="number" min="0" max="100" placeholder="20"
+                            <input aria-label="Weight (0—100)" v-model="form.weight" type="number" min="0" max="100" placeholder="20"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Unit</label>
-                            <input v-model="form.unit" type="text" placeholder="hours, %, count" maxlength="20"
+                            <input aria-label="Unit" v-model="form.unit" type="text" placeholder="hours, %, count" maxlength="20"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                     </div>
@@ -673,12 +673,12 @@ const sparkPath = (values) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Target Value</label>
-                            <input v-model="form.target_value" type="number" step="0.01" min="0" placeholder="4"
+                            <input aria-label="Target Value" v-model="form.target_value" type="number" step="0.01" min="0" placeholder="4"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Current Value</label>
-                            <input v-model="form.current_value" type="number" step="0.01" min="0" placeholder="0"
+                            <input aria-label="Current Value" v-model="form.current_value" type="number" step="0.01" min="0" placeholder="0"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                     </div>
@@ -686,12 +686,12 @@ const sparkPath = (values) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Starts On</label>
-                            <input v-model="form.starts_at" type="date"
+                            <input aria-label="Starts On" v-model="form.starts_at" type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Due On</label>
-                            <input v-model="form.due_at" type="date"
+                            <input aria-label="Due On" v-model="form.due_at" type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 :class="{ 'border-red-400': form.errors.due_at }" />
                             <p v-if="form.errors.due_at" class="mt-1 text-[11px] text-red-500">{{ form.errors.due_at }}</p>
@@ -771,19 +771,19 @@ const sparkPath = (values) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Current Value</label>
-                            <input v-model="checkinForm.current_value" type="number" step="0.01" min="0"
+                            <input aria-label="Current Value" v-model="checkinForm.current_value" type="number" step="0.01" min="0"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Progress %</label>
-                            <input v-model="checkinForm.progress_pct" type="number" step="1" min="0" max="100"
+                            <input aria-label="Progress %" v-model="checkinForm.progress_pct" type="number" step="1" min="0" max="100"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
                         </div>
                     </div>
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Narrative</label>
-                        <textarea v-model="checkinForm.narrative" rows="4"
+                        <textarea aria-label="Narrative" v-model="checkinForm.narrative" rows="4"
                             placeholder="What happened since last check-in? What's blocking progress?"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
                     </div>

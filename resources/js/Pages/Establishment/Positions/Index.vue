@@ -72,7 +72,7 @@ const vacatePosition = (p) => {
 
                 <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/40">
                     <div class="px-5 py-4 border-b border-outline-variant/40 flex flex-wrap gap-3 items-center">
-                        <select v-model="localFilters.status" @change="applyFilters"
+                        <select aria-label="Status" v-model="localFilters.status" @change="applyFilters"
                                 class="rounded-lg border-outline-variant text-sm">
                             <option value="">All statuses</option>
                             <option value="vacant">Vacant</option>

@@ -73,7 +73,7 @@ function getLabelForValue(filter, value) {
         <!-- Filter selects -->
         <template v-for="filter in filters" :key="filter.key">
             <div class="relative">
-                <select
+                <select :aria-label="`Filter by ${filter.label}`"
                     :value="modelValue[filter.key] ?? ''"
                     @change="onFilterChange(filter.key, ($event.target as HTMLSelectElement).value)"
                     class="appearance-none rounded-full border border-outline-variant bg-surface-container-low px-3 py-1.5 pr-7 text-[12px] font-semibold text-on-surface-variant cursor-pointer transition-colors hover:border-secondary/40 hover:bg-surface-container focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary dark:bg-surface-container-low dark:border-outline-variant dark:text-on-surface-variant"

@@ -125,12 +125,12 @@ const statusColor = (val) => ({
                                          : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-secondary/40']">
                 {{ t.label }}
             </button>
-            <select v-model="vendorFilter" @change="apply"
+            <select aria-label="VendorFilter" v-model="vendorFilter" @change="apply"
                     class="ml-2 rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest">
                 <option value="">All vendors</option>
                 <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.code }} — {{ v.name }}</option>
             </select>
-            <input v-model="searchTerm" type="text" placeholder="Search reference..."
+            <input aria-label="SearchTerm" v-model="searchTerm" type="text" placeholder="Search reference..."
                    class="ml-auto rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest" />
         </div>
 
@@ -178,7 +178,7 @@ const statusColor = (val) => ({
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <InputLabel for="vendor_id" value="Vendor" />
-                        <select id="vendor_id" v-model="form.vendor_id" @change="onVendorChange"
+                        <select aria-label="Vendor id" id="vendor_id" v-model="form.vendor_id" @change="onVendorChange"
                                 class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                             <option :value="null">—</option>
                             <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.code }} — {{ v.name }}</option>
@@ -209,19 +209,19 @@ const statusColor = (val) => ({
                     </div>
                     <div class="space-y-2">
                         <div v-for="(line, i) in form.lines" :key="i" class="rounded-xl border border-outline-variant/50 p-3 space-y-2">
-                            <input v-model="line.description" type="text" placeholder="Description"
+                            <input aria-label="Description" v-model="line.description" type="text" placeholder="Description"
                                    class="block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[12px]" />
                             <div class="grid grid-cols-4 gap-2">
-                                <input v-model.number="line.quantity"   type="number" step="0.001" placeholder="Qty"
+                                <input aria-label="Quantity" v-model.number="line.quantity"   type="number" step="0.001" placeholder="Qty"
                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
-                                <input v-model.number="line.unit_price" type="number" step="0.0001" placeholder="Unit price"
+                                <input aria-label="Unit price" v-model.number="line.unit_price" type="number" step="0.0001" placeholder="Unit price"
                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
-                                <input v-model.number="line.tax_rate"   type="number" step="0.001" placeholder="Tax rate (0.125 = 12.5%)"
+                                <input aria-label="Tax rate" v-model.number="line.tax_rate"   type="number" step="0.001" placeholder="Tax rate (0.125 = 12.5%)"
                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
                                 <button type="button" @click="removeLine(i)" :disabled="form.lines.length === 1"
                                         class="text-[11px] font-bold text-rose-600 disabled:text-on-surface-variant/30">Remove</button>
                             </div>
-                            <select v-model="line.gl_account_id"
+                            <select aria-label="Gl account id" v-model="line.gl_account_id"
                                     class="block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[12px]">
                                 <option :value="null">— Expense GL —</option>
                                 <option v-for="a in expenseAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>

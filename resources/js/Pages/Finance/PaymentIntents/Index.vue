@@ -264,7 +264,7 @@ const statusColor = (val) => ({
                 <form @submit.prevent="submitBulkRefund" class="space-y-3">
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Reason (visible to Paystack support)</label>
-                        <textarea v-model="bulkRefundForm.reason" rows="3"
+                        <textarea aria-label="Reason (visible to Paystack support)" v-model="bulkRefundForm.reason" rows="3"
                                   class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
                         <InputError :message="bulkRefundForm.errors.reason" />
                         <InputError :message="bulkRefundForm.errors.bulk_refund" />
@@ -290,7 +290,7 @@ const statusColor = (val) => ({
                 <form @submit.prevent="submitRefund" class="space-y-3">
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Reason (visible to Paystack support)</label>
-                        <textarea v-model="refundForm.reason" rows="3"
+                        <textarea aria-label="Reason (visible to Paystack support)" v-model="refundForm.reason" rows="3"
                                   class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
                         <InputError :message="refundForm.errors.reason" />
                     </div>

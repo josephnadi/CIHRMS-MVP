@@ -44,7 +44,7 @@ const SCOPES = ['personal', 'department', 'organization'];
 
         <form @submit.prevent="submit" enctype="multipart/form-data"
               class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card mb-6 grid md:grid-cols-5 gap-3">
-            <input v-model="form.name" required maxlength="120" placeholder="Template name"
+            <input aria-label="Name" v-model="form.name" required maxlength="120" placeholder="Template name"
                    class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
             <select v-model="form.owner_scope" aria-label="Scope" class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                 <option v-for="s in SCOPES" :key="s" :value="s"

@@ -523,7 +523,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Plan <span class="text-rose-500">*</span></label>
-                    <select v-model="enrolForm.plan_id" required
+                    <select aria-label="Plan" v-model="enrolForm.plan_id" required
                             class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                             :class="{ 'border-rose-400': enrolForm.errors.plan_id }">
                         <option value="" disabled>Select a plan…</option>
@@ -533,14 +533,14 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Effective from <span class="text-rose-500">*</span></label>
-                    <input v-model="enrolForm.effective_from" type="date" required
+                    <input aria-label="Effective from" v-model="enrolForm.effective_from" type="date" required
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                         Premium override <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span>
                     </label>
-                    <input v-model.number="enrolForm.premium" type="number" step="0.01" min="0"
+                    <input aria-label="Premium override (optional)" v-model.number="enrolForm.premium" type="number" step="0.01" min="0"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
             </form>
@@ -566,13 +566,13 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
             <form @submit.prevent="submitDependant" class="space-y-5 p-6">
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Full name <span class="text-rose-500">*</span></label>
-                    <input v-model="dependantForm.full_name" maxlength="120" required
+                    <input aria-label="Full name" v-model="dependantForm.full_name" maxlength="120" required
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Relationship <span class="text-rose-500">*</span></label>
-                        <select v-model="dependantForm.relationship" required
+                        <select aria-label="Relationship" v-model="dependantForm.relationship" required
                                 class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                             <option value="spouse">Spouse</option>
                             <option value="child">Child</option>
@@ -582,7 +582,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Gender</label>
-                        <select v-model="dependantForm.gender"
+                        <select aria-label="Gender" v-model="dependantForm.gender"
                                 class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                             <option value="">—</option>
                             <option value="male">Male</option>
@@ -593,12 +593,12 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Date of birth <span class="text-rose-500">*</span></label>
-                    <input v-model="dependantForm.date_of_birth" type="date" required
+                    <input aria-label="Date of birth" v-model="dependantForm.date_of_birth" type="date" required
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">National ID <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
-                    <input v-model="dependantForm.national_id" maxlength="32"
+                    <input aria-label="National ID (optional)" v-model="dependantForm.national_id" maxlength="32"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
             </form>
@@ -631,18 +631,18 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Amount (GHS) <span class="text-rose-500">*</span></label>
-                        <input v-model.number="claimForm.amount" type="number" step="0.01" min="0.01" required
+                        <input aria-label="Amount (GHS)" v-model.number="claimForm.amount" type="number" step="0.01" min="0.01" required
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Claim date <span class="text-rose-500">*</span></label>
-                        <input v-model="claimForm.claim_date" type="date" required
+                        <input aria-label="Claim date" v-model="claimForm.claim_date" type="date" required
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                     </div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Description <span class="text-rose-500">*</span></label>
-                    <textarea v-model="claimForm.description" required minlength="10" maxlength="1000" rows="5"
+                    <textarea aria-label="Description" v-model="claimForm.description" required minlength="10" maxlength="1000" rows="5"
                               placeholder="Describe the expense, including provider name and date of service…"
                               class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20 resize-none"></textarea>
                 </div>

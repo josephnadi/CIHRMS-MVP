@@ -142,7 +142,7 @@ const chainBreaks = 0;
 
                     <div class="relative">
                         <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
-                        <input
+                        <input aria-label="User id"
                             v-model="localFilters.user_id"
                             @keyup.enter="applyFilters"
                             type="number"

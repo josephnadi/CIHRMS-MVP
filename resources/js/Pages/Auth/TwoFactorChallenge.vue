@@ -32,13 +32,13 @@ const submit = () => form.post(route('two-factor.challenge.submit'));
                     <form @submit.prevent="submit" class="space-y-3">
                         <template v-if="!useRecovery">
                             <label class="block text-xs font-medium text-slate-600 mb-1">6-digit code</label>
-                            <input v-model="form.code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6"
+                            <input aria-label="6-digit code" v-model="form.code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6"
                                    class="w-full rounded-lg border-slate-200 font-mono text-lg tracking-widest text-center"
                                    autofocus>
                         </template>
                         <template v-else>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Recovery code</label>
-                            <input v-model="form.recovery" type="text"
+                            <input aria-label="Recovery code" v-model="form.recovery" type="text"
                                    placeholder="xxxx-xxxx"
                                    class="w-full rounded-lg border-slate-200 font-mono">
                         </template>

@@ -311,7 +311,7 @@ function revokeShare(shareId) {
                     <div v-if="myActiveRoute" class="rounded-2xl border border-amber-300 bg-amber-50/50 p-4 shadow-card">
                         <p class="text-[10px] font-black uppercase tracking-[0.18em] text-amber-800 mb-1">Awaiting your action</p>
                         <p class="text-[12px] font-bold text-amber-900">{{ myActiveRoute.action_label }}</p>
-                        <textarea v-model="actForm.comment" rows="2" placeholder="Comment (optional)"
+                        <textarea aria-label="Comment" v-model="actForm.comment" rows="2" placeholder="Comment (optional)"
                                   class="mt-2 w-full rounded-lg border border-outline-variant px-2 py-1.5 text-[12px]"></textarea>
                         <div class="mt-2 flex items-center gap-2">
                             <button @click="act(myActiveRoute.id, 'complete')" class="flex-1 rounded-lg px-3 py-2 text-[12px] font-black text-white"

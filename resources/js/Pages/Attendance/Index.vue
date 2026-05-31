@@ -245,9 +245,9 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                             <span class="material-symbols-outlined text-[16px] text-secondary">filter_list</span>
                             <span class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">Filter</span>
                         </div>
-                        <input v-model="monthValue" type="month" @change="applyFilters"
+                        <input aria-label="MonthValue" v-model="monthValue" type="month" @change="applyFilters"
                                class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20"/>
-                        <select v-model="statusValue" @change="applyFilters"
+                        <select aria-label="StatusValue" v-model="statusValue" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All statuses</option>
                             <option value="present">Present</option>
@@ -258,7 +258,7 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                         </select>
                         <div class="relative ml-auto w-full sm:w-72">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">search</span>
-                            <input v-model="searchValue" @keyup.enter="applyFilters" placeholder="Search employee or staff ID…"
+                            <input aria-label="SearchValue" v-model="searchValue" @keyup.enter="applyFilters" placeholder="Search employee or staff ID…"
                                    class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
                     </div>
@@ -345,12 +345,12 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Employee ID</label>
-                        <input v-model="manual.employee_id" type="number"
+                        <input aria-label="Employee ID" v-model="manual.employee_id" type="number"
                                class="w-full rounded-xl border-outline-variant text-[13.5px] focus:border-secondary focus:ring-secondary/20" required>
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Event timestamp</label>
-                        <input v-model="manual.event_at" type="datetime-local"
+                        <input aria-label="Event timestamp" v-model="manual.event_at" type="datetime-local"
                                class="w-full rounded-xl border-outline-variant text-[13.5px] focus:border-secondary focus:ring-secondary/20" required>
                     </div>
                     <div>
@@ -370,7 +370,7 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Reason (audit-logged)</label>
-                        <textarea v-model="manual.reason" rows="3"
+                        <textarea aria-label="Reason (audit-logged)" v-model="manual.reason" rows="3"
                                   placeholder="e.g. Biometric outage at HQ — manual entry by HR"
                                   class="w-full rounded-xl border-outline-variant text-[13.5px] focus:border-secondary focus:ring-secondary/20" required></textarea>
                     </div>

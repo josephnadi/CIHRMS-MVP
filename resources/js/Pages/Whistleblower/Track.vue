@@ -26,7 +26,7 @@ const submit = () => form.post(route('whistleblower.track.submit'));
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Tracking code</label>
-                        <input v-model="form.tracking_code" placeholder="XXXX-XXXX-XXXX" autofocus
+                        <input aria-label="Tracking code" v-model="form.tracking_code" placeholder="XXXX-XXXX-XXXX" autofocus
                                class="w-full rounded-lg border-outline-variant font-mono tracking-widest text-center uppercase">
                         <p v-if="form.errors.tracking_code" class="text-rose-600 text-xs mt-1">{{ form.errors.tracking_code }}</p>
                     </div>

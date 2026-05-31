@@ -45,7 +45,7 @@ const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${e
                     <form @submit.prevent="submit" class="flex gap-3 items-end">
                         <div class="flex-1">
                             <label class="block text-xs font-medium text-slate-600 mb-1">6-digit code</label>
-                            <input v-model="form.code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6"
+                            <input aria-label="6-digit code" v-model="form.code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6"
                                    class="w-full rounded-lg border-slate-200 font-mono text-lg tracking-widest text-center"
                                    autofocus required>
                             <p v-if="form.errors.code" class="text-rose-600 text-xs mt-1">{{ form.errors.code }}</p>

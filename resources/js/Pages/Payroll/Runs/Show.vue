@@ -74,7 +74,7 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
 
                 <div v-if="R.can?.reverse">
                     <label class="block text-xs font-medium text-slate-600 mb-1">Reversal reason (required if reversing)</label>
-                    <textarea v-model="reverseForm.reason" rows="2"
+                    <textarea aria-label="Reversal reason (required if reversing)" v-model="reverseForm.reason" rows="2"
                               class="w-full rounded-lg border-slate-200"></textarea>
                 </div>
 

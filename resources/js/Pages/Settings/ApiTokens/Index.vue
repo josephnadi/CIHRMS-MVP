@@ -310,14 +310,14 @@ const statusMeta = (t) => {
 
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Token name <span class="text-rose-500">*</span></label>
-                    <input v-model="form.name" required maxlength="120" placeholder="e.g. GIFMIS production integration"
+                    <input aria-label="Token name" v-model="form.name" required maxlength="120" placeholder="e.g. GIFMIS production integration"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': form.errors.name }"/>
                 </div>
 
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Audit note (purpose)</label>
-                    <textarea v-model="form.purpose" rows="2"
+                    <textarea aria-label="Audit note (purpose)" v-model="form.purpose" rows="2"
                               placeholder="What system uses this token, and why? This appears in the audit log."
                               class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20 resize-none"></textarea>
                 </div>
@@ -350,12 +350,12 @@ const statusMeta = (t) => {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Rate limit / min</label>
-                        <input v-model.number="form.rate_limit" type="number" min="1" max="6000"
+                        <input aria-label="Rate limit / min" v-model.number="form.rate_limit" type="number" min="1" max="6000"
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"/>
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Expires in days</label>
-                        <input v-model.number="form.expires_in_days" type="number" min="1" max="3650"
+                        <input aria-label="Expires in days" v-model.number="form.expires_in_days" type="number" min="1" max="3650"
                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"/>
                     </div>
                 </div>

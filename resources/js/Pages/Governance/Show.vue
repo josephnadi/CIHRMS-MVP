@@ -70,7 +70,7 @@ const myAckStatus = computed(() => props.policy.data?.my_ack_status ?? 'no_versi
                         <h2 class="text-lg font-black text-amber-900">Acknowledge this policy</h2>
                         <p class="mt-1 text-sm text-amber-800">Type your full name (matching the name on your account) to record acknowledgement. Your timestamp, IP address, and browser will be captured for audit.</p>
                         <form @submit.prevent="submitAck" class="mt-4 space-y-3">
-                            <input v-model="ackForm.signed_full_name" required maxlength="120"
+                            <input aria-label="Signed full name" v-model="ackForm.signed_full_name" required maxlength="120"
                                 :placeholder="$page.props.auth.user.name"
                                 class="w-full max-w-md rounded-xl border border-amber-300 bg-surface-container-lowest px-3 py-2 text-sm" />
                             <button type="submit" :disabled="ackForm.processing" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-5 py-2 text-sm font-bold text-white shadow-glow-sm">

@@ -852,7 +852,7 @@ const quickActions = computed(() => [
                     <!-- Search -->
                     <div class="relative hidden flex-1 max-w-xl lg:block">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50 pointer-events-none">search</span>
-                        <input
+                        <input aria-label="Search employees, IDs, departments…"
                             type="text"
                             placeholder="Search employees, IDs, departments…"
                             class="w-full rounded-full border border-outline-variant/60 bg-surface-container-low/60 dark:bg-surface-container-low/80 py-2.5 pl-11 pr-5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 transition-all duration-200 focus:outline-none focus:border-secondary/40 focus:ring-4 focus:ring-secondary/8 focus:bg-surface-container-lowest"

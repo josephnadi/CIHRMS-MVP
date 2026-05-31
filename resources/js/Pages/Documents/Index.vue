@@ -131,7 +131,7 @@ const tone = (status) => ({
 
                 <!-- Search -->
                 <div class="flex items-center gap-3">
-                    <input v-model="q" @keyup.enter="search" placeholder="Search title or ref no…"
+                    <input aria-label="Q" v-model="q" @keyup.enter="search" placeholder="Search title or ref no…"
                            class="flex-1 max-w-md rounded-xl border border-outline-variant bg-surface-container-lowest text-[13px] px-3 py-2 font-semibold" />
                     <button @click="search" class="rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[12px] font-black">Search</button>
                 </div>

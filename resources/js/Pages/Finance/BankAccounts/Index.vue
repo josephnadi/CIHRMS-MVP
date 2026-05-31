@@ -143,7 +143,7 @@ const purposeColor = (val) => ({
             <form @submit.prevent="submit" class="space-y-4">
                 <div>
                     <InputLabel for="gl_account_id" value="Linked GL account (asset)" />
-                    <select id="gl_account_id" v-model="form.gl_account_id"
+                    <select aria-label="Gl account id" id="gl_account_id" v-model="form.gl_account_id"
                             class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                         <option :value="null">—</option>
                         <option v-for="a in assetAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
@@ -190,7 +190,7 @@ const purposeColor = (val) => ({
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <InputLabel for="purpose" value="Purpose" />
-                        <select id="purpose" v-model="form.purpose"
+                        <select aria-label="Purpose" id="purpose" v-model="form.purpose"
                                 class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]">
                             <option value="operating">Operating</option>
                             <option value="payroll">Payroll</option>
@@ -208,7 +208,7 @@ const purposeColor = (val) => ({
                 </div>
                 <div>
                     <InputLabel for="notes" value="Notes" />
-                    <textarea id="notes" v-model="form.notes" rows="3"
+                    <textarea aria-label="Notes" id="notes" v-model="form.notes" rows="3"
                               class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
                 </div>
                 <div class="flex items-center gap-2">

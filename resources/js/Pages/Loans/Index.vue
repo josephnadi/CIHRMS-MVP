@@ -396,10 +396,10 @@ const repayPct = (loan) => {
                         </div>
                         <div class="relative flex-1 min-w-[220px] max-w-xs">
                             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/50">search</span>
-                            <input v-model="localFilters.q" placeholder="Search reference or employee…"
+                            <input aria-label="Q" v-model="localFilters.q" placeholder="Search reference or employee…"
                                    class="w-full rounded-xl border-outline-variant pl-9 text-[12.5px] focus:border-secondary focus:ring-secondary/20"/>
                         </div>
-                        <select v-model="localFilters.status" @change="applyFilters"
+                        <select aria-label="Status" v-model="localFilters.status" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All statuses</option>
                             <option value="pending_approval">Pending approval</option>
@@ -409,7 +409,7 @@ const repayPct = (loan) => {
                             <option value="paid_off">Paid off</option>
                             <option value="rejected">Rejected</option>
                         </select>
-                        <select v-model="localFilters.product_id" @change="applyFilters"
+                        <select aria-label="Product id" v-model="localFilters.product_id" @change="applyFilters"
                                 class="rounded-xl border-outline-variant text-[12.5px] font-semibold focus:border-secondary focus:ring-secondary/20">
                             <option value="">All products</option>
                             <option v-for="p in productList" :key="p.id" :value="p.id">{{ p.name }}</option>
@@ -622,7 +622,7 @@ const repayPct = (loan) => {
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">
                             Loan product <span class="text-rose-500">*</span>
                         </label>
-                        <select v-model="form.product_id" @change="previewQuote" required
+                        <select aria-label="Loan product" v-model="form.product_id" @change="previewQuote" required
                                 class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                                 :class="{ 'border-rose-400': form.errors.product_id }">
                             <option value="">Choose a product…</option>
@@ -642,14 +642,14 @@ const repayPct = (loan) => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Principal (GHS) <span class="text-rose-500">*</span></label>
-                            <input v-model="form.principal" @blur="previewQuote" type="number" min="1" step="0.01" placeholder="5,000.00" required
+                            <input aria-label="Principal (GHS)" v-model="form.principal" @blur="previewQuote" type="number" min="1" step="0.01" placeholder="5,000.00" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono tabular-nums focus:border-secondary focus:ring-secondary/20"
                                    :class="{ 'border-rose-400': form.errors.principal }"/>
                             <p v-if="form.errors.principal" class="mt-1 text-[11px] text-rose-500">{{ form.errors.principal }}</p>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Term (months) <span class="text-rose-500">*</span></label>
-                            <input v-model="form.term_months" @blur="previewQuote" type="number" min="1" max="240" placeholder="12" required
+                            <input aria-label="Term (months)" v-model="form.term_months" @blur="previewQuote" type="number" min="1" max="240" placeholder="12" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono tabular-nums focus:border-secondary focus:ring-secondary/20"
                                    :class="{ 'border-rose-400': form.errors.term_months }"/>
                             <p v-if="form.errors.term_months" class="mt-1 text-[11px] text-rose-500">{{ form.errors.term_months }}</p>
@@ -659,7 +659,7 @@ const repayPct = (loan) => {
                     <!-- Purpose -->
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Purpose</label>
-                        <textarea v-model="form.purpose" rows="3" placeholder="Briefly describe the loan purpose…"
+                        <textarea aria-label="Purpose" v-model="form.purpose" rows="3" placeholder="Briefly describe the loan purpose…"
                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20 resize-none"></textarea>
                     </div>
 
