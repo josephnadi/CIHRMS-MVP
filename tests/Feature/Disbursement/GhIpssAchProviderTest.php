@@ -15,6 +15,17 @@ use App\Services\Disbursement\Providers\GhIpssAchProvider;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
+    // .env.example ships GHIPSS_ENABLED=false (production-safe opt-in
+    // default) so DisbursementServiceProvider doesn't register the GhIPSS
+    // provider on its own. Tests in this file exercise dispatch through
+    // BatchDisbursementService, which silently does nothing without a
+    // provider — they need the channel enabled explicitly. Setting config
+    // BEFORE the first app() resolution ensures the singleton picks up
+    // the enabled state.
+    config()->set('disbursement.providers.ghipss_ach.enabled', true);
+    config()->set('disbursement.providers.ghipss_ach.sponsor_sort_code', '300100');
+    config()->set('disbursement.providers.ghipss_ach.originator_name', 'CIHRM');
+
     $this->dept = Department::factory()->create();
 
     $this->employee = Employee::factory()->create([
