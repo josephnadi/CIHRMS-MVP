@@ -96,9 +96,14 @@ class AppServiceProvider extends ServiceProvider
         // Phase 2 — Oracle IPPD2/IPPD3 export. Construction needs the MDA
         // code + output disk from config, so we bind it explicitly rather
         // than letting Reflection-based auto-resolve fail on the strings.
+        // .env.example ships IPPD_MDA_CODE='' so operators must set their
+        // own MDA before going live — but the empty string slips past the
+        // config() fallback, which would silently emit a broken H header
+        // (`H||…`). Treat empty as missing and fall back to the brand code.
         $this->app->singleton(\App\Services\Payroll\Ippd\IppdExporter::class, function () {
+            $mda = (string) config('payroll.ippd.mda_code', 'CIHRMS');
             return new \App\Services\Payroll\Ippd\IppdExporter(
-                mdaCode: (string) config('payroll.ippd.mda_code', 'CIHRMS'),
+                mdaCode: $mda !== '' ? $mda : 'CIHRMS',
                 disk:    (string) config('payroll.ippd.output_disk', 'local'),
             );
         });

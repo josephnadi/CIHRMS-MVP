@@ -11,6 +11,15 @@ use App\Services\Payroll\Ippd\IppdExporter;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
+    // .env.example ships IPPD_MDA_CODE='' (intentionally blank — operators
+    // must supply their own MDA before going live). The DI-resolved IppdExporter
+    // reads from config and the empty string is a value, so the binding's
+    // 'CIHRMS' fallback never fires. Tests that round-trip through the
+    // artisan command / HTTP route need the MDA set explicitly; tests that
+    // construct IppdExporter directly already pass mdaCode in the
+    // constructor and aren't affected.
+    config()->set('payroll.ippd.mda_code', 'CIHRMS');
+
     $this->dept = Department::factory()->create(['code' => 'HR']);
     $this->user = User::factory()->create(['name' => 'Akosua Mensah']);
     $this->employee = Employee::factory()->create([
