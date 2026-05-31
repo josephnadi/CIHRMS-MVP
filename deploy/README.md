@@ -9,6 +9,7 @@ Supervisor unit files for the queue workers and Laravel scheduler.
 
 | File | Purpose |
 |---|---|
+| `cihrms-queue-default.conf` | Worker for the `default` queue — drains every Laravel notification, the N1 `SendSmsJob`, N2 module listeners (loan/benefit/attendance/payroll/offboarding/asset/document notifications), and the Paystack webhook job. **Without this, those side-effects silently queue and never fire.** |
 | `cihrms-queue-analytics.conf` | Worker for the `analytics` queue (2 processes — high-volume, parallelisable). |
 | `cihrms-scheduler.conf` | Replaces `* * * * * php artisan schedule:run` cron with a long-lived process. |
 
@@ -21,7 +22,7 @@ Install:
 sudo cp deploy/supervisor/*.conf /etc/supervisor/conf.d/
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start cihrms-queue-analytics:* cihrms-scheduler
+sudo supervisorctl start cihrms-queue-default:* cihrms-queue-analytics:* cihrms-scheduler
 ```
 
 ## Production `.env` checklist
