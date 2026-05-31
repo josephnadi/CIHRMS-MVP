@@ -223,7 +223,15 @@ const navSections = computed(() => {
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: true },
                     { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
                     { label: 'DPA Requests',  route: 'privacy.admin.index',       module: 'privacy-admin', icon: 'policy',    visible: can('privacy.fulfill') },
-                    { label: 'Messaging',     route: 'messaging.index',           module: 'messaging',     icon: 'sms',       visible: can('messaging.view') },
+                    {
+                        label: 'Messaging', icon: 'sms', expandable: true,
+                        visible: can('messaging.view') || can('broadcasts.view'),
+                        children: [
+                            { label: 'SMS Log',     route: 'messaging.index',                  module: 'messaging',            icon: 'sms',           visible: can('messaging.view') },
+                            { label: 'Broadcasts',  route: 'messaging.broadcasts.index',       module: 'messaging-broadcasts', icon: 'campaign',      visible: can('broadcasts.view') },
+                            { label: 'Templates',   route: 'messaging.templates.index',        module: 'messaging-templates',  icon: 'description',   visible: can('broadcasts.view') },
+                        ],
+                    },
                     { label: 'SSO Providers', route: 'sso-admin.index',           module: 'sso',           icon: 'key',       visible: can('sso.manage') },
                     { label: 'API Tokens',    route: 'api-tokens.index',          module: 'api-tokens',    icon: 'vpn_key',   visible: can('api.token_manage') },
                     { label: 'Webhooks',      route: 'webhooks.index',            module: 'webhooks',      icon: 'webhook',   visible: can('api.webhooks_manage') },
@@ -241,7 +249,15 @@ const navSections = computed(() => {
                     { label: 'Integrations',  route: 'admin.integrations.index',  module: 'integrations',  icon: 'extension', visible: can('integrations.manage') },
                     { label: 'Whistleblower', route: 'whistleblower.admin.index', module: 'whistleblower', icon: 'flag',      visible: can('whistleblower.investigate') || can('whistleblower.view_all') },
                     { label: 'DPA Requests',  route: 'privacy.admin.index',       module: 'privacy-admin', icon: 'policy',    visible: can('privacy.fulfill') },
-                    { label: 'Messaging',     route: 'messaging.index',           module: 'messaging',     icon: 'sms',       visible: can('messaging.view') },
+                    {
+                        label: 'Messaging', icon: 'sms', expandable: true,
+                        visible: can('messaging.view') || can('broadcasts.view'),
+                        children: [
+                            { label: 'SMS Log',     route: 'messaging.index',                  module: 'messaging',            icon: 'sms',           visible: can('messaging.view') },
+                            { label: 'Broadcasts',  route: 'messaging.broadcasts.index',       module: 'messaging-broadcasts', icon: 'campaign',      visible: can('broadcasts.view') },
+                            { label: 'Templates',   route: 'messaging.templates.index',        module: 'messaging-templates',  icon: 'description',   visible: can('broadcasts.view') },
+                        ],
+                    },
                     { label: 'SSO Providers', route: 'sso-admin.index',           module: 'sso',           icon: 'key',       visible: can('sso.manage') },
                     { label: 'API Tokens',    route: 'api-tokens.index',          module: 'api-tokens',    icon: 'vpn_key',   visible: can('api.token_manage') },
                     { label: 'Webhooks',      route: 'webhooks.index',            module: 'webhooks',      icon: 'webhook',   visible: can('api.webhooks_manage') },
@@ -561,6 +577,11 @@ const SIDEBAR_ICON_COLORS = {
     'billing-members':          '#3949ab',
     'billing-fee-catalog':      '#3949ab',
     'billing-runs':             '#3949ab',
+
+    // Messaging
+    'messaging':                '#3949ab',
+    'messaging-broadcasts':     '#3949ab',
+    'messaging-templates':      '#3949ab',
 };
 const SIDEBAR_ICON_DEFAULT = '#7986cb';
 
