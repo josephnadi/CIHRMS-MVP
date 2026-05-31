@@ -21,7 +21,7 @@ beforeEach(function () {
     RateLimiter::clear('sms:marketing:+233200000088');
 });
 
-function makeMember(string $phone = null, string $email = null): Member
+function makeMember(?string $phone = null, ?string $email = null): Member
 {
     $customer = Customer::factory()->create();
     return Member::factory()->state([

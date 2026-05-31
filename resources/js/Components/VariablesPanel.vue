@@ -18,7 +18,7 @@ const cb = '}}';
             </li>
         </ul>
         <p class="mt-3 text-[11px] text-on-surface-variant/70">
-            Unknown variables render as empty. Click a variable to copy it.
+            Unknown variables render as empty.
         </p>
     </div>
 </template>

@@ -102,10 +102,10 @@ function submit() {
                 <InputLabel value="Channels" />
                 <div class="mt-1 flex gap-4">
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="checkbox" :value="'sms'" v-model="form.channels" /> SMS
+                        <input type="checkbox" :value="'sms'" v-model="form.channels" aria-label="Channel: SMS" /> SMS
                     </label>
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="checkbox" :value="'mail'" v-model="form.channels" /> Email
+                        <input type="checkbox" :value="'mail'" v-model="form.channels" aria-label="Channel: Email" /> Email
                     </label>
                 </div>
                 <InputError :message="form.errors.channels" class="mt-1" />
@@ -146,7 +146,7 @@ function submit() {
 
             <div v-if="canBypassThrottle" class="rounded-xl border border-warning/40 bg-warning/10 p-4">
                 <label class="flex items-center gap-2 text-sm font-semibold text-warning-on-container">
-                    <input type="checkbox" v-model="form.throttle_overridden" />
+                    <input type="checkbox" v-model="form.throttle_overridden" aria-label="Bypass per-phone SMS throttle" />
                     Bypass per-phone SMS throttle (logged in audit)
                 </label>
                 <TextInput v-if="form.throttle_overridden" v-model="form.throttle_override_reason"
