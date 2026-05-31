@@ -7,7 +7,6 @@ use App\Enums\DocumentStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\ExitType;
 use App\Enums\LoanProductType;
-use App\Http\Controllers\Admin\UserController;
 use App\Models\Department;
 use App\Models\Document;
 use App\Models\Employee;
@@ -15,6 +14,7 @@ use App\Models\LoanProduct;
 use App\Models\User;
 use App\Services\DocumentService;
 use App\Services\Finance\SequenceService;
+use App\Services\Hr\UserIdentifierAllocator;
 use App\Services\Loans\LoanService;
 use App\Services\Offboarding\OffboardingService;
 use Database\Seeders\GhanaStatutoryReferenceSeeder;
@@ -93,20 +93,13 @@ it('LoanService::apply produces sequential LOAN-{year}-NNNNN references', functi
     expect($b->reference)->toBe(sprintf('LOAN-%04d-%05d', $year, 2));
 });
 
-it('UserController::resolveEmployeeNo produces sequential CIHRM-NNNN values', function () {
-    // resolveEmployeeNo() is private; reflection lets us exercise it directly
-    // without dragging in the controller's auth/2FA stack. Passing null
-    // forces the auto-generate path (silent collision recovery is exercised
-    // separately in UserManagementTest).
-    $controller = app(UserController::class);
-    $method     = new ReflectionMethod($controller, 'resolveEmployeeNo');
-    $method->setAccessible(true);
+it('UserIdentifierAllocator::resolveEmployeeNo produces sequential CIHRM-NNNN values', function () {
+    // Passing null forces the auto-generate path; silent collision recovery
+    // is exercised via HTTP in UserManagementTest.
+    $allocator = app(UserIdentifierAllocator::class);
 
-    $a = $method->invoke($controller, null);
-    $b = $method->invoke($controller, null);
-
-    expect($a)->toBe('CIHRM-0001');
-    expect($b)->toBe('CIHRM-0002');
+    expect($allocator->resolveEmployeeNo(null))->toBe('CIHRM-0001');
+    expect($allocator->resolveEmployeeNo(null))->toBe('CIHRM-0002');
 
     // And confirm the underlying key is unscoped by year (i.e. a 2027 call
     // still increments the same counter, not a fresh per-year one).

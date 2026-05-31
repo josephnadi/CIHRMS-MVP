@@ -12,7 +12,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Finance\SequenceService;
+use App\Services\Hr\UserIdentifierAllocator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +23,7 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly SequenceService $sequences) {}
+    public function __construct(private readonly UserIdentifierAllocator $ids) {}
 
     public function index(Request $request): Response
     {
@@ -56,7 +56,7 @@ class UserController extends Controller
             $user = User::create([
                 'name'                  => $data['name'],
                 'email'                 => $data['email'],
-                'staff_id'              => $this->resolveStaffId($data['staff_id'] ?? null, $data['department_id'] ?? null),
+                'staff_id'              => $this->ids->resolveStaffId($data['staff_id'] ?? null, $data['department_id'] ?? null),
                 'role'                  => $data['role'],
                 'password'              => Hash::make($data['password']),
                 'permissions'           => User::ROLE_PERMISSIONS[$data['role']] ?? [],
@@ -78,7 +78,7 @@ class UserController extends Controller
             Employee::create([
                 'user_id'       => $user->id,
                 'department_id' => $data['department_id'],
-                'employee_no'   => $this->resolveEmployeeNo($data['employee_no'] ?? null),
+                'employee_no'   => $this->ids->resolveEmployeeNo($data['employee_no'] ?? null),
                 'position'      => $data['position'],
                 'hire_date'     => $data['hire_date'],
                 'phone'         => $data['phone'] ?? null,
@@ -107,80 +107,8 @@ class UserController extends Controller
         $deptId = $request->integer('department_id') ?: null;
 
         return response()->json([
-            'staff_id'    => $this->previewStaffId($deptId),
-            'employee_no' => sprintf('CIHRM-%04d', $this->sequences->peek('employee_no')),
+            'staff_id'    => $this->ids->previewStaffId($deptId),
+            'employee_no' => $this->ids->previewEmployeeNo(),
         ]);
-    }
-
-    /**
-     * Return a usable employee_no. If the operator typed one and it's free,
-     * honour it. Otherwise (or on collision with the supplied value) burn
-     * sequence numbers until we land on one that isn't already taken — the
-     * row-locked counter handles concurrent inserts, the existence check
-     * defensively covers seed/import values that pre-populated slots.
-     * Operators never see "already exists" for a stale preview.
-     */
-    private function resolveEmployeeNo(?string $supplied): string
-    {
-        if ($supplied !== null && $supplied !== '' && ! Employee::where('employee_no', $supplied)->exists()) {
-            return $supplied;
-        }
-
-        do {
-            $candidate = sprintf('CIHRM-%04d', $this->sequences->next('employee_no'));
-        } while (Employee::where('employee_no', $candidate)->exists());
-
-        return $candidate;
-    }
-
-    /**
-     * Same silent-recovery contract as resolveEmployeeNo: honour an operator
-     * value when it's free, otherwise bump SequenceService::next() until we
-     * find an unused slot. Department-scoped sequence so HR-0001 / FIN-0001
-     * coexist.
-     */
-    private function resolveStaffId(?string $supplied, ?int $departmentId): string
-    {
-        if ($supplied !== null && $supplied !== '' && ! User::where('staff_id', $supplied)->exists()) {
-            return $supplied;
-        }
-
-        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
-        do {
-            $candidate = sprintf('%s-%04d', $prefix, $this->sequences->next($key));
-        } while (User::where('staff_id', $candidate)->exists());
-
-        return $candidate;
-    }
-
-    /**
-     * Format the next staff_id given an optional department.
-     *  - With department: `GH-{DEPT_CODE}-{####}` (e.g. GH-HR-0007)
-     *  - Without:        `GH-{####}`
-     * The sequence key is scoped by department code so each dept gets its
-     * own counter — HR-0001 and FIN-0001 coexist.
-     */
-    public function nextStaffId(?int $departmentId): string
-    {
-        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
-        return sprintf('%s-%04d', $prefix, $this->sequences->next($key));
-    }
-
-    private function previewStaffId(?int $departmentId): string
-    {
-        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
-        return sprintf('%s-%04d', $prefix, $this->sequences->peek($key));
-    }
-
-    /** @return array{0:string, 1:string} [sequence_key, staff_id_prefix] */
-    private function staffIdSequenceFor(?int $departmentId): array
-    {
-        if ($departmentId) {
-            $code = strtoupper((string) Department::whereKey($departmentId)->value('code'));
-            if ($code !== '') {
-                return ["staff_id:GH:{$code}", "GH-{$code}"];
-            }
-        }
-        return ['staff_id:GH', 'GH'];
     }
 }
