@@ -65,3 +65,10 @@ Schedule::command('messaging:sweep-stuck-sms')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer();
+
+// N3 — pick up scheduled admin broadcasts whose scheduled_at has passed
+// and queue them for the DispatchBroadcastJob.
+Schedule::command('messaging:fire-due-broadcasts')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();
