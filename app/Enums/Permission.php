@@ -109,6 +109,11 @@ enum Permission: string
     case MessagingSend           = 'messaging.send';
     case MessagingManage         = 'messaging.manage';
 
+    // ── N3: Broadcasts (admin SMS+mail to pre-defined audiences) ──
+    case BroadcastsView            = 'broadcasts.view';
+    case BroadcastsManage          = 'broadcasts.manage';
+    case BroadcastsBypassThrottle  = 'broadcasts.bypass_throttle';
+
     case SsoManage               = 'sso.manage';
     case SsoAuditView            = 'sso.audit_view';
 
