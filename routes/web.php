@@ -640,6 +640,20 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:messaging.send')->name('send');
         Route::post('/pins',      [MessagingController::class, 'issuePin'])
             ->middleware(['permission:messaging.manage', '2fa:fresh'])->name('pins.issue');
+
+        // ── N3 Broadcasts ──
+        Route::get('broadcasts',                [\App\Http\Controllers\BroadcastController::class, 'index'])
+            ->middleware('permission:broadcasts.view')->name('broadcasts.index');
+        Route::get('broadcasts/create',         [\App\Http\Controllers\BroadcastController::class, 'create'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.create');
+        Route::post('broadcasts',               [\App\Http\Controllers\BroadcastController::class, 'store'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.store');
+        Route::get('broadcasts/{broadcast}',    [\App\Http\Controllers\BroadcastController::class, 'show'])
+            ->middleware('permission:broadcasts.view')->name('broadcasts.show');
+        Route::post('broadcasts/{broadcast}/cancel', [\App\Http\Controllers\BroadcastController::class, 'cancel'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.cancel');
+        Route::post('broadcasts/preview',       [\App\Http\Controllers\BroadcastController::class, 'preview'])
+            ->middleware('permission:broadcasts.manage')->name('broadcasts.preview');
     });
 
     // ── Phase 3: API token + webhook admin (WS16) ──
