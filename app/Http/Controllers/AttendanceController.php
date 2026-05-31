@@ -140,9 +140,10 @@ class AttendanceController extends Controller
             ->get();
 
         return Inertia::render('Attendance/MyAttendance', [
-            'period'   => ['from' => $start->toDateString(), 'to' => $end->toDateString(), 'label' => $month],
-            'summary'  => $summary,
-            'days'     => AttendanceSummaryResource::collection($days),
+            'period'       => ['from' => $start->toDateString(), 'to' => $end->toDateString(), 'label' => $month],
+            'summary'      => $summary,
+            'days'         => AttendanceSummaryResource::collection($days),
+            'activeModule' => 'attendance-me',
         ]);
     }
 
@@ -218,6 +219,7 @@ class AttendanceController extends Controller
                 ->latest('effective_from')
                 ->limit(50)
                 ->get(),
+            'activeModule' => 'attendance-shifts',
         ]);
     }
 
@@ -261,6 +263,7 @@ class AttendanceController extends Controller
                     ->latest()
                     ->paginate(20)
             ),
+            'activeModule' => 'attendance-corrections',
         ]);
     }
 

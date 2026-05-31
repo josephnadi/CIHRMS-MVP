@@ -253,7 +253,8 @@ const attendancePct = computed(() => {
                                     v-if="!isClockedIn"
                                     @click="clockSelf('in')"
                                     :disabled="clockForm.processing"
-                                    class="btn-shimmer inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[14px] font-black text-primary shadow-lg transition-all hover:-translate-y-px hover:shadow-xl active:scale-[0.97] disabled:opacity-60"
+                                    aria-label="Clock in"
+                                    class="btn-shimmer inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[14px] font-black text-secondary shadow-lg transition-all hover:-translate-y-px hover:shadow-xl active:scale-[0.97] disabled:opacity-60"
                                 >
                                     <span v-if="clockForm.processing" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
                                     <span v-else class="material-symbols-outlined text-[18px]">login</span>
