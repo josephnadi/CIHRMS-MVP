@@ -93,15 +93,17 @@ it('LoanService::apply produces sequential LOAN-{year}-NNNNN references', functi
     expect($b->reference)->toBe(sprintf('LOAN-%04d-%05d', $year, 2));
 });
 
-it('UserController::nextEmployeeNo produces sequential CIHRM-NNNN values', function () {
-    // nextEmployeeNo() is private; reflection lets us exercise it directly
-    // without dragging in the controller's auth/2FA stack.
+it('UserController::resolveEmployeeNo produces sequential CIHRM-NNNN values', function () {
+    // resolveEmployeeNo() is private; reflection lets us exercise it directly
+    // without dragging in the controller's auth/2FA stack. Passing null
+    // forces the auto-generate path (silent collision recovery is exercised
+    // separately in UserManagementTest).
     $controller = app(UserController::class);
-    $method     = new ReflectionMethod($controller, 'nextEmployeeNo');
+    $method     = new ReflectionMethod($controller, 'resolveEmployeeNo');
     $method->setAccessible(true);
 
-    $a = $method->invoke($controller);
-    $b = $method->invoke($controller);
+    $a = $method->invoke($controller, null);
+    $b = $method->invoke($controller, null);
 
     expect($a)->toBe('CIHRM-0001');
     expect($b)->toBe('CIHRM-0002');

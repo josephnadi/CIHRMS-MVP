@@ -56,7 +56,7 @@ class UserController extends Controller
             $user = User::create([
                 'name'                  => $data['name'],
                 'email'                 => $data['email'],
-                'staff_id'              => $data['staff_id'] ?? $this->nextStaffId($data['department_id'] ?? null),
+                'staff_id'              => $this->resolveStaffId($data['staff_id'] ?? null, $data['department_id'] ?? null),
                 'role'                  => $data['role'],
                 'password'              => Hash::make($data['password']),
                 'permissions'           => User::ROLE_PERMISSIONS[$data['role']] ?? [],
@@ -78,7 +78,7 @@ class UserController extends Controller
             Employee::create([
                 'user_id'       => $user->id,
                 'department_id' => $data['department_id'],
-                'employee_no'   => $data['employee_no'] ?? $this->nextEmployeeNo(),
+                'employee_no'   => $this->resolveEmployeeNo($data['employee_no'] ?? null),
                 'position'      => $data['position'],
                 'hire_date'     => $data['hire_date'],
                 'phone'         => $data['phone'] ?? null,
@@ -113,14 +113,44 @@ class UserController extends Controller
     }
 
     /**
-     * Generate a sequential employee_no like CIHRM-0042. SequenceService
-     * row-locks the counter so concurrent inserts cannot collide on the
-     * unique employee_no constraint. Employee numbers are lifetime-unique
-     * (not yearly), so the key is unscoped by year.
+     * Return a usable employee_no. If the operator typed one and it's free,
+     * honour it. Otherwise (or on collision with the supplied value) burn
+     * sequence numbers until we land on one that isn't already taken — the
+     * row-locked counter handles concurrent inserts, the existence check
+     * defensively covers seed/import values that pre-populated slots.
+     * Operators never see "already exists" for a stale preview.
      */
-    private function nextEmployeeNo(): string
+    private function resolveEmployeeNo(?string $supplied): string
     {
-        return sprintf('CIHRM-%04d', $this->sequences->next('employee_no'));
+        if ($supplied !== null && $supplied !== '' && ! Employee::where('employee_no', $supplied)->exists()) {
+            return $supplied;
+        }
+
+        do {
+            $candidate = sprintf('CIHRM-%04d', $this->sequences->next('employee_no'));
+        } while (Employee::where('employee_no', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    /**
+     * Same silent-recovery contract as resolveEmployeeNo: honour an operator
+     * value when it's free, otherwise bump SequenceService::next() until we
+     * find an unused slot. Department-scoped sequence so HR-0001 / FIN-0001
+     * coexist.
+     */
+    private function resolveStaffId(?string $supplied, ?int $departmentId): string
+    {
+        if ($supplied !== null && $supplied !== '' && ! User::where('staff_id', $supplied)->exists()) {
+            return $supplied;
+        }
+
+        [$key, $prefix] = $this->staffIdSequenceFor($departmentId);
+        do {
+            $candidate = sprintf('%s-%04d', $prefix, $this->sequences->next($key));
+        } while (User::where('staff_id', $candidate)->exists());
+
+        return $candidate;
     }
 
     /**
