@@ -5,6 +5,7 @@ use App\Enums\BroadcastStatus;
 use App\Models\Broadcast;
 use App\Models\Member;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 it('requires broadcasts.view to access index', function () {
     $user = User::factory()->create(['role' => 'employee']);
@@ -67,6 +68,7 @@ it('throttle override requires the bypass permission AND a reason', function () 
     // With bypass perm, but no reason: validation rejects
     $admin->permissions = ['broadcasts.manage', 'broadcasts.bypass_throttle'];
     $admin->save();
+    Cache::flush();
 
     $this->actingAs($admin)->post(route('messaging.broadcasts.store'), [
         'title'               => 't',

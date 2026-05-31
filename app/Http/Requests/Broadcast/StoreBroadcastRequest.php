@@ -15,22 +15,14 @@ class StoreBroadcastRequest extends FormRequest
     {
         $user = $this->user();
 
-        if (! $user->hasPermission('broadcasts.manage')) {
+        if (! $user || ! $user->hasPermission('broadcasts.manage')) {
             return false;
         }
 
         // Throttle override requires the bypass perm.
-        // We read directly from the user's JSON `permissions` column (bypassing
-        // the timestamp-keyed allPermissions() cache) because `bypass_throttle`
-        // is a custom per-user grant — never a role default — so the raw column
-        // is the canonical source of truth and avoids stale-cache issues when
-        // permissions are updated between requests in the same second.
-        if ($this->boolean('throttle_overridden')) {
-            $customPerms = $user->permissions ?? [];
-            if (! in_array('broadcasts.bypass_throttle', $customPerms, true)
-                && ! $user->hasPermission('broadcasts.bypass_throttle')) {
-                return false;
-            }
+        if ($this->boolean('throttle_overridden')
+            && ! $user->hasPermission('broadcasts.bypass_throttle')) {
+            return false;
         }
 
         return true;
