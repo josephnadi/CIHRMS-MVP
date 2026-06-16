@@ -25,6 +25,7 @@ class ChartOfAccountsSeeder extends Seeder
         ['1100', 'Bank — GCB Operating',        'asset', '1000'],
         ['1110', 'Bank — Stanbic Payroll',      'asset', '1000'],
         ['1120', 'Bank — ADB Statutory Escrow', 'asset', '1000'],
+        ['1130', 'Cash in Transit',             'asset', '1000'],
         ['1200', 'Accounts Receivable',         'asset', '1000'],
         ['1300', 'Loans Receivable from Staff', 'asset', '1000'],
 
@@ -50,6 +51,7 @@ class ChartOfAccountsSeeder extends Seeder
         ['4300', 'Certification Fees',      'income', '4000'],
         ['4400', 'Donations & Grants',      'income', '4000'],
         ['4500', 'Other Income',            'income', '4000'],
+        ['4600', 'Interest Income',         'income', '4000'],
 
         // Expense (5xxx)
         ['5000', 'Expenses',                       'expense', null],
