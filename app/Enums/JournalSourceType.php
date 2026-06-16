@@ -11,7 +11,12 @@ enum JournalSourceType: string
     case ApPayment      = 'ap_payment';
     case ArInvoice      = 'ar_invoice';
     case ArReceipt      = 'ar_receipt';
-    case BankAdjustment = 'bank_adjustment';
+    case BankAdjustment   = 'bank_adjustment';
+    case Payroll          = 'payroll';
+    case Disbursement     = 'disbursement';
+    case LoanDisbursement = 'loan_disbursement';
+    case LoanRepayment    = 'loan_repayment';
+    case MemberFee        = 'member_fee';
 
     public function label(): string
     {
@@ -22,6 +27,11 @@ enum JournalSourceType: string
             self::ArInvoice      => 'AR Invoice',
             self::ArReceipt      => 'AR Receipt',
             self::BankAdjustment => 'Bank Adjustment',
+            self::Payroll          => 'Payroll',
+            self::Disbursement     => 'Disbursement',
+            self::LoanDisbursement => 'Loan Disbursement',
+            self::LoanRepayment    => 'Loan Repayment',
+            self::MemberFee        => 'Member Fee',
         };
     }
 }
