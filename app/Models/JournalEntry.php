@@ -20,7 +20,7 @@ class JournalEntry extends Model
     protected $table = 'journal_entries';
 
     protected $fillable = [
-        'reference', 'entry_date', 'narration', 'status', 'source_type', 'source_id',
+        'reference', 'entry_date', 'narration', 'status', 'source_type', 'source_id', 'source_purpose',
         'posted_at', 'posted_by', 'reversed_at', 'reversed_by', 'reversal_of_id', 'created_by',
     ];
 

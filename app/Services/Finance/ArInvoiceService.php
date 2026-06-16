@@ -210,9 +210,10 @@ class ArInvoiceService
                 'entry_date'  => now()->format('Y-m-d'),
                 'narration'   => "Write-off: {$invoice->reference} — {$reason}",
                 'status'      => JournalEntryStatus::Draft->value,
-                'source_type' => JournalSourceType::ArInvoice->value,
-                'source_id'   => $invoice->id,
-                'created_by'  => $by->id,
+                'source_type'    => JournalSourceType::ArInvoice->value,
+                'source_purpose' => 'write_off',
+                'source_id'      => $invoice->id,
+                'created_by'     => $by->id,
             ]);
 
             // Dr Bad Debt Expense
