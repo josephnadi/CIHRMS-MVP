@@ -164,6 +164,7 @@ class RolePermissionSeeder extends Seeder
         'bank_accounts.view'   => ['Finance', 'View organisational bank accounts'],
         'bank_accounts.manage' => ['Finance', 'Manage organisational bank accounts'],
         'finance.hub'          => ['Finance', 'Access the Finance Hub landing page'],
+        'finance.posting_rules.manage' => ['Finance', 'View and re-map the GL account-determination rules'],
 
         // ── F2: Finance — Accounts Payable + Journal Engine ──
         'vendors.view'         => ['Finance', 'View vendor master data'],
@@ -304,6 +305,7 @@ class RolePermissionSeeder extends Seeder
             'accounts.view', 'accounts.manage',
             'bank_accounts.view', 'bank_accounts.manage',
             'finance.hub',
+            'finance.posting_rules.manage',
             // F2 — Accounts Payable & Journal
             'vendors.view', 'vendors.manage',
             'ap_invoices.view', 'ap_invoices.create', 'ap_invoices.approve', 'ap_invoices.pay',
