@@ -156,7 +156,10 @@ A single source can post more than one entry (e.g. accrual vs settlement). `sour
 **Files:**
 - Create: `database/migrations/2026_06_16_000001_add_source_purpose_to_journal_entries.php`
 - Modify: `app/Models/JournalEntry.php`
+- Modify: `app/Services/Finance/ArInvoiceService.php` (the only existing service that posts two JEs for one source id — its write-off JE must carry a distinct `source_purpose` so the new unique index doesn't collide with the accrual JE)
 - Test: `tests/Feature/Finance/JournalEntrySourcePurposeTest.php`
+
+> **Note for implementer:** `journal_entries.created_by` is NOT NULL with a FK to `users`. The test factory rows below must supply a real `created_by` — create a `User` via `User::factory()->create()` and use its id. (Adjust the test `JournalEntry::create([...])` calls to include `'created_by' => $user->id`.)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -258,20 +261,32 @@ In `app/Models/JournalEntry.php`, change the `$fillable` array to include `sourc
     ];
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [ ] **Step 5: Give the AR write-off JE a distinct source_purpose**
+
+`ArInvoiceService` is the one existing service that posts two journal entries for the same `(source_type=ar_invoice, source_id=invoice_id)` — an accrual JE on approval (~line 90) and a bad-debt JE on write-off (~line 208). Without a discriminator they collide on the new unique index. In `app/Services/Finance/ArInvoiceService.php`, in the **write-off** `JournalEntry::create([...])` (the one whose narration starts `"Write-off:`), add a `source_purpose` line right after the `source_type` line:
+
+```php
+                'source_type'    => JournalSourceType::ArInvoice->value,
+                'source_purpose' => 'write_off',
+                'source_id'      => $invoice->id,
+```
+
+Leave the accrual JE (~line 90) unchanged — it keeps the default `''`.
+
+- [ ] **Step 6: Run test to verify it passes**
 
 Run: `php artisan test tests/Feature/Finance/JournalEntrySourcePurposeTest.php`
 Expected: PASS (both tests).
 
-- [ ] **Step 6: Run the existing journal/AP/AR suite to confirm no regression**
+- [ ] **Step 7: Run the existing journal/AP/AR suite to confirm no regression**
 
 Run: `php artisan test tests/Feature/Finance --filter="Journal|ApPayment|ArInvoice|ArReceipt|VendorInvoice|BankAdjustment"`
-Expected: PASS — existing services each post one JE per source id, so the new index does not collide.
+Expected: PASS — with the write-off discriminator in place, no source posts two JEs under the same idempotency tuple.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add database/migrations/2026_06_16_000001_add_source_purpose_to_journal_entries.php app/Models/JournalEntry.php tests/Feature/Finance/JournalEntrySourcePurposeTest.php
+git add database/migrations/2026_06_16_000001_add_source_purpose_to_journal_entries.php app/Models/JournalEntry.php app/Services/Finance/ArInvoiceService.php tests/Feature/Finance/JournalEntrySourcePurposeTest.php
 git commit -m "feat(finance): add source_purpose idempotency key to journal_entries"
 ```
 
@@ -1000,7 +1015,67 @@ it('reverses a posted entry for a source', function () {
     $expense = GlAccount::where('code', '5100')->firstOrFail();
     expect((float) GlAccountBalance::where('gl_account_id', $expense->id)->value('balance'))->toBe(0.0);
 });
+
+it('keeps distinct purposes for the same source as separate entries', function () {
+    $accrual = app(PostingService::class)->post(payrollAccrualDoc('accrual'));
+
+    $settlement = new PostingDocument(
+        sourceType: JournalSourceType::Payroll,
+        sourceId: 7,
+        purpose: 'settlement',
+        date: '2026-06-16',
+        narration: 'Settle run 7',
+        lines: [
+            PostingLine::debit(slug: 'payroll.net_pay_payable', amount: 850.0),
+            PostingLine::credit(slug: 'bank.cash_in_transit', amount: 850.0),
+        ],
+    );
+    $settled = app(PostingService::class)->post($settlement);
+
+    expect($settled->id)->not->toBe($accrual->id)
+        ->and(JournalEntry::where('source_type', JournalSourceType::Payroll->value)->where('source_id', 7)->count())->toBe(2);
+});
+
+it('does not deduplicate ad-hoc entries with a null source id', function () {
+    $make = fn () => new PostingDocument(
+        sourceType: JournalSourceType::Manual,
+        sourceId: null,
+        purpose: '',
+        date: '2026-06-16',
+        narration: 'ad-hoc',
+        lines: [
+            PostingLine::debit(slug: 'payroll.salary_expense', amount: 10.0),
+            PostingLine::credit(slug: 'payroll.net_pay_payable', amount: 10.0),
+        ],
+    );
+
+    $a = app(PostingService::class)->post($make());
+    $b = app(PostingService::class)->post($make());
+
+    expect($b->id)->not->toBe($a->id);
+});
+
+it('rejects an unbalanced document and writes no rows', function () {
+    $before = JournalEntry::count();
+
+    $doc = new PostingDocument(
+        sourceType: JournalSourceType::Payroll,
+        sourceId: 9,
+        purpose: 'accrual',
+        date: '2026-06-16',
+        narration: 'unbalanced',
+        lines: [
+            PostingLine::debit(slug: 'payroll.salary_expense', amount: 100.0),
+            PostingLine::credit(slug: 'payroll.net_pay_payable', amount: 90.0),
+        ],
+    );
+
+    expect(fn () => app(PostingService::class)->post($doc))->toThrow(DomainException::class);
+    expect(JournalEntry::count())->toBe($before);
+});
 ```
+
+> **Plan 2 note (do not fix here):** `post()` reads `auth()->id()` for `created_by`, mirroring the existing `JournalPostingService::post()` which reads `auth()->id()` for `posted_by`. When Plan 2 wires payroll/disbursement posting into queued jobs (no ambient auth), the actor must be threaded explicitly through BOTH services — a coordinated change out of scope for Plan 1.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -1022,6 +1097,7 @@ use App\Models\JournalEntry;
 use App\Models\JournalLine;
 use App\Models\User;
 use App\Services\Finance\Posting\PostingDocument;
+use DomainException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -1043,6 +1119,13 @@ class PostingService
 
     public function post(PostingDocument $doc): JournalEntry
     {
+        // Fail-loud and fast: reject an unbalanced document before writing any
+        // rows. (JournalPostingService::post() also guards this, but checking
+        // up front gives a clearer error and avoids the create+rollback churn.)
+        if (! $doc->isBalanced()) {
+            throw new DomainException('PostingDocument is not balanced: total debits must equal total credits.');
+        }
+
         // Idempotency (only for identifiable sources). A null source_id is a
         // one-off (manual / ad-hoc) entry and is never deduplicated.
         if ($doc->sourceId !== null) {
@@ -1087,17 +1170,26 @@ class PostingService
                 return $this->journal->post($entry->fresh('lines.glAccount'));
             });
         } catch (QueryException $e) {
-            // Concurrent race lost to the unique index — treat as already posted.
-            if ($doc->sourceId !== null) {
-                $existing = JournalEntry::query()
-                    ->where('source_type', $doc->sourceType->value)
-                    ->where('source_id', $doc->sourceId)
-                    ->where('source_purpose', $doc->purpose)
-                    ->first();
-                if ($existing) {
-                    return $existing->load('lines.glAccount');
-                }
+            // ONLY a lost race on the idempotency unique index is benign. Any
+            // other DB error (FK, NOT NULL, etc.) must surface unchanged with
+            // its real type — never relabelled as AlreadyPosted.
+            $isIdempotencyRace = $doc->sourceId !== null
+                && str_contains($e->getMessage(), 'journal_entries_source_idem_unique');
+
+            if (! $isIdempotencyRace) {
+                throw $e;
             }
+
+            $existing = JournalEntry::query()
+                ->where('source_type', $doc->sourceType->value)
+                ->where('source_id', $doc->sourceId)
+                ->where('source_purpose', $doc->purpose)
+                ->first();
+
+            if ($existing) {
+                return $existing->load('lines.glAccount');
+            }
+
             throw new AlreadyPostedException($e->getMessage(), 0, $e);
         }
     }
@@ -1283,6 +1375,19 @@ it('rejects re-pointing to an account of a different type', function () {
         ->patch("/finance/posting-rules/{$rule->id}", ['gl_account_id' => $income->id])
         ->assertSessionHasErrors('gl_account_id');
 });
+
+it('rejects re-pointing to a soft-deleted (archived) account', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $rule = PostingAccount::where('slug', 'payroll.allowance_expense')->firstOrFail();
+    $archived = GlAccount::where('code', '5200')->firstOrFail(); // expense, same type
+    $archived->delete(); // soft delete
+
+    $this->actingAs($u)
+        ->patch("/finance/posting-rules/{$rule->id}", ['gl_account_id' => $archived->id])
+        ->assertSessionHasErrors('gl_account_id');
+
+    expect($rule->fresh()->gl_account_id)->not->toBe($archived->id);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -1355,7 +1460,9 @@ class UpdatePostingRuleRequest extends FormRequest
             'gl_account_id' => [
                 'required',
                 'integer',
-                'exists:gl_accounts,id',
+                // deleted_at,NULL excludes soft-deleted (archived) accounts —
+                // plain exists:gl_accounts,id would let an archived account pass.
+                'exists:gl_accounts,id,deleted_at,NULL',
                 function (string $attribute, mixed $value, Closure $fail) {
                     /** @var PostingAccount $rule */
                     $rule = $this->route('postingAccount');
