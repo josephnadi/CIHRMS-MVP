@@ -27,10 +27,11 @@ class PostingService
         private readonly JournalPostingService $journal,
         private readonly AccountResolver $resolver,
         private readonly SequenceService $sequences,
+        private readonly PostingActorResolver $actors,
     ) {
     }
 
-    public function post(PostingDocument $doc): JournalEntry
+    public function post(PostingDocument $doc, ?User $actor = null): JournalEntry
     {
         // Fail-loud and fast: reject an unbalanced document before writing any
         // rows. (JournalPostingService::post() also guards this, but checking
@@ -54,7 +55,7 @@ class PostingService
         }
 
         try {
-            return DB::transaction(function () use ($doc) {
+            return DB::transaction(function () use ($doc, $actor) {
                 $entry = JournalEntry::create([
                     'reference'      => $this->nextReference(),
                     'entry_date'     => $doc->date,
@@ -63,7 +64,7 @@ class PostingService
                     'source_type'    => $doc->sourceType->value,
                     'source_id'      => $doc->sourceId,
                     'source_purpose' => $doc->purpose,
-                    'created_by'     => auth()->id(),
+                    'created_by'     => $this->actors->resolveId($actor),
                 ]);
 
                 $lineNo = 1;
@@ -80,7 +81,7 @@ class PostingService
                     ]);
                 }
 
-                return $this->journal->post($entry->fresh('lines.glAccount'));
+                return $this->journal->post($entry->fresh('lines.glAccount'), $actor);
             });
         } catch (QueryException $e) {
             // ONLY a lost race on the idempotency unique index is benign. Any
