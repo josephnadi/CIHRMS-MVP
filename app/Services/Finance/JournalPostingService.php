@@ -29,11 +29,13 @@ use Illuminate\Support\Facades\DB;
  */
 class JournalPostingService
 {
-    public function __construct(private readonly SequenceService $sequences)
-    {
+    public function __construct(
+        private readonly SequenceService $sequences,
+        private readonly PostingActorResolver $actors,
+    ) {
     }
 
-    public function post(JournalEntry $entry): JournalEntry
+    public function post(JournalEntry $entry, ?User $actor = null): JournalEntry
     {
         if ($entry->status !== JournalEntryStatus::Draft) {
             throw new DomainException("JournalEntry {$entry->reference} is not in draft status; cannot post.");
@@ -54,7 +56,7 @@ class JournalPostingService
             ));
         }
 
-        return DB::transaction(function () use ($entry) {
+        return DB::transaction(function () use ($entry, $actor) {
             foreach ($entry->lines as $line) {
                 $delta = $this->naturalDelta($line->glAccount, $line);
 
@@ -76,7 +78,7 @@ class JournalPostingService
 
             $entry->status    = JournalEntryStatus::Posted;
             $entry->posted_at = now();
-            $entry->posted_by = auth()->id();
+            $entry->posted_by = $this->actors->resolveId($actor);
             $entry->save();
 
             JournalEntryPosted::dispatch($entry);
@@ -116,7 +118,7 @@ class JournalPostingService
             }
 
             $reversal = $reversal->fresh('lines.glAccount');
-            $postedReversal = $this->post($reversal);
+            $postedReversal = $this->post($reversal, $by);
 
             // Mark the ORIGINAL entry as reversed. The reversal JE itself stays
             // in Posted status — it is a real business transaction that mutated
