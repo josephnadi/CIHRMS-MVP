@@ -949,6 +949,12 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('accounts/{account}', [ChartOfAccountsController::class, 'destroy'])->name('accounts.destroy');
         });
 
+        // Universal Posting — account-determination map
+        Route::middleware('permission:finance.posting_rules.manage')->group(function () {
+            Route::get('posting-rules',                       [\App\Http\Controllers\Finance\PostingRuleController::class, 'index'])->name('posting-rules.index');
+            Route::patch('posting-rules/{postingAccount}',    [\App\Http\Controllers\Finance\PostingRuleController::class, 'update'])->name('posting-rules.update');
+        });
+
         // OrgBankAccountController wired in Task 8
         Route::middleware('permission:bank_accounts.view')->group(function () {
             Route::get('bank-accounts', [OrgBankAccountController::class, 'index'])->name('bank-accounts.index');
