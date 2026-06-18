@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Enums\ApPaymentStatus;
-use App\Enums\JournalEntryStatus;
 use App\Enums\JournalSourceType;
 use App\Enums\VendorInvoiceStatus;
 use App\Events\ApPaymentProcessed;
 use App\Models\ApPayment;
 use App\Models\ApPaymentInvoiceAllocation;
-use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\OrgBankAccount;
 use App\Models\User;
 use App\Models\VendorInvoice;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\PostingService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +24,7 @@ class ApPaymentService
     public function __construct(
         private readonly JournalPostingService $journal,
         private readonly SequenceService $sequences,
+        private readonly PostingService $posting,
     ) {
     }
 
@@ -90,38 +91,29 @@ class ApPaymentService
                 $inv->save();
             }
 
-            $je = JournalEntry::create([
-                'reference'   => $this->nextJournalReference(),
-                'entry_date'  => $payment->payment_date,
-                'narration'   => "AP Payment: {$payment->reference}",
-                'status'      => JournalEntryStatus::Draft->value,
-                'source_type' => JournalSourceType::ApPayment->value,
-                'source_id'   => $payment->id,
-                'created_by'  => $creator->id,
-            ]);
-
-            $lineNo = 1;
+            $lines = [];
             foreach ($allocations as $a) {
                 $inv = $invoices[$a['vendor_invoice_id']];
-                JournalLine::create([
-                    'journal_entry_id' => $je->id,
-                    'line_no'          => $lineNo++,
-                    'gl_account_id'    => $inv->ap_gl_account_id,
-                    'debit_amount'     => $a['allocated_amount'],
-                    'credit_amount'    => 0,
-                    'narration'        => "Clear AP for {$inv->reference}",
-                ]);
+                $lines[] = PostingLine::debit(
+                    amount: (float) $a['allocated_amount'],
+                    accountId: (int) $inv->ap_gl_account_id,
+                    narration: "Clear AP for {$inv->reference}",
+                );
             }
-            JournalLine::create([
-                'journal_entry_id' => $je->id,
-                'line_no'          => $lineNo,
-                'gl_account_id'    => $bank->gl_account_id,
-                'debit_amount'     => 0,
-                'credit_amount'    => $amount,
-                'narration'        => "Cash out: {$bank->bank_name}",
-            ]);
+            $lines[] = PostingLine::credit(
+                amount: (float) $amount,
+                accountId: (int) $bank->gl_account_id,
+                narration: "Cash out: {$bank->bank_name}",
+            );
 
-            $this->journal->post($je->fresh('lines.glAccount'));
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::ApPayment,
+                sourceId: $payment->id,
+                purpose: '',
+                date: $payment->payment_date->format('Y-m-d'),
+                narration: "AP Payment: {$payment->reference}",
+                lines: $lines,
+            ), $creator);
 
             $payment->journal_entry_id = $je->id;
             $payment->status           = ApPaymentStatus::Processed;
@@ -175,11 +167,5 @@ class ApPaymentService
     {
         $year = now()->format('Y');
         return sprintf('APP-%s-%04d', $year, $this->sequences->next("app_payment:{$year}"));
-    }
-
-    private function nextJournalReference(): string
-    {
-        $year = now()->format('Y');
-        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
