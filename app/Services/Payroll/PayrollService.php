@@ -315,6 +315,20 @@ class PayrollService
         });
     }
 
+    private function reverseAccrualIfPosted(PayrollRun $run, User $by, string $reason): void
+    {
+        $hasAccrual = JournalEntry::query()
+            ->where('source_type', JournalSourceType::Payroll->value)
+            ->where('source_id', $run->id)
+            ->where('source_purpose', 'accrual')
+            ->where('status', JournalEntryStatus::Posted->value)
+            ->exists();
+
+        if ($hasAccrual) {
+            $this->posting->reverseFor(JournalSourceType::Payroll, $run->id, 'accrual', $by, "Payroll reversed: {$reason}");
+        }
+    }
+
     private function buildAccrualDocument(PayrollRun $run): PostingDocument
     {
         $basicPlusOvertime = round(
@@ -374,6 +388,8 @@ class PayrollService
             ]);
 
             $run->lines()->update(['status' => 'reversed']);
+
+            $this->reverseAccrualIfPosted($run, $reverser, $reason);
 
             event(new PayrollRunReversed($run, $reason));
 
