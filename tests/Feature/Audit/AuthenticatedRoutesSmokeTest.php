@@ -71,6 +71,13 @@ test('every parameter-less authenticated GET route returns non-5xx for super_adm
             $skipped++;
             continue;
         }
+        // Skip file-download / export endpoints (CSV/PDF/XLSX). Like storage/,
+        // these return downloads, not pages — not smoke targets, and streamed
+        // responses don't support the page-status assertion below.
+        if (preg_match('/\.(csv|pdf|xlsx)$/', $uri) === 1) {
+            $skipped++;
+            continue;
+        }
 
         $url = '/' . ltrim($uri, '/');
         $response = $this->actingAs($admin)->get($url);
