@@ -7,9 +7,10 @@ import EmptyState from '@/Components/EmptyState.vue';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    year:    { type: Number, required: true },
-    years:   { type: Array,  default: () => [] },
-    periods: { type: Object, required: true },
+    year:           { type: Number, required: true },
+    years:          { type: Array,  default: () => [] },
+    periods:        { type: Object, required: true },
+    reconciliation: { type: Array,  default: () => [] },
 });
 
 const page = usePage();
@@ -51,6 +52,21 @@ const statusChip = (status) => ({
                 <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
             </select>
         </header>
+
+        <section class="mb-6 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
+            <h2 class="text-sm font-black uppercase tracking-wide text-secondary/80 mb-3">Subledger ↔ GL reconciliation</h2>
+            <div class="grid gap-2 sm:grid-cols-3">
+                <div v-for="r in reconciliation" :key="r.gl_code"
+                     class="rounded-xl border border-outline-variant/40 p-3"
+                     :class="r.in_balance ? '' : 'border-amber-500/50'">
+                    <p class="text-[11px] font-bold text-on-surface-variant">{{ r.subledger }} <span class="opacity-60">({{ r.gl_code }})</span></p>
+                    <p class="mt-1 text-sm text-primary">Subledger {{ Number(r.subledger_total).toFixed(2) }} · GL {{ Number(r.gl_balance).toFixed(2) }}</p>
+                    <p class="mt-0.5 text-[11px]" :class="r.in_balance ? 'text-emerald-300' : 'text-amber-300 font-bold'">
+                        {{ r.in_balance ? 'In balance' : 'Variance ' + Number(r.variance).toFixed(2) }}
+                    </p>
+                </div>
+            </div>
+        </section>
 
         <EmptyState v-if="rows.length === 0" title="No periods" description="This year has no fiscal periods." />
 

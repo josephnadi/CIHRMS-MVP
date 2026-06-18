@@ -10,6 +10,7 @@ use App\Models\FiscalPeriod;
 use App\Models\FiscalYear;
 use App\Services\Finance\FiscalCalendarService;
 use App\Services\Finance\PeriodCloseService;
+use App\Services\Finance\SubledgerReconciliationService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,8 +19,10 @@ use Inertia\Response;
 
 class PeriodController extends Controller
 {
-    public function __construct(private readonly PeriodCloseService $service)
-    {
+    public function __construct(
+        private readonly PeriodCloseService $service,
+        private readonly SubledgerReconciliationService $reconciliation,
+    ) {
     }
 
     public function index(Request $request): Response
@@ -32,10 +35,11 @@ class PeriodController extends Controller
         $fiscalYear = FiscalYear::where('year', $year)->with('periods')->firstOrFail();
 
         return Inertia::render('Finance/FiscalCalendar/Index', [
-            'activeModule' => 'finance-periods',
-            'year'         => $year,
-            'years'        => FiscalYear::orderBy('year')->pluck('year'),
-            'periods'      => FiscalPeriodResource::collection($fiscalYear->periods),
+            'activeModule'  => 'finance-periods',
+            'year'          => $year,
+            'years'         => FiscalYear::orderBy('year')->pluck('year'),
+            'periods'       => FiscalPeriodResource::collection($fiscalYear->periods),
+            'reconciliation' => $this->reconciliation->reconcile(),
         ]);
     }
 

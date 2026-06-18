@@ -69,3 +69,10 @@ it('rejects reopening a locked period with a validation error', function () {
     $this->actingAs(periodEndpoint2fa($sa))->post("/finance/periods/{$this->period->id}/reopen")->assertSessionHasErrors();
     expect($this->period->fresh()->status)->toBe(FiscalPeriodStatus::Locked);
 });
+
+it('includes the subledger reconciliation rows on the calendar page', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $this->actingAs($u)->get('/finance/periods')
+        ->assertOk()
+        ->assertInertia(fn ($p) => $p->component('Finance/FiscalCalendar/Index')->has('reconciliation', 3));
+});
