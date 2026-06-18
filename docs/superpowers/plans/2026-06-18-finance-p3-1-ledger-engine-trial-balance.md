@@ -86,6 +86,18 @@ it('excludes draft and is date-bounded', function () {
     // period activity in June: the 1000
     expect((float) $svc->activity(CarbonImmutable::create(2026, 6, 1), CarbonImmutable::create(2026, 6, 30))->firstWhere('code', '5100')->natural_balance)->toBe(1000.0);
 });
+
+it('includes reversed entries so a reversed transaction nets to zero', function () {
+    // A reversal in the ledger is: the ORIGINAL (now status Reversed) + a separate
+    // opposite-signed reversal (status Posted). Both must be counted so they net to 0.
+    ledgerEntry('5100', '2100', 1000.0, '2026-06-15', status: 'reversed'); // original, reversed
+    ledgerEntry('2100', '5100', 1000.0, '2026-06-16', status: 'posted');   // the reversal (opposite)
+
+    $rows = app(LedgerBalanceService::class)->asOf(CarbonImmutable::create(2026, 6, 30))->keyBy('code');
+
+    expect((float) $rows['5100']->natural_balance)->toBe(0.0)
+        ->and((float) $rows['2100']->natural_balance)->toBe(0.0);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -108,9 +120,16 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * On-the-fly ledger balances. Aggregates POSTED journal_lines by account over a
- * date window and applies the natural-balance sign by account type
+ * On-the-fly ledger balances. Aggregates POSTED and REVERSED journal_lines by
+ * account over a date window and applies the natural-balance sign by account type
  * (asset/expense = debit - credit; liability/equity/income = credit - debit).
+ *
+ * Why include Reversed: reverse() keeps the original entry's effect in place and
+ * flips its status to Reversed, then posts a SEPARATE opposite-signed reversal
+ * (status Posted). Both contribute, netting the transaction to zero — matching the
+ * gl_account_balances invariant (sum of lines where status IN posted/reversed).
+ * Including only Posted would drop the original and leave just the inverse (wrong).
+ *
  * Every financial statement is a presentation of this one method.
  */
 class LedgerBalanceService
@@ -125,7 +144,7 @@ class LedgerBalanceService
         $query = DB::table('journal_lines as jl')
             ->join('journal_entries as je', 'je.id', '=', 'jl.journal_entry_id')
             ->join('gl_accounts as ga', 'ga.id', '=', 'jl.gl_account_id')
-            ->where('je.status', JournalEntryStatus::Posted->value)
+            ->whereIn('je.status', [JournalEntryStatus::Posted->value, JournalEntryStatus::Reversed->value])
             ->whereDate('je.entry_date', '<=', $to->toDateString());
 
         if ($from !== null) {
@@ -801,7 +820,7 @@ git commit --allow-empty -m "test(finance): P3-1 ledger engine + trial balance r
 
 - **The engine is the whole subsystem's foundation** — `balances()` is the only place that touches the ledger tables; P3-2/P3-3 statements call `asOf`/`activity` and group. Keep it correct and simple.
 - **Trial balance ties by construction**: Σ(debit-side natural balances) = Σ(credit-side natural balances) because Σ(all debits) = Σ(all credits) over balanced posted entries. The `balanced` flag is the integrity proof; tests assert it.
-- **Posted-only**: drafts and the *original* of a reversed pair are excluded by `status = posted`; a reversal's own posted entry nets the original out, so balances are correct.
+- **Status filter is `posted` + `reversed`, NOT posted-only**: a reversal keeps the original entry's effect (status flips to Reversed) and posts a separate opposite-signed entry — both must be summed so the transaction nets to zero, matching the `gl_account_balances` invariant. Only `draft` is excluded. (Filtering posted-only silently double-removes reversed transactions and the trial balance still "balances" via a symmetric error — the included reversal test guards this.)
 - **Inertia component-exists ordering**: the page render test needs the Vue file on disk — create it (Task 5) before expecting the render test green, or stub it. The CSV/PDF/forbidden cases don't need the page.
 - **Accessibility**: every form control (the as-of date input) needs a label/`aria-label`, or `AccessibilityAuditorTest` fails (as it did in P2-2).
 - **dompdf** (`barryvdh/laravel-dompdf`) is already installed — `Pdf::loadView(...)->download(...)` needs no extra setup.
