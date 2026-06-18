@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Enums\GlAccountType;
-use App\Enums\JournalEntryStatus;
 use App\Enums\JournalSourceType;
 use App\Enums\VendorInvoiceStatus;
 use App\Events\VendorInvoiceCreated;
 use App\Models\GlAccount;
-use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorInvoice;
 use App\Models\VendorInvoiceLine;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\PostingService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +24,7 @@ class VendorInvoiceService
     public function __construct(
         private readonly JournalPostingService $journal,
         private readonly SequenceService $sequences,
+        private readonly PostingService $posting,
     ) {
     }
 
@@ -83,37 +84,29 @@ class VendorInvoiceService
                 VendorInvoiceLine::create(array_merge($line, ['vendor_invoice_id' => $invoice->id]));
             }
 
-            $je = JournalEntry::create([
-                'reference'   => $this->nextJournalReference(),
-                'entry_date'  => $invoice->invoice_date,
-                'narration'   => "Accrual: {$vendor->code} invoice " . ($invoice->vendor_invoice_no ?? $invoice->reference),
-                'status'      => JournalEntryStatus::Draft->value,
-                'source_type' => JournalSourceType::VendorInvoice->value,
-                'source_id'   => $invoice->id,
-                'created_by'  => $creator->id,
-            ]);
-
-            $lineNo = 1;
+            $postingLines = [];
             foreach ($lines as $line) {
-                JournalLine::create([
-                    'journal_entry_id' => $je->id,
-                    'line_no'          => $lineNo++,
-                    'gl_account_id'    => $line['gl_account_id'],
-                    'debit_amount'     => $line['line_total'] + $line['tax_amount'],
-                    'credit_amount'    => 0,
-                    'narration'        => $line['description'],
-                ]);
+                $postingLines[] = PostingLine::debit(
+                    amount: (float) $line['line_total'] + (float) $line['tax_amount'],
+                    accountId: (int) $line['gl_account_id'],
+                    narration: $line['description'] ?? null,
+                );
             }
-            JournalLine::create([
-                'journal_entry_id' => $je->id,
-                'line_no'          => $lineNo,
-                'gl_account_id'    => $apGl->id,
-                'debit_amount'     => 0,
-                'credit_amount'    => $total,
-                'narration'        => 'Accounts Payable',
-            ]);
+            $postingLines[] = PostingLine::credit(
+                amount: (float) $total,
+                accountId: (int) $apGl->id,
+                narration: 'Accounts Payable',
+            );
 
-            $this->journal->post($je->fresh('lines.glAccount'));
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::VendorInvoice,
+                sourceId: $invoice->id,
+                purpose: '',
+                date: $invoice->invoice_date->format('Y-m-d'),
+                narration: "Accrual: {$vendor->code} invoice " . ($invoice->vendor_invoice_no ?? $invoice->reference),
+                lines: $postingLines,
+            ), $creator);
+
             $invoice->accrual_journal_entry_id = $je->id;
             $invoice->save();
 
@@ -196,11 +189,5 @@ class VendorInvoiceService
     {
         $year = now()->format('Y');
         return sprintf('API-%s-%04d', $year, $this->sequences->next("ap_invoice:{$year}"));
-    }
-
-    private function nextJournalReference(): string
-    {
-        $year = now()->format('Y');
-        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
