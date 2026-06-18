@@ -37,6 +37,7 @@ class ChartOfAccountsSeeder extends Seeder
         ['2220', 'Tier-2 Pension Payable',       'liability', '2000'],
         ['2230', 'Tier-3 Pension Payable',       'liability', '2000'],
         ['2240', 'NHIA Payable',                 'liability', '2000'],
+        ['2250', 'Voluntary Deductions Payable', 'liability', '2000'],
         ['2300', 'Salaries Payable',             'liability', '2000'],
 
         // Equity (3xxx)

@@ -24,6 +24,7 @@ class PostingAccountSeeder extends Seeder
         ['payroll.tier2_payable',            '2220', 'payroll', 'Tier-2 pension owed',                true],
         ['payroll.tier3_payable',            '2230', 'payroll', 'Tier-3 pension owed',                false],
         ['payroll.net_pay_payable',          '2300', 'payroll', 'Net pay owed to staff',             true],
+        ['payroll.voluntary_deductions_payable', '2250', 'payroll', 'Non-statutory voluntary deductions owed', false],
         ['loan.principal_receivable',        '1300', 'loans',   'Staff loan principal receivable',    true],
         ['loan.interest_income',             '4600', 'loans',   'Loan interest income',               false],
         ['member_fee.receivable',            '1200', 'member_fees', 'Member fee receivable',          false],
