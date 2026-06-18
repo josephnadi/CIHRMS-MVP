@@ -969,6 +969,12 @@ Route::middleware(['auth'])->group(function () {
             Route::post('periods/{fiscalPeriod}/lock', [\App\Http\Controllers\Finance\PeriodController::class, 'lock'])->name('periods.lock');
         });
 
+        // Financial statements (Phase 3) — read-only
+        Route::middleware('permission:finance.reports.view')->group(function () {
+            Route::get('reports/trial-balance',            [\App\Http\Controllers\Finance\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+            Route::get('reports/trial-balance/export.csv', [\App\Http\Controllers\Finance\ReportController::class, 'trialBalanceCsv'])->name('reports.trial-balance.csv');
+        });
+
         // OrgBankAccountController wired in Task 8
         Route::middleware('permission:bank_accounts.view')->group(function () {
             Route::get('bank-accounts', [OrgBankAccountController::class, 'index'])->name('bank-accounts.index');
