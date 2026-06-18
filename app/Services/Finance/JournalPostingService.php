@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Finance;
 
+use App\Enums\FiscalPeriodStatus;
 use App\Enums\GlAccountType;
 use App\Enums\JournalEntryStatus;
 use App\Enums\JournalSourceType;
 use App\Events\JournalEntryPosted;
+use App\Exceptions\Finance\ClosedPeriodException;
 use App\Models\GlAccount;
 use App\Models\GlAccountBalance;
 use App\Models\JournalEntry;
@@ -32,6 +34,7 @@ class JournalPostingService
     public function __construct(
         private readonly SequenceService $sequences,
         private readonly PostingActorResolver $actors,
+        private readonly PeriodResolver $periods,
     ) {
     }
 
@@ -57,6 +60,16 @@ class JournalPostingService
         }
 
         return DB::transaction(function () use ($entry, $actor) {
+            $period = $this->periods->resolveForDate($entry->entry_date);
+            if ($period !== null && $period->status !== FiscalPeriodStatus::Open) {
+                throw new ClosedPeriodException(
+                    "Cannot post entry {$entry->reference}: fiscal period {$period->name} is {$period->status->value}."
+                );
+            }
+            if ($period !== null) {
+                $entry->fiscal_period_id = $period->id;
+            }
+
             foreach ($entry->lines as $line) {
                 $delta = $this->naturalDelta($line->glAccount, $line);
 
