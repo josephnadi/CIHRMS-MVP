@@ -61,3 +61,15 @@ it('excludes draft and is date-bounded', function () {
     // period activity in June: the 1000
     expect((float) $svc->activity(CarbonImmutable::create(2026, 6, 1), CarbonImmutable::create(2026, 6, 30))->firstWhere('code', '5100')->natural_balance)->toBe(1000.0);
 });
+
+it('includes reversed entries so a reversed transaction nets to zero', function () {
+    // A reversal in the ledger = the ORIGINAL (status Reversed) + a separate
+    // opposite-signed reversal (status Posted). Both must be counted so they net to 0.
+    ledgerEntry('5100', '2100', 1000.0, '2026-06-15', status: 'reversed'); // original, reversed
+    ledgerEntry('2100', '5100', 1000.0, '2026-06-16', status: 'posted');   // the reversal (opposite)
+
+    $rows = app(LedgerBalanceService::class)->asOf(CarbonImmutable::create(2026, 6, 30))->keyBy('code');
+
+    expect((float) $rows['5100']->natural_balance)->toBe(0.0)
+        ->and((float) $rows['2100']->natural_balance)->toBe(0.0);
+});

@@ -10,9 +10,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * On-the-fly ledger balances. Aggregates POSTED journal_lines by account over a
- * date window and applies the natural-balance sign by account type
+ * On-the-fly ledger balances. Aggregates POSTED and REVERSED journal_lines by
+ * account over a date window and applies the natural-balance sign by account type
  * (asset/expense = debit - credit; liability/equity/income = credit - debit).
+ *
+ * A reversal keeps the ORIGINAL entry with status Reversed and posts a separate
+ * opposite-signed entry with status Posted; both must be counted so the pair nets
+ * to zero (matching the gl_account_balances invariant). Only Draft is excluded.
+ *
  * Every financial statement is a presentation of this one method.
  */
 class LedgerBalanceService
@@ -27,7 +32,7 @@ class LedgerBalanceService
         $query = DB::table('journal_lines as jl')
             ->join('journal_entries as je', 'je.id', '=', 'jl.journal_entry_id')
             ->join('gl_accounts as ga', 'ga.id', '=', 'jl.gl_account_id')
-            ->where('je.status', JournalEntryStatus::Posted->value)
+            ->whereIn('je.status', [JournalEntryStatus::Posted->value, JournalEntryStatus::Reversed->value])
             ->whereDate('je.entry_date', '<=', $to->toDateString());
 
         if ($from !== null) {
