@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\Finance;
 
-use App\Enums\JournalEntryStatus;
 use App\Enums\JournalSourceType;
 use App\Models\BankStatementLine;
 use App\Models\GlAccount;
 use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\User;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\PostingService;
 use Illuminate\Support\Facades\DB;
 
 class BankAdjustmentService
 {
     public function __construct(
-        private readonly JournalPostingService $journal,
         private readonly ReconciliationService $reconciliation,
-        private readonly SequenceService $sequences,
+        private readonly PostingService $posting,
     ) {
     }
 
@@ -29,60 +29,32 @@ class BankAdjustmentService
         string $narration,
     ): JournalEntry {
         $bankGl = $line->statement->orgBankAccount->glAccount;
-        $abs    = abs((float) $line->amount);
 
-        return DB::transaction(function () use ($line, $offsetGl, $bankGl, $abs, $user, $narration) {
-            $je = JournalEntry::create([
-                'reference'   => $this->nextJournalReference(),
-                'entry_date'  => $line->transaction_date->format('Y-m-d'),
-                'narration'   => $narration,
-                'status'      => JournalEntryStatus::Draft->value,
-                'source_type' => JournalSourceType::BankAdjustment->value,
-                'source_id'   => $line->id,
-                'created_by'  => $user->id,
-            ]);
+        return DB::transaction(function () use ($line, $offsetGl, $bankGl, $user, $narration) {
+            $abs = abs((float) $line->amount);
 
-            // Debit line (fee): Dr offsetGl, Cr bank
-            // Credit line (interest): Dr bank, Cr offsetGl
-            if ($line->isDebit()) {
-                JournalLine::create([
-                    'journal_entry_id' => $je->id, 'line_no' => 1,
-                    'gl_account_id' => $offsetGl->id,
-                    'debit_amount'  => $abs, 'credit_amount' => 0,
-                    'narration' => $narration,
-                ]);
-                JournalLine::create([
-                    'journal_entry_id' => $je->id, 'line_no' => 2,
-                    'gl_account_id' => $bankGl->id,
-                    'debit_amount'  => 0, 'credit_amount' => $abs,
-                    'narration' => $narration,
-                ]);
-            } else {
-                JournalLine::create([
-                    'journal_entry_id' => $je->id, 'line_no' => 1,
-                    'gl_account_id' => $bankGl->id,
-                    'debit_amount'  => $abs, 'credit_amount' => 0,
-                    'narration' => $narration,
-                ]);
-                JournalLine::create([
-                    'journal_entry_id' => $je->id, 'line_no' => 2,
-                    'gl_account_id' => $offsetGl->id,
-                    'debit_amount'  => 0, 'credit_amount' => $abs,
-                    'narration' => $narration,
-                ]);
-            }
+            $postingLines = $line->isDebit()
+                ? [
+                    PostingLine::debit(amount: $abs, accountId: (int) $offsetGl->id, narration: $narration),
+                    PostingLine::credit(amount: $abs, accountId: (int) $bankGl->id, narration: $narration),
+                ]
+                : [
+                    PostingLine::debit(amount: $abs, accountId: (int) $bankGl->id, narration: $narration),
+                    PostingLine::credit(amount: $abs, accountId: (int) $offsetGl->id, narration: $narration),
+                ];
 
-            $this->journal->post($je->fresh('lines.glAccount'));
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::BankAdjustment,
+                sourceId: $line->id,
+                purpose: '',
+                date: $line->transaction_date->format('Y-m-d'),
+                narration: $narration,
+                lines: $postingLines,
+            ), $user);
 
             $this->reconciliation->link($line, $je->fresh(), $user, 'manual');
 
-            return $je->fresh();
+            return $je;
         });
-    }
-
-    private function nextJournalReference(): string
-    {
-        $year = now()->format('Y');
-        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
