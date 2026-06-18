@@ -21,6 +21,7 @@ class JournalEntry extends Model
 
     protected $fillable = [
         'reference', 'entry_date', 'narration', 'status', 'source_type', 'source_id', 'source_purpose',
+        'fiscal_period_id',
         'posted_at', 'posted_by', 'reversed_at', 'reversed_by', 'reversal_of_id', 'created_by',
     ];
 
@@ -58,6 +59,11 @@ class JournalEntry extends Model
     public function reversalOf(): BelongsTo
     {
         return $this->belongsTo(self::class, 'reversal_of_id');
+    }
+
+    public function fiscalPeriod(): BelongsTo
+    {
+        return $this->belongsTo(FiscalPeriod::class, 'fiscal_period_id');
     }
 
     public function scopePosted(Builder $q): Builder
