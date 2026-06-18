@@ -19,6 +19,9 @@ use Database\Seeders\GhanaStatutoryReferenceSeeder;
 
 beforeEach(function () {
     $this->seed(GhanaStatutoryReferenceSeeder::class);
+    (new \Database\Seeders\ChartOfAccountsSeeder())->run();
+    (new \Database\Seeders\GlAccountBalanceSeeder())->run();
+    (new \Database\Seeders\PostingAccountSeeder())->run();
 
     $dept  = Department::factory()->create();
     $grade = Grade::create(['code' => 'GS-12', 'name' => 'Senior Officer', 'level' => 12, 'min_step' => 1, 'max_step' => 8]);

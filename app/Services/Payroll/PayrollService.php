@@ -2,6 +2,8 @@
 
 namespace App\Services\Payroll;
 
+use App\Enums\JournalEntryStatus;
+use App\Enums\JournalSourceType;
 use App\Enums\PayrollRunStatus;
 use App\Events\PayrollRunApproved;
 use App\Events\PayrollRunCalculated;
@@ -12,8 +14,12 @@ use App\Models\Employee;
 use App\Models\Grade;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
+use App\Models\JournalEntry;
 use App\Models\User;
 use App\Services\Attendance\AttendanceService;
+use App\Services\Finance\PostingService;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
 use App\Services\Loans\LoanService;
 use App\Models\LoanRepayment;
 use App\Enums\LoanRepaymentStatus;
@@ -41,7 +47,9 @@ class PayrollService
         private readonly DeductionAggregator $deductions,
         private readonly AttendanceService $attendance,
         private readonly LoanService $loans,
-    ) {}
+        private readonly PostingService $posting,
+    ) {
+    }
 
     public function createDraft(int $year, int $month, ?int $departmentId, User $creator, ?string $reason = null): PayrollRun
     {
@@ -299,10 +307,56 @@ class PayrollService
                 }
             });
 
+            $this->posting->post($this->buildAccrualDocument($run), $approver);
+
             event(new PayrollRunApproved($run));
 
             return $run->fresh();
         });
+    }
+
+    private function buildAccrualDocument(PayrollRun $run): PostingDocument
+    {
+        $basicPlusOvertime = round(
+            (float) $run->lines()->calculated()->sum('basic')
+            + (float) $run->lines()->calculated()->sum('overtime_pay'),
+            2,
+        );
+        $allowance = round((float) $run->lines()->calculated()->sum('allowance_total'), 2);
+
+        $loanPrincipal = round((float) LoanRepayment::where('payroll_run_id', $run->id)->sum('principal_portion'), 2);
+        $loanInterest  = round((float) LoanRepayment::where('payroll_run_id', $run->id)->sum('interest_portion'), 2);
+
+        $employerContrib  = round((float) $run->ssnit_tier1_employer_total + (float) $run->tier2_employer_total, 2);
+        $ssnitPayable     = round((float) $run->ssnit_tier1_employee_total + (float) $run->ssnit_tier1_employer_total, 2);
+        $voluntaryNonLoan = round((float) $run->voluntary_deductions_total - $loanPrincipal - $loanInterest, 2);
+
+        $debit  = fn (string $slug, float $amt, string $note) => $amt > 0 ? PostingLine::debit(slug: $slug, amount: $amt, narration: $note) : null;
+        $credit = fn (string $slug, float $amt, string $note) => $amt > 0 ? PostingLine::credit(slug: $slug, amount: $amt, narration: $note) : null;
+
+        $candidates = [
+            $debit('payroll.salary_expense',              $basicPlusOvertime,                  'Basic + overtime'),
+            $debit('payroll.allowance_expense',           $allowance,                          'Allowances'),
+            $debit('payroll.employer_contrib_expense',    $employerContrib,                    'Employer SSNIT + Tier-2'),
+            $credit('payroll.net_pay_payable',            round((float) $run->net_total, 2),   'Net pay'),
+            $credit('payroll.paye_payable',               round((float) $run->paye_total, 2),  'PAYE'),
+            $credit('payroll.ssnit_payable',              $ssnitPayable,                       'SSNIT employee + employer'),
+            $credit('payroll.tier2_payable',              round((float) $run->tier2_employer_total, 2), 'Tier-2'),
+            $credit('loan.principal_receivable',          $loanPrincipal,                      'Loan principal recovered'),
+            $credit('loan.interest_income',               $loanInterest,                       'Loan interest recovered'),
+            $credit('payroll.voluntary_deductions_payable', $voluntaryNonLoan,                 'Voluntary deductions'),
+        ];
+
+        $lines = array_values(array_filter($candidates));
+
+        return new PostingDocument(
+            sourceType: JournalSourceType::Payroll,
+            sourceId: $run->id,
+            purpose: 'accrual',
+            date: $run->period_end->toDateString(),
+            narration: "Payroll accrual: {$run->reference}",
+            lines: $lines,
+        );
     }
 
     public function reverse(PayrollRun $run, User $reverser, string $reason): PayrollRun
