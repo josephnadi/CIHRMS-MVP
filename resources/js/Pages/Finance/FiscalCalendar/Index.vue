@@ -46,7 +46,7 @@ const statusChip = (status) => ({
                     Close, reopen, and lock fiscal periods. Closed and locked periods reject new postings.
                 </p>
             </div>
-            <select :value="year" @change="gotoYear($event.target.value)"
+            <select :value="year" @change="gotoYear($event.target.value)" aria-label="Fiscal year"
                     class="rounded-lg bg-surface-container-lowest border-outline-variant/60 text-sm text-primary">
                 <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
             </select>
