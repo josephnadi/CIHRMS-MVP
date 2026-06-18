@@ -165,6 +165,10 @@ class RolePermissionSeeder extends Seeder
         'bank_accounts.manage' => ['Finance', 'Manage organisational bank accounts'],
         'finance.hub'          => ['Finance', 'Access the Finance Hub landing page'],
         'finance.posting_rules.manage' => ['Finance', 'View and re-map the GL account-determination rules'],
+        'finance.period.view'   => ['Finance', 'View the fiscal calendar and period statuses'],
+        'finance.period.close'  => ['Finance', 'Close a fiscal period (month-end)'],
+        'finance.period.reopen' => ['Finance', 'Reopen a closed fiscal period'],
+        'finance.period.lock'   => ['Finance', 'Permanently lock a fiscal period (post-audit)'],
 
         // ── F2: Finance — Accounts Payable + Journal Engine ──
         'vendors.view'         => ['Finance', 'View vendor master data'],
@@ -306,6 +310,7 @@ class RolePermissionSeeder extends Seeder
             'bank_accounts.view', 'bank_accounts.manage',
             'finance.hub',
             'finance.posting_rules.manage',
+            'finance.period.view', 'finance.period.close', 'finance.period.reopen',
             // F2 — Accounts Payable & Journal
             'vendors.view', 'vendors.manage',
             'ap_invoices.view', 'ap_invoices.create', 'ap_invoices.approve', 'ap_invoices.pay',
