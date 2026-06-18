@@ -38,6 +38,18 @@ class JournalLine extends Model
                 throw new DomainException('A journal line must have a positive debit or credit amount.');
             }
         });
+
+        static::updating(function (self $line) {
+            if ($line->entry && $line->entry->status !== \App\Enums\JournalEntryStatus::Draft) {
+                throw new DomainException('Cannot modify a journal line on a posted entry; reverse the entry instead.');
+            }
+        });
+
+        static::deleting(function (self $line) {
+            if ($line->entry && $line->entry->status !== \App\Enums\JournalEntryStatus::Draft) {
+                throw new DomainException('Cannot delete a journal line on a posted entry; reverse the entry instead.');
+            }
+        });
     }
 
     public function entry(): BelongsTo

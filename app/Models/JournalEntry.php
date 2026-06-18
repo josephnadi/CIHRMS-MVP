@@ -36,6 +36,15 @@ class JournalEntry extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (self $entry) {
+            if (in_array($entry->status, [JournalEntryStatus::Posted, JournalEntryStatus::Reversed], true)) {
+                throw new \DomainException('Cannot delete a posted or reversed journal entry; reverse it instead.');
+            }
+        });
+    }
+
     public function lines(): HasMany
     {
         return $this->hasMany(JournalLine::class, 'journal_entry_id')->orderBy('line_no');
