@@ -49,3 +49,8 @@ it('exports the trial balance as PDF', function () {
     $res->assertOk();
     expect($res->headers->get('content-type'))->toContain('application/pdf');
 });
+
+it('falls back to today on a malformed as_of param (no 500)', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $this->actingAs($u)->get('/finance/reports/trial-balance?as_of=not-a-date')->assertOk();
+});

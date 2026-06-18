@@ -60,6 +60,14 @@ class ReportController extends Controller
     {
         $raw = $request->query('as_of');
 
-        return $raw ? CarbonImmutable::parse($raw) : CarbonImmutable::today();
+        if (! $raw) {
+            return CarbonImmutable::today();
+        }
+
+        try {
+            return CarbonImmutable::parse($raw);
+        } catch (\Throwable $e) {
+            return CarbonImmutable::today();
+        }
     }
 }
