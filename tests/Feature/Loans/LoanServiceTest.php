@@ -12,6 +12,11 @@ use App\Services\Loans\LoanService;
 use Carbon\CarbonImmutable;
 
 beforeEach(function () {
+    (new \Database\Seeders\ChartOfAccountsSeeder())->run();
+    (new \Database\Seeders\GlAccountBalanceSeeder())->run();
+    (new \Database\Seeders\PostingAccountSeeder())->run();
+    (new \Database\Seeders\OrgBankAccountSeeder())->run();
+
     $this->product = LoanProduct::create([
         'code' => 'TST-001', 'name' => 'Test Personal',
         'type' => LoanProductType::Personal->value,

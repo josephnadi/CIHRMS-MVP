@@ -2,8 +2,10 @@
 
 namespace App\Services\Loans;
 
+use App\Enums\JournalSourceType;
 use App\Enums\LoanRepaymentStatus;
 use App\Enums\LoanStatus;
+use App\Enums\OrgBankAccountPurpose;
 use App\Events\LoanApproved;
 use App\Events\LoanDisbursed;
 use App\Events\LoanFullyRepaid;
@@ -11,7 +13,11 @@ use App\Models\Employee;
 use App\Models\LoanAccount;
 use App\Models\LoanProduct;
 use App\Models\LoanRepayment;
+use App\Models\OrgBankAccount;
 use App\Models\User;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\PostingService;
 use App\Services\Finance\SequenceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +37,7 @@ class LoanService
     public function __construct(
         private readonly AmortizationCalculator $calc,
         private readonly SequenceService $sequences,
+        private readonly PostingService $posting,
     ) {}
 
     public function apply(
@@ -159,10 +166,37 @@ class LoanService
                 'expected_end_period'    => $expectedEnd->toDateString(),
             ]);
 
+            $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::LoanDisbursement,
+                sourceId: $loan->id,
+                purpose: 'disbursement',
+                date: now()->toDateString(),
+                narration: "Loan disbursement: {$loan->reference}",
+                lines: [
+                    PostingLine::debit(slug: 'loan.principal_receivable', amount: (float) $loan->principal, narration: 'Loan principal advanced'),
+                    PostingLine::credit(accountId: $this->resolveOperatingBankGlId(), amount: (float) $loan->principal, narration: 'Cash disbursed'),
+                ],
+            ), $disburser);
+
             event(new LoanDisbursed($loan));
 
             return $loan->fresh();
         });
+    }
+
+    private function resolveOperatingBankGlId(): int
+    {
+        $bank = OrgBankAccount::query()
+            ->where('purpose', OrgBankAccountPurpose::Operating->value)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->first();
+
+        if (! $bank || ! $bank->gl_account_id) {
+            throw new \DomainException('No active operating bank account is configured; cannot post loan disbursement.');
+        }
+
+        return (int) $bank->gl_account_id;
     }
 
     /**

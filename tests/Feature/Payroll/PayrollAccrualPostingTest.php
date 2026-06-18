@@ -30,6 +30,7 @@ beforeEach(function () {
     (new ChartOfAccountsSeeder())->run();
     (new GlAccountBalanceSeeder())->run();
     (new PostingAccountSeeder())->run();
+    (new \Database\Seeders\OrgBankAccountSeeder())->run();
 
     $dept  = Department::factory()->create();
     $grade = Grade::create(['code' => 'GS-12', 'name' => 'Senior Officer', 'level' => 12, 'min_step' => 1, 'max_step' => 8]);
@@ -100,6 +101,6 @@ it('credits Loan Receivable for loan deductions taken in payroll', function () {
         ->where('source_id', $run->id)->where('source_purpose', 'accrual')->firstOrFail();
 
     expect($je->isBalanced())->toBeTrue()
-        ->and(balanceOf('1300'))->toBe(-200.0)
+        ->and(balanceOf('1300'))->toBe(1000.0) // +1200 disbursed − 200 repaid = outstanding
         ->and(balanceOf('2250'))->toBe(0.0);
 });
