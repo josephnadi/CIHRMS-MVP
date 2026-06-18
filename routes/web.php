@@ -955,6 +955,20 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('posting-rules/{postingAccount}',    [\App\Http\Controllers\Finance\PostingRuleController::class, 'update'])->name('posting-rules.update');
         });
 
+        // Fiscal periods (Phase 2)
+        Route::middleware('permission:finance.period.view')->group(function () {
+            Route::get('periods', [\App\Http\Controllers\Finance\PeriodController::class, 'index'])->name('periods.index');
+        });
+        Route::middleware(['permission:finance.period.close', '2fa:fresh'])->group(function () {
+            Route::post('periods/{fiscalPeriod}/close', [\App\Http\Controllers\Finance\PeriodController::class, 'close'])->name('periods.close');
+        });
+        Route::middleware(['permission:finance.period.reopen', '2fa:fresh'])->group(function () {
+            Route::post('periods/{fiscalPeriod}/reopen', [\App\Http\Controllers\Finance\PeriodController::class, 'reopen'])->name('periods.reopen');
+        });
+        Route::middleware(['permission:finance.period.lock', '2fa:fresh'])->group(function () {
+            Route::post('periods/{fiscalPeriod}/lock', [\App\Http\Controllers\Finance\PeriodController::class, 'lock'])->name('periods.lock');
+        });
+
         // OrgBankAccountController wired in Task 8
         Route::middleware('permission:bank_accounts.view')->group(function () {
             Route::get('bank-accounts', [OrgBankAccountController::class, 'index'])->name('bank-accounts.index');
