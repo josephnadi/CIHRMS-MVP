@@ -6,15 +6,15 @@ namespace App\Services\Finance;
 
 use App\Enums\ArInvoiceStatus;
 use App\Enums\ArReceiptStatus;
-use App\Enums\JournalEntryStatus;
 use App\Enums\JournalSourceType;
 use App\Models\ArInvoice;
 use App\Models\ArReceipt;
 use App\Models\ArReceiptInvoiceAllocation;
-use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\OrgBankAccount;
 use App\Models\User;
+use App\Services\Finance\PostingService;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +31,7 @@ class ArReceiptService
     public function __construct(
         private readonly JournalPostingService $journal,
         private readonly SequenceService $sequences,
+        private readonly PostingService $posting,
     ) {
     }
 
@@ -98,40 +99,29 @@ class ArReceiptService
                 $inv->save();
             }
 
-            $je = JournalEntry::create([
-                'reference'   => $this->nextJournalReference(),
-                'entry_date'  => $receipt->receipt_date,
-                'narration'   => "AR Receipt: {$receipt->reference}",
-                'status'      => JournalEntryStatus::Draft->value,
-                'source_type' => JournalSourceType::ArReceipt->value,
-                'source_id'   => $receipt->id,
-                'created_by'  => $creator->id,
-            ]);
-
-            // Dr Bank — single line for the total
-            JournalLine::create([
-                'journal_entry_id' => $je->id,
-                'line_no'          => 1,
-                'gl_account_id'    => $bank->gl_account_id,
-                'debit_amount'     => $amount,
-                'credit_amount'    => 0,
-                'narration'        => "Cash in: {$bank->bank_name}",
-            ]);
-            // Cr AR — one line per allocated invoice
-            $lineNo = 2;
+            $postingLines = [];
+            $postingLines[] = PostingLine::debit(
+                amount: (float) $amount,
+                accountId: (int) $bank->gl_account_id,
+                narration: "Cash in: {$bank->bank_name}",
+            );
             foreach ($allocations as $a) {
                 $inv = $invoices[$a['ar_invoice_id']];
-                JournalLine::create([
-                    'journal_entry_id' => $je->id,
-                    'line_no'          => $lineNo++,
-                    'gl_account_id'    => $inv->ar_gl_account_id,
-                    'debit_amount'     => 0,
-                    'credit_amount'    => $a['allocated_amount'],
-                    'narration'        => "Settle AR for {$inv->reference}",
-                ]);
+                $postingLines[] = PostingLine::credit(
+                    amount: (float) $a['allocated_amount'],
+                    accountId: (int) $inv->ar_gl_account_id,
+                    narration: "Settle AR for {$inv->reference}",
+                );
             }
 
-            $this->journal->post($je->fresh('lines.glAccount'));
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::ArReceipt,
+                sourceId: $receipt->id,
+                purpose: '',
+                date: $receipt->receipt_date->format('Y-m-d'),
+                narration: "AR Receipt: {$receipt->reference}",
+                lines: $postingLines,
+            ), $creator);
 
             $receipt->journal_entry_id = $je->id;
             $receipt->status           = ArReceiptStatus::Processed;
@@ -246,11 +236,5 @@ class ArReceiptService
     {
         $year = now()->format('Y');
         return sprintf('ARC-%s-%04d', $year, $this->sequences->next("ar_receipt:{$year}"));
-    }
-
-    private function nextJournalReference(): string
-    {
-        $year = now()->format('Y');
-        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
