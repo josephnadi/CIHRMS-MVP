@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Enums\JournalEntryStatus;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,55 @@ class LedgerBalanceService
     public function activity(CarbonInterface $from, CarbonInterface $to): Collection
     {
         return $this->balances($from, $to);
+    }
+
+    /**
+     * Individual posted/reversed lines for one account in a window (GL drill-down).
+     *
+     * @return Collection<int, object{entry_id:int, reference:string, entry_date:string, narration:?string, debit:float, credit:float}>
+     */
+    public function accountLines(int $accountId, ?CarbonInterface $from, CarbonInterface $to): Collection
+    {
+        $query = DB::table('journal_lines as jl')
+            ->join('journal_entries as je', 'je.id', '=', 'jl.journal_entry_id')
+            ->where('jl.gl_account_id', $accountId)
+            ->whereIn('je.status', [JournalEntryStatus::Posted->value, JournalEntryStatus::Reversed->value])
+            ->whereDate('je.entry_date', '<=', $to->toDateString());
+
+        if ($from !== null) {
+            $query->whereDate('je.entry_date', '>=', $from->toDateString());
+        }
+
+        return $query
+            ->orderBy('je.entry_date')
+            ->orderBy('je.id')
+            ->orderBy('jl.line_no')
+            ->get(['je.id as entry_id', 'je.reference', 'je.entry_date', 'je.narration', 'jl.debit_amount', 'jl.credit_amount'])
+            ->map(fn ($r) => (object) [
+                'entry_id'   => (int) $r->entry_id,
+                'reference'  => $r->reference,
+                'entry_date' => (string) $r->entry_date,
+                'narration'  => $r->narration,
+                'debit'      => round((float) $r->debit_amount, 2),
+                'credit'     => round((float) $r->credit_amount, 2),
+            ]);
+    }
+
+    /**
+     * The equal-length period immediately preceding [$from, $to] — used for
+     * comparative statement columns.
+     *
+     * @return array{0:CarbonImmutable, 1:CarbonImmutable} [priorFrom, priorTo]
+     */
+    public function priorPeriod(CarbonInterface $from, CarbonInterface $to): array
+    {
+        $f = CarbonImmutable::parse($from->toDateString());
+        $t = CarbonImmutable::parse($to->toDateString());
+        $lengthDays = $f->diffInDays($t);
+        $priorTo   = $f->subDay();
+        $priorFrom = $priorTo->subDays($lengthDays);
+
+        return [$priorFrom, $priorTo];
     }
 
     private function naturalBalance(string $type, float $debit, float $credit): float
