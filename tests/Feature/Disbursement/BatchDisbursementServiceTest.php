@@ -10,6 +10,7 @@ use App\Models\PayrollRun;
 use App\Services\Disbursement\BatchDisbursementService;
 use App\Services\Disbursement\Contracts\DisbursementProvider;
 use App\Services\Disbursement\DisbursementResult;
+use App\Services\Finance\PostingService;
 
 beforeEach(function () {
     $this->dept = Department::factory()->create();
@@ -87,7 +88,7 @@ it('dispatch() routes through the per-channel provider and records the result', 
         }
     };
 
-    $svc = new BatchDisbursementService([DisbursementChannel::MtnMomo->value => $stub]);
+    $svc = new BatchDisbursementService([DisbursementChannel::MtnMomo->value => $stub], app(PostingService::class));
     $svc->materialise($this->run);
 
     $result = $svc->dispatch($this->run);
@@ -103,7 +104,7 @@ it('dispatch() routes through the per-channel provider and records the result', 
 it('dispatch() skips channels without a registered provider (e.g. cash)', function () {
     $this->employee->update(['disbursement_channel' => DisbursementChannel::Cash->value]);
 
-    $svc = new BatchDisbursementService([]);    // no providers
+    $svc = new BatchDisbursementService([], app(PostingService::class));    // no providers
     $svc->materialise($this->run);
 
     $result = $svc->dispatch($this->run);

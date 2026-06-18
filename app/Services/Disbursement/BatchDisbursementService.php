@@ -4,11 +4,17 @@ namespace App\Services\Disbursement;
 
 use App\Enums\DisbursementChannel;
 use App\Enums\DisbursementStatus;
+use App\Enums\JournalSourceType;
+use App\Enums\OrgBankAccountPurpose;
 use App\Models\Disbursement;
+use App\Models\OrgBankAccount;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
 use App\Models\StatutoryRate;
 use App\Services\Disbursement\Contracts\DisbursementProvider;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\PostingService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +35,8 @@ class BatchDisbursementService
 
     public function __construct(
         /** @var array<string, DisbursementProvider> indexed by channel value */
-        private readonly array $providers = [],
+        private readonly array $providers,
+        private readonly PostingService $posting,
     ) {}
 
     /**
@@ -110,6 +117,10 @@ class BatchDisbursementService
                     'failed_at'          => $result->status === DisbursementStatus::Failed ? now() : null,
                     'failure_reason'     => $result->failureReason,
                 ]);
+
+                if ($result->status === DisbursementStatus::Settled) {
+                    $this->settle($d);
+                }
             });
 
             $result->status === DisbursementStatus::Failed ? $failed++ : $sent++;
@@ -134,17 +145,55 @@ class BatchDisbursementService
             $result = $provider->refreshStatus($d);
             if ($result->status === $d->status) continue;
 
-            $d->update([
-                'status'            => $result->status->value,
-                'provider_response' => $result->raw,
-                'settled_at'        => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
-                'failed_at'         => $result->status === DisbursementStatus::Failed ? now() : $d->failed_at,
-                'failure_reason'    => $result->failureReason,
-            ]);
+            DB::transaction(function () use ($d, $result) {
+                $d->update([
+                    'status'            => $result->status->value,
+                    'provider_response' => $result->raw,
+                    'settled_at'        => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
+                    'failed_at'         => $result->status === DisbursementStatus::Failed ? now() : $d->failed_at,
+                    'failure_reason'    => $result->failureReason,
+                ]);
+
+                if ($result->status === DisbursementStatus::Settled) {
+                    $this->settle($d);
+                }
+            });
             $touched++;
         }
 
         return $touched;
+    }
+
+    private function settle(Disbursement $d): void
+    {
+        $bankGlId = $this->resolveSettlementBankGlId();
+
+        $this->posting->post(new PostingDocument(
+            sourceType: JournalSourceType::Disbursement,
+            sourceId: $d->id,
+            purpose: 'settlement',
+            date: now()->toDateString(),
+            narration: "Disbursement settlement: #{$d->id}",
+            lines: [
+                PostingLine::debit(slug: 'payroll.net_pay_payable', amount: (float) $d->gross_amount, narration: 'Clear net pay payable'),
+                PostingLine::credit(accountId: $bankGlId, amount: (float) $d->gross_amount, narration: 'Cash out to recipient'),
+            ],
+        ));
+    }
+
+    private function resolveSettlementBankGlId(): int
+    {
+        $bank = OrgBankAccount::query()
+            ->where('purpose', OrgBankAccountPurpose::Payroll->value)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->first();
+
+        if (! $bank || ! $bank->gl_account_id) {
+            throw new \DomainException('No active payroll bank account is configured; cannot post disbursement settlement.');
+        }
+
+        return (int) $bank->gl_account_id;
     }
 
     private function resolveChannel($employee): DisbursementChannel

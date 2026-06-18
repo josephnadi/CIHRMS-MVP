@@ -9,6 +9,7 @@ use App\Services\Disbursement\Providers\AirtelTigoProvider;
 use App\Services\Disbursement\Providers\GhIpssAchProvider;
 use App\Services\Disbursement\Providers\MtnMomoProvider;
 use App\Services\Disbursement\Providers\VodafoneCashProvider;
+use App\Services\Finance\PostingService;
 use Illuminate\Support\ServiceProvider;
 
 class DisbursementServiceProvider extends ServiceProvider
@@ -53,7 +54,7 @@ class DisbursementServiceProvider extends ServiceProvider
                 );
             }
 
-            return new BatchDisbursementService($providers);
+            return new BatchDisbursementService($providers, $app->make(PostingService::class));
         });
 
         $this->app->singleton(GhIpssBatchFileBuilder::class, function ($app) {
