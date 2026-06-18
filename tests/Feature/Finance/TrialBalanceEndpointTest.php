@@ -42,3 +42,10 @@ it('exports the trial balance as CSV', function () {
     $body = $res->streamedContent();
     expect($body)->toContain('5100')->toContain('1000');
 });
+
+it('exports the trial balance as PDF', function () {
+    $u = User::factory()->create(['role' => 'finance_officer']);
+    $res = $this->actingAs($u)->get('/finance/reports/trial-balance/export.pdf?as_of=2026-06-30');
+    $res->assertOk();
+    expect($res->headers->get('content-type'))->toContain('application/pdf');
+});

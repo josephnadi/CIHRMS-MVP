@@ -973,6 +973,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('permission:finance.reports.view')->group(function () {
             Route::get('reports/trial-balance',            [\App\Http\Controllers\Finance\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
             Route::get('reports/trial-balance/export.csv', [\App\Http\Controllers\Finance\ReportController::class, 'trialBalanceCsv'])->name('reports.trial-balance.csv');
+            Route::get('reports/trial-balance/export.pdf', [\App\Http\Controllers\Finance\ReportController::class, 'trialBalancePdf'])->name('reports.trial-balance.pdf');
         });
 
         // OrgBankAccountController wired in Task 8

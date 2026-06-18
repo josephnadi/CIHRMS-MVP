@@ -32,6 +32,7 @@ const csvHref = computed(() => route('finance.reports.trial-balance.csv', { as_o
                 </label>
                 <button @click="apply" class="rounded-lg bg-secondary/20 px-3 py-2 text-sm font-bold text-secondary">Apply</button>
                 <a :href="csvHref" class="rounded-lg border border-outline-variant/60 px-3 py-2 text-sm font-bold text-primary">CSV</a>
+                <a :href="route('finance.reports.trial-balance.pdf', { as_of: props.asOf })" class="rounded-lg border border-outline-variant/60 px-3 py-2 text-sm font-bold text-primary">PDF</a>
             </div>
         </header>
 

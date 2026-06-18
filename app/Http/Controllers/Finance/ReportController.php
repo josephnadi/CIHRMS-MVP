@@ -6,10 +6,12 @@ namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Services\Finance\Reports\TrialBalanceReport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -43,6 +45,15 @@ class ReportController extends Controller
             fputcsv($out, ['', 'TOTAL', '', $report['total_debit'], $report['total_credit']]);
             fclose($out);
         }, "trial-balance-{$report['as_of']}.csv", ['Content-Type' => 'text/csv']);
+    }
+
+    public function trialBalancePdf(Request $request): HttpResponse
+    {
+        $asOf   = $this->asOfDate($request);
+        $report = $this->trialBalance->forDate($asOf);
+
+        return Pdf::loadView('finance.reports.trial-balance-pdf', ['report' => $report])
+            ->download("trial-balance-{$report['as_of']}.pdf");
     }
 
     private function asOfDate(Request $request): CarbonImmutable
