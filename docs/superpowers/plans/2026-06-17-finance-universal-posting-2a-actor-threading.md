@@ -208,6 +208,19 @@ it('falls back to the system super_admin instead of null when there is no auth a
 
     expect($posted->posted_by)->toBe($admin->id);
 });
+
+it('attributes the reversal entry to the reversing user', function () {
+    $poster = User::factory()->create();
+    $posted = app(JournalPostingService::class)->post(draftJe(), $poster);
+
+    $by = User::factory()->create();
+    $reversal = app(JournalPostingService::class)->reverse($posted, $by, 'correction');
+
+    // Without threading $by into the internal post(), posted_by would fall back
+    // to auth()/system (null here) — so this proves the reversal is attributed to $by.
+    expect($reversal->posted_by)->toBe($by->id)
+        ->and($reversal->created_by)->toBe($by->id);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
