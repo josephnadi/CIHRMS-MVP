@@ -12,9 +12,10 @@ use App\Models\ArInvoice;
 use App\Models\ArInvoiceLine;
 use App\Models\Customer;
 use App\Models\GlAccount;
-use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\User;
+use App\Services\Finance\PostingService;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -28,6 +29,7 @@ class ArInvoiceService
     public function __construct(
         private readonly JournalPostingService $journal,
         private readonly SequenceService $sequences,
+        private readonly PostingService $posting,
     ) {
     }
 
@@ -87,39 +89,29 @@ class ArInvoiceService
                 ArInvoiceLine::create(array_merge($line, ['ar_invoice_id' => $invoice->id]));
             }
 
-            $je = JournalEntry::create([
-                'reference'   => $this->nextJournalReference(),
-                'entry_date'  => $invoice->invoice_date,
-                'narration'   => "Accrual: {$customer->code} invoice " . ($invoice->customer_invoice_no ?? $invoice->reference),
-                'status'      => JournalEntryStatus::Draft->value,
-                'source_type' => JournalSourceType::ArInvoice->value,
-                'source_id'   => $invoice->id,
-                'created_by'  => $creator->id,
-            ]);
-
-            // Dr AR (single line for the total)
-            JournalLine::create([
-                'journal_entry_id' => $je->id,
-                'line_no'          => 1,
-                'gl_account_id'    => $arGl->id,
-                'debit_amount'     => $total,
-                'credit_amount'    => 0,
-                'narration'        => 'Accounts Receivable',
-            ]);
-            // Cr Income (per line)
-            $lineNo = 2;
+            $postingLines = [];
+            $postingLines[] = PostingLine::debit(
+                amount: (float) $total,
+                accountId: (int) $arGl->id,
+                narration: 'Accounts Receivable',
+            );
             foreach ($lines as $line) {
-                JournalLine::create([
-                    'journal_entry_id' => $je->id,
-                    'line_no'          => $lineNo++,
-                    'gl_account_id'    => $line['gl_account_id'],
-                    'debit_amount'     => 0,
-                    'credit_amount'    => $line['line_total'] + $line['tax_amount'],
-                    'narration'        => $line['description'],
-                ]);
+                $postingLines[] = PostingLine::credit(
+                    amount: (float) $line['line_total'] + (float) $line['tax_amount'],
+                    accountId: (int) $line['gl_account_id'],
+                    narration: $line['description'] ?? null,
+                );
             }
 
-            $this->journal->post($je->fresh('lines.glAccount'));
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::ArInvoice,
+                sourceId: $invoice->id,
+                purpose: '',
+                date: $invoice->invoice_date->format('Y-m-d'),
+                narration: "Accrual: {$customer->code} invoice " . ($invoice->customer_invoice_no ?? $invoice->reference),
+                lines: $postingLines,
+            ), $creator);
+
             $invoice->accrual_journal_entry_id = $je->id;
             $invoice->save();
 
@@ -205,37 +197,17 @@ class ArInvoiceService
         }
 
         return DB::transaction(function () use ($invoice, $by, $reason, $outstanding, $badDebtGl) {
-            $je = JournalEntry::create([
-                'reference'   => $this->nextJournalReference(),
-                'entry_date'  => now()->format('Y-m-d'),
-                'narration'   => "Write-off: {$invoice->reference} — {$reason}",
-                'status'      => JournalEntryStatus::Draft->value,
-                'source_type'    => JournalSourceType::ArInvoice->value,
-                'source_purpose' => 'write_off',
-                'source_id'      => $invoice->id,
-                'created_by'     => $by->id,
-            ]);
-
-            // Dr Bad Debt Expense
-            JournalLine::create([
-                'journal_entry_id' => $je->id,
-                'line_no'          => 1,
-                'gl_account_id'    => $badDebtGl->id,
-                'debit_amount'     => $outstanding,
-                'credit_amount'    => 0,
-                'narration'        => "Bad debt: {$invoice->reference}",
-            ]);
-            // Cr AR
-            JournalLine::create([
-                'journal_entry_id' => $je->id,
-                'line_no'          => 2,
-                'gl_account_id'    => $invoice->ar_gl_account_id,
-                'debit_amount'     => 0,
-                'credit_amount'    => $outstanding,
-                'narration'        => "Clear AR for {$invoice->reference}",
-            ]);
-
-            $this->journal->post($je->fresh('lines.glAccount'));
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::ArInvoice,
+                sourceId: $invoice->id,
+                purpose: 'write_off',
+                date: now()->format('Y-m-d'),
+                narration: "Write-off: {$invoice->reference} — {$reason}",
+                lines: [
+                    PostingLine::debit(amount: (float) $outstanding, accountId: (int) $badDebtGl->id, narration: "Bad debt: {$invoice->reference}"),
+                    PostingLine::credit(amount: (float) $outstanding, accountId: (int) $invoice->ar_gl_account_id, narration: "Clear AR for {$invoice->reference}"),
+                ],
+            ), $by);
 
             $invoice->write_off_journal_entry_id = $je->id;
             $invoice->status              = ArInvoiceStatus::WrittenOff;
@@ -272,11 +244,5 @@ class ArInvoiceService
     {
         $year = now()->format('Y');
         return sprintf('ARI-%s-%04d', $year, $this->sequences->next("ar_invoice:{$year}"));
-    }
-
-    private function nextJournalReference(): string
-    {
-        $year = now()->format('Y');
-        return sprintf('JE-%s-%06d', $year, $this->sequences->next("journal:{$year}"));
     }
 }
