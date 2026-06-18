@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Enums\FiscalPeriodStatus;
+use App\Exceptions\Finance\SubledgerVarianceException;
 use App\Models\FiscalPeriod;
 use App\Models\User;
 use DomainException;
@@ -17,10 +18,20 @@ use DomainException;
  */
 class PeriodCloseService
 {
-    public function close(FiscalPeriod $period, User $by): FiscalPeriod
+    public function __construct(private readonly SubledgerReconciliationService $reconciliation)
+    {
+    }
+
+    public function close(FiscalPeriod $period, User $by, bool $acknowledgeVariance = false): FiscalPeriod
     {
         if ($period->status !== FiscalPeriodStatus::Open) {
             throw new DomainException("Period {$period->name} is {$period->status->value}; only an open period can be closed.");
+        }
+
+        if (! $acknowledgeVariance && $this->reconciliation->hasVariance()) {
+            throw new SubledgerVarianceException(
+                "Subledger does not tie to the general ledger. Review the reconciliation, then confirm to close with an override."
+            );
         }
 
         $period->update([

@@ -41,7 +41,10 @@ class PeriodController extends Controller
 
     public function close(Request $request, FiscalPeriod $fiscalPeriod): RedirectResponse
     {
-        return $this->transition(fn () => $this->service->close($fiscalPeriod, $request->user()), "Period {$fiscalPeriod->name} closed.");
+        return $this->transition(
+            fn () => $this->service->close($fiscalPeriod, $request->user(), $request->boolean('acknowledge_variance')),
+            "Period {$fiscalPeriod->name} closed.",
+        );
     }
 
     public function reopen(Request $request, FiscalPeriod $fiscalPeriod): RedirectResponse
