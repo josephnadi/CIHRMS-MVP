@@ -30,6 +30,10 @@ class PostingAccountSeeder extends Seeder
         ['member_fee.receivable',            '1200', 'member_fees', 'Member fee receivable',          false],
         ['member_fee.income',                '4100', 'member_fees', 'Membership dues income',         false],
         ['bank.cash_in_transit',             '1130', 'bank',    'Disbursement clearing / in transit', false],
+        ['settlement.benefits_expense',     '5130', 'offboarding', 'Final settlement gross (gratuity/severance/leave/etc.)', false],
+        ['settlement.paye_payable',         '2210', 'offboarding', 'PAYE withheld on a final settlement',                    true],
+        ['settlement.deductions_payable',   '2250', 'offboarding', 'Garnishments & other settlement deductions',            false],
+        ['settlement.net_pay_payable',      '2300', 'offboarding', 'Net final settlement owed to the leaver',               true],
     ];
 
     public function run(): void
