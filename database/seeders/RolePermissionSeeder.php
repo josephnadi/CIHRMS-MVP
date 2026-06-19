@@ -101,6 +101,12 @@ class RolePermissionSeeder extends Seeder
         'offboarding.approve'    => ['Off-boarding', 'Approve final settlements (dual control)'],
         'offboarding.manage'     => ['Off-boarding', 'Complete, cancel, and administer cases'],
 
+        // ── Phase 2: Onboarding ──
+        'onboarding.view'        => ['Onboarding', 'View onboarding cases'],
+        'onboarding.initiate'    => ['Onboarding', 'Open a new onboarding case'],
+        'onboarding.complete'    => ['Onboarding', 'Sign off onboarding tasks and complete cases'],
+        'onboarding.manage'      => ['Onboarding', 'Cancel and administer onboarding cases'],
+
         // ── Phase 2: Whistleblower (Act 720) ──
         // Segregated investigation role — assignment deliberately kept away from HR
         // line management so that retaliation pressure doesn't flow through HR.
@@ -242,6 +248,7 @@ class RolePermissionSeeder extends Seeder
             'loans.view', 'loans.apply', 'loans.manage', 'loans.product_manage',
             'offboarding.view', 'offboarding.initiate', 'offboarding.clear',
             'offboarding.settle', 'offboarding.manage',
+            'onboarding.view', 'onboarding.initiate', 'onboarding.complete', 'onboarding.manage',
             'performance.calibrate', 'performance.pip_manage',
             'assets.view', 'assets.manage', 'assets.assign',
             'messaging.view', 'messaging.send', 'messaging.manage',
@@ -304,6 +311,7 @@ class RolePermissionSeeder extends Seeder
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',
             'payroll.disburse',
             'offboarding.view', 'offboarding.settle', 'offboarding.approve',
+            'onboarding.view',
             'assets.view',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
