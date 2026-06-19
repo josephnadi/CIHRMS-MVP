@@ -109,6 +109,7 @@ const settleForm = useForm({
 
 const calculate = () => settleForm.post(route('offboarding.settlement.calculate', C.value.id), { preserveScroll: true });
 const approve   = () => router.post(route('offboarding.settlement.approve', C.value.id), {}, { preserveScroll: true });
+const pay       = () => router.post(route('offboarding.settlement.pay', C.value.id), {}, { preserveScroll: true });
 const complete  = () => router.post(route('offboarding.complete', C.value.id), {}, { preserveScroll: true });
 const cancelForm = useForm({ reason: '' });
 const showCancel  = ref(false);
@@ -527,7 +528,13 @@ const areaIcon = (area) => ({
                         <div class="flex flex-wrap items-center gap-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-4">
                             <div class="flex-1">
                                 <p class="text-[11px] font-black uppercase tracking-wider text-on-surface-variant/60 mb-1">Settlement Status</p>
-                                <StatusBadge :status="S.status" :label="S.status_label" />
+                                <div class="flex items-center gap-2">
+                                    <StatusBadge :status="S.status" :label="S.status_label" />
+                                    <span v-if="S?.paid_at" class="inline-flex items-center gap-1 text-[12px] font-bold text-emerald-600">
+                                        <span class="material-symbols-outlined text-[15px]">payments</span>
+                                        Paid {{ formatDate(S.paid_at) }}
+                                    </span>
+                                </div>
                             </div>
                             <div class="text-center">
                                 <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Years of Service</p>
@@ -628,6 +635,16 @@ const areaIcon = (area) => ({
                             >
                                 <span class="material-symbols-outlined text-[17px]">verified</span>
                                 Approve Settlement
+                                <span class="text-[10px] opacity-75 font-normal">(2FA)</span>
+                            </button>
+                            <button
+                                v-if="S?.status === 'approved' && !S?.paid_at && C.can?.pay_settle"
+                                @click="pay"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm"
+                                style="background:linear-gradient(135deg,#7c5cff,#9d7bff)"
+                            >
+                                <span class="material-symbols-outlined text-[17px]">payments</span>
+                                Mark Settlement Paid
                                 <span class="text-[10px] opacity-75 font-normal">(2FA)</span>
                             </button>
                             <button
