@@ -81,7 +81,7 @@ class SubledgerReconciliationService
     private function loanPrincipalOutstanding(): float
     {
         return (float) LoanRepayment::query()
-            ->where('status', '!=', LoanRepaymentStatus::Paid->value)
+            ->whereNotIn('status', [LoanRepaymentStatus::Paid->value, LoanRepaymentStatus::Waived->value])
             ->sum('principal_portion');
     }
 }
