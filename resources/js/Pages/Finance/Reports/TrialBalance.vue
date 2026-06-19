@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -24,6 +24,11 @@ const csvHref = computed(() => route('finance.reports.trial-balance.csv', { as_o
             <div>
                 <h1 class="text-2xl font-black text-primary">Trial Balance</h1>
                 <p class="text-on-surface-variant text-sm mt-1">As of {{ asOf }}</p>
+                <nav class="mt-2 flex gap-3 text-xs font-bold">
+                    <Link :href="route('finance.reports.trial-balance')" class="text-secondary">Trial Balance</Link>
+                    <Link :href="route('finance.reports.financial-activities')" class="text-on-surface-variant hover:text-secondary">Financial Activities</Link>
+                    <Link :href="route('finance.reports.financial-position')" class="text-on-surface-variant hover:text-secondary">Financial Position</Link>
+                </nav>
             </div>
             <div class="flex items-end gap-3">
                 <label class="text-xs font-bold text-on-surface-variant">As of
