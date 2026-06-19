@@ -982,6 +982,14 @@ Route::middleware(['auth'])->group(function () {
             Route::get('reports/cash-flow/export.csv', [\App\Http\Controllers\Finance\ReportController::class, 'cashFlowCsv'])->name('reports.cash-flow.csv');
         });
 
+        // Budgets (Phase 4) — entry/approval
+        Route::middleware('permission:finance.budget.manage')->group(function () {
+            Route::get('budgets',          [\App\Http\Controllers\Finance\BudgetController::class, 'index'])->name('budgets.index');
+            Route::post('budgets/line',    [\App\Http\Controllers\Finance\BudgetController::class, 'storeLine'])->name('budgets.line');
+            Route::post('budgets/approve', [\App\Http\Controllers\Finance\BudgetController::class, 'approve'])->name('budgets.approve');
+            Route::post('budgets/revert',  [\App\Http\Controllers\Finance\BudgetController::class, 'revert'])->name('budgets.revert');
+        });
+
         // OrgBankAccountController wired in Task 8
         Route::middleware('permission:bank_accounts.view')->group(function () {
             Route::get('bank-accounts', [OrgBankAccountController::class, 'index'])->name('bank-accounts.index');
