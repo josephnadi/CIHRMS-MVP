@@ -4,18 +4,24 @@ declare(strict_types=1);
 
 namespace App\Services\Offboarding;
 
+use App\Enums\JournalEntryStatus;
 use App\Enums\JournalSourceType;
 use App\Enums\LoanRepaymentStatus;
 use App\Enums\LoanStatus;
+use App\Enums\OrgBankAccountPurpose;
 use App\Models\FinalSettlement;
 use App\Models\JournalEntry;
+use App\Models\JournalLine;
 use App\Models\LoanAccount;
 use App\Models\LoanRepayment;
 use App\Models\OffboardingCase;
+use App\Models\OrgBankAccount;
 use App\Models\User;
+use App\Services\Finance\AccountResolver;
 use App\Services\Finance\Posting\PostingDocument;
 use App\Services\Finance\Posting\PostingLine;
 use App\Services\Finance\PostingService;
+use DomainException;
 use Illuminate\Support\Collection;
 
 /**
@@ -30,8 +36,10 @@ class SettlementPostingService
 {
     private const TOLERANCE = 0.005;
 
-    public function __construct(private readonly PostingService $posting)
-    {
+    public function __construct(
+        private readonly PostingService $posting,
+        private readonly AccountResolver $resolver,
+    ) {
     }
 
     public function postAccrual(FinalSettlement $settlement, User $actor): ?JournalEntry
@@ -79,6 +87,63 @@ class SettlementPostingService
             narration: "Final settlement accrual (case {$settlement->offboarding_case_id})",
             lines: $lines,
         ), $actor);
+    }
+
+    /**
+     * Pay an approved settlement's net: DR the net-pay payable, CR the payroll
+     * bank, for the exact net the accrual credited to 2300. Returns null when
+     * nothing is owed (net zero). Throws if the accrual hasn't been posted.
+     */
+    public function postPayment(FinalSettlement $settlement, User $actor): ?JournalEntry
+    {
+        $accrual = JournalEntry::where('source_type', JournalSourceType::FinalSettlement->value)
+            ->where('source_id', $settlement->id)
+            ->where('source_purpose', 'accrual')
+            ->where('status', JournalEntryStatus::Posted->value)
+            ->first();
+
+        if (! $accrual) {
+            throw new DomainException('Cannot pay a settlement before its accrual is posted.');
+        }
+
+        $netPayAccount = $this->resolver->resolve('settlement.net_pay_payable');
+        $line = JournalLine::where('journal_entry_id', $accrual->id)
+            ->where('gl_account_id', $netPayAccount->id)
+            ->first();
+        $netToPay = $line ? round((float) $line->credit_amount, 2) : 0.0;
+
+        if ($netToPay <= 0.0) {
+            return null; // nothing owed to the leaver (e.g. a shortfall settlement)
+        }
+
+        $bankGlId = $this->resolvePayrollBankGlId();
+
+        return $this->posting->post(new PostingDocument(
+            sourceType: JournalSourceType::FinalSettlement,
+            sourceId: $settlement->id,
+            purpose: 'payment',
+            date: now()->toDateString(),
+            narration: "Final settlement payment (case {$settlement->offboarding_case_id})",
+            lines: [
+                PostingLine::debit(slug: 'settlement.net_pay_payable', amount: $netToPay, narration: 'Clear settlement payable'),
+                PostingLine::credit(accountId: $bankGlId, amount: $netToPay, narration: 'Settlement paid from payroll bank'),
+            ],
+        ), $actor);
+    }
+
+    private function resolvePayrollBankGlId(): int
+    {
+        $bank = OrgBankAccount::query()
+            ->where('purpose', OrgBankAccountPurpose::Payroll->value)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->first();
+
+        if (! $bank || ! $bank->gl_account_id) {
+            throw new DomainException('No active payroll bank account is configured; cannot pay the settlement.');
+        }
+
+        return (int) $bank->gl_account_id;
     }
 
     /** Whole scheduled installments, oldest first, whose running total fits the capacity. */
