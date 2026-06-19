@@ -52,4 +52,14 @@ class LoanRepayment extends Model
         $start = sprintf('%04d-%02d-01', $year, $month);
         return $q->whereDate('due_period', $start);
     }
+
+    /**
+     * Canonical note stamped on an installment waived by a final settlement.
+     * Shared by the clearing (SettlementPostingService) and restore
+     * (OffboardingService::reverseSettlement) sides so the marker can never drift.
+     */
+    public static function settlementClearingNote(int $settlementId): string
+    {
+        return 'Cleared from final settlement ' . $settlementId;
+    }
 }

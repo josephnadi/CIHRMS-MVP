@@ -326,7 +326,7 @@ class OffboardingService
     /** Un-waive the installments this settlement cleared and rebuild each affected loan. */
     private function restoreClearedLoans(FinalSettlement $settlement): void
     {
-        $marker = 'Cleared from final settlement ' . $settlement->id;
+        $marker = LoanRepayment::settlementClearingNote($settlement->id);
 
         $restored = LoanRepayment::where('notes', $marker)
             ->where('status', LoanRepaymentStatus::Waived->value)

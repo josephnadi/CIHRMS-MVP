@@ -202,7 +202,7 @@ class SettlementPostingService
         foreach ($cleared->groupBy('loan_account_id') as $loanId => $insts) {
             LoanRepayment::whereIn('id', $insts->pluck('id'))->update([
                 'status'    => LoanRepaymentStatus::Waived->value,
-                'notes'     => 'Cleared from final settlement ' . $settlement->id,
+                'notes'     => LoanRepayment::settlementClearingNote($settlement->id),
                 'posted_at' => now(),
             ]);
 
