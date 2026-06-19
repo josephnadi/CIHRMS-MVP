@@ -156,6 +156,24 @@ class OffboardingController extends Controller
         return back()->with('success', "Settlement for {$case->reference} approved.");
     }
 
+    public function paySettlement(Request $request, OffboardingCase $case): RedirectResponse
+    {
+        $this->authorize('paySettlement', $case);
+
+        $settlement = $case->settlement;
+        if (! $settlement) {
+            return back()->with('error', 'No settlement exists for this case.');
+        }
+
+        try {
+            $this->service->paySettlement($settlement, $request->user());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Settlement for {$case->reference} marked paid.");
+    }
+
     public function complete(Request $request, OffboardingCase $case): RedirectResponse
     {
         $this->authorize('complete', $case);

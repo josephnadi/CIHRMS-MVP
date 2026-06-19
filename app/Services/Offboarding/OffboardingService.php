@@ -252,6 +252,28 @@ class OffboardingService
     }
 
     /**
+     * Pay an approved settlement: post the cash JE (DR net-pay payable / CR
+     * payroll bank) and flip the settlement to Paid. Approved → Paid only.
+     */
+    public function paySettlement(FinalSettlement $settlement, User $payer): FinalSettlement
+    {
+        if ($settlement->status !== SettlementStatus::Approved) {
+            throw new \DomainException('Only an approved settlement can be paid.');
+        }
+
+        return DB::transaction(function () use ($settlement, $payer) {
+            $this->settlementPosting->postPayment($settlement, $payer);
+
+            $settlement->update([
+                'status'  => SettlementStatus::Paid->value,
+                'paid_at' => now(),
+            ]);
+
+            return $settlement->fresh();
+        });
+    }
+
+    /**
      * Complete the case — flips the employee row to Terminated, voids future
      * loan repayments, archives the verification, and locks the case.
      */
