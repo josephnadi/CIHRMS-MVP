@@ -118,6 +118,13 @@ const submitCancel = () => cancelForm.post(route('offboarding.cancel', C.value.i
     onSuccess: () => { showCancel.value = false; cancelForm.reset(); },
 });
 
+const reverseForm = useForm({ reason: '' });
+const showReverse = ref(false);
+const reverse = () => reverseForm.post(route('offboarding.settlement.reverse', C.value.id), {
+    preserveScroll: true,
+    onSuccess: () => { showReverse.value = false; reverseForm.reset(); },
+});
+
 // ── Area icon map ─────────────────────────────────────────────────────────────
 const areaIcon = (area) => ({
     it:       'computer',
@@ -657,9 +664,43 @@ const areaIcon = (area) => ({
                                 Complete Case &amp; Terminate Employee
                                 <span class="text-[10px] opacity-75 font-normal">(2FA)</span>
                             </button>
+                            <button
+                                v-if="(S?.status === 'approved' || S?.status === 'paid') && C.can?.reverse_settle"
+                                @click="showReverse = !showReverse"
+                                class="flex items-center gap-2 rounded-xl border border-red-300/60 bg-red-50 dark:bg-red-950/20 px-4 py-2.5 text-[13px] font-bold text-red-600 hover:bg-red-100 transition-colors"
+                            >
+                                <span class="material-symbols-outlined text-[17px]">undo</span>
+                                Reverse Settlement
+                                <span class="text-[10px] opacity-75 font-normal">(2FA)</span>
+                            </button>
                             <p v-if="S.status === 'approved' && !C.can?.complete" class="text-[13px] text-on-surface-variant/70 italic self-center">
                                 Settlement approved. Awaiting HR to complete the case.
                             </p>
+                        </div>
+
+                        <!-- Reverse settlement inline form -->
+                        <div v-if="showReverse" class="rounded-xl border border-red-300/50 bg-red-50/30 dark:bg-red-950/20 p-4 space-y-3">
+                            <p class="text-[12px] font-bold text-red-700">Reversal reason <span class="text-red-500">*</span></p>
+                            <p class="text-[12px] text-on-surface-variant/80">Un-posts the settlement's GL entries and restores any loans it cleared. The settlement is marked cancelled.</p>
+                            <textarea aria-label="Reverse reason"
+                                v-model="reverseForm.reason"
+                                rows="2"
+                                placeholder="Provide a reason for reversal…"
+                                class="w-full rounded-xl border border-red-300/60 bg-white dark:bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
+                            ></textarea>
+                            <div class="flex items-center gap-3">
+                                <button
+                                    @click="reverse"
+                                    :disabled="!reverseForm.reason || reverseForm.processing"
+                                    class="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-[13px] font-bold text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                >
+                                    <span v-if="reverseForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                                    Confirm Reversal
+                                </button>
+                                <button @click="showReverse = false" class="text-[13px] font-semibold text-on-surface-variant hover:text-on-surface transition-colors">
+                                    Dismiss
+                                </button>
+                            </div>
                         </div>
                     </div>
 

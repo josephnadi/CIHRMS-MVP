@@ -722,6 +722,8 @@ Route::middleware(['auth'])->group(function () {
             ->middleware(['permission:offboarding.approve', '2fa:fresh'])->name('settlement.approve');
         Route::post('{case}/settlement/pay',               [OffboardingController::class, 'paySettlement'])
             ->middleware(['permission:offboarding.approve', '2fa:fresh'])->name('settlement.pay');
+        Route::post('{case}/settlement/reverse',           [OffboardingController::class, 'reverseSettlement'])
+            ->middleware(['permission:offboarding.approve', '2fa:fresh'])->name('settlement.reverse');
         Route::post('{case}/complete',                     [OffboardingController::class, 'complete'])
             ->middleware(['permission:offboarding.manage', '2fa:fresh'])->name('complete');
         Route::post('{case}/cancel',                       [OffboardingController::class, 'cancel'])

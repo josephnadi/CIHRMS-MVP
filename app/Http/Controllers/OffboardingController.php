@@ -174,6 +174,28 @@ class OffboardingController extends Controller
         return back()->with('success', "Settlement for {$case->reference} marked paid.");
     }
 
+    public function reverseSettlement(Request $request, OffboardingCase $case): RedirectResponse
+    {
+        $this->authorize('reverseSettlement', $case);
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $settlement = $case->settlement;
+        if (! $settlement) {
+            return back()->with('error', 'No settlement exists for this case.');
+        }
+
+        try {
+            $this->service->reverseSettlement($settlement, $request->user(), $validated['reason']);
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Settlement for {$case->reference} reversed.");
+    }
+
     public function complete(Request $request, OffboardingCase $case): RedirectResponse
     {
         $this->authorize('complete', $case);

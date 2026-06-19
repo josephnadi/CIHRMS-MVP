@@ -48,6 +48,7 @@ class OffboardingCaseResource extends JsonResource
                 'settle'          => $request->user()?->can('calculateSettlement', $this->resource),
                 'approve_settle'  => $request->user()?->can('approveSettlement', $this->resource),
                 'pay_settle'      => $request->user()?->can('paySettlement', $this->resource),
+                'reverse_settle'  => $request->user()?->can('reverseSettlement', $this->resource),
                 'complete'        => $request->user()?->can('complete', $this->resource),
             ],
         ];
