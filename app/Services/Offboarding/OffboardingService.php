@@ -6,6 +6,9 @@ use App\Enums\ClearanceArea;
 use App\Enums\ClearanceItemStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\ExitType;
+use App\Enums\JournalEntryStatus;
+use App\Enums\JournalSourceType;
+use App\Enums\LoanRepaymentStatus;
 use App\Enums\LoanStatus;
 use App\Enums\OffboardingStatus;
 use App\Enums\SettlementStatus;
@@ -15,10 +18,13 @@ use App\Events\SettlementApproved;
 use App\Models\ClearanceItem;
 use App\Models\Employee;
 use App\Models\FinalSettlement;
+use App\Models\JournalEntry;
 use App\Models\LeaveBalance;
 use App\Models\LoanAccount;
+use App\Models\LoanRepayment;
 use App\Models\OffboardingCase;
 use App\Models\User;
+use App\Services\Finance\PostingService;
 use App\Services\Finance\SequenceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +64,7 @@ class OffboardingService
         private readonly FinalSettlementCalculator $calculator,
         private readonly SequenceService $sequences,
         private readonly SettlementPostingService $settlementPosting,
+        private readonly PostingService $posting,
     ) {}
 
     public function initiate(
@@ -271,6 +278,87 @@ class OffboardingService
 
             return $settlement->fresh();
         });
+    }
+
+    /**
+     * Reverse an approved or paid settlement: un-post its GL entries (payment
+     * then accrual), restore the loans it cleared, and mark it Cancelled.
+     */
+    public function reverseSettlement(FinalSettlement $settlement, User $by, string $reason): FinalSettlement
+    {
+        if (! in_array($settlement->status, [SettlementStatus::Approved, SettlementStatus::Paid], true)) {
+            throw new \DomainException('Only an approved or paid settlement can be reversed.');
+        }
+
+        return DB::transaction(function () use ($settlement, $by, $reason) {
+            // 1) Reverse the GL entries that exist (payment first, then accrual).
+            foreach (['payment', 'accrual'] as $purpose) {
+                $posted = JournalEntry::where('source_type', JournalSourceType::FinalSettlement->value)
+                    ->where('source_id', $settlement->id)
+                    ->where('source_purpose', $purpose)
+                    ->where('status', JournalEntryStatus::Posted->value)
+                    ->exists();
+
+                if ($posted) {
+                    $this->posting->reverseFor(
+                        JournalSourceType::FinalSettlement,
+                        $settlement->id,
+                        $purpose,
+                        $by,
+                        "Settlement reversal: {$reason}",
+                    );
+                }
+            }
+
+            // 2) Restore the loans this settlement cleared.
+            $this->restoreClearedLoans($settlement);
+
+            // 3) Mark the settlement cancelled with the reason.
+            $settlement->update([
+                'status' => SettlementStatus::Cancelled->value,
+                'notes'  => trim(($settlement->notes ? $settlement->notes . "\n" : '') . "[REVERSED] {$reason}"),
+            ]);
+
+            return $settlement->fresh();
+        });
+    }
+
+    /** Un-waive the installments this settlement cleared and rebuild each affected loan. */
+    private function restoreClearedLoans(FinalSettlement $settlement): void
+    {
+        $marker = LoanRepayment::settlementClearingNote($settlement->id);
+
+        $restored = LoanRepayment::where('notes', $marker)
+            ->where('status', LoanRepaymentStatus::Waived->value)
+            ->lockForUpdate()
+            ->get();
+
+        if ($restored->isEmpty()) {
+            return;
+        }
+
+        foreach ($restored->groupBy('loan_account_id') as $loanId => $insts) {
+            LoanRepayment::whereIn('id', $insts->pluck('id'))->update([
+                'status'    => LoanRepaymentStatus::Scheduled->value,
+                'notes'     => null,
+                'posted_at' => null,
+            ]);
+
+            $loan = LoanAccount::find($loanId);
+            if (! $loan) {
+                continue;
+            }
+
+            $outstanding = (float) LoanRepayment::where('loan_account_id', $loanId)
+                ->where('status', LoanRepaymentStatus::Scheduled->value)
+                ->sum('scheduled_amount');
+
+            $loan->update([
+                'status'              => LoanStatus::Repaying->value,
+                'outstanding_balance' => round($outstanding, 2),
+                'actual_end_date'     => null,
+            ]);
+        }
     }
 
     /**

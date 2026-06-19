@@ -88,6 +88,26 @@ it('respects per-case multiplier overrides', function () {
     expect($r['gratuity'])->toBe(40_000.0); // 5000 × 2.0 × 4
 });
 
+it('taxes a lump-sum settlement on the annualized bracket basis', function () {
+    $paye = app(App\Services\Payroll\PayeCalculator::class);
+
+    $r = $this->calc->compute(
+        exitType:         ExitType::Retirement,
+        basicSalary:      10_000,
+        yearsOfService:   6.0,
+        accruedLeaveDays: 0,
+        outstandingLoans: 0,
+        effectiveDate:    $this->date,
+    );
+
+    $gross = $r['gross_settlement']; // 10,000 × 1.0 × 6 = 60,000
+    $annualizedBasis = round((float) $paye->calculate($gross / 12, $this->date)['tax'] * 12, 2);
+    $monthlyBasis    = round((float) $paye->calculate($gross, $this->date)['tax'], 2);
+
+    expect($r['paye_on_settlement'])->toBe($annualizedBasis)               // uses 12 × PAYE(gross/12)
+        ->and($r['paye_on_settlement'])->toBeLessThan($monthlyBasis);      // materially lighter than the old monthly basis
+});
+
 it('rejects negative inputs', function () {
     expect(fn () => $this->calc->compute(
         ExitType::Retirement, basicSalary: 0, yearsOfService: 5,

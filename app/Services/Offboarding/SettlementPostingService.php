@@ -23,6 +23,7 @@ use App\Services\Finance\Posting\PostingLine;
 use App\Services\Finance\PostingService;
 use DomainException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Posts the General-Ledger accrual for an approved final settlement and clears
@@ -49,44 +50,65 @@ class SettlementPostingService
             return null; // nothing to recognise; no loan can be netted
         }
 
-        $paye       = round((float) $settlement->paye_on_settlement, 2);
-        $deductions = round((float) $settlement->garnishments + (float) $settlement->other_deductions, 2);
-        $capacity   = round(max(0.0, $gross - $paye - $deductions), 2);
+        // One transaction so the lockForUpdate on the loan rows actually holds
+        // across select → waive → post, regardless of whether the caller (e.g.
+        // approveSettlement) already opened one (nesting uses savepoints).
+        return DB::transaction(function () use ($settlement, $actor, $gross) {
+            $paye       = round((float) $settlement->paye_on_settlement, 2);
+            $deductions = round((float) $settlement->garnishments + (float) $settlement->other_deductions, 2);
+            $capacity   = round(max(0.0, $gross - $paye - $deductions), 2);
 
-        $cleared = $this->selectClearableInstallments($settlement, $capacity);
+            $cleared = $this->selectClearableInstallments($settlement, $capacity);
 
-        $principalCleared = round((float) $cleared->sum(fn (LoanRepayment $i) => (float) $i->principal_portion), 2);
-        $interestCleared  = round((float) $cleared->sum(fn (LoanRepayment $i) => (float) $i->interest_portion), 2);
-        $loanCleared      = round($principalCleared + $interestCleared, 2);
-        $netPay           = round($gross - $paye - $deductions - $loanCleared, 2);
+            $principalCleared = round((float) $cleared->sum(fn (LoanRepayment $i) => (float) $i->principal_portion), 2);
+            $interestCleared  = round((float) $cleared->sum(fn (LoanRepayment $i) => (float) $i->interest_portion), 2);
+            $loanCleared      = round($principalCleared + $interestCleared, 2);
+            $netPay           = round($gross - $paye - $deductions - $loanCleared, 2);
 
-        $this->applyClearing($cleared, $settlement);
+            $this->applyClearing($cleared, $settlement);
 
-        $lines = [PostingLine::debit(slug: 'settlement.benefits_expense', amount: $gross, narration: 'Final settlement gross')];
-        if ($paye > 0.0) {
-            $lines[] = PostingLine::credit(slug: 'settlement.paye_payable', amount: $paye, narration: 'PAYE on settlement');
-        }
-        if ($principalCleared > 0.0) {
-            $lines[] = PostingLine::credit(slug: 'loan.principal_receivable', amount: $principalCleared, narration: 'Loan principal cleared from settlement');
-        }
-        if ($interestCleared > 0.0) {
-            $lines[] = PostingLine::credit(slug: 'loan.interest_income', amount: $interestCleared, narration: 'Loan interest collected via settlement');
-        }
-        if ($deductions > 0.0) {
-            $lines[] = PostingLine::credit(slug: 'settlement.deductions_payable', amount: $deductions, narration: 'Garnishments & other deductions');
-        }
-        if ($netPay > 0.0) {
-            $lines[] = PostingLine::credit(slug: 'settlement.net_pay_payable', amount: $netPay, narration: 'Net settlement payable');
-        }
+            // One DR line per non-zero settlement component so the SoFA shows
+            // termination costs by type. Their sum equals gross (the calculator
+            // defines gross as the sum of these components).
+            $lines = [];
+            foreach ([
+                ['settlement.gratuity_expense',         (float) $settlement->gratuity,            'Gratuity'],
+                ['settlement.severance_expense',        (float) $settlement->severance,           'Severance'],
+                ['settlement.leave_encashment_expense', (float) $settlement->leave_encashment,    'Leave encashment'],
+                ['settlement.thirteenth_month_expense', (float) $settlement->prorated_13th_month, 'Pro-rated 13th month'],
+                ['settlement.ex_gratia_expense',        (float) $settlement->ex_gratia,           'Ex-gratia'],
+            ] as [$slug, $amount, $label]) {
+                $amount = round($amount, 2);
+                if ($amount > 0.0) {
+                    $lines[] = PostingLine::debit(slug: $slug, amount: $amount, narration: $label);
+                }
+            }
 
-        return $this->posting->post(new PostingDocument(
-            sourceType: JournalSourceType::FinalSettlement,
-            sourceId: $settlement->id,
-            purpose: 'accrual',
-            date: now()->toDateString(),
-            narration: "Final settlement accrual (case {$settlement->offboarding_case_id})",
-            lines: $lines,
-        ), $actor);
+            if ($paye > 0.0) {
+                $lines[] = PostingLine::credit(slug: 'settlement.paye_payable', amount: $paye, narration: 'PAYE on settlement');
+            }
+            if ($principalCleared > 0.0) {
+                $lines[] = PostingLine::credit(slug: 'loan.principal_receivable', amount: $principalCleared, narration: 'Loan principal cleared from settlement');
+            }
+            if ($interestCleared > 0.0) {
+                $lines[] = PostingLine::credit(slug: 'loan.interest_income', amount: $interestCleared, narration: 'Loan interest collected via settlement');
+            }
+            if ($deductions > 0.0) {
+                $lines[] = PostingLine::credit(slug: 'settlement.deductions_payable', amount: $deductions, narration: 'Garnishments & other deductions');
+            }
+            if ($netPay > 0.0) {
+                $lines[] = PostingLine::credit(slug: 'settlement.net_pay_payable', amount: $netPay, narration: 'Net settlement payable');
+            }
+
+            return $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::FinalSettlement,
+                sourceId: $settlement->id,
+                purpose: 'accrual',
+                date: now()->toDateString(),
+                narration: "Final settlement accrual (case {$settlement->offboarding_case_id})",
+                lines: $lines,
+            ), $actor);
+        });
     }
 
     /**
@@ -196,7 +218,7 @@ class SettlementPostingService
         foreach ($cleared->groupBy('loan_account_id') as $loanId => $insts) {
             LoanRepayment::whereIn('id', $insts->pluck('id'))->update([
                 'status'    => LoanRepaymentStatus::Waived->value,
-                'notes'     => 'Cleared from final settlement ' . $settlement->id,
+                'notes'     => LoanRepayment::settlementClearingNote($settlement->id),
                 'posted_at' => now(),
             ]);
 

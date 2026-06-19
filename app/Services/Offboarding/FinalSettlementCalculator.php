@@ -105,8 +105,12 @@ class FinalSettlementCalculator
 
         $gross = round($gratuity + $severance + $leaveEncashment + $prorated13th + $exGratia, 2);
 
-        // ── PAYE on the settlement (monthly bracket; conservative) ─────────
-        $paye = $payPaye ? round((float) $this->paye->calculate($gross, $effectiveDate)['tax'], 2) : 0.0;
+        // ── PAYE on the settlement (annualized bracket basis) ──────────────
+        // A lump-sum terminal payment represents years of service, so taxing it
+        // through the MONTHLY bracket table would shove almost all of it into the
+        // top monthly band. Instead apply the ANNUAL table (monthly bands × 12),
+        // which equals 12 × PAYE(gross / 12) — taxing the lump as a year's income.
+        $paye = $payPaye ? round((float) $this->paye->calculate($gross / 12, $effectiveDate)['tax'] * 12, 2) : 0.0;
 
         // ── Deductions ──────────────────────────────────────────────────────
         $outstandingLoans = round(max(0.0, $outstandingLoans), 2);

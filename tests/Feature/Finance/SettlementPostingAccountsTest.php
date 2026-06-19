@@ -18,15 +18,21 @@ it('exposes the FinalSettlement source type', function () {
         ->and(JournalSourceType::FinalSettlement->label())->toBe('Final Settlement');
 });
 
-it('seeds the 5130 termination benefits expense account', function () {
-    $acc = GlAccount::where('code', '5130')->first();
-    expect($acc)->not->toBeNull()
-        ->and($acc->type->value)->toBe('expense');
+it('seeds the per-component termination expense accounts', function () {
+    foreach (['5130', '5131', '5132', '5133', '5134'] as $code) {
+        $acc = GlAccount::where('code', $code)->first();
+        expect($acc)->not->toBeNull()
+            ->and($acc->type->value)->toBe('expense');
+    }
 });
 
 it('maps the settlement posting slugs to the right accounts', function () {
     $resolver = app(AccountResolver::class);
-    expect($resolver->resolve('settlement.benefits_expense')->code)->toBe('5130')
+    expect($resolver->resolve('settlement.gratuity_expense')->code)->toBe('5130')
+        ->and($resolver->resolve('settlement.severance_expense')->code)->toBe('5131')
+        ->and($resolver->resolve('settlement.leave_encashment_expense')->code)->toBe('5132')
+        ->and($resolver->resolve('settlement.thirteenth_month_expense')->code)->toBe('5133')
+        ->and($resolver->resolve('settlement.ex_gratia_expense')->code)->toBe('5134')
         ->and($resolver->resolve('settlement.paye_payable')->code)->toBe('2210')
         ->and($resolver->resolve('settlement.deductions_payable')->code)->toBe('2250')
         ->and($resolver->resolve('settlement.net_pay_payable')->code)->toBe('2300');

@@ -56,6 +56,11 @@ class OffboardingCasePolicy
         return $user->hasPermission('offboarding.approve');
     }
 
+    public function reverseSettlement(User $user, OffboardingCase $case): bool
+    {
+        return $user->hasPermission('offboarding.approve');
+    }
+
     public function complete(User $user, OffboardingCase $case): bool
     {
         return $user->hasPermission('offboarding.manage');
