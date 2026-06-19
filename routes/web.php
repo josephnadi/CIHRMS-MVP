@@ -980,6 +980,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('reports/account/{account}/ledger',         [\App\Http\Controllers\Finance\ReportController::class, 'accountLedger'])->name('reports.account-ledger');
             Route::get('reports/cash-flow',            [\App\Http\Controllers\Finance\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
             Route::get('reports/cash-flow/export.csv', [\App\Http\Controllers\Finance\ReportController::class, 'cashFlowCsv'])->name('reports.cash-flow.csv');
+            Route::get('reports/budget-vs-actuals',             [\App\Http\Controllers\Finance\ReportController::class, 'budgetVsActuals'])->name('reports.budget-vs-actuals');
+            Route::get('reports/budget-vs-actuals/export.csv',  [\App\Http\Controllers\Finance\ReportController::class, 'budgetVsActualsCsv'])->name('reports.budget-vs-actuals.csv');
+            Route::get('reports/budget-vs-actuals/export.pdf',  [\App\Http\Controllers\Finance\ReportController::class, 'budgetVsActualsPdf'])->name('reports.budget-vs-actuals.pdf');
         });
 
         // Budgets (Phase 4) — entry/approval
