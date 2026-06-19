@@ -43,6 +43,8 @@ class OffboardingCaseResource extends JsonResource
                 'approved_at'    => optional($this->settlement->approved_at)->toIso8601String(),
             ] : null),
 
+            'settlement_payout' => $this->settlementPayout(),
+
             'can' => [
                 'clear'           => $request->user()?->can('clear', $this->resource),
                 'settle'          => $request->user()?->can('calculateSettlement', $this->resource),
@@ -50,7 +52,39 @@ class OffboardingCaseResource extends JsonResource
                 'pay_settle'      => $request->user()?->can('paySettlement', $this->resource),
                 'reverse_settle'  => $request->user()?->can('reverseSettlement', $this->resource),
                 'complete'        => $request->user()?->can('complete', $this->resource),
+                'dispatch_payout' => $request->user()?->can('dispatchPayout', $this->resource),
             ],
+        ];
+    }
+
+    /**
+     * Latest disbursement linked to this case's settlement (additive payout
+     * tracking). Returns plain scalars — enum casts are unwrapped to their
+     * string values so Vue receives 'pending'/'sent'/'settled'/'failed'.
+     */
+    private function settlementPayout(): ?array
+    {
+        $settlementId = $this->settlement?->id;
+        if (! $settlementId) {
+            return null;
+        }
+
+        $d = \App\Models\Disbursement::where('final_settlement_id', $settlementId)
+            ->latest('id')
+            ->first();
+
+        if (! $d) {
+            return null;
+        }
+
+        return [
+            'id'                 => $d->id,
+            'channel'            => $d->channel?->value,
+            'status'             => $d->status?->value,
+            'gross_amount'       => (float) $d->gross_amount,
+            'net_to_recipient'   => (float) $d->net_to_recipient,
+            'provider_reference' => $d->provider_reference,
+            'failure_reason'     => $d->failure_reason,
         ];
     }
 }
