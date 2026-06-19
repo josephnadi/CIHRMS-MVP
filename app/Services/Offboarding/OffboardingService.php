@@ -6,7 +6,6 @@ use App\Enums\ClearanceArea;
 use App\Enums\ClearanceItemStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\ExitType;
-use App\Enums\LoanRepaymentStatus;
 use App\Enums\LoanStatus;
 use App\Enums\OffboardingStatus;
 use App\Enums\SettlementStatus;
@@ -18,7 +17,6 @@ use App\Models\Employee;
 use App\Models\FinalSettlement;
 use App\Models\LeaveBalance;
 use App\Models\LoanAccount;
-use App\Models\LoanRepayment;
 use App\Models\OffboardingCase;
 use App\Models\User;
 use App\Services\Finance\SequenceService;
@@ -59,6 +57,7 @@ class OffboardingService
     public function __construct(
         private readonly FinalSettlementCalculator $calculator,
         private readonly SequenceService $sequences,
+        private readonly SettlementPostingService $settlementPosting,
     ) {}
 
     public function initiate(
@@ -243,9 +242,8 @@ class OffboardingService
                 'approved_at' => now(),
             ]);
 
-            // Close any open loan accounts — the outstanding balance was netted from
-            // the settlement, so the loans are deemed paid-off at this point.
-            $this->closeOutstandingLoans($settlement);
+            // Recognise the settlement in the GL and clear the leaver's loans against it.
+            $this->settlementPosting->postAccrual($settlement, $approver);
 
             event(new SettlementApproved($settlement));
 
@@ -373,36 +371,6 @@ class OffboardingService
         return (float) LoanAccount::where('employee_id', $employee->id)
             ->whereIn('status', [LoanStatus::Disbursed->value, LoanStatus::Repaying->value])
             ->sum('outstanding_balance');
-    }
-
-    private function closeOutstandingLoans(FinalSettlement $settlement): void
-    {
-        // Fetch the case explicitly — $settlement->case lazy-loads.
-        $case = OffboardingCase::find($settlement->offboarding_case_id);
-        $employeeId = $case?->employee_id;
-        if (! $employeeId) return;
-
-        $loans = LoanAccount::where('employee_id', $employeeId)
-            ->whereIn('status', [LoanStatus::Disbursed->value, LoanStatus::Repaying->value])
-            ->lockForUpdate()
-            ->get();
-
-        foreach ($loans as $loan) {
-            // Mark all remaining scheduled installments as waived (paid out of settlement).
-            LoanRepayment::where('loan_account_id', $loan->id)
-                ->where('status', LoanRepaymentStatus::Scheduled->value)
-                ->update([
-                    'status'    => LoanRepaymentStatus::Waived->value,
-                    'notes'     => 'Settled from final settlement ' . $settlement->id,
-                    'posted_at' => now(),
-                ]);
-
-            $loan->update([
-                'status'              => LoanStatus::PaidOff->value,
-                'outstanding_balance' => 0,
-                'actual_end_date'     => now()->toDateString(),
-            ]);
-        }
     }
 
     private function nextReference(): string

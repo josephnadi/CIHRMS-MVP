@@ -12,10 +12,20 @@ use App\Models\LeaveBalance;
 use App\Models\OffboardingCase;
 use App\Models\User;
 use App\Services\Offboarding\OffboardingService;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\GhanaStatutoryReferenceSeeder;
+use Database\Seeders\GlAccountBalanceSeeder;
+use Database\Seeders\PostingAccountSeeder;
 
 beforeEach(function () {
     $this->seed(GhanaStatutoryReferenceSeeder::class);
+    // approveSettlement now posts a GL accrual via SettlementPostingService, so the
+    // chart of accounts, posting-rule map, opening balances, and an actor-less
+    // posting fallback (super_admin) must exist for approval to succeed.
+    (new ChartOfAccountsSeeder())->run();
+    (new GlAccountBalanceSeeder())->run();
+    (new PostingAccountSeeder())->run();
+    User::factory()->create(['role' => 'super_admin']);
 
     $dept = Department::factory()->create();
     $this->employee = Employee::factory()->create([
