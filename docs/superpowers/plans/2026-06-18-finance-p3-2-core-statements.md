@@ -262,7 +262,9 @@ class IncomeExpenditureReport
     /** Build a section (income or expense) with current + prior amounts per account. */
     private function section(Collection $current, Collection $prior, string $type): array
     {
-        $codes = $current->merge($prior)->filter(fn ($r) => $r->type === $type)->keys()->unique()->sort()->values();
+        // union (not merge): GL codes are numeric strings; Collection::merge reindexes
+        // numeric keys (zeroing the section), while union (+) preserves them.
+        $codes = $current->union($prior)->filter(fn ($r) => $r->type === $type)->keys()->unique()->sort()->values();
 
         $rows = [];
         $totalCurrent = 0.0;
@@ -424,7 +426,9 @@ class FinancialPositionReport
 
     private function section(Collection $current, Collection $prior, string $type): array
     {
-        $codes = $current->merge($prior)->filter(fn ($r) => $r->type === $type)->keys()->unique()->sort()->values();
+        // union (not merge): GL codes are numeric strings; Collection::merge reindexes
+        // numeric keys (zeroing the section), while union (+) preserves them.
+        $codes = $current->union($prior)->filter(fn ($r) => $r->type === $type)->keys()->unique()->sort()->values();
 
         $rows = [];
         $totalCurrent = 0.0;
