@@ -104,6 +104,11 @@ const statusBadge = (status) => {
                     <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
                     Budgets
                 </Link>
+                <Link :href="route('finance.reports.budget-vs-actuals')"
+                      class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-3 py-2 text-[12px] font-bold text-primary hover:border-secondary/40 transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">monitoring</span>
+                    Budget vs Actuals
+                </Link>
             </div>
         </div>
 

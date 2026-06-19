@@ -23,6 +23,7 @@ class ReportController extends Controller
         private readonly \App\Services\Finance\Reports\FinancialPositionReport $financialPosition,
         private readonly \App\Services\Finance\LedgerBalanceService $ledger,
         private readonly \App\Services\Finance\Reports\CashFlowReport $cashFlow,
+        private readonly \App\Services\Finance\Reports\BudgetVsActualsReport $budgetVsActuals,
     ) {
     }
 
@@ -153,6 +154,59 @@ class ReportController extends Controller
             fputcsv($out, ['Net change in cash', $report['indirect']['net']]);
             fclose($out);
         }, "cash-flow-{$report['from']}-to-{$report['to']}.csv", ['Content-Type' => 'text/csv']);
+    }
+
+    public function budgetVsActuals(Request $request): Response
+    {
+        [$year, $period] = $this->budgetYearPeriod($request);
+
+        return Inertia::render('Finance/Reports/BudgetVsActuals', [
+            'activeModule' => 'finance-reports',
+            'year'         => $year,
+            'period'       => $period,
+            'report'       => $this->budgetVsActuals->forYear($year, $period),
+        ]);
+    }
+
+    public function budgetVsActualsCsv(Request $request): StreamedResponse
+    {
+        [$year, $period] = $this->budgetYearPeriod($request);
+        $report = $this->budgetVsActuals->forYear($year, $period);
+
+        return response()->streamDownload(function () use ($report) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Type', 'Code', 'Account', 'Annual budget', 'YTD budget', 'YTD actual', 'Variance', 'Status']);
+            foreach ($report['groups'] as $group) {
+                foreach ($group['rows'] as $row) {
+                    fputcsv($out, [$row['type'], $row['code'], $row['name'], $row['annual_budget'],
+                        $row['ytd_budget'], $row['ytd_actual'], $row['variance'],
+                        $row['favourable'] === null ? '' : ($row['favourable'] ? 'Favourable' : 'Unfavourable')]);
+                }
+                fputcsv($out, [strtoupper($group['type']) . ' total', '', '', $group['annual_budget'],
+                    $group['ytd_budget'], $group['ytd_actual'], $group['variance'], '']);
+            }
+            fputcsv($out, ['GRAND TOTAL', '', '', $report['totals']['annual_budget'],
+                $report['totals']['ytd_budget'], $report['totals']['ytd_actual'], $report['totals']['variance'], '']);
+            fclose($out);
+        }, "budget-vs-actuals-{$report['year']}-p{$report['as_of_period']}.csv", ['Content-Type' => 'text/csv']);
+    }
+
+    public function budgetVsActualsPdf(Request $request): HttpResponse
+    {
+        [$year, $period] = $this->budgetYearPeriod($request);
+        $report = $this->budgetVsActuals->forYear($year, $period);
+
+        return Pdf::loadView('finance.reports.budget-vs-actuals-pdf', ['report' => $report])
+            ->download("budget-vs-actuals-{$report['year']}-p{$report['as_of_period']}.pdf");
+    }
+
+    /** @return array{0:int,1:int} [year, periodNo] */
+    private function budgetYearPeriod(Request $request): array
+    {
+        $year   = (int) ($request->query('year') ?: CarbonImmutable::today()->year);
+        $period = (int) ($request->query('period') ?: 12);
+
+        return [$year, max(1, min(12, $period))];
     }
 
     /** @return array{0:CarbonImmutable,1:CarbonImmutable} [from, to] */
