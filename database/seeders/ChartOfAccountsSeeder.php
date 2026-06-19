@@ -59,6 +59,7 @@ class ChartOfAccountsSeeder extends Seeder
         ['5100', 'Salaries Expense',               'expense', '5000'],
         ['5110', 'Allowances Expense',             'expense', '5000'],
         ['5120', 'Statutory Employer Contributions','expense', '5000'],
+        ['5130', 'Termination & Severance Benefits', 'expense', '5000'],
         ['5200', 'Operations Expense',             'expense', '5000'],
         ['5300', 'IT & Technology',                'expense', '5000'],
         ['5400', 'Marketing',                      'expense', '5000'],
