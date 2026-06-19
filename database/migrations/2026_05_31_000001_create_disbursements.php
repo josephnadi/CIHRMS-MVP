@@ -22,9 +22,10 @@ return new class extends Migration
 
         Schema::create('disbursements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payroll_run_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('payroll_line_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('payroll_run_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('payroll_line_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('final_settlement_id')->nullable()->constrained()->nullOnDelete();
             $table->string('channel', 32);
             $table->string('status', 16)->default('pending');
 

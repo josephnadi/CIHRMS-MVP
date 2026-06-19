@@ -65,6 +65,7 @@ class OffboardingService
         private readonly SequenceService $sequences,
         private readonly SettlementPostingService $settlementPosting,
         private readonly PostingService $posting,
+        private readonly \App\Services\Disbursement\BatchDisbursementService $disbursements,
     ) {}
 
     public function initiate(
@@ -269,12 +270,16 @@ class OffboardingService
         }
 
         return DB::transaction(function () use ($settlement, $payer) {
-            $this->settlementPosting->postPayment($settlement, $payer);
+            $je = $this->settlementPosting->postPayment($settlement, $payer);
 
             $settlement->update([
                 'status'  => SettlementStatus::Paid->value,
                 'paid_at' => now(),
             ]);
+
+            if ($je !== null) {
+                $this->disbursements->createForSettlement($settlement->fresh());
+            }
 
             return $settlement->fresh();
         });

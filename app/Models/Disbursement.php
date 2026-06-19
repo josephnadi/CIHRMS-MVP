@@ -14,7 +14,7 @@ class Disbursement extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'payroll_run_id', 'payroll_line_id', 'employee_id',
+        'payroll_run_id', 'payroll_line_id', 'employee_id', 'final_settlement_id',
         'channel', 'status',
         'gross_amount', 'e_levy', 'provider_fee', 'net_to_recipient',
         'beneficiary_account', 'beneficiary_name',
@@ -51,6 +51,11 @@ class Disbursement extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function finalSettlement(): BelongsTo
+    {
+        return $this->belongsTo(FinalSettlement::class, 'final_settlement_id');
     }
 
     public function scopePending(Builder $q): Builder

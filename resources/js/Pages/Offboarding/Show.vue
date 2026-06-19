@@ -125,6 +125,16 @@ const reverse = () => reverseForm.post(route('offboarding.settlement.reverse', C
     onSuccess: () => { showReverse.value = false; reverseForm.reset(); },
 });
 
+// ── Settlement payout (provider rails) ─────────────────────────────────────────
+const payout = computed(() => C.value.settlement_payout ?? null);
+const payoutStatusClass = (s) => ({
+    pending: 'bg-amber-500/10 text-amber-700',
+    sent:    'bg-blue-500/10 text-blue-700',
+    settled: 'bg-emerald-500/10 text-emerald-700',
+    failed:  'bg-rose-500/10 text-rose-700',
+})[s] ?? 'bg-surface-container-low text-on-surface-variant';
+const dispatchPayout = () => router.post(route('offboarding.settlement.dispatch-payout', C.value.id), {}, { preserveScroll: true });
+
 // ── Area icon map ─────────────────────────────────────────────────────────────
 const areaIcon = (area) => ({
     it:       'computer',
@@ -701,6 +711,52 @@ const areaIcon = (area) => ({
                                     Dismiss
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Settlement payout (provider rails) -->
+                        <div v-if="payout" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-5 space-y-4">
+                            <div class="flex items-center gap-2">
+                                <div class="h-7 w-7 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[15px] text-secondary">account_balance</span>
+                                </div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant/70">Settlement Payout</p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-4">
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Channel</p>
+                                    <p class="text-[13px] font-bold text-on-surface">{{ payout.channel }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Status</p>
+                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-[12px] font-bold capitalize" :class="payoutStatusClass(payout.status)">
+                                        {{ payout.status }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Net to Recipient</p>
+                                    <p class="font-mono text-[15px] font-black text-on-surface tabular-nums">{{ cedi(payout.net_to_recipient) }}</p>
+                                </div>
+                                <div v-if="payout.provider_reference">
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1">Provider Reference</p>
+                                    <p class="font-mono text-[13px] font-semibold text-on-surface">{{ payout.provider_reference }}</p>
+                                </div>
+                            </div>
+
+                            <p v-if="payout.failure_reason" class="rounded-xl bg-rose-500/10 px-3 py-2 text-[12px] font-semibold text-rose-700">
+                                {{ payout.failure_reason }}
+                            </p>
+
+                            <button
+                                v-if="payout.status === 'pending' && C.can?.dispatch_payout"
+                                @click="dispatchPayout"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-sm"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)"
+                            >
+                                <span class="material-symbols-outlined text-[17px]">send</span>
+                                Dispatch payout
+                                <span class="text-[10px] opacity-75 font-normal">(2FA)</span>
+                            </button>
                         </div>
                     </div>
 
