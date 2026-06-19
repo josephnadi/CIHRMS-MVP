@@ -14,6 +14,7 @@ const props = defineProps({
     run:          Object,
     lines:        Object,
     returns:      Object,
+    canRemit:     Boolean,
     activeModule: String,
 });
 
@@ -31,6 +32,15 @@ const reverseForm = useForm({ reason: '' });
 const reverse = () => reverseForm.post(route('payroll-runs.reverse', R.value.id), { preserveScroll: true });
 
 const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), {}, { preserveScroll: true });
+
+const fileForm = useForm({ reference: '', submitted_at: '' });
+const filingId = ref(null);
+const openMarkFiled = (rt) => { filingId.value = rt.id; fileForm.reset(); fileForm.clearErrors(); };
+const cancelFiled = () => { filingId.value = null; fileForm.reset(); fileForm.clearErrors(); };
+const submitFiled = (rt) => fileForm.post(
+    route('payroll-runs.return-mark-filed', { run: R.value.id, returnId: rt.id }),
+    { preserveScroll: true, onSuccess: () => { filingId.value = null; } },
+);
 </script>
 
 <template>
@@ -122,13 +132,35 @@ const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), 
 
                     <div v-if="tab==='returns'" class="divide-y divide-slate-100">
                         <div v-for="rt in (returns?.data ?? returns ?? [])" :key="rt.id"
-                             class="px-5 py-4 flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">{{ rt.kind_label }}</div>
-                                <div class="text-xs text-slate-500">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
+                             class="px-5 py-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">{{ rt.kind_label }}</div>
+                                    <div class="text-xs text-slate-500">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span :class="{
+                                            'text-amber-600': rt.status === 'pending',
+                                            'text-rose-600': rt.status === 'overdue',
+                                            'text-emerald-600': rt.status === 'submitted',
+                                        }" class="text-[12px] font-bold capitalize">{{ rt.status }}</span>
+                                    <span v-if="rt.due_date && rt.status !== 'submitted'" class="text-[11px] text-slate-500">due {{ rt.due_date }}</span>
+                                    <span v-if="rt.status === 'submitted'" class="text-[11px] text-slate-500">filed {{ rt.submission_reference }}</span>
+                                    <button v-if="canRemit && rt.status !== 'submitted' && filingId !== rt.id"
+                                            @click="openMarkFiled(rt)"
+                                            class="text-[12px] font-bold text-blue-600 hover:underline">Mark filed</button>
+                                    <a :href="route('payroll-runs.return-download', { run: R.id, returnId: rt.id })"
+                                       class="text-blue-600 hover:underline text-sm">Download</a>
+                                </div>
                             </div>
-                            <a :href="route('payroll-runs.return-download', { run: R.id, returnId: rt.id })"
-                               class="text-blue-600 hover:underline text-sm">Download</a>
+                            <div v-if="filingId === rt.id" class="mt-3 flex items-center gap-2">
+                                <input v-model="fileForm.reference" type="text" aria-label="Filing reference"
+                                       placeholder="Filing reference (e.g. GRA-2026-06)"
+                                       class="flex-1 rounded-lg border-slate-200 text-sm" />
+                                <PrimaryButton @click="submitFiled(rt)" :disabled="fileForm.processing">Save</PrimaryButton>
+                                <SecondaryButton @click="cancelFiled">Cancel</SecondaryButton>
+                            </div>
+                            <p v-if="filingId === rt.id && fileForm.errors.reference" class="mt-1 text-xs text-rose-600">{{ fileForm.errors.reference }}</p>
                         </div>
                         <div v-if="(returns?.data?.length ?? returns?.length ?? 0) === 0"
                              class="px-5 py-8 text-center text-slate-500 text-sm">

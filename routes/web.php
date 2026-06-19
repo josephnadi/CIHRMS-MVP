@@ -470,6 +470,8 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:payroll.approve')->name('mark-paid');
         Route::get('{run}/returns/{returnId}',[PayrollRunController::class, 'downloadReturn'])
             ->middleware('permission:statutory.export')->name('return-download');
+        Route::post('{run}/returns/{returnId}/mark-filed', [PayrollRunController::class, 'markReturnFiled'])
+            ->middleware('permission:statutory.remit')->name('return-mark-filed');
         Route::get('{run}/ippd-export',       [PayrollRunController::class, 'downloadIppd'])
             ->middleware('permission:statutory.export')->name('ippd-export');
         Route::get('{run}/gifmis-export',     [PayrollRunController::class, 'downloadGifmis'])

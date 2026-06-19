@@ -77,5 +77,12 @@ class GhanaStatutoryReferenceSeeder extends Seeder
                 ],
             );
         }
+
+        // Remittance deadline: SSNIT/GRA returns are due within 14 days of month-end.
+        StatutoryRate::updateOrCreate(
+            ['code' => StatutoryRate::REMITTANCE_DEADLINE_DAYS, 'effective_from' => '2020-01-01'],
+            ['label' => 'Statutory remittance deadline (days after period end)', 'rate' => 14, 'is_rate' => false,
+             'currency' => 'GHS', 'effective_to' => null, 'meta' => null],
+        );
     }
 }

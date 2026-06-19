@@ -64,6 +64,7 @@ class RolePermissionSeeder extends Seeder
         'payroll.reverse'        => ['Payroll',      'Reverse an approved or paid payroll run'],
         'payroll.view_all'       => ['Payroll',      'View all payroll runs across departments'],
         'statutory.export'       => ['Payroll',      'Download statutory return files (PAYE/SSNIT/Tier-2)'],
+        'statutory.remit'        => ['Payroll',      'Record a statutory return as filed/remitted'],
         'payroll.disburse'       => ['Payroll',      'Dispatch and reconcile disbursements (MoMo/GhIPSS)'],
 
         // ── Phase 1: Establishment ──
@@ -297,7 +298,7 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'payroll.view', 'payroll.manage',
-            'payroll.approve', 'payroll.view_all', 'statutory.export',
+            'payroll.approve', 'payroll.view_all', 'statutory.export', 'statutory.remit',
             'employees.view_salary',
             'attendance.correct',
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',

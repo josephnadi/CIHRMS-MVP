@@ -42,11 +42,15 @@ class PayrollRunController extends Controller
         ]);
     }
 
-    public function show(PayrollRun $run): Response
+    public function show(Request $request, PayrollRun $run): Response
     {
         $this->authorize('view', $run);
 
-        $run->load(['department', 'creator', 'approver', 'reverser', 'returns.trustee']);
+        $run->load(['department', 'creator', 'approver', 'reverser', 'returns.trustee', 'returns.submitter']);
+
+        // Attach the run to each return so the resource can compute the due date
+        // without an N+1 lazy-load of the run() belongsTo per row.
+        $run->returns->each(fn ($r) => $r->setRelation('run', $run));
 
         $lines = $run->lines()
             ->with(['employee.user', 'employee.department', 'grade'])
@@ -57,6 +61,7 @@ class PayrollRunController extends Controller
             'run'          => new PayrollRunResource($run),
             'lines'        => PayrollLineResource::collection($lines),
             'returns'      => StatutoryReturnResource::collection($run->returns),
+            'canRemit'     => $request->user()->hasPermission('statutory.remit'),
             'activeModule' => 'payroll',
         ]);
     }
@@ -111,6 +116,34 @@ class PayrollRunController extends Controller
         abort_unless(Storage::disk('local')->exists($return->file_path), 404);
 
         return Storage::disk('local')->download($return->file_path);
+    }
+
+    public function markReturnFiled(Request $request, PayrollRun $run, int $returnId, \App\Services\Payroll\RemittanceService $remittance): RedirectResponse
+    {
+        $this->authorize('view', $run); // visible to run viewers; the route permission gates the write
+        if (! $request->user()->hasPermission('statutory.remit')) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'reference'    => ['required', 'string', 'max:120'],
+            'submitted_at' => ['nullable', 'date'],
+        ]);
+
+        $return = $run->returns()->findOrFail($returnId);
+
+        try {
+            $remittance->markSubmitted(
+                $return,
+                $request->user(),
+                $data['reference'],
+                isset($data['submitted_at']) ? \Carbon\CarbonImmutable::parse($data['submitted_at']) : null,
+            );
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Statutory return recorded as filed.');
     }
 
     /**
