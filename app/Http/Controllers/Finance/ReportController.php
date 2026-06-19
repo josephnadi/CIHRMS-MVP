@@ -22,6 +22,7 @@ class ReportController extends Controller
         private readonly \App\Services\Finance\Reports\IncomeExpenditureReport $incomeExpenditure,
         private readonly \App\Services\Finance\Reports\FinancialPositionReport $financialPosition,
         private readonly \App\Services\Finance\LedgerBalanceService $ledger,
+        private readonly \App\Services\Finance\Reports\CashFlowReport $cashFlow,
     ) {
     }
 
@@ -115,6 +116,43 @@ class ReportController extends Controller
             fputcsv($out, ['Surplus/(Deficit)', '', '', $report['surplus_current'], $report['surplus_prior']]);
             fclose($out);
         }, "financial-activities-{$report['from']}-to-{$report['to']}.csv", ['Content-Type' => 'text/csv']);
+    }
+
+    public function cashFlow(Request $request): Response
+    {
+        [$from, $to] = $this->periodRange($request);
+
+        return Inertia::render('Finance/Reports/CashFlow', [
+            'activeModule' => 'finance-reports',
+            'from'         => $from->toDateString(),
+            'to'           => $to->toDateString(),
+            'report'       => $this->cashFlow->forPeriod($from, $to),
+        ]);
+    }
+
+    public function cashFlowCsv(Request $request): StreamedResponse
+    {
+        [$from, $to] = $this->periodRange($request);
+        $report = $this->cashFlow->forPeriod($from, $to);
+
+        return response()->streamDownload(function () use ($report) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Cash Flow Statement', "{$report['from']} to {$report['to']}"]);
+            fputcsv($out, []);
+            fputcsv($out, ['Direct method', 'Amount']);
+            fputcsv($out, ['Operating', $report['direct']['operating']]);
+            fputcsv($out, ['Investing', $report['direct']['investing']]);
+            fputcsv($out, ['Financing', $report['direct']['financing']]);
+            fputcsv($out, ['Net change in cash', $report['direct']['net']]);
+            fputcsv($out, []);
+            fputcsv($out, ['Indirect method', 'Amount']);
+            fputcsv($out, ['Surplus/(Deficit)', $report['indirect']['surplus']]);
+            fputcsv($out, ['Operating', $report['indirect']['operating']]);
+            fputcsv($out, ['Investing', $report['indirect']['investing']]);
+            fputcsv($out, ['Financing', $report['indirect']['financing']]);
+            fputcsv($out, ['Net change in cash', $report['indirect']['net']]);
+            fclose($out);
+        }, "cash-flow-{$report['from']}-to-{$report['to']}.csv", ['Content-Type' => 'text/csv']);
     }
 
     /** @return array{0:CarbonImmutable,1:CarbonImmutable} [from, to] */

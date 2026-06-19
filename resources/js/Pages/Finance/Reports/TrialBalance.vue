@@ -28,6 +28,7 @@ const csvHref = computed(() => route('finance.reports.trial-balance.csv', { as_o
                     <Link :href="route('finance.reports.trial-balance')" class="text-secondary">Trial Balance</Link>
                     <Link :href="route('finance.reports.financial-activities')" class="text-on-surface-variant hover:text-secondary">Financial Activities</Link>
                     <Link :href="route('finance.reports.financial-position')" class="text-on-surface-variant hover:text-secondary">Financial Position</Link>
+                    <Link :href="route('finance.reports.cash-flow')" class="text-on-surface-variant hover:text-secondary">Cash Flows</Link>
                 </nav>
             </div>
             <div class="flex items-end gap-3">

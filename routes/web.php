@@ -978,6 +978,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('reports/financial-activities/export.csv',  [\App\Http\Controllers\Finance\ReportController::class, 'financialActivitiesCsv'])->name('reports.financial-activities.csv');
             Route::get('reports/financial-position',               [\App\Http\Controllers\Finance\ReportController::class, 'financialPosition'])->name('reports.financial-position');
             Route::get('reports/account/{account}/ledger',         [\App\Http\Controllers\Finance\ReportController::class, 'accountLedger'])->name('reports.account-ledger');
+            Route::get('reports/cash-flow',            [\App\Http\Controllers\Finance\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+            Route::get('reports/cash-flow/export.csv', [\App\Http\Controllers\Finance\ReportController::class, 'cashFlowCsv'])->name('reports.cash-flow.csv');
         });
 
         // OrgBankAccountController wired in Task 8
