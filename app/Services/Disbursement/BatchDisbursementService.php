@@ -87,6 +87,59 @@ class BatchDisbursementService
     }
 
     /**
+     * Build a Pending disbursement for a paid final settlement's net (additive
+     * tracking — the GL was already cleared by paySettlement). Returns null when
+     * the settlement has no payment JE (nothing was disbursed, e.g. net zero).
+     */
+    public function createForSettlement(\App\Models\FinalSettlement $settlement): ?Disbursement
+    {
+        $paymentJe = \App\Models\JournalEntry::where('source_type', \App\Enums\JournalSourceType::FinalSettlement->value)
+            ->where('source_id', $settlement->id)
+            ->where('source_purpose', 'payment')
+            ->first();
+
+        if (! $paymentJe) {
+            return null;
+        }
+
+        $paidNet = round((float) \App\Models\JournalLine::where('journal_entry_id', $paymentJe->id)->sum('credit_amount'), 2);
+        if ($paidNet <= 0.0) {
+            return null;
+        }
+
+        $case     = \App\Models\OffboardingCase::find($settlement->offboarding_case_id);
+        $employee = $case?->employee_id ? \App\Models\Employee::find($case->employee_id) : null;
+        $channel  = $this->resolveChannel($employee);
+
+        $eLevy  = $channel->attractsELevy() ? round($paidNet * $this->eLevyRateOn(now()), 2) : 0.0;
+        $netRcv = round($paidNet - $eLevy, 2);
+
+        return Disbursement::create([
+            'final_settlement_id' => $settlement->id,
+            'payroll_run_id'      => null,
+            'payroll_line_id'     => null,
+            'employee_id'         => $employee?->id,
+            'channel'             => $channel->value,
+            'status'              => DisbursementStatus::Pending->value,
+            'gross_amount'        => $paidNet,
+            'e_levy'              => $eLevy,
+            'provider_fee'        => 0,
+            'net_to_recipient'    => $netRcv,
+            'beneficiary_account' => $this->resolveBeneficiaryAccount($employee, $channel),
+            'beneficiary_name'    => $employee?->user?->name,
+        ]);
+    }
+
+    private function eLevyRateOn(\DateTimeInterface|string $date): float
+    {
+        try {
+            return StatutoryRate::lookup('E_LEVY_RATE', $date);
+        } catch (\Throwable $e) {
+            return self::E_LEVY_FALLBACK_RATE;
+        }
+    }
+
+    /**
      * Dispatch all pending disbursements for a run. Each provider's `send()`
      * either marks the row Sent (success) or Failed (with reason).
      *
@@ -95,38 +148,43 @@ class BatchDisbursementService
     public function dispatch(PayrollRun $run): array
     {
         $sent = 0; $failed = 0; $skipped = 0;
+        foreach (Disbursement::where('payroll_run_id', $run->id)->pending()->get() as $d) {
+            match ($this->dispatchOne($d)) {
+                'sent'   => $sent++,
+                'failed' => $failed++,
+                default  => $skipped++,
+            };
+        }
+        return ['sent' => $sent, 'failed' => $failed, 'skipped' => $skipped];
+    }
 
-        $pending = Disbursement::where('payroll_run_id', $run->id)->pending()->get();
-
-        foreach ($pending as $d) {
-            $provider = $this->providers[$d->channel->value] ?? null;
-            if (! $provider) {
-                $skipped++;   // e.g. cash/cheque — handled manually
-                continue;
-            }
-
-            $result = $provider->send($d);
-
-            DB::transaction(function () use ($d, $result) {
-                $d->update([
-                    'status'             => $result->status->value,
-                    'provider_reference' => $result->providerReference,
-                    'provider_response'  => $result->raw,
-                    'sent_at'            => $result->status === DisbursementStatus::Sent ? now() : $d->sent_at,
-                    'settled_at'         => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
-                    'failed_at'          => $result->status === DisbursementStatus::Failed ? now() : null,
-                    'failure_reason'     => $result->failureReason,
-                ]);
-
-                if ($result->status === DisbursementStatus::Settled) {
-                    $this->settle($d);
-                }
-            });
-
-            $result->status === DisbursementStatus::Failed ? $failed++ : $sent++;
+    /** Send one pending disbursement to its provider. Returns 'sent'|'failed'|'skipped'. */
+    public function dispatchOne(Disbursement $d): string
+    {
+        $provider = $this->providers[$d->channel->value] ?? null;
+        if (! $provider) {
+            return 'skipped'; // e.g. cash/cheque — handled manually
         }
 
-        return ['sent' => $sent, 'failed' => $failed, 'skipped' => $skipped];
+        $result = $provider->send($d);
+
+        DB::transaction(function () use ($d, $result) {
+            $d->update([
+                'status'             => $result->status->value,
+                'provider_reference' => $result->providerReference,
+                'provider_response'  => $result->raw,
+                'sent_at'            => $result->status === DisbursementStatus::Sent ? now() : $d->sent_at,
+                'settled_at'         => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
+                'failed_at'          => $result->status === DisbursementStatus::Failed ? now() : null,
+                'failure_reason'     => $result->failureReason,
+            ]);
+
+            if ($result->status === DisbursementStatus::Settled) {
+                $this->settle($d);
+            }
+        });
+
+        return $result->status === DisbursementStatus::Failed ? 'failed' : 'sent';
     }
 
     /** Reconciliation — poll provider for status of any Sent disbursement older than 5 minutes. */
@@ -139,33 +197,45 @@ class BatchDisbursementService
 
         $touched = 0;
         foreach ($stale as $d) {
-            $provider = $this->providers[$d->channel->value] ?? null;
-            if (! $provider) continue;
-
-            $result = $provider->refreshStatus($d);
-            if ($result->status === $d->status) continue;
-
-            DB::transaction(function () use ($d, $result) {
-                $d->update([
-                    'status'            => $result->status->value,
-                    'provider_response' => $result->raw,
-                    'settled_at'        => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
-                    'failed_at'         => $result->status === DisbursementStatus::Failed ? now() : $d->failed_at,
-                    'failure_reason'    => $result->failureReason,
-                ]);
-
-                if ($result->status === DisbursementStatus::Settled) {
-                    $this->settle($d);
-                }
-            });
-            $touched++;
+            if ($this->reconcileOne($d)) $touched++;
         }
-
         return $touched;
+    }
+
+    /** Poll one sent disbursement; returns true if its status changed. */
+    public function reconcileOne(Disbursement $d): bool
+    {
+        $provider = $this->providers[$d->channel->value] ?? null;
+        if (! $provider) return false;
+
+        $result = $provider->refreshStatus($d);
+        if ($result->status === $d->status) return false;
+
+        DB::transaction(function () use ($d, $result) {
+            $d->update([
+                'status'            => $result->status->value,
+                'provider_response' => $result->raw,
+                'settled_at'        => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
+                'failed_at'         => $result->status === DisbursementStatus::Failed ? now() : $d->failed_at,
+                'failure_reason'    => $result->failureReason,
+            ]);
+
+            if ($result->status === DisbursementStatus::Settled) {
+                $this->settle($d);
+            }
+        });
+
+        return true;
     }
 
     private function settle(Disbursement $d): void
     {
+        // Settlement disbursements are additive tracking only — the final-settlement
+        // payment JE already cleared net-pay payable, so posting here would double-clear.
+        if ($d->final_settlement_id !== null) {
+            return;
+        }
+
         $bankGlId = $this->resolveSettlementBankGlId();
 
         $this->posting->post(new PostingDocument(
@@ -218,10 +288,6 @@ class BatchDisbursementService
 
     private function resolveELevyRate(PayrollRun $run): float
     {
-        try {
-            return StatutoryRate::lookup('E_LEVY_RATE', $run->period_end);
-        } catch (\Throwable $e) {
-            return self::E_LEVY_FALLBACK_RATE;
-        }
+        return $this->eLevyRateOn($run->period_end);
     }
 }
