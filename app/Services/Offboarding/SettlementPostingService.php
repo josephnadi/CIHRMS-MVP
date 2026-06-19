@@ -67,7 +67,23 @@ class SettlementPostingService
 
             $this->applyClearing($cleared, $settlement);
 
-            $lines = [PostingLine::debit(slug: 'settlement.benefits_expense', amount: $gross, narration: 'Final settlement gross')];
+            // One DR line per non-zero settlement component so the SoFA shows
+            // termination costs by type. Their sum equals gross (the calculator
+            // defines gross as the sum of these components).
+            $lines = [];
+            foreach ([
+                ['settlement.gratuity_expense',         (float) $settlement->gratuity,            'Gratuity'],
+                ['settlement.severance_expense',        (float) $settlement->severance,           'Severance'],
+                ['settlement.leave_encashment_expense', (float) $settlement->leave_encashment,    'Leave encashment'],
+                ['settlement.thirteenth_month_expense', (float) $settlement->prorated_13th_month, 'Pro-rated 13th month'],
+                ['settlement.ex_gratia_expense',        (float) $settlement->ex_gratia,           'Ex-gratia'],
+            ] as [$slug, $amount, $label]) {
+                $amount = round($amount, 2);
+                if ($amount > 0.0) {
+                    $lines[] = PostingLine::debit(slug: $slug, amount: $amount, narration: $label);
+                }
+            }
+
             if ($paye > 0.0) {
                 $lines[] = PostingLine::credit(slug: 'settlement.paye_payable', amount: $paye, narration: 'PAYE on settlement');
             }
