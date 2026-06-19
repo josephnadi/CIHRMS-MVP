@@ -259,26 +259,15 @@ class DashboardService
 
     /**
      * Statutory returns (PAYE/SSNIT/NHIA/Tier-2) due posture. There's no
-     * `status` column — state is derived: generated_at always set; submitted
-     * if submitted_at present; overdue if generated >7 days ago and not yet
-     * submitted (statutory deadlines are tighter, but 7d is a safe nag).
+     * `status` column — state is derived. Delegates to RemittanceService so the
+     * overdue rule is the proper statutory one (period end + the effective
+     * remittance-deadline days, default 14), not a generated_at + 7d nag.
      */
     private function statutoryDuePosture(Carbon $now): array
     {
-        $total      = StatutoryReturn::count();
-        $submitted  = StatutoryReturn::query()->whereNotNull('submitted_at')->count();
-        $generated  = $total - $submitted;
-        $overdueCut = $now->copy()->subDays(7);
-        $overdue    = StatutoryReturn::query()
-            ->whereNull('submitted_at')
-            ->where('generated_at', '<', $overdueCut)
-            ->count();
-
-        return [
-            'generated' => $generated,
-            'submitted' => $submitted,
-            'overdue'   => $overdue,
-        ];
+        return app(\App\Services\Payroll\RemittanceService::class)->posture(
+            \Carbon\CarbonImmutable::parse($now->toDateTimeString())
+        );
     }
 
     /**
