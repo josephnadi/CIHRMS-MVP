@@ -24,6 +24,7 @@ class ReportController extends Controller
         private readonly \App\Services\Finance\LedgerBalanceService $ledger,
         private readonly \App\Services\Finance\Reports\CashFlowReport $cashFlow,
         private readonly \App\Services\Finance\Reports\BudgetVsActualsReport $budgetVsActuals,
+        private readonly \App\Services\Finance\BudgetStatusService $budgetStatus,
     ) {
     }
 
@@ -165,6 +166,7 @@ class ReportController extends Controller
             'year'         => $year,
             'period'       => $period,
             'report'       => $this->budgetVsActuals->forYear($year, $period),
+            'alerts'       => $this->budgetStatus->overBudgetAlerts($year, $period),
         ]);
     }
 

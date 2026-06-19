@@ -9,6 +9,7 @@ const props = defineProps({
     year:   { type: Number, required: true },
     period: { type: Number, required: true },
     report: { type: Object, required: true },
+    alerts: { type: Array,  default: () => [] },
 });
 
 const year = ref(props.year);
@@ -49,6 +50,26 @@ const typeLabel = (t) => t.charAt(0).toUpperCase() + t.slice(1);
         <p v-if="!report.has_budget" class="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             No budget exists for {{ year }} — actuals are shown against a zero budget.
         </p>
+
+        <section v-if="alerts.length" class="mb-4 rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4">
+            <h2 class="text-sm font-black uppercase tracking-wide text-rose-200 mb-2">
+                <span class="material-symbols-outlined align-middle text-[16px]">warning</span>
+                Over-budget alerts ({{ alerts.length }})
+            </h2>
+            <table class="w-full text-sm">
+                <thead class="text-rose-200/70 text-[11px] uppercase">
+                    <tr><th class="text-left p-1.5">Account</th><th class="text-right p-1.5">YTD budget</th><th class="text-right p-1.5">YTD actual</th><th class="text-right p-1.5">Over by</th></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="a in alerts" :key="a.code">
+                        <td class="p-1.5 text-primary">{{ a.code }} {{ a.name }}</td>
+                        <td class="p-1.5 text-right text-on-surface-variant">{{ money(a.ytd_budget) }}</td>
+                        <td class="p-1.5 text-right text-primary">{{ money(a.ytd_actual) }}</td>
+                        <td class="p-1.5 text-right font-bold text-rose-300">{{ money(-a.variance) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 space-y-6">
             <section v-for="group in report.groups" :key="group.type">
