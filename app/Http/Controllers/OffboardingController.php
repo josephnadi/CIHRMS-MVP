@@ -196,6 +196,24 @@ class OffboardingController extends Controller
         return back()->with('success', "Settlement for {$case->reference} reversed.");
     }
 
+    public function dispatchPayout(Request $request, OffboardingCase $case, \App\Services\Disbursement\BatchDisbursementService $disbursements): RedirectResponse
+    {
+        $this->authorize('dispatchPayout', $case);
+
+        $settlement = $case->settlement;
+        $disb = $settlement
+            ? \App\Models\Disbursement::where('final_settlement_id', $settlement->id)->where('status', 'pending')->first()
+            : null;
+
+        if (! $disb) {
+            return back()->with('error', 'No pending payout to dispatch for this settlement.');
+        }
+
+        $disbursements->dispatchOne($disb);
+
+        return back()->with('success', 'Settlement payout dispatched to the provider.');
+    }
+
     public function complete(Request $request, OffboardingCase $case): RedirectResponse
     {
         $this->authorize('complete', $case);
