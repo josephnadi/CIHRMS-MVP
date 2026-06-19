@@ -96,7 +96,7 @@ beforeEach(function () {
 });
 
 /** Natural balance of a GL account by its code. */
-function balanceOf(string $code): float
+function loanBalanceOf(string $code): float
 {
     return (float) GlAccountBalance::where(
         'gl_account_id',
@@ -109,7 +109,7 @@ it('recovers an interest-bearing loan to zero and accrues interest income across
     expect((float) $this->loan->total_interest)->toBeGreaterThan(0.0);
 
     // 1) After disbursement, Loans Receivable == principal.
-    expect(balanceOf('1300'))->toEqualWithDelta(3_000.0, 0.01);
+    expect(loanBalanceOf('1300'))->toEqualWithDelta(3_000.0, 0.01);
 
     /** @var PayrollService $svc */
     $svc = app(PayrollService::class);
@@ -123,10 +123,10 @@ it('recovers an interest-bearing loan to zero and accrues interest income across
     }
 
     // 3) Invariants after full repayment.
-    expect(balanceOf('1300'))->toEqualWithDelta(0.0, 0.01); // fully recovered
+    expect(loanBalanceOf('1300'))->toEqualWithDelta(0.0, 0.01); // fully recovered
 
     // Interest Income is an income account → natural balance = credit - debit (positive).
-    expect(balanceOf('4600'))->toEqualWithDelta((float) $this->loan->fresh()->total_interest, 0.01);
+    expect(loanBalanceOf('4600'))->toEqualWithDelta((float) $this->loan->fresh()->total_interest, 0.01);
 
     $loan = $this->loan->fresh();
     expect($loan->status)->toBe(LoanStatus::PaidOff);
