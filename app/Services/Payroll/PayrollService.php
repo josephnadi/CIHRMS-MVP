@@ -43,6 +43,7 @@ class PayrollService
         private readonly PayeCalculator $paye,
         private readonly SsnitCalculator $ssnit,
         private readonly Tier2Calculator $tier2,
+        private readonly Tier3Calculator $tier3,
         private readonly AllowanceAggregator $allowances,
         private readonly DeductionAggregator $deductions,
         private readonly AttendanceService $attendance,
@@ -175,16 +176,18 @@ class PayrollService
 
         $ssnit = $this->ssnit->calculate($basic, $periodDate);
         $tier2 = $this->tier2->calculate($basic, $periodDate);
+        $tier3 = $this->tier3->calculate($basic, (float) ($employee->tier3_rate ?? 0), $periodDate);
 
-        // Chargeable income = (gross taxable income) - SSNIT employee
-        // Non-taxable allowances are excluded from chargeable income.
+        // Chargeable income = (gross taxable income) - SSNIT employee - relieved Tier-3.
+        // Non-taxable allowances are excluded from chargeable income. Tier-3 relief is
+        // capped at (16.5−5)% of basic; any elected excess stays in chargeable (taxed).
         $taxableGross = round($basic + $allowanceBundle['taxable_total'], 2);
-        $chargeable   = max(round($taxableGross - $ssnit['employee'], 2), 0);
+        $chargeable   = max(round($taxableGross - $ssnit['employee'] - $tier3['relieved'], 2), 0);
 
         $payeBundle = $this->paye->calculate($chargeable, $periodDate);
         $paye       = (float) $payeBundle['tax'];
 
-        $netAfterStatutory = round($gross - $ssnit['employee'] - $paye, 2);
+        $netAfterStatutory = round($gross - $ssnit['employee'] - $tier3['employee'] - $paye, 2);
         $deductionBundle   = $this->deductions->aggregate($employee, $gross, $netAfterStatutory, $periodDate);
 
         // Loan repayments — claim scheduled installments for this employee for the
@@ -211,7 +214,7 @@ class PayrollService
             'ssnit_tier1_employer'  => $ssnit['employer'],
             'nhia_split'            => $ssnit['nhia_split'],
             'tier2_employer'        => $tier2['employer'],
-            'tier3_employee'        => 0.0, // Will be wired when Tier-3 voluntary deduction lands
+            'tier3_employee'        => $tier3['employee'],
             'paye'                  => round($paye, 2),
             'voluntary_deductions'  => $totalVoluntary,
             'net'                   => $net,
