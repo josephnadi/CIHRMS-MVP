@@ -317,6 +317,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(LeaveStatusUpdated::class, SendNotifications::class);
         Event::listen(EmployeeCreated::class, SendNotifications::class);
 
+        // Auto-initiate a new-hire onboarding case when an employee with a
+        // hire_date is created. Idempotent (one open case per employee) and
+        // non-blocking (failures are logged, never thrown).
+        Event::listen(EmployeeCreated::class, \App\Listeners\InitiateOnboardingOnHire::class);
+
         // Phase 2 — Attendance correction lifecycle events
         Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\RecordAnalyticsEvent::class);
         Event::listen(\App\Events\AttendanceCorrectionDecided::class, \App\Listeners\RecordAnalyticsEvent::class);
