@@ -243,6 +243,7 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:employees.manage')
             ->name('destroy');
         Route::post('{employee}/documents',     [EmployeeController::class, 'uploadDocument'])  ->name('documents.store');
+        Route::delete('{employee}/documents/{document}', [EmployeeController::class, 'deleteDocument'])->name('documents.destroy');
         Route::post('{employee}/avatar',        [EmployeeController::class, 'uploadAvatar'])    ->name('avatar.store');
         Route::post('{employee}/skills',        [EmployeeController::class, 'storeSkill'])      ->name('skills.store');
         Route::delete('{employee}/skills/{skill}', [EmployeeController::class, 'destroySkill']) ->name('skills.destroy');

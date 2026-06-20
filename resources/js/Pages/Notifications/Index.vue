@@ -100,7 +100,7 @@ const FILTERS = [
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button @click="router.visit(route('notifications.channels'))"
+                    <button @click="router.visit(route('notifications.channels.edit'))"
                             class="flex items-center gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2.5 text-[13px] font-black text-primary shadow-card transition-all hover:-translate-y-px hover:shadow-card-hover">
                         <span class="material-symbols-outlined text-[17px]">tune</span>
                         Channels

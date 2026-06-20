@@ -13,6 +13,7 @@ use App\Http\Resources\DepartmentResource;
 use App\Http\Resources\EmployeeResource;
 use App\Models\BenefitPlan;
 use App\Models\Employee;
+use App\Models\EmployeeDocument;
 use App\Models\EmployeeSkill;
 use App\Services\EmployeeService;
 use Illuminate\Http\RedirectResponse;
@@ -79,6 +80,27 @@ class EmployeeController extends Controller
         $this->employees->uploadDocument($request, $employee);
 
         return back()->with('success', 'Document uploaded successfully.');
+    }
+
+    public function deleteDocument(Request $request, Employee $employee, EmployeeDocument $document): RedirectResponse
+    {
+        abort_unless($document->employee_id === $employee->id, 404);
+
+        // Same authorisation as upload: manage permission, the employee's
+        // department head, or the employee themselves.
+        $user = $request->user();
+        abort_unless(
+            $user && (
+                $user->hasPermission('employees.manage')
+                || $user->managesDepartment($employee->department_id)
+                || $employee->user_id === $user->id
+            ),
+            403,
+        );
+
+        $this->employees->deleteDocument($employee, $document);
+
+        return back()->with('success', 'Document deleted.');
     }
 
     public function uploadAvatar(UploadAvatarRequest $request, Employee $employee): RedirectResponse

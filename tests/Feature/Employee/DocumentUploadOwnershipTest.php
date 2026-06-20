@@ -52,3 +52,42 @@ it('allows an HR user with employees.manage to upload to any employee', function
         ])
         ->assertRedirect();
 });
+
+it('lets an HR user delete an employee document and removes the file', function () {
+    $hr  = User::factory()->create(['permissions' => ['employees.manage']]);
+    $emp = Employee::factory()->create();
+
+    $this->actingAs($hr)->post(route('employees.documents.store', $emp), [
+        'title'    => 'Contract',
+        'document' => UploadedFile::fake()->create('contract.pdf', 60, 'application/pdf'),
+    ])->assertRedirect();
+
+    $doc = $emp->documents()->firstOrFail();
+    Storage::disk('local')->assertExists($doc->file_path);
+
+    $this->actingAs($hr)->delete(route('employees.documents.destroy', [$emp, $doc]))->assertRedirect();
+
+    expect(App\Models\EmployeeDocument::find($doc->id))->toBeNull();
+    Storage::disk('local')->assertMissing($doc->file_path);
+});
+
+it('forbids an unrelated user from deleting an employee document', function () {
+    $owner = User::factory()->create();
+    $emp   = Employee::factory()->create(['user_id' => $owner->id]);
+    $doc   = $emp->documents()->create(['title' => 'X', 'file_path' => 'employee-documents/x.pdf', 'mime_type' => 'application/pdf']);
+
+    $this->actingAs(User::factory()->create(['role' => 'employee', 'permissions' => []]))
+        ->delete(route('employees.documents.destroy', [$emp, $doc]))
+        ->assertForbidden();
+
+    expect(App\Models\EmployeeDocument::find($doc->id))->not->toBeNull();
+});
+
+it('404s when the document does not belong to the employee in the route', function () {
+    $hr   = User::factory()->create(['permissions' => ['employees.manage']]);
+    $empA = Employee::factory()->create();
+    $empB = Employee::factory()->create();
+    $doc  = $empB->documents()->create(['title' => 'B', 'file_path' => 'employee-documents/b.pdf', 'mime_type' => 'application/pdf']);
+
+    $this->actingAs($hr)->delete(route('employees.documents.destroy', [$empA, $doc]))->assertNotFound();
+});

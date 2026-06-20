@@ -100,6 +100,16 @@ class EmployeeService
         ]);
     }
 
+    public function deleteDocument(Employee $employee, EmployeeDocument $document): void
+    {
+        if ($document->employee_id !== $employee->id) {
+            return;
+        }
+
+        Storage::disk('local')->delete($document->file_path);
+        $document->delete();
+    }
+
     public function uploadAvatar(Employee $employee, UploadedFile $file): Employee
     {
         if ($employee->avatar_path) {
