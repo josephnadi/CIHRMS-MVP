@@ -1015,6 +1015,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('reports/budget-vs-actuals/export.pdf',  [\App\Http\Controllers\Finance\ReportController::class, 'budgetVsActualsPdf'])->name('reports.budget-vs-actuals.pdf');
         });
 
+        // Analytics dashboard (KPIs + charts) — read-only
+        Route::middleware('permission:finance.analytics.view')->group(function () {
+            Route::get('analytics',             [\App\Http\Controllers\Finance\AnalyticsController::class, 'dashboard'])->name('analytics');
+            Route::get('analytics/export.csv',  [\App\Http\Controllers\Finance\AnalyticsController::class, 'exportCsv'])->name('analytics.csv');
+            Route::get('analytics/export.pdf',  [\App\Http\Controllers\Finance\AnalyticsController::class, 'exportPdf'])->name('analytics.pdf');
+        });
+
         // Budgets (Phase 4) — entry/approval
         Route::middleware('permission:finance.budget.manage')->group(function () {
             Route::get('budgets',          [\App\Http\Controllers\Finance\BudgetController::class, 'index'])->name('budgets.index');

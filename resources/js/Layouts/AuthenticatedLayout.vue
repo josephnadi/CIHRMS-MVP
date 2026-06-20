@@ -130,6 +130,7 @@ const navSections = computed(() => {
                             { label: 'Payment Links',  route: 'finance.payment-intents.index',   module: 'finance-payment-intents',  icon: 'link',                    visible: can('gateway.view') },
                             { label: 'Reconciliation', route: 'finance.reconciliation.index',    module: 'finance-reconciliation',   icon: 'compare_arrows',          visible: can('reconciliation.view') },
                             { label: 'Journal',        route: 'finance.journal.index',           module: 'finance-journal',          icon: 'list_alt',                visible: can('journal.view') },
+                            { label: 'Analytics',      route: 'finance.analytics',               module: 'finance-analytics',        icon: 'insights',                visible: can('finance.analytics.view') },
                         ],
                     },
                     {
@@ -313,6 +314,7 @@ const navSections = computed(() => {
                 { label: 'Payment Links',  route: 'finance.payment-intents.index', module: 'finance-payment-intents', icon: 'link', visible: can('gateway.view') },
                 { label: 'Reconciliation', route: 'finance.reconciliation.index', module: 'finance-reconciliation', icon: 'compare_arrows', visible: can('reconciliation.view') },
                 { label: 'Journal',        route: 'finance.journal.index',     module: 'finance-journal',     icon: 'list_alt',       visible: can('journal.view') },
+                { label: 'Analytics',      route: 'finance.analytics',         module: 'finance-analytics',   icon: 'insights',       visible: can('finance.analytics.view') },
             ],
         });
     }
@@ -576,6 +578,7 @@ const SIDEBAR_ICON_COLORS = {
     'finance-payment-intents':  '#3949ab',
     'finance-reconciliation':   '#3949ab',
     'finance-journal':          '#3949ab',
+    'finance-analytics':        '#3949ab',
 
     // Billing (member fees) — keep in the finance blue family
     'billing-members':          '#3949ab',
