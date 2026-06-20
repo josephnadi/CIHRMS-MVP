@@ -72,3 +72,8 @@ Schedule::command('messaging:fire-due-broadcasts')
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
+
+// Learning compliance — daily sweep that assigns any mandatory course to the
+// employees a requirement targets (catches new hires + requirement edits).
+// Idempotent: re-running never duplicates enrolments or moves due dates.
+Schedule::command('compliance:sync')->dailyAt('06:00')->withoutOverlapping();
