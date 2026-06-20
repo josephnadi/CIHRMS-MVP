@@ -27,7 +27,7 @@ const sessionList = computed(() => props.sessions?.data ?? []);
 const stats = computed(() => {
     const data = sessionList.value;
     const total = props.sessions?.meta?.total ?? data.length;
-    const open   = data.filter(s => s.status === 'open').length;
+    const open   = data.filter(s => s.status === 'in_progress').length;
     const closed  = data.filter(s => s.status === 'closed' || s.status === 'applied').length;
     const adjustments = data.reduce((sum, s) => sum + (s.adjustments_count ?? 0), 0);
     return { total, open, closed, adjustments };
@@ -60,7 +60,7 @@ const submitSession = () => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusTone = {
-    open:    'bg-amber-400/15 text-amber-700',
+    in_progress: 'bg-amber-400/15 text-amber-700',
     closed:  'bg-emerald-500/15 text-emerald-700',
     applied: 'bg-secondary/15 text-secondary',
     locked:  'bg-violet-500/15 text-violet-700',
@@ -109,7 +109,7 @@ const editionLabel = computed(() => {
 const editorialMetrics = computed(() => {
     const data = sessionList.value;
     return {
-        inProgress: data.filter(s => s.status === 'open').length,
+        inProgress: data.filter(s => s.status === 'in_progress').length,
         locked:     data.filter(s => s.status === 'locked' || s.status === 'closed').length,
         applied:    data.filter(s => s.status === 'applied').length,
         cycles:     (props.cycles ?? []).length,

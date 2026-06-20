@@ -37,6 +37,23 @@ test('employee can submit a leave request', function () {
     ]);
 });
 
+test('employee can submit a leave request without sending employee_id (self-service)', function () {
+    // The apply form does not send employee_id; it must default to the actor's own employee.
+    $response = $this->actingAs($this->employeeUser)
+        ->post(route('leave.store'), [
+            'start_date' => now()->addWeek()->toDateString(),
+            'end_date'   => now()->addWeek()->addDays(2)->toDateString(),
+            'type'       => LeaveType::Annual->value,
+            'reason'     => 'Personal',
+        ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('leave_requests', [
+        'employee_id' => $this->employee->id,
+        'type'        => LeaveType::Annual->value,
+    ]);
+});
+
 test('approving a leave request stamps approver and increments balance', function () {
     $leave = LeaveRequest::factory()->pending()->create([
         'employee_id' => $this->employee->id,

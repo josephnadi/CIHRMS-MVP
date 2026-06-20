@@ -48,9 +48,9 @@ const submitEdit = () => {
 
 // ── Document upload ───────────────────────────────────────────────────────────
 const docFile    = ref(null);
-const docForm    = useForm({ title: '', file: null });
+const docForm    = useForm({ title: '', document: null });
 const submitDoc  = () => {
-    docForm.file = docFile.value;
+    docForm.document = docFile.value;
     docForm.post(route('employees.documents.store', props.employee.id), {
         onSuccess: () => { docForm.reset(); docFile.value = null; },
     });

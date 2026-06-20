@@ -65,6 +65,7 @@ class PaymentIntentController extends Controller
                 (float) $request->validated('amount'),
                 $request->user(),
                 $request->validated('callback_url'),
+                $request->validated('narration'),
             );
         } catch (DomainException $e) {
             return back()->withErrors(['amount' => $e->getMessage()]);

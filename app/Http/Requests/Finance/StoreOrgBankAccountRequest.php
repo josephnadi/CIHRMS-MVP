@@ -37,7 +37,7 @@ class StoreOrgBankAccountRequest extends FormRequest
             'account_name'    => ['required', 'string', 'max:200'],
             'account_number'  => [
                 'required', 'string', 'max:64',
-                Rule::unique('org_bank_accounts')->where(fn ($q) => $q->where('bank_name', $this->input('bank_name'))),
+                Rule::unique('org_bank_accounts')->where(fn ($q) => $q->where('bank_name', $this->input('bank_name'))->whereNull('deleted_at')),
             ],
             'sort_code'       => ['nullable', 'string', 'max:20'],
             'swift'           => ['nullable', 'string', 'max:20'],

@@ -142,7 +142,7 @@ class EmployeeController extends Controller
 
         $data = $request->validate([
             'name'        => ['required', 'string', 'max:120'],
-            'code'        => ['nullable', 'string', 'max:20'],
+            'code'        => ['required', 'string', 'max:20', \Illuminate\Validation\Rule::unique('departments', 'code')->ignore($department->id)],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 

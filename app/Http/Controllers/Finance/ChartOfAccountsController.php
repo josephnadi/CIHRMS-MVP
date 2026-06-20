@@ -47,7 +47,12 @@ class ChartOfAccountsController extends Controller
 
     public function destroy(GlAccount $account): RedirectResponse
     {
-        $this->service->archive($account);
+        try {
+            $this->service->archive($account);
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
         return back()->with('success', 'GL account archived.');
     }
 }

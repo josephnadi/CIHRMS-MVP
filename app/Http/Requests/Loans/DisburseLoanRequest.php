@@ -14,7 +14,8 @@ class DisburseLoanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_repayment_period' => ['nullable', 'date_format:Y-m-d'],
+            // The UI uses a <input type="month"> which submits "YYYY-MM".
+            'first_repayment_period' => ['nullable', 'date_format:Y-m'],
         ];
     }
 }

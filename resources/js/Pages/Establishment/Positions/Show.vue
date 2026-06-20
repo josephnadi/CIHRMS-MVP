@@ -50,7 +50,7 @@ const pastAssignments = computed(() =>
             <dl class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-[13px]">
                 <div>
                     <dt class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Approved headcount</dt>
-                    <dd class="text-[18px] font-black text-on-surface mt-1">{{ P.approved_headcount ?? 1 }}</dd>
+                    <dd class="text-[18px] font-black text-on-surface mt-1">{{ P.headcount_ceiling ?? 1 }}</dd>
                 </div>
                 <div>
                     <dt class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">Current fill</dt>
@@ -67,9 +67,9 @@ const pastAssignments = computed(() =>
                     </dd>
                 </div>
             </dl>
-            <div v-if="P.description" class="mt-4 pt-4 border-t border-outline-variant/40">
+            <div v-if="P.job_description" class="mt-4 pt-4 border-t border-outline-variant/40">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-2">Description</p>
-                <p class="text-[13px] whitespace-pre-wrap text-on-surface">{{ P.description }}</p>
+                <p class="text-[13px] whitespace-pre-wrap text-on-surface">{{ P.job_description }}</p>
             </div>
         </section>
 

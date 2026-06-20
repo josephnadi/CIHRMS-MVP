@@ -25,6 +25,7 @@ class PaymentIntentService
         float $amount,
         User $creator,
         ?string $callbackUrl = null,
+        ?string $narration = null,
     ): PaymentIntent {
         if (! in_array($invoice->status, [ArInvoiceStatus::Approved, ArInvoiceStatus::PartiallyPaid], true)) {
             throw new DomainException(
@@ -44,7 +45,7 @@ class PaymentIntentService
             );
         }
 
-        return DB::transaction(function () use ($invoice, $amount, $creator, $callbackUrl, $customer) {
+        return DB::transaction(function () use ($invoice, $amount, $creator, $callbackUrl, $customer, $narration) {
             $intent = PaymentIntent::create([
                 'reference'     => $this->nextReference(),
                 'customer_id'   => $customer->id,
@@ -53,6 +54,7 @@ class PaymentIntentService
                 'currency'      => 'GHS',
                 'status'        => PaymentIntentStatus::Created->value,
                 'callback_url'  => $callbackUrl ?? config('services.paystack.callback_default_url'),
+                'narration'     => $narration,
                 'created_by'    => $creator->id,
             ]);
 
