@@ -359,6 +359,7 @@ class PayrollService
             $credit('payroll.paye_payable',               round((float) $run->paye_total, 2),  'PAYE'),
             $credit('payroll.ssnit_payable',              $ssnitPayable,                       'SSNIT employee + employer'),
             $credit('payroll.tier2_payable',              round((float) $run->tier2_employer_total, 2), 'Tier-2'),
+            $credit('payroll.tier3_payable',              round((float) $run->tier3_total, 2), 'Tier-3 voluntary'),
             $credit('loan.principal_receivable',          $loanPrincipal,                      'Loan principal recovered'),
             $credit('loan.interest_income',               $loanInterest,                       'Loan interest recovered'),
             $credit('payroll.voluntary_deductions_payable', $voluntaryNonLoan,                 'Voluntary deductions'),
