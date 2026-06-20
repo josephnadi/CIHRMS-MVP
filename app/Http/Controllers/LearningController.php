@@ -99,6 +99,11 @@ class LearningController extends Controller
         abort_unless($employee, 403, 'Only employees can enrol in courses.');
         abort_unless($course->is_published || $request->user()->hasPermission('learning.manage'), 403);
 
+        $unmet = $course->unmetPrerequisitesFor($employee);
+        if ($unmet->isNotEmpty()) {
+            return back()->with('error', 'Complete these prerequisite courses first: '.$unmet->pluck('title')->join(', ').'.');
+        }
+
         $this->learning->enrol($course, $employee);
         return back()->with('success', "Enrolled in “{$course->title}”.");
     }

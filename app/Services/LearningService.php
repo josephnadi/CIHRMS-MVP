@@ -49,15 +49,36 @@ class LearningService
 
     public function createCourse(array $data, ?int $createdBy = null): Course
     {
-        return Course::create([
+        // prerequisite_ids is a pivot relation, not a courses column — pull it
+        // out of $data before mass-assignment, then sync the relation.
+        $prerequisiteIds = array_key_exists('prerequisite_ids', $data) ? $data['prerequisite_ids'] : null;
+        unset($data['prerequisite_ids']);
+
+        $course = Course::create([
             ...$data,
             'created_by' => $createdBy,
-        ])->fresh();
+        ]);
+
+        if ($prerequisiteIds !== null) {
+            $course->prerequisites()->sync(array_values(array_filter((array) $prerequisiteIds)));
+        }
+
+        return $course->fresh();
     }
 
     public function updateCourse(Course $course, array $data): Course
     {
+        // prerequisite_ids is a pivot relation, not a courses column — pull it
+        // out of $data before mass-assignment, then sync the relation.
+        $prerequisiteIds = array_key_exists('prerequisite_ids', $data) ? $data['prerequisite_ids'] : null;
+        unset($data['prerequisite_ids']);
+
         $course->update($data);
+
+        if ($prerequisiteIds !== null) {
+            $course->prerequisites()->sync(array_values(array_filter((array) $prerequisiteIds)));
+        }
+
         return $course->fresh();
     }
 
