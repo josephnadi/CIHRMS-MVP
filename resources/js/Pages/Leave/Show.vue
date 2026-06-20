@@ -108,7 +108,7 @@ const timeline = computed(() => {
             icon: 'check_circle',
             title: 'Approved',
             actor: lr.value.approver.name,
-            at:    lr.value.updated_at,
+            at:    lr.value.decided_at ?? lr.value.updated_at,
             color: '#059669',
         });
     } else if (lr.value?.status === 'rejected' && lr.value?.approver) {
@@ -116,7 +116,7 @@ const timeline = computed(() => {
             icon: 'cancel',
             title: 'Rejected',
             actor: lr.value.approver.name,
-            at:    lr.value.updated_at,
+            at:    lr.value.decided_at ?? lr.value.updated_at,
             color: '#dc2626',
         });
     } else {
@@ -246,7 +246,8 @@ const timeline = computed(() => {
                                     {{ lr?.status === 'approved' ? 'Approved' : 'Rejected' }} by
                                 </p>
                                 <p class="text-[14px] font-bold text-on-surface">{{ lr.approver.name }}</p>
-                                <p class="text-[11px] text-on-surface-variant/60 mt-0.5">{{ fmtDateTime(lr.updated_at) }}</p>
+                                <p class="text-[11px] text-on-surface-variant/60 mt-0.5">{{ fmtDateTime(lr.decided_at ?? lr.updated_at) }}</p>
+                                <p v-if="lr.decision_comment" class="mt-2 text-[13px] leading-relaxed text-on-surface whitespace-pre-line">{{ lr.decision_comment }}</p>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
@@ -16,6 +16,12 @@ const props = defineProps({
 
 const showCreate = ref(false);
 const showAssign = ref(false);
+const showEdit   = ref(false);
+const editingShift = ref(null);
+const confirmDeleteId = ref(null);
+
+const page = usePage();
+const canManage = computed(() => page.props.auth.permissions?.includes('attendance.shift_manage'));
 
 const newShift = useForm({
     code: '', name: '',
@@ -31,6 +37,54 @@ function createShift() {
     newShift.post(route('attendance.shifts.store'), {
         preserveScroll: true,
         onSuccess: () => { showCreate.value = false; newShift.reset(); },
+    });
+}
+
+// ── Edit shift ──
+const editShift = useForm({
+    code: '', name: '',
+    start_time: '08:00', end_time: '17:00',
+    grace_period_minutes: 15,
+    full_day_hours: 8.0, half_day_hours: 4.0,
+    working_days: ['mon', 'tue', 'wed', 'thu', 'fri'],
+    department_id: null,
+    is_active: true,
+});
+
+function openEdit(s) {
+    editingShift.value = s;
+    editShift.clearErrors();
+    editShift.code = s.code;
+    editShift.name = s.name;
+    editShift.start_time = (s.start_time ?? '08:00').slice(0, 5);
+    editShift.end_time = (s.end_time ?? '17:00').slice(0, 5);
+    editShift.grace_period_minutes = s.grace_period_minutes ?? 0;
+    editShift.full_day_hours = s.full_day_hours ?? 8.0;
+    editShift.half_day_hours = s.half_day_hours ?? 4.0;
+    editShift.working_days = [...(s.working_days ?? [])];
+    editShift.department_id = s.department_id ?? s.department?.id ?? null;
+    editShift.is_active = !!s.is_active;
+    showEdit.value = true;
+}
+
+function toggleEditDay(d) {
+    const i = editShift.working_days.indexOf(d);
+    if (i >= 0) editShift.working_days.splice(i, 1);
+    else editShift.working_days.push(d);
+}
+
+function updateShift() {
+    if (!editingShift.value) return;
+    editShift.patch(route('attendance.shifts.update', editingShift.value.id), {
+        preserveScroll: true,
+        onSuccess: () => { showEdit.value = false; editingShift.value = null; },
+    });
+}
+
+function deleteShift(s) {
+    router.delete(route('attendance.shifts.destroy', s.id), {
+        preserveScroll: true,
+        onSuccess: () => { confirmDeleteId.value = null; },
     });
 }
 
@@ -365,6 +419,34 @@ const coveredNow = computed(() => {
                                     {{ (assignments ?? []).filter(a => a.shift?.id === s.id).length }}
                                 </span>
                             </div>
+
+                            <!-- Edit / Delete controls -->
+                            <div v-if="canManage" class="mt-3 flex items-center gap-2">
+                                <template v-if="confirmDeleteId !== s.id">
+                                    <button type="button" @click="openEdit(s)"
+                                            class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface hover:bg-surface-container-low hover:border-secondary/40 transition-colors">
+                                        <span class="material-symbols-outlined text-[15px]">edit</span>
+                                        Edit
+                                    </button>
+                                    <button type="button" @click="confirmDeleteId = s.id"
+                                            class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 px-3 py-2 text-[12px] font-bold text-rose-600 hover:bg-rose-50 transition-colors dark:border-rose-900/50 dark:hover:bg-rose-900/20">
+                                        <span class="material-symbols-outlined text-[15px]">archive</span>
+                                        Archive
+                                    </button>
+                                </template>
+                                <template v-else>
+                                    <span class="flex-1 text-[11.5px] font-semibold text-rose-600">Archive this shift?</span>
+                                    <button type="button" @click="confirmDeleteId = null"
+                                            class="inline-flex items-center justify-center rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button type="button" @click="deleteShift(s)"
+                                            class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 px-3 py-2 text-[12px] font-black text-white hover:bg-rose-700 transition-colors">
+                                        <span class="material-symbols-outlined text-[15px]">delete</span>
+                                        Confirm
+                                    </button>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -545,6 +627,111 @@ const coveredNow = computed(() => {
                             <span v-if="newShift.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                             <span class="material-symbols-outlined text-[16px]" v-else>check_circle</span>
                             Create shift
+                        </button>
+                    </div>
+                </template>
+            </SlidePanel>
+
+            <!-- ── Edit Shift slide-panel ── -->
+            <SlidePanel :open="showEdit" @close="showEdit = false" title="Edit shift" size="lg">
+                <form @submit.prevent="updateShift" class="space-y-5 p-6">
+
+                    <div class="rounded-xl bg-cyan-50/60 border border-cyan-200/60 dark:bg-cyan-900/15 dark:border-cyan-800/40 px-4 py-3 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-cyan-600 text-[20px] mt-0.5">info</span>
+                        <p class="text-[12px] text-cyan-900 dark:text-cyan-200 leading-relaxed">
+                            Changes apply to all future attendance evaluations. Toggle off <span class="font-bold">Active</span> to archive without deleting history.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Shift code <span class="text-rose-500">*</span></label>
+                            <input aria-label="Edit shift code" v-model="editShift.code" maxlength="20" required placeholder="e.g. MORNING"
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low font-mono uppercase text-[13px] focus:border-secondary focus:ring-secondary/20"
+                                   :class="{ 'border-rose-400': editShift.errors.code }"/>
+                            <p v-if="editShift.errors.code" class="mt-1 text-[11px] text-rose-500">{{ editShift.errors.code }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Shift name <span class="text-rose-500">*</span></label>
+                            <input aria-label="Edit shift name" v-model="editShift.name" maxlength="80" required placeholder="e.g. Morning Standard"
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
+                                   :class="{ 'border-rose-400': editShift.errors.name }"/>
+                            <p v-if="editShift.errors.name" class="mt-1 text-[11px] text-rose-500">{{ editShift.errors.name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Start time <span class="text-rose-500">*</span></label>
+                            <input aria-label="Edit start time" v-model="editShift.start_time" type="time" required
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">End time <span class="text-rose-500">*</span></label>
+                            <input aria-label="Edit end time" v-model="editShift.end_time" type="time" required
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-2">Working days</label>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button v-for="d in allDays" :key="d" type="button" @click="toggleEditDay(d)"
+                                    :class="['rounded-xl px-3.5 py-1.5 text-[12px] font-black border transition-all',
+                                              editShift.working_days.includes(d)
+                                                ? 'border-secondary bg-secondary text-white shadow-glow-sm'
+                                                : 'border-outline-variant bg-surface-container-low text-on-surface-variant hover:border-secondary/40']">
+                                {{ dayLabels[d] }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Grace (min)</label>
+                            <input aria-label="Edit grace (min)" v-model.number="editShift.grace_period_minutes" type="number" min="0" max="120"
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Full day (h)</label>
+                            <input aria-label="Edit full day (h)" v-model.number="editShift.full_day_hours" type="number" step="0.25" min="1" max="24"
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Half day (h)</label>
+                            <input aria-label="Edit half day (h)" v-model.number="editShift.half_day_hours" type="number" step="0.25" min="0.5" max="12"
+                                   class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Department (optional)</label>
+                        <select aria-label="Edit department (optional)" v-model="editShift.department_id"
+                                class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
+                            <option :value="null">— Any department —</option>
+                            <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+                        </select>
+                    </div>
+
+                    <label class="flex items-center gap-3 cursor-pointer rounded-xl border border-outline-variant/60 bg-surface-container-low px-4 py-3">
+                        <input v-model="editShift.is_active" aria-label="Edit active shift" type="checkbox" class="h-4 w-4 rounded accent-secondary"/>
+                        <span class="text-[13px] font-bold text-on-surface">Active shift</span>
+                        <span class="text-[11.5px] text-on-surface-variant/60">Inactive shifts are archived and won't accept new assignments.</span>
+                    </label>
+                </form>
+
+                <template #footer>
+                    <div class="flex items-center justify-end gap-3">
+                        <button type="button" @click="showEdit = false"
+                                class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="updateShift" :disabled="editShift.processing"
+                                class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-black text-white disabled:opacity-60"
+                                style="background:linear-gradient(135deg,#0d1452,#1a237e)">
+                            <span v-if="editShift.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                            <span class="material-symbols-outlined text-[16px]" v-else>check_circle</span>
+                            Save changes
                         </button>
                     </div>
                 </template>

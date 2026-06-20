@@ -46,8 +46,9 @@ class PayrollRunResource extends JsonResource
             'created_at'      => $this->created_at?->toIso8601String(),
 
             'can' => [
-                'approve' => $request->user()?->can('approve', $this->resource),
-                'reverse' => $request->user()?->can('reverse', $this->resource),
+                'approve'  => $request->user()?->can('approve', $this->resource),
+                'reverse'  => $request->user()?->can('reverse', $this->resource),
+                'disburse' => $request->user()?->hasPermission('payroll.disburse') === true,
             ],
         ];
     }

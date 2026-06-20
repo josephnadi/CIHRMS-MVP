@@ -16,7 +16,8 @@ class UpdateLeaveStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::enum(LeaveStatus::class)],
+            'status'  => ['required', Rule::enum(LeaveStatus::class)],
+            'comment' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

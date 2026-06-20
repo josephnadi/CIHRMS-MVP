@@ -19,6 +19,9 @@ class LeaveRequestResource extends JsonResource
             'reason'       => $this->reason,
             'status'       => $this->status?->value,
             'status_label' => $this->status?->label(),
+            'decision_comment' => $this->decision_comment,
+            'decided_at'       => $this->decided_at?->toISOString(),
+            'has_attachment'   => ! empty($this->attachment_path),
             'employee'     => $this->whenLoaded('employee', fn () => [
                 'id'          => $this->employee->id,
                 'employee_no' => $this->employee->employee_no,

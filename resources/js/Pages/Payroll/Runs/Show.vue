@@ -33,6 +33,11 @@ const reverse = () => reverseForm.post(route('payroll-runs.reverse', R.value.id)
 
 const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), {}, { preserveScroll: true });
 
+// Disbursement: push the materialised payout instructions to their providers
+// (MoMo/GhIPSS), then reconcile sent-but-unsettled ones.
+const dispatchPayouts  = () => router.post(route('disbursements.dispatch', R.value.id), {}, { preserveScroll: true });
+const reconcilePayouts = () => router.post(route('disbursements.reconcile', R.value.id), {}, { preserveScroll: true });
+
 const fileForm = useForm({ reference: '', submitted_at: '' });
 const filingId = ref(null);
 const openMarkFiled = (rt) => { filingId.value = rt.id; fileForm.reset(); fileForm.clearErrors(); };
@@ -79,6 +84,8 @@ const submitFiled = (rt) => fileForm.post(
                     <PrimaryButton v-if="R.status === 'calculated' && R.can?.approve"
                                    @click="approve">Approve (2FA required)</PrimaryButton>
                     <PrimaryButton v-if="R.status === 'approved'" @click="markPaid">Mark as paid</PrimaryButton>
+                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" @click="dispatchPayouts">Dispatch payouts</SecondaryButton>
+                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" @click="reconcilePayouts">Reconcile payouts</SecondaryButton>
                     <DangerButton  v-if="R.can?.reverse" @click="reverse">Reverse</DangerButton>
                 </div>
 

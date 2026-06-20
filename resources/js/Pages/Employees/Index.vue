@@ -854,13 +854,16 @@ const formatDate = (d) => {
                     <!-- Position + Phone -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Position</label>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Position <span class="text-red-500">*</span></label>
                             <input aria-label="Position"
                                 v-model="form.position"
                                 type="text"
+                                required
                                 placeholder="e.g. Senior Analyst"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.position }"
                             />
+                            <p v-if="form.errors.position" class="mt-1 text-[11px] text-red-500">{{ form.errors.position }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Phone</label>
@@ -876,12 +879,15 @@ const formatDate = (d) => {
                     <!-- Hire Date + Status -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Hire Date</label>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Hire Date <span class="text-red-500">*</span></label>
                             <input aria-label="Hire Date"
                                 v-model="form.hire_date"
                                 type="date"
+                                required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.hire_date }"
                             />
+                            <p v-if="form.errors.hire_date" class="mt-1 text-[11px] text-red-500">{{ form.errors.hire_date }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Status</label>
