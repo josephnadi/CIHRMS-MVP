@@ -63,4 +63,30 @@ class LeaveRequest extends Model
     {
         return $this->start_date->diffInDays($this->end_date) + 1;
     }
+
+    /** Weekdays (Mon–Fri) between start and end, inclusive. */
+    public function workingDays(): int
+    {
+        $days   = 0;
+        $cursor = $this->start_date->copy();
+        while ($cursor->lessThanOrEqualTo($this->end_date)) {
+            if (! $cursor->isWeekend()) {
+                $days++;
+            }
+            $cursor = $cursor->addDay();
+        }
+
+        return $days;
+    }
+
+    /**
+     * Days charged against the leave balance: working days for most types,
+     * calendar days for statutory calendar-week leave (maternity).
+     */
+    public function chargeableDays(): float
+    {
+        return $this->type->countsWorkingDaysOnly()
+            ? (float) $this->workingDays()
+            : (float) $this->durationInDays();
+    }
 }

@@ -82,6 +82,48 @@ test('approving a leave request stamps approver and increments balance', functio
     expect((float) $balance->used_days)->toBeGreaterThan(0);
 });
 
+test('annual leave charges working days against a 15-day entitlement (weekends excluded)', function () {
+    $leave = LeaveRequest::factory()->pending()->create([
+        'employee_id' => $this->employee->id,
+        'start_date'  => '2026-06-01', // Monday
+        'end_date'    => '2026-06-08', // next Monday — span includes Sat + Sun
+        'type'        => LeaveType::Annual->value,
+    ]);
+
+    $this->actingAs($this->hr)->patch(route('leave.update', $leave), ['status' => LeaveStatus::Approved->value])->assertRedirect();
+
+    $balance = LeaveBalance::where('employee_id', $this->employee->id)->where('type', 'annual')->where('year', 2026)->first();
+    expect((float) $balance->total_days)->toBe(15.0)        // per-type entitlement, not flat 21
+        ->and((float) $balance->used_days)->toBe(6.0);      // 6 weekdays in Jun 1–8 2026, weekends excluded
+});
+
+test('maternity leave charges calendar days against an 84-day entitlement', function () {
+    $leave = LeaveRequest::factory()->pending()->create([
+        'employee_id' => $this->employee->id,
+        'start_date'  => '2026-06-01',
+        'end_date'    => '2026-06-08', // 8 calendar days
+        'type'        => LeaveType::Maternity->value,
+    ]);
+
+    $this->actingAs($this->hr)->patch(route('leave.update', $leave), ['status' => LeaveStatus::Approved->value])->assertRedirect();
+
+    $balance = LeaveBalance::where('employee_id', $this->employee->id)->where('type', 'maternity')->where('year', 2026)->first();
+    expect((float) $balance->total_days)->toBe(84.0)
+        ->and((float) $balance->used_days)->toBe(8.0);      // calendar days (statutory weeks)
+});
+
+test('unpaid leave does not create or charge a balance', function () {
+    $leave = LeaveRequest::factory()->pending()->create([
+        'employee_id' => $this->employee->id,
+        'start_date'  => '2026-06-01', 'end_date' => '2026-06-03',
+        'type'        => LeaveType::Unpaid->value,
+    ]);
+
+    $this->actingAs($this->hr)->patch(route('leave.update', $leave), ['status' => LeaveStatus::Approved->value])->assertRedirect();
+
+    expect(LeaveBalance::where('employee_id', $this->employee->id)->where('type', 'unpaid')->count())->toBe(0);
+});
+
 test('rejecting a leave request does not create a balance', function () {
     $leave = LeaveRequest::factory()->pending()->create([
         'employee_id' => $this->employee->id,

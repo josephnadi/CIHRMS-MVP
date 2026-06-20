@@ -35,16 +35,21 @@ class LeaveService
                 'approved_by' => $status === LeaveStatus::Approved ? $request->user()->id : null,
             ]);
 
-            if ($status === LeaveStatus::Approved) {
+            // Charge the leave against the employee's balance. The entitlement is
+            // derived per type (not a flat 21), and the days charged use the type's
+            // basis (working days for most, calendar days for maternity). Unpaid
+            // leave has no paid entitlement, so it is not charged to a balance.
+            $entitlement = $leaveRequest->type->defaultEntitlementDays();
+            if ($status === LeaveStatus::Approved && $entitlement !== null) {
                 $balance = LeaveBalance::lockForUpdate()->firstOrCreate(
                     [
                         'employee_id' => $leaveRequest->employee_id,
                         'type'        => $leaveRequest->type->value,
                         'year'        => $leaveRequest->start_date->year,
                     ],
-                    ['total_days' => 21.0, 'used_days' => 0.0]
+                    ['total_days' => $entitlement, 'used_days' => 0.0]
                 );
-                $balance->increment('used_days', $leaveRequest->durationInDays());
+                $balance->increment('used_days', $leaveRequest->chargeableDays());
             }
         });
 
