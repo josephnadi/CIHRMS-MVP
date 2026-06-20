@@ -31,6 +31,11 @@ class LearningController extends Controller
             'courses'      => CourseResource::collection($this->learning->catalog($request)),
             'filters'      => $request->only(['search', 'category', 'format']),
             'canManage'    => $request->user()->hasPermission('learning.manage'),
+            'completedCourseIds' => $request->user()?->employee
+                ? \App\Models\Enrolment::where('employee_id', $request->user()->employee->id)
+                    ->where('status', \App\Enums\EnrolmentStatus::Completed->value)
+                    ->pluck('course_id')
+                : [],
             'activeModule' => 'learning',
         ]);
     }

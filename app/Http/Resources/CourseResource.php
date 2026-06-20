@@ -26,6 +26,10 @@ class CourseResource extends JsonResource
             'price'            => (float) $this->price,
             'currency'         => $this->currency,
             'skill_tags'       => $this->skill_tags ?? [],
+            'prerequisites'    => $this->whenLoaded('prerequisites', fn () => $this->prerequisites->map(fn ($p) => [
+                'id'    => $p->id,
+                'title' => $p->title,
+            ])->values()),
             'is_published'     => (bool) $this->is_published,
             'published_at'     => $this->published_at?->toIso8601String(),
             'enrolled_count'   => $this->enrolled_count ?? null,

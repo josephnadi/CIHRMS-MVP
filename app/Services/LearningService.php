@@ -35,6 +35,7 @@ class LearningService
                   ->orWhere('provider', 'like', "%{$v}%");
             }))
             ->withCount(['enrolments as enrolled_count'])
+            ->with('prerequisites:id,title')
             ->latest('published_at')
             ->paginate($request->per_page ?? 12)
             ->withQueryString();
