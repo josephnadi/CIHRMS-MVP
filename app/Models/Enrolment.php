@@ -13,9 +13,9 @@ class Enrolment extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'course_id', 'employee_id', 'status',
+        'course_id', 'employee_id', 'requirement_id', 'status',
         'progress_pct', 'final_score', 'certificate_path',
-        'enrolled_at', 'started_at', 'completed_at', 'last_activity_at',
+        'enrolled_at', 'due_at', 'started_at', 'completed_at', 'last_activity_at',
     ];
 
     protected function casts(): array
@@ -25,6 +25,7 @@ class Enrolment extends Model
             'progress_pct'     => 'decimal:2',
             'final_score'      => 'decimal:2',
             'enrolled_at'      => 'datetime',
+            'due_at'           => 'datetime',
             'started_at'       => 'datetime',
             'completed_at'     => 'datetime',
             'last_activity_at' => 'datetime',
@@ -49,5 +50,23 @@ class Enrolment extends Model
     public function scopeCompleted(Builder $q): Builder
     {
         return $q->where('status', EnrolmentStatus::Completed);
+    }
+
+    public function requirement(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(ComplianceRequirement::class, 'requirement_id');
+    }
+
+    public function scopeMandatory(\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder
+    {
+        return $q->whereNotNull('requirement_id');
+    }
+
+    public function scopeOverdue(\Illuminate\Database\Eloquent\Builder $q, ?\Carbon\CarbonInterface $now = null): \Illuminate\Database\Eloquent\Builder
+    {
+        return $q->whereNotNull('requirement_id')
+            ->whereNotNull('due_at')
+            ->where('due_at', '<', $now ?? now())
+            ->where('status', '!=', \App\Enums\EnrolmentStatus::Completed->value);
     }
 }

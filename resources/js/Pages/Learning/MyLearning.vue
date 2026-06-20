@@ -259,11 +259,31 @@ const ringProps = (pct, r = 28) => {
                                 </div>
 
                                 <div class="flex-1 min-w-0">
-                                    <!-- Status badge -->
-                                    <span
-                                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] mb-1"
-                                        :style="`background:${e.status_color}1a;color:${e.status_color}`"
-                                    >{{ e.status_label }}</span>
+                                    <!-- Status + compliance badges -->
+                                    <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                        <span
+                                            class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em]"
+                                            :style="`background:${e.status_color}1a;color:${e.status_color}`"
+                                        >{{ e.status_label }}</span>
+                                        <span
+                                            v-if="e.is_mandatory"
+                                            class="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-indigo-600"
+                                        >
+                                            <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">gavel</span>
+                                            Mandatory
+                                        </span>
+                                        <span
+                                            v-if="e.is_overdue"
+                                            class="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-rose-600"
+                                        >
+                                            <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1">warning</span>
+                                            Overdue
+                                        </span>
+                                        <span
+                                            v-else-if="e.is_mandatory && e.due_at"
+                                            class="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-amber-600"
+                                        >Due {{ formatDate(e.due_at) }}</span>
+                                    </div>
 
                                     <h4 class="text-[14px] font-black text-on-surface leading-tight line-clamp-2">{{ e.course?.title ?? '—' }}</h4>
                                     <p v-if="e.course?.provider" class="mt-0.5 font-mono text-[10.5px] text-on-surface-variant/60">{{ e.course.provider }}</p>

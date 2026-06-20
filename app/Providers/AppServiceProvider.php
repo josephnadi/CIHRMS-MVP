@@ -323,6 +323,10 @@ class AppServiceProvider extends ServiceProvider
         // non-blocking (failures are logged, never thrown).
         Event::listen(EmployeeCreated::class, \App\Listeners\InitiateOnboardingOnHire::class);
 
+        // Auto-assign matching mandatory compliance courses to a new hire.
+        // Idempotent and non-blocking (failures are logged, never thrown).
+        Event::listen(EmployeeCreated::class, \App\Listeners\AssignComplianceOnHire::class);
+
         // Phase 2 — Attendance correction lifecycle events
         Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\RecordAnalyticsEvent::class);
         Event::listen(\App\Events\AttendanceCorrectionDecided::class, \App\Listeners\RecordAnalyticsEvent::class);

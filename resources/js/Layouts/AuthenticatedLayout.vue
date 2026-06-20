@@ -32,7 +32,7 @@ const toggleSidebar = () => {
 const permissions = computed(() => page.props.auth?.permissions ?? []);
 const user = computed(() => page.props.auth?.user);
 
-const { isDark, toggle, init } = useDark();
+const { isDark, init } = useDark();
 
 // ── Sidebar scroll preservation ──────────────────────────────────────────────
 // The AuthenticatedLayout is rendered inline by each page, so navigation
@@ -169,6 +169,7 @@ const navSections = computed(() => {
                             { label: 'Catalogue',     route: 'learning.catalog',       module: 'learning',         icon: 'menu_book',  visible: true },
                             { label: 'My Learning',   route: 'learning.my',            module: 'learning-my',      icon: 'play_lesson',visible: true },
                             { label: 'Skills Matrix', route: 'learning.skills-matrix', module: 'learning-skills',  icon: 'grid_on',    visible: can('learning.manage') },
+                            { label: 'Compliance',    route: 'learning.compliance.index', module: 'learning-compliance', icon: 'gavel',  visible: can('learning.compliance.manage') },
                         ],
                     },
                     {
@@ -536,6 +537,7 @@ const SIDEBAR_ICON_COLORS = {
     'learning':                 '#12d9e3',
     'learning-my':              '#7986cb',
     'learning-skills':          '#7986cb',
+    'learning-compliance':      '#7986cb',
     'dept-it':                  '#12d9e3',
     'tickets':                  '#7986cb',
 
@@ -867,36 +869,6 @@ const quickActions = computed(() => [
 
                         <!-- Notifications -->
                         <NotificationBell />
-
-                        <!-- ── Dark / Light toggle ── -->
-                        <button
-                            @click="toggle"
-                            class="theme-toggle text-on-surface-variant"
-                            :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-                            aria-label="Toggle dark mode"
-                        >
-                            <Transition
-                                enter-active-class="transition-all duration-200"
-                                enter-from-class="opacity-0 rotate-90 scale-50"
-                                enter-to-class="opacity-100 rotate-0 scale-100"
-                                leave-active-class="transition-all duration-150"
-                                leave-from-class="opacity-100 rotate-0 scale-100"
-                                leave-to-class="opacity-0 -rotate-90 scale-50"
-                                mode="out-in"
-                            >
-                                <span
-                                    v-if="isDark"
-                                    key="sun"
-                                    class="material-symbols-outlined text-[20px] text-amber-400"
-                                    style="font-variation-settings:'FILL' 1"
-                                >light_mode</span>
-                                <span
-                                    v-else
-                                    key="moon"
-                                    class="material-symbols-outlined text-[20px]"
-                                >dark_mode</span>
-                            </Transition>
-                        </button>
 
                         <!-- App switcher: permission-gated, links to dedicated module pages -->
                         <Dropdown align="right" width="72">
