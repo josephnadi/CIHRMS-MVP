@@ -49,6 +49,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('Employees/Show', [
             'employee'     => new EmployeeResource($this->employees->find($employee->id)),
+            'departments'  => \App\Models\Department::orderBy('name')->get(['id', 'name']),
             'activeModule' => 'employees',
         ]);
     }

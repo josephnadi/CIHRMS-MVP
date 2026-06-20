@@ -12,6 +12,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     employee: Object,
+    departments: { type: Array, default: () => [] },
     activeModule: String,
 });
 
@@ -797,7 +798,7 @@ const priorityColors = {
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             >
                                 <option value="" disabled>Select department</option>
-                                <option v-for="dept in (employee.allDepartments ?? [])" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+                                <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
                             </select>
                         </div>
                         <div>
