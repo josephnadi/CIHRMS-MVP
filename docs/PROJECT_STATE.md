@@ -1,7 +1,7 @@
 # CIHRMS — Project State
 
-> **Snapshot date:** 2026-05-23 (post Documents v2 + Finance F1–F5 + Paystack + Chat redesign + sound packs)
-> **Stack:** Laravel 13.8 (PHP 8.3 → CI 8.4 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · PostgreSQL (production) / SQLite (dev) · Pest 4
+> **Snapshot date:** 2026-06-20 (post Finance Universal Posting + Fiscal Close + Financial Statements + Budgeting + lifecycle/talent modules + functional-QA pass)
+> **Stack:** Laravel 13.8 (PHP 8.3 → CI 8.4 → running on 8.5.5 locally) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · Chart.js + vue-chartjs (first charting library) · PostgreSQL (production) / SQLite (dev) · Pest 4
 > **Repo:** Under git on `main`; remote `origin → https://github.com/josephnadi/CIHRMS-MVP.git`; CI on PHP 8.4 via GitHub Actions.
 > **Architecture:** Enum → FormRequest → Service → Event → Listener → Resource → Inertia Page
 > **Design system:** "Sovereign Precision" — obsidian sidebar, cobalt gradients, RGB-triplet stat cards, card-lift / btn-shimmer / animate-reveal-up motion. Reference pages: Employees/Index (651 LOC), Tickets/Index (472 LOC).
@@ -10,13 +10,41 @@
 
 ## 1. Headline
 
-The application is feature-complete end-to-end across backend, RBAC, and Vue frontend for all core modules plus the post-MVP Documents v2 and Finance F1–F5 build-outs. As of this snapshot (2026-05-23):
+The platform has grown substantially since the 2026-05-23 snapshot: a full Finance/GL accounting backbone (Universal Posting, Fiscal Close, Financial Statements, Budgeting — the GL is now the single source of all monetary throughput), new lifecycle + talent modules (Onboarding, LMS compliance enforcement, course prerequisites), Tier-3 voluntary pension + statutory remittance tracking, and a functional-QA hardening pass that fixed 25 real CRUD/form defects. The application is feature-complete end-to-end across backend, RBAC, and Vue frontend for all core modules plus these post-MVP build-outs. As of this snapshot (2026-06-20):
 
-- **Backend:** services, FormRequests, resources, controllers, signature-verified webhooks (Paystack + WhatsApp + Zoho + e-sign + MS Graph + Google + Slack), DB-backed RBAC with org-scope asset policies (stamps, letterheads, watermarks) — all written and wired.
-- **Frontend:** every module page that the controllers reference exists in [resources/js/Pages/](../resources/js/Pages/), including the new Settings asset libraries (Stamps, Letterheads, Watermarks) added in Documents v2 and the Finance sub-pages (AR/AP, Customers/Vendors, Journal Explorer, Statements, Reconciliation, PaymentIntents).
-- **Tests:** **895 Pest 4 tests / ~2,950 assertions passing** on both SQLite and PostgreSQL. Coverage spans every module — auth, employees, leave, tickets, complaints, recruitment, performance, payments, payroll, documents (annotations + stamps + letterheads + watermarks + shares), finance (F1–F5 including Paystack webhook signature verification + bank reconciliation matching), policies, audit, and webhook signature verification for all six integration providers.
+- **Backend:** services, FormRequests, resources, controllers, signature-verified webhooks (Paystack + WhatsApp + Zoho + e-sign + MS Graph + Google + Slack), DB-backed RBAC with org-scope asset policies (stamps, letterheads, watermarks), and a GL posting engine that funnels payroll, loans, disbursements, AP, AR, bank adjustments, and final settlements through balanced double-entry journals — all written and wired.
+- **Frontend:** every module page that the controllers reference exists in [resources/js/Pages/](../resources/js/Pages/), including the new Settings asset libraries (Stamps, Letterheads, Watermarks), the Finance sub-pages (AR/AP, Customers/Vendors, Journal Explorer, Statements, Reconciliation, PaymentIntents), and the new Finance pages (Posting Rules, Fiscal Calendar, Financial Statements, Budgets, Analytics Dashboard with Chart.js charts) plus Onboarding and LMS compliance UIs.
+- **Tests:** **1,414 Pest tests / ~4,925 assertions passing** on SQLite + the PostgreSQL CI matrix. Coverage spans every module — auth, employees, leave, tickets, complaints, recruitment, performance, payments, payroll, documents (annotations + stamps + letterheads + watermarks + shares), finance (F1–F5 + Universal Posting + fiscal close + financial statements + budgeting + settlement→GL + analytics), onboarding, LMS compliance + prerequisites, statutory remittance + Tier-3 pension, policies, audit, and webhook signature verification for all six integration providers.
 
-### Post-MVP build-outs shipped this snapshot
+### Build-outs shipped since 2026-05-23 (June 2026)
+
+All items below are merged to `main`.
+
+**Finance — "the GL as the single source of all monetary throughput" (4 complete phases):**
+
+- **Universal Posting** — `PostingService` is the single GL choke point (`PostingDocument` / `PostingLine` value objects, `AccountResolver`, a `posting_accounts` map table with an admin UI at **Finance → Posting Rules**, idempotency on `source_type` + `source_id` + `source_purpose`). Payroll, loans, disbursements, AP, AR, and bank adjustments now all post balanced double-entry journal entries through it. Permission `finance.posting_rules.manage`.
+- **Fiscal Periods & Close** — `fiscal_years` / `fiscal_periods` + `FiscalCalendarService` (12 months + a period-13 Adjustment), closed-period posting guard (`ClosedPeriodException`), journal immutability, `PeriodCloseService` (close / reopen / lock), and `SubledgerReconciliationService` (AP 2100 / AR 1200 / loans 1300 vs GL with a pre-close variance gate). Page **Finance → Fiscal Calendar**. Permissions `finance.period.view` / `close` / `reopen` / `lock`.
+- **Financial Statements** — `LedgerBalanceService` engine + Trial Balance, Statement of Financial Activities (P&L), Statement of Financial Position (Balance Sheet), and Statement of Cash Flows (direct + indirect, both reconcile), with GL drill-down, prior-period comparatives, and CSV / PDF export (`barryvdh/dompdf`). Permission `finance.reports.view`.
+- **Budgeting** — annual budgets per GL account (`budgets` / `budget_lines`, draft → approved, even monthly spread), Budget-vs-Actuals (YTD variance, favourable-by-type), and soft non-blocking controls + over-budget alerts. Permission `finance.budget.manage`.
+- **Settlement → GL (off-boarding)** — final settlement posts a balanced accrual JE on approval (termination-benefit expenses 5130–5134; CR PAYE / loan principal + interest / deductions / net pay), a payment JE on mark-paid, reversal / un-posting, and additive disbursement tracking. New `JournalSourceType::FinalSettlement`.
+- **Finance Analytics Dashboard** — `FinanceAnalyticsService` (KPIs: cash position, YTD income / expenditure / surplus, AP / AR outstanding, budget variance, latest payroll cost; monthly trend series + top expenses + AR/AP aging + budget-by-type) → `Finance/Analytics/Dashboard.vue` with Chart.js charts, fiscal-year / date filters, and CSV / PDF + per-chart PNG export. Dedicated permission `finance.analytics.view`.
+
+**Payroll / statutory:**
+
+- **Statutory remittance tracking** — a mark-a-return-filed write path (permission `statutory.remit`), due date = payroll period-end + 14 days, and an overdue posture surfaced on the dashboard + the payroll-run returns tab.
+- **Tier-3 voluntary pension** — a per-employee percentage election (`employees.tier3_rate` + `tier3_trustee_id`), `Tier3Calculator` (relief up to the 16.5% Tier-2 + Tier-3 combined cap reduces PAYE chargeable; excess taxed), credited to GL 2230, with a per-trustee Tier-3 statutory schedule.
+
+**Lifecycle / talent:**
+
+- **Onboarding lifecycle** — a new module mirroring off-boarding: `OnboardingCase` / `OnboardingTask` templated checklist, auto-initiate on `EmployeeCreated` (`hire_date`), auto-enrol into published Onboarding courses, `onboarding.*` perms, Index / Show pages + nav.
+- **LMS compliance enforcement** — `ComplianceRequirement` (course mandatory for all-staff / role / department + `due_in_days`), `ComplianceAssignmentService` (idempotent auto-assign + due dates), an on-hire listener + `compliance:sync` + `compliance:remind` commands, and an overdue dashboard + My-Learning badges. Permission `learning.compliance.manage`.
+- **Course prerequisites** — self-referential `course_prerequisites`; self-enrol is blocked until prerequisites are completed (admin / automated assignment bypasses), with a catalog lock + admin authoring.
+
+**Quality:**
+
+- **Functional QA pass (2026-06-20)** — a static wiring audit (all frontend `route()` refs vs registered routes; all Inertia pages exist) + 4 parallel module audits fixed 25 form / CRUD defects, incl. broken leave apply (missing `employee_id`), employee-document upload / delete, governance acknowledge no-op, the loan-disburse date trap, the Chart-of-Accounts archive 500, the leave balance engine (per-type statutory entitlements + working-days basis, maternity in calendar days), the disbursement dispatch / reconcile UI (payroll money can now actually be sent to providers), the shift edit / delete UI, and leave decision-comment + attachment persistence.
+
+### Post-MVP build-outs shipped in the 2026-05-23 snapshot
 
 - **Documents v2** (PR #15, merged 2026-05-23) — manipulable annotations (drag/resize/rotate signatures and stamps with a Completed-route lock), stamp asset library, letterhead templates (replacing the hardcoded `public/img/letterhead.png`), watermark templates (per-document `watermark_id` + `none|on_burn|always` mode). New tables: `stamp_assets`, `letterhead_templates`, `watermark_templates`. New permission: `document_assets.manage`. New routes: `PATCH /documents/{document}/annotations/{annotation}`, `/settings/{stamps,letterheads,watermarks}` CRUD.
 - **Finance F1–F5** — Chart of Accounts + Org Bank Accounts (F1), Accounts Payable + Journal Engine (F2 — PR #10), Accounts Receivable + customer statements (F3 — PR #12), **Paystack hosted-checkout gateway** (F4 — PR #14: payment intents, webhook signature verification, refunds, idempotency keys), Bank Reconciliation (F5: CSV/OFX/MT940 import + 3-tier matching + bank-adjustment journal entries).
@@ -70,7 +98,7 @@ The remaining residual gaps are:
 | Routes | 93 named | ✅ | Public careers + webhooks + module routes + admin/integrations |
 | Vue Pages | 17 module dirs | ✅ | All Index/Show pages substantial; Performance now has Index + Goals + Reviews + NineBox |
 | Dashboard.vue | ~2,725 LOC | ✅ | KPIs + sparklines + activity feed all wired to real `DashboardService` data; duplicated module sections deleted (Assets/Benefits/Learning/Governance); inline forms replaced with quick-action links; zero `comingSoon` calls |
-| Tests | 10 feature files | ⚠️ | Written but cannot execute on PHP 8.5.5 (pao stream-filter incompatibility) |
+| Tests | — | ✅ | **1,414 Pest tests / ~4,925 assertions passing** on SQLite + the PostgreSQL CI matrix |
 
 ---
 

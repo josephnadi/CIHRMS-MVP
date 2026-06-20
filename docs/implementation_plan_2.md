@@ -10,6 +10,22 @@ This plan is the implementation companion to the gap analysis. It covers **only 
 
 ---
 
+## Status update — 2026-06-20
+
+The roadmap below was written 2026-05-15. Significant portions have since **shipped to `main`**. This section records reality; the original plan content is preserved unchanged underneath.
+
+**Shipped:**
+
+- **Statutory payroll engine — complete.** PAYE (effective-dated brackets), SSNIT Tier-1 (13%/5.5% with the NHIA split), and Tier-2 (5% trustee routing) all landed. The last remaining tier is now wired: **Tier-3 voluntary pension** (percentage election per employee, the 16.5% combined relief cap, GL account `2230`, and a per-trustee schedule). All four tiers are live.
+- **Statutory returns + remittance tracking.** Schedule generation for PAYE / SSNIT / Tier-2 / **Tier-3** is in, plus a **remittance submission tracking** layer: a mark-filed write path, period-end + 14-day deadline computation, and an overdue posture surfaced to finance/HR.
+- **Finance / GL accounting backbone — exceeds the original Phase-1 finance bar.** Beyond the GIFMIS/IPPD export already present, the codebase now has a full general-ledger backbone: **Universal Posting** routed through a single `PostingService` choke point, fiscal periods & month-end close, the four financial statements, budgeting, and a finance analytics dashboard.
+- **Tamper-evident audit + 2FA — present** (Work-streams 4 & 6). The codebase is also **Postgres-ready**: CI runs a full Postgres matrix alongside SQLite, and a migration runbook exists at `docs/ops/postgres-migration.md`.
+- **New lifecycle / talent depth** (beyond Phase-1 scope): an **Onboarding lifecycle**, **LMS compliance enforcement** (mandatory training by role/department with overdue tracking), and **course prerequisites**.
+
+**Test suite:** now **~1,414 Pest tests**, green on SQLite and on the Postgres CI matrix.
+
+---
+
 ## What "government-grade" means here
 
 | Driver | Source | Implication for Phase 1 |
