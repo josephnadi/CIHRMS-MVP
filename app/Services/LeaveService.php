@@ -18,7 +18,17 @@ class LeaveService
 {
     public function request(StoreLeaveRequest $request): LeaveRequest
     {
-        $leave = LeaveRequest::create($request->validated());
+        // `attachment` is an uploaded file, not a column — strip it from the
+        // mass-assignment payload and store it separately on the private disk.
+        $data = collect($request->validated())->except('attachment')->all();
+
+        if ($request->hasFile('attachment')) {
+            // Private 'local' disk (mirrors EmployeeService::uploadDocument):
+            // never served via the public /storage/ symlink.
+            $data['attachment_path'] = $request->file('attachment')->store('leave-attachments', 'local');
+        }
+
+        $leave = LeaveRequest::create($data);
 
         event(new LeaveRequested($leave, $request->user()));
 
@@ -29,10 +39,17 @@ class LeaveService
     {
         $status = LeaveStatus::from($request->validated('status'));
 
-        DB::transaction(function () use ($status, $leaveRequest, $request) {
+        $isDecision = in_array($status, [LeaveStatus::Approved, LeaveStatus::Rejected], true);
+
+        DB::transaction(function () use ($status, $leaveRequest, $request, $isDecision) {
             $leaveRequest->update([
-                'status'      => $status,
-                'approved_by' => $status === LeaveStatus::Approved ? $request->user()->id : null,
+                'status'           => $status,
+                'approved_by'      => $status === LeaveStatus::Approved ? $request->user()->id : null,
+                // Persist the approver's decision note + timestamp. The UI sends
+                // `comment` on approve/reject; it was previously dropped, leaving
+                // the Status History block permanently empty.
+                'decision_comment' => $isDecision ? $request->validated('comment') : null,
+                'decided_at'       => $isDecision ? now() : null,
             ]);
 
             // Charge the leave against the employee's balance. The entitlement is

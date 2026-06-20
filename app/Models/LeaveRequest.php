@@ -22,6 +22,9 @@ class LeaveRequest extends Model
         'type',
         'reason',
         'status',
+        'decision_comment',
+        'decided_at',
+        'attachment_path',
     ];
 
     protected function casts(): array
@@ -29,6 +32,7 @@ class LeaveRequest extends Model
         return [
             'start_date' => 'date',
             'end_date'   => 'date',
+            'decided_at' => 'datetime',
             'status'     => LeaveStatus::class,
             'type'       => LeaveType::class,
         ];

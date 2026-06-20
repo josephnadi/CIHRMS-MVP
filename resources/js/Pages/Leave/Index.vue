@@ -136,6 +136,25 @@ function openDetail(req) {
     showDetailPanel.value = true;
 }
 
+// Decision history for the detail panel. Backend persists a single
+// approve/reject decision (decision_comment + decided_at); surface it as a
+// one-entry history so the Status History block is no longer always empty.
+const detailHistory = computed(() => {
+    const r = selectedRequest.value;
+    if (!r) return [];
+    if (Array.isArray(r.history) && r.history.length) return r.history;
+    if (r.decided_at && (r.status === 'approved' || r.status === 'rejected')) {
+        return [{
+            id:         `decision-${r.id}`,
+            status:     r.status,
+            comment:    r.decision_comment,
+            created_at: r.decided_at,
+            actor_name: r.approver?.name ?? 'HR / Manager',
+        }];
+    }
+    return [];
+});
+
 // ── Manager/HR view ───────────────────────────────────────────────────────────
 const activeTab = ref('pending');
 const hrTabs = computed(() => [
@@ -1119,12 +1138,18 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                         <p class="text-[13px] text-on-surface leading-relaxed">{{ selectedRequest.reason ?? 'No reason provided.' }}</p>
                     </div>
 
+                    <!-- Supporting document indicator -->
+                    <div v-if="selectedRequest.has_attachment" class="flex items-center gap-2 rounded-xl bg-surface-container-low px-4 py-3">
+                        <span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings:'FILL' 1">attach_file</span>
+                        <p class="text-[12px] font-semibold text-on-surface">Supporting document attached</p>
+                    </div>
+
                     <!-- Status history -->
-                    <div v-if="selectedRequest.history?.length">
+                    <div v-if="detailHistory.length">
                         <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-3">Status History</p>
                         <div class="space-y-2">
                             <div
-                                v-for="h in selectedRequest.history"
+                                v-for="h in detailHistory"
                                 :key="h.id"
                                 class="flex items-start gap-3 rounded-xl bg-surface-container-low p-3"
                             >
