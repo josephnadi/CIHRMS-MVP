@@ -74,6 +74,10 @@ class UpdateEmployeeRequest extends FormRequest
                     }
                 },
             ],
+
+            // Tier-3 voluntary pension election
+            'tier3_rate'       => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:0.5'],
+            'tier3_trustee_id' => ['sometimes', 'nullable', 'integer', 'exists:pension_trustees,id'],
         ];
 
         if (! $this->callerCanEditHrFields()) {
