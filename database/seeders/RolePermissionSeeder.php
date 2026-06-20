@@ -101,6 +101,9 @@ class RolePermissionSeeder extends Seeder
         'offboarding.approve'    => ['Off-boarding', 'Approve final settlements (dual control)'],
         'offboarding.manage'     => ['Off-boarding', 'Complete, cancel, and administer cases'],
 
+        // ── Learning: compliance / mandatory training ──
+        'learning.compliance.manage' => ['Learning', 'Manage mandatory-training compliance requirements + dashboard'],
+
         // ── Phase 2: Onboarding ──
         'onboarding.view'        => ['Onboarding', 'View onboarding cases'],
         'onboarding.initiate'    => ['Onboarding', 'Open a new onboarding case'],
@@ -250,6 +253,7 @@ class RolePermissionSeeder extends Seeder
             'offboarding.settle', 'offboarding.manage',
             'onboarding.view', 'onboarding.initiate', 'onboarding.complete', 'onboarding.manage',
             'performance.calibrate', 'performance.pip_manage',
+            'learning.compliance.manage',
             'assets.view', 'assets.manage', 'assets.assign',
             'messaging.view', 'messaging.send', 'messaging.manage',
             'broadcasts.view', 'broadcasts.manage', 'broadcasts.bypass_throttle',
@@ -272,6 +276,7 @@ class RolePermissionSeeder extends Seeder
             'complaints.create', 'recruitment.apply',
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
+            'learning.compliance.manage',
             'assets.view', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
@@ -287,6 +292,7 @@ class RolePermissionSeeder extends Seeder
             'positions.view',
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
+            'learning.compliance.manage',
             'assets.view', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
