@@ -277,6 +277,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IncidentReport::class,            IncidentReportPolicy::class);
         Gate::policy(\App\Models\IncidentReportAttachment::class, IncidentReportPolicy::class);
         Gate::policy(\App\Models\OffboardingCase::class,     \App\Policies\OffboardingCasePolicy::class);
+        Gate::policy(\App\Models\OnboardingCase::class,      \App\Policies\OnboardingCasePolicy::class);
         Gate::policy(\App\Models\WhistleblowerReport::class, \App\Policies\WhistleblowerReportPolicy::class);
         Gate::policy(\App\Models\PerformanceContract::class, \App\Policies\PerformanceContractPolicy::class);
         Gate::policy(\App\Models\CalibrationSession::class,  \App\Policies\CalibrationSessionPolicy::class);
@@ -316,6 +317,11 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(LeaveStatusUpdated::class, SendNotifications::class);
         Event::listen(EmployeeCreated::class, SendNotifications::class);
+
+        // Auto-initiate a new-hire onboarding case when an employee with a
+        // hire_date is created. Idempotent (one open case per employee) and
+        // non-blocking (failures are logged, never thrown).
+        Event::listen(EmployeeCreated::class, \App\Listeners\InitiateOnboardingOnHire::class);
 
         // Phase 2 — Attendance correction lifecycle events
         Event::listen(\App\Events\AttendanceCorrectionRequested::class, \App\Listeners\RecordAnalyticsEvent::class);

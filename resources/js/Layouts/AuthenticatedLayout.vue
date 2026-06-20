@@ -141,6 +141,7 @@ const navSections = computed(() => {
                             { label: 'Billing Runs', route: 'billing.runs.index',        module: 'billing-runs',        icon: 'playlist_play', visible: can('billing.run') },
                         ],
                     },
+                    { label: 'Onboarding',   route: 'onboarding.index',     module: 'onboarding',  icon: 'login',          visible: can('onboarding.view') || can('onboarding.initiate') },
                     { label: 'Off-boarding', route: 'offboarding.index',    module: 'offboarding', icon: 'logout',         visible: can('offboarding.view') || can('offboarding.initiate') },
                     {
                         label: 'Performance', icon: 'monitoring', expandable: true, visible: can('performance.view'),
@@ -554,6 +555,7 @@ const SIDEBAR_ICON_COLORS = {
     'leave':                    '#7986cb',
     'payroll':                  '#3949ab',
     'loans':                    '#3949ab',
+    'onboarding':               '#7986cb',
     'offboarding':              '#7986cb',
     'governance':               '#3949ab',
     'assets':                   '#7986cb',

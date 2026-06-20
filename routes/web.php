@@ -734,6 +734,22 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:offboarding.manage')->name('cancel');
     });
 
+    // ── Onboarding Lifecycle ──
+    Route::prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/',                       [\App\Http\Controllers\OnboardingController::class, 'index'])
+            ->middleware('permission:onboarding.view')->name('index');
+        Route::post('/',                      [\App\Http\Controllers\OnboardingController::class, 'store'])
+            ->middleware('permission:onboarding.initiate')->name('store');
+        Route::get('{case}',                  [\App\Http\Controllers\OnboardingController::class, 'show'])
+            ->middleware('permission:onboarding.view')->name('show');
+        Route::post('{case}/tasks/{task}',    [\App\Http\Controllers\OnboardingController::class, 'updateTask'])
+            ->middleware('permission:onboarding.complete')->name('tasks.update');
+        Route::post('{case}/complete',        [\App\Http\Controllers\OnboardingController::class, 'complete'])
+            ->middleware('permission:onboarding.complete')->name('complete');
+        Route::post('{case}/cancel',          [\App\Http\Controllers\OnboardingController::class, 'cancel'])
+            ->middleware('permission:onboarding.manage')->name('cancel');
+    });
+
     // ── Phase 3: Assets ──
     Route::prefix('assets')->name('assets.')->group(function () {
         Route::get('/',                              [AssetController::class, 'index'])
