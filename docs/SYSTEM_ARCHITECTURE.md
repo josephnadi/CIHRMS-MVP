@@ -3,7 +3,7 @@
 > **Product:** CIHRMS — CIHRM Ghana HRMS
 > **Audience:** Engineering, DevOps, Security, Architecture reviewers
 > **Version:** 1.0
-> **Last revised:** 2026-05-20
+> **Last revised:** 2026-06-20
 > **Companion docs:** [PRD.md](PRD.md), [TRD.md](TRD.md), [SYSTEM_DESIGN_DIAGRAMS.md](SYSTEM_DESIGN_DIAGRAMS.md)
 
 ---
@@ -35,11 +35,12 @@ CIHRMS is a **modular monolith** built on Laravel 13 with an **Inertia.js + Vue 
 People & Org                       Lifecycle                          Compensation
 ─────────────                      ─────────                          ────────────
 Departments                        Recruitment                        Payroll Runs
-Employees                          Onboarding                         Payslips
+Employees                          Onboarding (lifecycle)             Payslips
 Positions/Grades/Steps             Off-boarding                       Allowances / Deductions
-Identity Verification              Disbursements                      Loans & Advances
-                                   Final Settlement                   Statutory Returns
-                                                                      Pension Trustees
+Identity Verification              Settlement→GL posting              Loans & Advances
+                                   Disbursements                      Statutory Returns
+                                   Final Settlement                   Remittance Tracking
+                                                                      Pension Trustees (Tier-1/2/3)
 
    ┌──────────────────────────┬──────────────────────────┬──────────────────────────┐
    ▼                          ▼                          ▼                          ▼
@@ -49,7 +50,8 @@ Shifts                     Cycles / Reviews             Tickets                 
 Attendance                 Goals / Check-ins            Complaints (public ref)    Enrolments
 Corrections                Contracts (dual-sign)        Whistleblower (anon)       Certifications
 Public Holidays            Calibration / 9-box          Incident Reports           Skills Matrix
-Biometric                  PIPs                         Announcements
+Biometric                  PIPs                         Announcements              Compliance enforcement
+                                                                                   Course prerequisites
 
    ┌──────────────────────────┬──────────────────────────┬──────────────────────────┐
    ▼                          ▼                          ▼                          ▼
@@ -60,6 +62,17 @@ Assignments                Versions / Routing         Audit Logs (hash-chained) 
 Maintenance                Annotations                Auditor-General Pack        Webhooks (in/out)
 Benefit Plans              Composer (PDF)             Data Subject Requests       Integrations (OAuth)
 Claims / E-cards
+
+   ┌──────────────────────────────────────────────────────────────────────────────┐
+   ▼
+Finance & Ledger
+────────────────
+Chart of Accounts                  Universal Posting (single PostingService choke point)
+Posting Accounts map               Fiscal Periods & Month-end Close
+Ledger Balances                    Subledger Reconciliation (AP / AR / payroll)
+Financial Statements (P&L,         Budgeting
+  Balance Sheet, Cash Flow,        Finance Analytics Dashboard
+  Trial Balance)
 ```
 
 ---
@@ -192,6 +205,22 @@ draft  → calculating → calculated → approved → paid
 ```
 
 Every transition writes an `audit_logs` row in the tamper-evident chain.
+
+**Statutory coverage:** all four pension tiers are live — PAYE (effective-dated brackets), SSNIT Tier-1 (13%/5.5% + NHIA split), Tier-2 (5% trustee), and **Tier-3 voluntary pension** (percentage election, 16.5% combined relief cap, GL `2230`, per-trustee schedule). Return generation is paired with **remittance submission tracking** (mark-filed write path, period-end + 14-day deadline, overdue posture).
+
+### 4.1a Finance / GL accounting backbone
+
+The general ledger is the single source of truth for all monetary state.
+
+**Components:**
+- `Services/Finance/PostingService` — the **single posting choke point**: every monetary event (payroll, AP, AR, disbursement, off-boarding settlement, bank adjustment) posts a balanced, double-entry journal through this one service. Enforces idempotency and a closed-period guard.
+- `posting_accounts` map — resolves domain events to debit/credit GL accounts (admin-editable).
+- `LedgerBalanceService` — derives balances and the four financial statements (Profit & Loss, Balance Sheet, Cash Flow, Trial Balance).
+- Fiscal periods & **month-end close**, with subledger reconciliation (AP / AR / payroll control accounts vs GL).
+- Budgeting and a **finance analytics dashboard** (Chart.js / vue-chartjs).
+- **Settlement→GL posting:** off-boarding final settlement posts through the same `PostingService` choke point.
+
+**Invariant:** ALL monetary events post balanced journal entries through the single `PostingService` choke point; no module writes ledger rows directly. The choke point provides idempotency (replayed events do not double-post) and a closed-period guard (no posting into a closed fiscal period).
 
 ### 4.2 Whistleblower module (anonymity-preserving)
 
@@ -368,6 +397,7 @@ Examples: payroll approve/reverse/disburse, loan decide/disburse, off-boarding s
 - **Shared primitives**: `StatusBadge`, `EmptyState`, `Pagination`, `SlidePanel`, `KanbanBoard`, `StatCard`, `ProgressRing`, `Modal`, `Tabs`.
 - **Inertia link** for client-side nav; **`useForm`** for state.
 - **Ziggy** for route generation on the client.
+- **Chart.js + vue-chartjs** for analytics charting (finance analytics dashboard, reports).
 
 ### 8.2 Design system
 

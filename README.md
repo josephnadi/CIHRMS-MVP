@@ -1,10 +1,10 @@
 # CIHRMS — CIHRM Ghana Human Resource Management System
 
-A modular HRMS MVP covering employees, leave, tickets, payroll, recruitment, governance, performance, and integrations.
+A modular HRMS MVP covering employees, leave, tickets, payroll, recruitment, governance, performance, integrations, a full Finance/GL accounting suite (chart of accounts, AP/AR, journal engine, fiscal periods & close, financial statements, budgeting, analytics dashboard), onboarding & off-boarding lifecycles, learning (with compliance & prerequisites), loans, disbursements, attendance, identity/Ghana-Card, DPA/privacy, and whistleblower.
 
-> **Stack:** Laravel 13.8 (PHP 8.3, CI on 8.4) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · PostgreSQL (production) / SQLite (dev) · Pest 4
+> **Stack:** Laravel 13.8 (PHP 8.3, CI on 8.4) · Vue 3 · Inertia.js v2 · Tailwind CSS v3 · Chart.js + vue-chartjs · PostgreSQL (production) / SQLite (dev) · Pest 4
 > **Auth model:** Staff ID + Full Name (not email) · DB-backed RBAC layered over a legacy `User.role` enum
-> **Last reviewed:** 2026-05-23 — post Documents v2, Finance F1–F5 + Paystack, Chat redesign, gamified sound pack
+> **Last reviewed:** 2026-06-20 — post Finance accounting backbone (Universal Posting, Fiscal Periods & Close, Financial Statements, Budgeting, Analytics Dashboard), onboarding/off-boarding lifecycles, LMS compliance, and functional QA hardening
 
 ---
 
@@ -78,7 +78,10 @@ Backend-complete (controllers, services, routes, resources):
 - **Complaints / Governance** — complaint log + status workflow
 - **Performance** — review cycles, goals, goal check-ins, reviews
 - **Documents v2** — upload + in-portal composer + sequential routing (sign/review/approve), **manipulable annotations** (drag/resize/rotate signatures and stamps), **stamp asset library** (personal/department/organization PNG uploads), **letterhead templates** (replaces hardcoded letterhead), **watermark templates** (per-document `watermark_id` + `none|on_burn|always` mode). Edit/Delete/Share (user/department/org audiences) with confidentiality guard.
-- **Finance** — Chart of Accounts (F1), Accounts Payable + Journal Engine (F2), Accounts Receivable + customer statements (F3), **Paystack hosted-checkout gateway** (F4: payment links, webhook signature verification, refund flow), Bank Reconciliation (F5: CSV/OFX/MT940 import + 3-tier matching + bank-adjustment journal entries).
+- **Finance** — Chart of Accounts (F1), Accounts Payable + Journal Engine (F2), Accounts Receivable + customer statements (F3), **Paystack hosted-checkout gateway** (F4: payment links, webhook signature verification, refund flow), Bank Reconciliation (F5: CSV/OFX/MT940 import + 3-tier matching + bank-adjustment journal entries). **GL-as-single-source accounting backbone**: **Universal Posting** (`PostingService` single choke point + posting-account map + admin UI), **Fiscal Periods & Close** (fiscal calendar, closed-period guard, journal immutability, close/reopen/lock, subledger reconciliation), **Financial Statements** (Trial Balance, P&L, Balance Sheet, Cash Flow direct+indirect, drill-down, CSV/PDF), **Budgeting** (annual budgets per account, budget-vs-actuals, soft controls), and a **Finance Analytics Dashboard** (KPIs + Chart.js charts, filters, CSV/PDF/PNG export, `finance.analytics.view` permission).
+- **Onboarding** — onboarding lifecycle auto-initiated on hire with course auto-enrolment.
+- **Learning / LMS** — courses with **compliance enforcement** (mandatory requirements by role/department, auto-assign + due dates + overdue dashboard + reminders) and **prerequisites** (self-enrol enforcement).
+- **Statutory & pension** — statutory remittance tracking (mark-filed, period-end+14 deadline, overdue posture) and **Tier-3 voluntary pension** (percentage election, 16.5% combined relief cap, GL 2230, per-trustee schedule).
 - **Internal Chat** — 1:1 messaging with optimistic send, 4-second polling, day separators, post-send dedupe, and a single-column scrollable directory.
 - **Notifications** — multi-channel delivery with consent tracking; pluggable **sound packs** (musical / cinematic / gamified) with file-override architecture for production-grade UI audio.
 - **Audit Logs** — queued write, RBAC-gated viewing
@@ -102,7 +105,7 @@ Authorization is layered:
 composer test    # config:clear + artisan test
 ```
 
-Pest 4. As of 2026-05-23: **895 tests / ~2,950 assertions passing** on both SQLite (dev) and PostgreSQL (CI on PHP 8.4). Coverage spans every module: auth, employees, leave, tickets, complaints, recruitment, performance, payments, payroll, documents (annotations, stamps, letterheads, watermarks, shares), finance (F1–F5 including Paystack webhook signature verification), policies, audit, and webhook signature verification for all integration providers. Filter examples: `php artisan test --filter=Documents`, `--filter=Finance`, `--filter=Stamp|Letterhead|Watermark`.
+Pest 4. As of 2026-06-20: **~1,414 tests / ~4,925 assertions passing** on both SQLite (dev) and PostgreSQL (CI on PHP 8.4). Coverage spans every module: auth, employees, leave, tickets, complaints, recruitment, performance, payments, payroll, documents (annotations, stamps, letterheads, watermarks, shares), finance (F1–F5 plus Universal Posting, Fiscal Periods & Close, Financial Statements, Budgeting, Analytics Dashboard, and Paystack webhook signature verification), onboarding/off-boarding, LMS compliance & prerequisites, statutory remittance and Tier-3 pension, policies, audit, and webhook signature verification for all integration providers. Filter examples: `php artisan test --filter=Documents`, `--filter=Finance`, `--filter=Stamp|Letterhead|Watermark`.
 
 > **PHP 8.5 local note:** the `laravel/pao` stream-filter is excluded from auto-discovery to unblock 8.5 boot. CI runs on 8.4 where the issue does not apply.
 

@@ -2,6 +2,16 @@
 
 All notable changes to this dossier are listed here.
 
+## [v1.1] — 2026-06-20 — Finance accounting backbone + lifecycle/talent modules + QA hardening
+
+- **Finance "GL as single source of monetary throughput"** — four complete phases: **Universal Posting** (`PostingService` single choke point + posting-account map + admin UI); **Fiscal Periods & Close** (fiscal calendar, closed-period guard, journal immutability, close/reopen/lock, subledger reconciliation); **Financial Statements** (Trial Balance, P&L, Balance Sheet, Cash Flow direct+indirect, drill-down, CSV/PDF); **Budgeting** (annual budgets per account, budget-vs-actuals, soft controls).
+- **Settlement → GL** — off-boarding final settlement now posts accrual + payment journal entries (termination-benefit expenses 5130–5134, PAYE / loan / deductions / net-pay), reversal, and additive disbursement tracking.
+- **Finance Analytics Dashboard** — KPIs + Chart.js charts (first charting lib added) + filters + CSV/PDF/PNG export; dedicated `finance.analytics.view` permission.
+- **Statutory remittance tracking** (mark-filed + period-end+14 deadline + overdue posture) and **Tier-3 voluntary pension** (percentage election, 16.5% combined relief cap, GL 2230, per-trustee schedule).
+- **Onboarding lifecycle module** (auto-initiate on hire, course auto-enrol); **LMS compliance enforcement** (mandatory requirements by role/dept, auto-assign + due dates + overdue dashboard + reminders); **course prerequisites** (self-enrol enforcement).
+- **Functional QA pass** — static wiring audit + 4 module audits → fixed 25 form/CRUD defects (broken leave apply, document upload/delete, governance acknowledge, loan disburse, CoA archive 500, leave balance engine corrected to per-type statutory entitlements + working-days basis, disbursement dispatch UI so payroll money can be sent, shift edit/delete, leave comment/attachment).
+- **Tests:** 895 → **1,414 Pest** / ~4,925 assertions, green on the SQLite + PostgreSQL CI matrix.
+
 ## [v1.0] — 2026-05-25 — Release
 
 - **Built `build/CIHRMS_Delivery_Dossier_v1.0.docx` (851 KB).** All 49 source files compile via Pandoc with the brand-styled `reference.docx`.
