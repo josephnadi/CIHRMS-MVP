@@ -180,6 +180,7 @@ class RolePermissionSeeder extends Seeder
         'finance.period.reopen' => ['Finance', 'Reopen a closed fiscal period'],
         'finance.period.lock'   => ['Finance', 'Permanently lock a fiscal period (post-audit)'],
         'finance.reports.view'  => ['Finance', 'View financial statements (trial balance, P&L, balance sheet, cash flow)'],
+        'finance.analytics.view' => ['Finance', 'View the finance analytics dashboard (KPIs, charts)'],
         'finance.budget.manage' => ['Finance', 'Create / edit / approve annual budgets'],
 
         // ── F2: Finance — Accounts Payable + Journal Engine ──
@@ -329,6 +330,7 @@ class RolePermissionSeeder extends Seeder
             'finance.posting_rules.manage',
             'finance.period.view', 'finance.period.close', 'finance.period.reopen',
             'finance.reports.view',
+            'finance.analytics.view',
             'finance.budget.manage',
             // F2 — Accounts Payable & Journal
             'vendors.view', 'vendors.manage',
@@ -383,6 +385,7 @@ class RolePermissionSeeder extends Seeder
             // F1 — Finance read-only oversight
             'accounts.view', 'bank_accounts.view',
             'finance.reports.view',
+            'finance.analytics.view',
             // F2 — Read-only oversight
             'vendors.view', 'ap_invoices.view', 'journal.view',
             // F3 — Read-only oversight
