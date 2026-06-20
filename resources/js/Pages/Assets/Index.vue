@@ -95,7 +95,7 @@ function submitAssign() {
 function unassignAsset(asset) {
     if (! asset.current_assignment?.id) return;
     const condition = window.prompt(
-        `Return ${asset.asset_tag} — ${asset.name}?\n\nCondition on return (good / fair / damaged / lost):`,
+        `Return ${asset.asset_tag} — ${asset.name}?\n\nCondition on return (good / fair / poor / damaged):`,
         'good',
     );
     if (! condition) return;

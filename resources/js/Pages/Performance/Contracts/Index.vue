@@ -468,7 +468,7 @@ const editorialMetrics = computed(() => {
                         <textarea aria-label="KPIs (JSON array)"
                             v-model="form.kpis"
                             rows="6"
-                            placeholder='[{"title":"Reduce report turnaround","weight":30,"target_value":3,"unit":"days"}]'
+                            placeholder='[{"name":"Reduce report turnaround","weight":100,"target":3,"unit":"days"}]'
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[12px] font-mono text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
                         />
                     </div>

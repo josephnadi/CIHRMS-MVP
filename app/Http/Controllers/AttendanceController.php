@@ -253,16 +253,36 @@ class AttendanceController extends Controller
         return back()->with('success', 'Shift assigned');
     }
 
-    public function correctionsIndex(): \Inertia\Response
+    public function correctionsIndex(\Illuminate\Http\Request $request): \Inertia\Response
     {
-        abort_unless(request()->user()?->hasPermission('attendance.approve'), 403);
+        abort_unless($request->user()?->hasPermission('attendance.approve'), 403);
+
+        $search = $request->query('search');
+        $status = $request->query('status');
+
+        $corrections = AttendanceCorrection::with(['employee:id,employee_no,position', 'requester:id,name', 'reviewer:id,name'])
+            ->when($status, fn ($q, $v) => $q->where('status', $v))
+            ->when($search, function ($q, $v) {
+                $needle = '%' . strtolower((string) $v) . '%';
+                $q->where(function ($q) use ($needle) {
+                    $q->whereHas('employee', fn ($e) => $e->whereRaw('LOWER(employee_no) LIKE ?', [$needle]))
+                      ->orWhereHas('requester', fn ($u) => $u->whereRaw('LOWER(name) LIKE ?', [$needle]));
+                });
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $weekAgo = now()->subWeek();
 
         return \Inertia\Inertia::render('Attendance/Corrections', [
-            'corrections' => AttendanceCorrectionResource::collection(
-                AttendanceCorrection::with(['employee:id,employee_no,position', 'requester:id,name', 'reviewer:id,name'])
-                    ->latest()
-                    ->paginate(20)
-            ),
+            'corrections'  => AttendanceCorrectionResource::collection($corrections),
+            'filters'      => ['search' => $search, 'status' => $status],
+            'stats'        => [
+                'pending'       => AttendanceCorrection::where('status', 'pending')->count(),
+                'approved_week' => AttendanceCorrection::where('status', 'approved')->where('reviewed_at', '>=', $weekAgo)->count(),
+                'rejected_week' => AttendanceCorrection::where('status', 'rejected')->where('reviewed_at', '>=', $weekAgo)->count(),
+            ],
             'activeModule' => 'attendance-corrections',
         ]);
     }

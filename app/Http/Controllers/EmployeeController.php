@@ -13,6 +13,7 @@ use App\Http\Resources\DepartmentResource;
 use App\Http\Resources\EmployeeResource;
 use App\Models\BenefitPlan;
 use App\Models\Employee;
+use App\Models\EmployeeDocument;
 use App\Models\EmployeeSkill;
 use App\Services\EmployeeService;
 use Illuminate\Http\RedirectResponse;
@@ -48,6 +49,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('Employees/Show', [
             'employee'     => new EmployeeResource($this->employees->find($employee->id)),
+            'departments'  => \App\Models\Department::orderBy('name')->get(['id', 'name']),
             'activeModule' => 'employees',
         ]);
     }
@@ -79,6 +81,27 @@ class EmployeeController extends Controller
         $this->employees->uploadDocument($request, $employee);
 
         return back()->with('success', 'Document uploaded successfully.');
+    }
+
+    public function deleteDocument(Request $request, Employee $employee, EmployeeDocument $document): RedirectResponse
+    {
+        abort_unless($document->employee_id === $employee->id, 404);
+
+        // Same authorisation as upload: manage permission, the employee's
+        // department head, or the employee themselves.
+        $user = $request->user();
+        abort_unless(
+            $user && (
+                $user->hasPermission('employees.manage')
+                || $user->managesDepartment($employee->department_id)
+                || $employee->user_id === $user->id
+            ),
+            403,
+        );
+
+        $this->employees->deleteDocument($employee, $document);
+
+        return back()->with('success', 'Document deleted.');
     }
 
     public function uploadAvatar(UploadAvatarRequest $request, Employee $employee): RedirectResponse
@@ -120,7 +143,7 @@ class EmployeeController extends Controller
 
         $data = $request->validate([
             'name'        => ['required', 'string', 'max:120'],
-            'code'        => ['nullable', 'string', 'max:20'],
+            'code'        => ['required', 'string', 'max:20', \Illuminate\Validation\Rule::unique('departments', 'code')->ignore($department->id)],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 

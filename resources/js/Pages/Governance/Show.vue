@@ -16,8 +16,9 @@ const props = defineProps({
 const ackForm = useForm({ signed_full_name: '' });
 
 function submitAck() {
-    if (! props.current?.id) return;
-    ackForm.post(route('governance.versions.ack', props.current.id), {
+    const versionId = props.current?.data?.id ?? props.current?.id;
+    if (! versionId) return;
+    ackForm.post(route('governance.versions.ack', versionId), {
         preserveScroll: true,
         onSuccess: () => ackForm.reset(),
     });

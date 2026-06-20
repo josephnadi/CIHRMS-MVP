@@ -86,6 +86,7 @@ const submitFiled = (rt) => fileForm.post(
                     <label class="block text-xs font-medium text-slate-600 mb-1">Reversal reason (required if reversing)</label>
                     <textarea aria-label="Reversal reason (required if reversing)" v-model="reverseForm.reason" rows="2"
                               class="w-full rounded-lg border-slate-200"></textarea>
+                    <p v-if="reverseForm.errors.reason" class="mt-1 text-xs text-rose-600">{{ reverseForm.errors.reason }}</p>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100">

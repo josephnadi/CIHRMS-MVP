@@ -40,7 +40,7 @@ class UpdateOrgBankAccountRequest extends FormRequest
             'account_number'  => [
                 'required', 'string', 'max:64',
                 Rule::unique('org_bank_accounts')
-                    ->where(fn ($q) => $q->where('bank_name', $this->input('bank_name')))
+                    ->where(fn ($q) => $q->where('bank_name', $this->input('bank_name'))->whereNull('deleted_at'))
                     ->ignore($id),
             ],
             'sort_code'       => ['nullable', 'string', 'max:20'],
