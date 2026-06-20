@@ -9,14 +9,14 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\User;
 
-function makeCourse(): Course
+function makeComplianceReqCourse(): Course
 {
     return Course::create(['title' => 'DPA Refresher', 'category' => 'compliance',
         'is_published' => true, 'created_by' => User::factory()->create()->id]);
 }
 
 it('matches all-staff, role, and department targets', function () {
-    $course = makeCourse();
+    $course = makeComplianceReqCourse();
     $deptA = Department::factory()->create();
     $deptB = Department::factory()->create();
 

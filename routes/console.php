@@ -77,3 +77,7 @@ Schedule::command('messaging:fire-due-broadcasts')
 // employees a requirement targets (catches new hires + requirement edits).
 // Idempotent: re-running never duplicates enrolments or moves due dates.
 Schedule::command('compliance:sync')->dailyAt('06:00')->withoutOverlapping();
+
+// Learning compliance — daily reminder to employees with overdue mandatory
+// training. Soft enforcement: surfaces an inbox nudge, never blocks access.
+Schedule::command('compliance:remind')->dailyAt('07:00')->withoutOverlapping();

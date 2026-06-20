@@ -393,7 +393,9 @@ Route::middleware(['auth'])->group(function () {
         // Certifications
         Route::post('/certifications',          [LearningController::class, 'storeCertification'])->name('certifications.store');
 
-        // Compliance requirements (HR/LD) — create + auto-sync mandatory training
+        // Compliance requirements (HR/LD) — dashboard + create + auto-sync mandatory training
+        Route::get('compliance',                [\App\Http\Controllers\Learning\ComplianceController::class, 'index'])
+            ->middleware('permission:learning.compliance.manage')->name('compliance.index');
         Route::post('compliance',               [\App\Http\Controllers\Learning\ComplianceController::class, 'store'])
             ->middleware('permission:learning.compliance.manage')->name('compliance.store');
     });

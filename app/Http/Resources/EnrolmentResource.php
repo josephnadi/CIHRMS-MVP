@@ -13,6 +13,13 @@ class EnrolmentResource extends JsonResource
             'id'             => $this->id,
             'course_id'      => $this->course_id,
             'employee_id'    => $this->employee_id,
+            'requirement_id' => $this->requirement_id,
+            'due_at'         => $this->due_at?->toIso8601String(),
+            'is_mandatory'   => $this->requirement_id !== null,
+            'is_overdue'     => $this->requirement_id !== null
+                && $this->due_at !== null
+                && $this->due_at->isPast()
+                && $this->status?->value !== 'completed',
             'status'         => $this->status?->value,
             'status_label'   => $this->status?->label(),
             'status_color'   => $this->status?->color(),
