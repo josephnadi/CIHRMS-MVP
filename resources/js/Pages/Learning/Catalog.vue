@@ -14,8 +14,23 @@ const props = defineProps({
     courses:      Object, // paginated: { data: [], links: [], meta: {} }
     filters:      Object, // { search, category, format }
     canManage:    Boolean,
+    completedCourseIds: { type: Array, default: () => [] },
     activeModule: String,
 });
+
+// ── Prerequisites ─────────────────────────────────────────────────────────────
+// Prerequisite courses the viewer has NOT completed yet (locks the course).
+const lockedPrereqs = (course) =>
+    (course.prerequisites ?? []).filter(p => !props.completedCourseIds.includes(p.id));
+
+const isLocked = (course) => lockedPrereqs(course).length > 0;
+
+const prereqNames = (course) => (course.prerequisites ?? []).map(p => p.title).join(', ');
+
+const lockedLabel = (course) => {
+    const names = lockedPrereqs(course).map(p => p.title).join(', ');
+    return `Locked — complete prerequisite course${lockedPrereqs(course).length === 1 ? '' : 's'} first: ${names}`;
+};
 
 // ── Auth permissions ────────────────────────────────────────────────────────
 const page = usePage();
@@ -135,6 +150,7 @@ const createForm = useForm({
     price:            0,
     currency:         'GHS',
     skill_tags:       [],
+    prerequisite_ids: [],
     is_published:     true,
 });
 
@@ -150,15 +166,44 @@ const removeTag = (t) => {
     createForm.skill_tags = createForm.skill_tags.filter(x => x !== t);
 };
 
+// ── Prerequisite selector (other courses) ─────────────────────────────────────
+// The course currently being edited (if any) is excluded so it can't require itself.
+const editingCourseId = ref(null);
+const prereqOptions = computed(() =>
+    list.value.filter(c => c.id !== editingCourseId.value),
+);
+const prereqSelect = ref('');
+const addPrerequisite = () => {
+    const id = Number(prereqSelect.value);
+    if (id && !createForm.prerequisite_ids.includes(id)) {
+        createForm.prerequisite_ids.push(id);
+    }
+    prereqSelect.value = '';
+};
+const removePrerequisite = (id) => {
+    createForm.prerequisite_ids = createForm.prerequisite_ids.filter(x => x !== id);
+};
+const prereqTitle = (id) => list.value.find(c => c.id === id)?.title ?? `#${id}`;
+
 const submitCreate = () => {
-    createForm.post(route('learning.courses.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            showCreate.value = false;
-            createForm.reset();
-            createForm.skill_tags = [];
-        },
-    });
+    const action = editingCourseId.value
+        ? createForm.patch(route('learning.courses.update', editingCourseId.value), {
+            preserveScroll: true,
+            onSuccess: resetCreate,
+        })
+        : createForm.post(route('learning.courses.store'), {
+            preserveScroll: true,
+            onSuccess: resetCreate,
+        });
+    return action;
+};
+
+const resetCreate = () => {
+    showCreate.value = false;
+    editingCourseId.value = null;
+    createForm.reset();
+    createForm.skill_tags = [];
+    createForm.prerequisite_ids = [];
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -444,16 +489,25 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 </span>
                             </div>
 
+                            <!-- Prerequisites -->
+                            <div v-if="c.prerequisites?.length" class="mt-3 flex items-start gap-1.5 text-[11px]"
+                                 :class="isLocked(c) ? 'text-amber-700' : 'text-on-surface-variant/60'">
+                                <span class="material-symbols-outlined text-[14px] mt-px">{{ isLocked(c) ? 'lock' : 'check_circle' }}</span>
+                                <span><span class="font-bold">Requires:</span> {{ prereqNames(c) }}</span>
+                            </div>
+
                             <!-- CTA footer -->
                             <div class="mt-3 flex items-center gap-2 border-t border-outline-variant/30 pt-3" @click.stop>
                                 <button
                                     @click="enrol(c, $event)"
-                                    :disabled="!c.is_published && !canManage"
-                                    class="btn-shimmer flex-1 rounded-xl px-3 py-2 text-[12px] font-bold text-white disabled:opacity-50 transition-all"
+                                    :disabled="(!c.is_published && !canManage) || (isLocked(c) && !canManage)"
+                                    :aria-label="isLocked(c) && !canManage ? lockedLabel(c) : (c.my_enrolment ? 'Continue course' : 'Enrol in course')"
+                                    :title="isLocked(c) && !canManage ? lockedLabel(c) : undefined"
+                                    class="btn-shimmer flex-1 rounded-xl px-3 py-2 text-[12px] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                                 >
-                                    <span class="material-symbols-outlined text-[14px] mr-1 align-middle">add_task</span>
-                                    {{ c.my_enrolment ? 'Continue' : 'Enrol' }}
+                                    <span class="material-symbols-outlined text-[14px] mr-1 align-middle">{{ isLocked(c) && !canManage ? 'lock' : 'add_task' }}</span>
+                                    {{ isLocked(c) && !canManage ? 'Locked' : (c.my_enrolment ? 'Continue' : 'Enrol') }}
                                 </button>
 
                                 <button
@@ -592,10 +646,14 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <div v-if="selectedCourse.prerequisites?.length">
                         <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70 mb-2.5">Prerequisites</p>
                         <ul class="space-y-1.5">
-                            <li v-for="p in selectedCourse.prerequisites" :key="p"
-                                class="flex items-start gap-2 text-[12px] text-on-surface-variant">
-                                <span class="material-symbols-outlined text-[14px] text-on-surface-variant/40 mt-0.5">check_circle</span>
-                                {{ p }}
+                            <li v-for="p in selectedCourse.prerequisites" :key="p.id"
+                                class="flex items-start gap-2 text-[12px]"
+                                :class="completedCourseIds.includes(p.id) ? 'text-on-surface-variant' : 'text-amber-700'">
+                                <span class="material-symbols-outlined text-[14px] mt-0.5"
+                                      :class="completedCourseIds.includes(p.id) ? 'text-emerald-600' : 'text-amber-600'">
+                                    {{ completedCourseIds.includes(p.id) ? 'check_circle' : 'lock' }}
+                                </span>
+                                {{ p.title }}
                             </li>
                         </ul>
                     </div>
@@ -611,12 +669,14 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         <button
                             v-if="selectedCourse"
                             @click="enrol(selectedCourse, $event); showDetailPanel = false"
-                            :disabled="!selectedCourse.is_published && !canManage"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
+                            :disabled="(!selectedCourse.is_published && !canManage) || (isLocked(selectedCourse) && !canManage)"
+                            :aria-label="isLocked(selectedCourse) && !canManage ? lockedLabel(selectedCourse) : 'Enrol in course'"
+                            :title="isLocked(selectedCourse) && !canManage ? lockedLabel(selectedCourse) : undefined"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60 disabled:cursor-not-allowed"
                             style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
-                            <span class="material-symbols-outlined text-[16px]">add_task</span>
-                            Enrol Now
+                            <span class="material-symbols-outlined text-[16px]">{{ isLocked(selectedCourse) && !canManage ? 'lock' : 'add_task' }}</span>
+                            {{ isLocked(selectedCourse) && !canManage ? 'Locked' : 'Enrol Now' }}
                         </button>
                     </div>
                 </template>
@@ -734,6 +794,37 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             />
                         </div>
                         <p class="mt-1 text-[11px] text-on-surface-variant/60">Press Enter or comma to add a skill tag</p>
+                    </div>
+
+                    <!-- Prerequisites -->
+                    <div>
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Prerequisite Courses</label>
+                        <div class="flex flex-wrap items-center gap-1.5 rounded-xl border border-outline-variant bg-surface-container-low p-2.5 min-h-[42px]">
+                            <span
+                                v-for="id in createForm.prerequisite_ids"
+                                :key="id"
+                                class="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-[11px] font-bold text-secondary"
+                            >
+                                {{ prereqTitle(id) }}
+                                <button type="button" @click="removePrerequisite(id)" class="hover:text-red-500 transition-colors">
+                                    <span class="material-symbols-outlined text-[12px]">close</span>
+                                </button>
+                            </span>
+                            <select aria-label="Prerequisite courses"
+                                v-model="prereqSelect"
+                                @change="addPrerequisite"
+                                class="flex-1 min-w-[160px] bg-transparent px-1 py-0.5 text-[12px] text-on-surface focus:outline-none"
+                            >
+                                <option value="">Add a prerequisite course…</option>
+                                <option
+                                    v-for="opt in prereqOptions"
+                                    :key="opt.id"
+                                    :value="opt.id"
+                                    :disabled="createForm.prerequisite_ids.includes(opt.id)"
+                                >{{ opt.title }}</option>
+                            </select>
+                        </div>
+                        <p class="mt-1 text-[11px] text-on-surface-variant/60">Learners must complete these before they can self-enrol.</p>
                     </div>
 
                     <!-- Publish toggle -->

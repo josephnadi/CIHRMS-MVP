@@ -28,6 +28,13 @@ class UpdateCourseRequest extends FormRequest
             'currency'         => ['nullable', 'string', 'size:3'],
             'skill_tags'       => ['nullable', 'array', 'max:20'],
             'skill_tags.*'     => ['string', 'max:60'],
+            'prerequisite_ids'   => ['nullable', 'array'],
+            'prerequisite_ids.*' => [
+                'integer',
+                'exists:courses,id',
+                // A course can never be its own prerequisite.
+                Rule::notIn([$this->route('course')?->id]),
+            ],
             'is_published'     => ['boolean'],
         ];
     }
