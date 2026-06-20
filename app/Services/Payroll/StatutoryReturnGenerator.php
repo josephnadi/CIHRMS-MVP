@@ -21,7 +21,7 @@ class StatutoryReturnGenerator
 {
     public function generateAll(PayrollRun $run): Collection
     {
-        $lines = $run->lines()->with(['employee.user', 'employee.tier2Trustee'])->calculated()->get();
+        $lines = $run->lines()->with(['employee.user', 'employee.tier2Trustee', 'employee.tier3Trustee'])->calculated()->get();
 
         $generated = collect();
 
@@ -29,6 +29,7 @@ class StatutoryReturnGenerator
         $generated->push($this->generateSsnitTier1($run, $lines));
         $generated->push($this->generateNhiaSplit($run, $lines));
         $generated->push(...$this->generateTier2PerTrustee($run, $lines));
+        $generated->push(...$this->generateTier3PerTrustee($run, $lines));
         $generated->push($this->generateBankFile($run, $lines));
 
         return $generated->filter()->values();
@@ -118,6 +119,43 @@ class StatutoryReturnGenerator
                 $columns,
                 $rows,
                 (float) $group->sum('tier2_employer'),
+                (int) $trusteeId,
+            );
+        }
+
+        return $records;
+    }
+
+    /** @return array<int, StatutoryReturn> */
+    public function generateTier3PerTrustee(PayrollRun $run, Collection $lines): array
+    {
+        $byTrustee = $lines
+            ->filter(fn (PayrollLine $line) => (float) $line->tier3_employee > 0)
+            ->groupBy(fn (PayrollLine $line) => $line->employee?->tier3_trustee_id ?? 'unassigned');
+
+        $records = [];
+
+        foreach ($byTrustee as $trusteeId => $group) {
+            if ($trusteeId === 'unassigned') {
+                continue; // Unassigned employees flagged in the run summary, not in returns
+            }
+
+            $columns = ['Trustee Reference', 'Staff ID', 'Full Name', 'Basic', 'Tier-3', 'Period'];
+            $rows = $group->map(fn (PayrollLine $line) => [
+                $line->employee?->tier3Trustee?->npra_license_number ?? '',
+                $line->employee?->employee_no ?? '',
+                $line->employee?->user?->name ?? '',
+                $this->fmt($line->basic),
+                $this->fmt($line->tier3_employee),
+                $run->periodLabel(),
+            ])->all();
+
+            $records[] = $this->writeFile(
+                $run,
+                StatutoryReturnKind::Tier3,
+                $columns,
+                $rows,
+                (float) $group->sum('tier3_employee'),
                 (int) $trusteeId,
             );
         }

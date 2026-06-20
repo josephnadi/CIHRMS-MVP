@@ -73,6 +73,8 @@ class Employee extends Model
         'step_anniversary_date',
         // Pension
         'tier2_trustee_id',
+        'tier3_rate',
+        'tier3_trustee_id',
         // Disbursement preference (cash | bank_transfer | mobile_money | ghipss)
         'disbursement_channel',
         // Integrations
@@ -86,6 +88,7 @@ class Employee extends Model
             'date_of_birth'         => 'date',
             'step_anniversary_date' => 'date',
             'salary'                => 'decimal:2',
+            'tier3_rate'            => 'decimal:4',
             'current_step'          => 'integer',
             'status'                => EmployeeStatus::class,
         ];
@@ -188,6 +191,11 @@ class Employee extends Model
     public function tier2Trustee(): BelongsTo
     {
         return $this->belongsTo(PensionTrustee::class, 'tier2_trustee_id');
+    }
+
+    public function tier3Trustee(): BelongsTo
+    {
+        return $this->belongsTo(PensionTrustee::class, 'tier3_trustee_id');
     }
 
     public function allowances(): HasMany

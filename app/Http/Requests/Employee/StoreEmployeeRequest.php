@@ -67,6 +67,10 @@ class StoreEmployeeRequest extends FormRequest
                     }
                 },
             ],
+
+            // ── Tier-3 voluntary pension election ──
+            'tier3_rate'       => ['nullable', 'numeric', 'min:0', 'max:0.5'],
+            'tier3_trustee_id' => ['nullable', 'integer', 'exists:pension_trustees,id'],
         ];
     }
 }

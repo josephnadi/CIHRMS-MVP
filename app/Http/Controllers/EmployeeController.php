@@ -32,6 +32,10 @@ class EmployeeController extends Controller
             'benefitPlans' => BenefitPlanResource::collection(
                 BenefitPlan::active()->orderBy('name')->get()
             ),
+            // Active pension trustees for the Tier-3 voluntary-election select.
+            'pensionTrustees' => \App\Models\PensionTrustee::active()
+                ->orderBy('name')
+                ->get(['id', 'name', 'npra_license_number']),
             'stats'        => $this->employees->stats($request),
             'filters'      => $request->only(['search', 'department_id', 'status']),
             'activeModule' => 'employees',

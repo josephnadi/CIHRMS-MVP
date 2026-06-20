@@ -17,6 +17,7 @@ const props = defineProps({
     employees:    Object, // paginated: { data: [], links: [], meta: { total, from, to } }
     departments:  { type: [Object, Array], default: () => [] }, // Resource collection {data:[…]} or bare array
     benefitPlans: { type: [Object, Array], default: () => [] }, // active plans for the create panel
+    pensionTrustees: { type: [Object, Array], default: () => [] }, // active trustees for the Tier-3 select
     stats:        { type: Object, default: () => ({}) },
     filters:      Object, // { search, department_id, status }
     activeModule: String,
@@ -27,6 +28,14 @@ const benefitPlans = computed(() => {
     const b = props.benefitPlans;
     if (Array.isArray(b)) return b;
     if (b && Array.isArray(b.data)) return b.data;
+    return [];
+});
+
+// Normalise pensionTrustees the same way benefitPlans are handled.
+const pensionTrustees = computed(() => {
+    const t = props.pensionTrustees;
+    if (Array.isArray(t)) return t;
+    if (t && Array.isArray(t.data)) return t.data;
     return [];
 });
 
@@ -105,6 +114,9 @@ const form = useForm({
     phone:         '',
     status:        'active',
     benefit_plan_ids: [],
+    // Tier-3 voluntary pension election. Stored as a fraction (e.g. 0.05 = 5%).
+    tier3_rate:       '',
+    tier3_trustee_id: '',
 });
 
 const togglePlan = (id) => {
@@ -932,6 +944,34 @@ const formatDate = (d) => {
                             </label>
                         </div>
                         <p v-if="form.errors['benefit_plan_ids.0']" class="text-[11px] text-red-500">{{ form.errors['benefit_plan_ids.0'] }}</p>
+                    </div>
+
+                    <!-- Tier-3 voluntary pension election -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Tier-3 voluntary %</label>
+                            <input aria-label="Tier-3 voluntary rate"
+                                v-model="form.tier3_rate"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="0.5"
+                                placeholder="e.g. 0.05 = 5%"
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            />
+                            <p v-if="form.errors.tier3_rate" class="mt-1 text-[11px] text-red-500">{{ form.errors.tier3_rate }}</p>
+                        </div>
+                        <div>
+                            <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Tier-3 trustee</label>
+                            <select aria-label="Tier-3 trustee"
+                                v-model="form.tier3_trustee_id"
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            >
+                                <option value="">— None —</option>
+                                <option v-for="trustee in pensionTrustees" :key="trustee.id" :value="trustee.id">{{ trustee.name }}</option>
+                            </select>
+                            <p v-if="form.errors.tier3_trustee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.tier3_trustee_id }}</p>
+                        </div>
                     </div>
                 </form>
 
