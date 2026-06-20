@@ -277,6 +277,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IncidentReport::class,            IncidentReportPolicy::class);
         Gate::policy(\App\Models\IncidentReportAttachment::class, IncidentReportPolicy::class);
         Gate::policy(\App\Models\OffboardingCase::class,     \App\Policies\OffboardingCasePolicy::class);
+        Gate::policy(\App\Models\OnboardingCase::class,      \App\Policies\OnboardingCasePolicy::class);
         Gate::policy(\App\Models\WhistleblowerReport::class, \App\Policies\WhistleblowerReportPolicy::class);
         Gate::policy(\App\Models\PerformanceContract::class, \App\Policies\PerformanceContractPolicy::class);
         Gate::policy(\App\Models\CalibrationSession::class,  \App\Policies\CalibrationSessionPolicy::class);
