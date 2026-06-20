@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -53,6 +54,22 @@ class Course extends Model
     public function certifications(): HasMany
     {
         return $this->hasMany(Certification::class);
+    }
+
+    public function prerequisites(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_prerequisites', 'course_id', 'prerequisite_course_id');
+    }
+
+    /** Prerequisite courses this employee has NOT completed. */
+    public function unmetPrerequisitesFor(Employee $employee): \Illuminate\Support\Collection
+    {
+        $completed = \App\Models\Enrolment::query()
+            ->where('employee_id', $employee->id)
+            ->where('status', \App\Enums\EnrolmentStatus::Completed->value)
+            ->pluck('course_id');
+
+        return $this->prerequisites()->whereNotIn('courses.id', $completed)->get();
     }
 
     public function creator(): BelongsTo
