@@ -97,9 +97,15 @@ enum Permission: string
     case ApiTokenManage          = 'api.token_manage';
     case ApiWebhooksManage       = 'api.webhooks_manage';
 
+    case PerformanceView            = 'performance.view';
+    case PerformanceManage          = 'performance.manage';
     case PerformanceCalibrate       = 'performance.calibrate';
     case PerformanceCalibrateApply  = 'performance.calibrate_apply';
     case PerformancePipManage       = 'performance.pip_manage';
+
+    case LearningView               = 'learning.view';
+    case LearningManage             = 'learning.manage';
+    case LearningComplianceManage   = 'learning.compliance.manage';
 
     case AssetsView              = 'assets.view';
     case AssetsManage            = 'assets.manage';

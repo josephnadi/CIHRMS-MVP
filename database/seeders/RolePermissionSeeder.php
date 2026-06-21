@@ -101,7 +101,9 @@ class RolePermissionSeeder extends Seeder
         'offboarding.approve'    => ['Off-boarding', 'Approve final settlements (dual control)'],
         'offboarding.manage'     => ['Off-boarding', 'Complete, cancel, and administer cases'],
 
-        // ── Learning: compliance / mandatory training ──
+        // ── Learning & Development ──
+        'learning.view'              => ['Learning', 'View the learning catalogue, own enrolments and skills'],
+        'learning.manage'            => ['Learning', 'Manage courses, the skills matrix and assignments'],
         'learning.compliance.manage' => ['Learning', 'Manage mandatory-training compliance requirements + dashboard'],
 
         // ── Phase 2: Onboarding ──
@@ -128,6 +130,8 @@ class RolePermissionSeeder extends Seeder
         'api.webhooks_manage'       => ['API',     'Register and manage webhook subscriptions'],
 
         // ── Phase 2: Performance Management completion ──
+        'performance.view'            => ['Performance', 'View performance contracts, reviews, calibration and PIPs'],
+        'performance.manage'          => ['Performance', 'Create / edit performance contracts and record evaluations'],
         // Calibration uses dual-control: facilitator locks, a different user applies.
         'performance.calibrate'       => ['Performance', 'Facilitate calibration sessions and record adjustments'],
         'performance.calibrate_apply' => ['Performance', 'Apply locked calibration adjustments (dual control)'],
@@ -253,8 +257,8 @@ class RolePermissionSeeder extends Seeder
             'offboarding.view', 'offboarding.initiate', 'offboarding.clear',
             'offboarding.settle', 'offboarding.manage',
             'onboarding.view', 'onboarding.initiate', 'onboarding.complete', 'onboarding.manage',
-            'performance.calibrate', 'performance.pip_manage',
-            'learning.compliance.manage',
+            'performance.view', 'performance.manage', 'performance.calibrate', 'performance.pip_manage',
+            'learning.view', 'learning.manage', 'learning.compliance.manage',
             'assets.view', 'assets.manage', 'assets.assign',
             'messaging.view', 'messaging.send', 'messaging.manage',
             'broadcasts.view', 'broadcasts.manage', 'broadcasts.bypass_throttle',
@@ -277,7 +281,8 @@ class RolePermissionSeeder extends Seeder
             'complaints.create', 'recruitment.apply',
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
-            'learning.compliance.manage',
+            'performance.view', 'performance.manage',
+            'learning.view', 'learning.manage', 'learning.compliance.manage',
             'assets.view', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
@@ -293,7 +298,8 @@ class RolePermissionSeeder extends Seeder
             'positions.view',
             'attendance.view', 'attendance.clock_self',
             'attendance.approve', 'attendance.correct',
-            'learning.compliance.manage',
+            'performance.view', 'performance.manage',
+            'learning.view', 'learning.manage', 'learning.compliance.manage',
             'assets.view', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
@@ -304,6 +310,7 @@ class RolePermissionSeeder extends Seeder
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
             'attendance.clock_self', 'attendance.correct',
             'loans.apply',
+            'performance.view', 'learning.view',
             'assets.view',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
@@ -319,6 +326,7 @@ class RolePermissionSeeder extends Seeder
             'payroll.disburse',
             'offboarding.view', 'offboarding.settle', 'offboarding.approve',
             'onboarding.view',
+            'learning.view',
             'assets.view',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
@@ -357,6 +365,7 @@ class RolePermissionSeeder extends Seeder
             'leave.request', 'tickets.create', 'tickets.manage',
             'complaints.create', 'recruitment.apply',
             'attendance.correct',
+            'learning.view',
             'assets.view', 'assets.manage', 'assets.assign',
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
@@ -367,6 +376,7 @@ class RolePermissionSeeder extends Seeder
             'reports.view', 'audit.view',
             'payroll.view_all', 'positions.view', 'identity.view', 'statutory.export',
             'attendance.view', 'attendance.correct',
+            'learning.view',
             'assets.view',
             // Whistleblower: read-only access for independent oversight.
             // Auditor can ALSO investigate when designated by the org as the
