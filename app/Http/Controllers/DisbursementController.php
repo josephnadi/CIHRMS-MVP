@@ -67,4 +67,18 @@ class DisbursementController extends Controller
 
         return back()->with('success', "Reconciliation: {$touched} disbursement(s) updated.");
     }
+
+    /**
+     * Operator confirmation that the sponsor bank settled the overnight GhIPSS
+     * batch. GhIPSS has no per-row status API, so this is the only way those
+     * rows reach Settled and post their net-pay-payable clearing JEs.
+     */
+    public function confirmGhipss(Request $request, PayrollRun $run): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('payroll.disburse'), 403);
+
+        $settled = $this->batch->confirmGhipssSettlement($run);
+
+        return back()->with('success', "GhIPSS settlement confirmed: {$settled} disbursement(s) settled.");
+    }
 }

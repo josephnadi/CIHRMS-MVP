@@ -236,6 +236,37 @@ class BatchDisbursementService
         return true;
     }
 
+    /**
+     * GhIPSS is a bulk-file rail with no per-row status API — `reconcile()`
+     * polling can never flip those rows to Settled, so without this the
+     * net-pay-payable they cleared at accrual would grow unbounded. After the
+     * sponsor bank confirms the overnight batch landed, an operator calls this:
+     * each Sent GhIPSS row for the run flips to Settled and posts its settlement
+     * JE (DR net-pay payable / CR bank). Idempotent — already-Settled rows are
+     * not in the Sent set, and settle()'s PostingService key blocks re-posting.
+     */
+    public function confirmGhipssSettlement(PayrollRun $run): int
+    {
+        $rows = Disbursement::where('payroll_run_id', $run->id)
+            ->where('channel', DisbursementChannel::GhipssAch->value)
+            ->where('status', DisbursementStatus::Sent->value)
+            ->get();
+
+        $settled = 0;
+        foreach ($rows as $d) {
+            DB::transaction(function () use ($d) {
+                $d->update([
+                    'status'     => DisbursementStatus::Settled->value,
+                    'settled_at' => now(),
+                ]);
+                $this->settle($d);
+            });
+            $settled++;
+        }
+
+        return $settled;
+    }
+
     private function settle(Disbursement $d): void
     {
         // Settlement disbursements are additive tracking only — the final-settlement

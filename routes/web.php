@@ -639,6 +639,8 @@ Route::middleware(['auth'])->group(function () {
             ->middleware(['permission:payroll.disburse', '2fa:fresh'])->name('dispatch');
         Route::post('runs/{run}/reconcile',      [DisbursementController::class, 'reconcile'])
             ->middleware('permission:payroll.disburse')->name('reconcile');
+        Route::post('runs/{run}/confirm-ghipss', [DisbursementController::class, 'confirmGhipss'])
+            ->middleware('permission:payroll.disburse')->name('confirm-ghipss');
     });
 
     // ── Phase 3: SMS / USSD message log (WS18) ──
