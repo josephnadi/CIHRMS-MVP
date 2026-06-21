@@ -11,9 +11,10 @@ enum ClaimStatus: string
     case Approved  = 'approved';
     case Rejected  = 'rejected';
     case Paid      = 'paid';
+    case Withdrawn = 'withdrawn';
 
     public function isDecided(): bool
     {
-        return in_array($this, [self::Approved, self::Rejected, self::Paid], true);
+        return in_array($this, [self::Approved, self::Rejected, self::Paid, self::Withdrawn], true);
     }
 }

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
@@ -104,11 +104,12 @@ const statusTone = {
     approved:   'bg-emerald-50 text-emerald-700 border-emerald-200',
     rejected:   'bg-rose-50 text-rose-700 border-rose-200',
     paid:       'bg-sky-50 text-sky-700 border-sky-200',
+    withdrawn:  'bg-slate-50 text-slate-600 border-slate-200',
 };
 const statusDot = {
     active: '#16a34a', suspended: '#d97706', terminated: '#dc2626',
     submitted: '#1a237e', reviewing: '#d97706', approved: '#16a34a',
-    rejected: '#dc2626', paid: '#12d9e3',
+    rejected: '#dc2626', paid: '#12d9e3', withdrawn: '#64748b',
 };
 
 // ── Filters ──
@@ -142,10 +143,59 @@ const submitEnrol = () => enrolForm.post(route('benefits.enrol'), {
     preserveScroll: true,
     onSuccess: () => { showEnrol.value = false; enrolForm.reset(); },
 });
-const submitDependant = () => dependantForm.post(route('benefits.dependants.store'), {
-    preserveScroll: true,
-    onSuccess: () => { showDependant.value = false; dependantForm.reset(); },
-});
+
+// Open the enrol panel pre-pointed at a specific plan (from the catalogue).
+const enrolInPlan = (plan) => {
+    enrolForm.reset();
+    enrolForm.clearErrors();
+    enrolForm.plan_id = plan.id;
+    showEnrol.value = true;
+};
+
+// ── Dependant create / edit / delete ──
+const editingDependantId = ref(null);
+const openAddDependant = () => {
+    editingDependantId.value = null;
+    dependantForm.reset();
+    dependantForm.clearErrors();
+    showDependant.value = true;
+};
+const openEditDependant = (d) => {
+    editingDependantId.value = d.id;
+    dependantForm.clearErrors();
+    Object.assign(dependantForm, {
+        full_name: d.full_name, relationship: d.relationship ?? 'spouse',
+        date_of_birth: d.date_of_birth ?? '', national_id: d.national_id ?? '',
+        gender: d.gender ?? '', is_covered: !!d.is_covered,
+    });
+    showDependant.value = true;
+};
+const submitDependant = () => {
+    if (editingDependantId.value) {
+        dependantForm.patch(route('benefits.dependants.update', editingDependantId.value), {
+            preserveScroll: true,
+            onSuccess: () => { showDependant.value = false; editingDependantId.value = null; dependantForm.reset(); },
+        });
+    } else {
+        dependantForm.post(route('benefits.dependants.store'), {
+            preserveScroll: true,
+            onSuccess: () => { showDependant.value = false; dependantForm.reset(); },
+        });
+    }
+};
+const deleteDependant = (d) => {
+    if (!confirm(`Remove ${d.full_name} from your dependants?`)) return;
+    router.delete(route('benefits.dependants.destroy', d.id), { preserveScroll: true });
+};
+
+// ── Claim withdraw + detail expand ──
+const expandedClaimId = ref(null);
+const toggleClaim = (c) => { expandedClaimId.value = expandedClaimId.value === c.id ? null : c.id; };
+const canWithdraw = (c) => ['submitted', 'reviewing'].includes(c.status);
+const withdrawClaim = (c) => {
+    if (!confirm(`Withdraw claim ${c.claim_reference}? This cannot be undone.`)) return;
+    router.patch(route('benefits.claims.withdraw', c.id), {}, { preserveScroll: true });
+};
 const openClaim = (enrolment) => {
     claimEnrolment.value = enrolment;
     claimForm.enrolment_id = enrolment.id;
@@ -323,6 +373,53 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                 </div>
             </section>
 
+            <!-- ── Available plans catalogue ── -->
+            <section v-if="planRows.length">
+                <div class="flex items-end justify-between mb-3">
+                    <div>
+                        <h2 class="text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant/70">Available plans</h2>
+                        <p class="text-[12px] text-on-surface-variant mt-0.5">Institutional schemes you can enrol in — health, life, provident, dental and more.</p>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-secondary">{{ planRows.length }} plan{{ planRows.length === 1 ? '' : 's' }}</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="(p, i) in planRows" :key="p.id"
+                         class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 flex flex-col transition-all hover:-translate-y-0.5 hover:shadow-md"
+                         :style="`animation:slideUpFade 0.4s ease both;animation-delay:${i*0.05}s;border-left:3px solid ${typeMeta(p.type).color};`">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg flex-shrink-0" :style="`background:${typeMeta(p.type).color}15`">
+                                <span class="material-symbols-outlined text-[15px]" :style="`color:${typeMeta(p.type).color};font-variation-settings:'FILL' 1`">{{ typeMeta(p.type).icon }}</span>
+                            </span>
+                            <span class="text-[10px] font-black uppercase tracking-widest" :style="`color:${typeMeta(p.type).color}`">{{ typeMeta(p.type).label }}</span>
+                        </div>
+                        <h3 class="text-[14px] font-black text-primary leading-tight">{{ p.name }}</h3>
+                        <p v-if="p.provider" class="text-[11px] text-on-surface-variant mt-0.5">{{ p.provider }}</p>
+                        <p v-if="p.cover_details || p.description" class="text-[12px] text-on-surface-variant mt-2 leading-relaxed line-clamp-3">{{ p.cover_details || p.description }}</p>
+                        <dl class="mt-3 space-y-1 text-[12px]">
+                            <div class="flex justify-between">
+                                <dt class="text-on-surface-variant">Monthly cost</dt>
+                                <dd class="font-mono font-black" style="color:#ffd700">{{ fmtGhs(p.monthly_cost) }}</dd>
+                            </div>
+                            <div v-if="p.employee_contribution_percentage" class="flex justify-between">
+                                <dt class="text-on-surface-variant">Your share</dt>
+                                <dd class="font-bold text-primary">{{ p.employee_contribution_percentage }}%</dd>
+                            </div>
+                            <div v-if="p.max_dependants" class="flex justify-between">
+                                <dt class="text-on-surface-variant">Max dependants</dt>
+                                <dd class="font-bold text-primary">{{ p.max_dependants }}</dd>
+                            </div>
+                        </dl>
+                        <div class="mt-4 pt-3 border-t border-outline-variant/40">
+                            <button v-if="canEnrol" @click="enrolInPlan(p)" type="button"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-secondary/40 bg-secondary/5 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-secondary hover:bg-secondary/10 transition-colors">
+                                <span class="material-symbols-outlined text-[13px]">add_card</span>
+                                Enrol
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- ── Enrolments ── -->
             <section>
                 <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
@@ -424,7 +521,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                             <span class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">My dependants</span>
                             <span class="rounded-full bg-cyan-50 border border-cyan-200 px-2 py-0.5 text-[10px] font-black text-cyan-700">{{ stats.dependants }}</span>
                         </div>
-                        <button v-if="canEnrol" @click="showDependant = true" type="button"
+                        <button v-if="canEnrol" @click="openAddDependant" type="button"
                                 class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-primary hover:bg-surface-container-low transition-colors">
                             <span class="material-symbols-outlined text-[13px]">person_add</span>
                             Add dependant
@@ -445,6 +542,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                 <th class="p-3">DOB</th>
                                 <th class="p-3">National ID</th>
                                 <th class="p-3 text-center">Covered</th>
+                                <th v-if="canEnrol" class="p-3 text-right pr-6">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -459,6 +557,12 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                         Covered
                                     </span>
                                     <span v-else class="text-[10px] font-bold uppercase text-on-surface-variant">—</span>
+                                </td>
+                                <td v-if="canEnrol" class="p-3 pr-6 text-right whitespace-nowrap">
+                                    <button @click="openEditDependant(d)" type="button"
+                                            class="text-[11px] font-black uppercase tracking-wide text-blue-700 hover:underline">Edit</button>
+                                    <button @click="deleteDependant(d)" type="button"
+                                            class="ml-3 text-[11px] font-black uppercase tracking-wide text-rose-600 hover:underline">Delete</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -491,21 +595,57 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                 <th class="p-3 text-right">Amount</th>
                                 <th class="p-3">Submitted</th>
                                 <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-right pr-6">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="c in claimRows" :key="c.id" class="border-t border-outline-variant/40 hover:bg-surface-container-low/20 transition-colors">
-                                <td class="p-3 pl-6 font-mono text-[11.5px] font-bold text-primary">{{ c.claim_reference }}</td>
-                                <td class="p-3 text-[12px]">{{ c.enrolment?.plan_name ?? '—' }}</td>
-                                <td class="p-3 text-right font-mono font-black text-primary">{{ c.currency }} {{ Number(c.amount).toFixed(2) }}</td>
-                                <td class="p-3 text-[12px]">{{ fmtDate(c.claim_date) }}</td>
-                                <td class="p-3 text-center">
-                                    <span :class="['inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider', statusTone[c.status]]">
-                                        <span class="h-1.5 w-1.5 rounded-full" :style="`background:${statusDot[c.status]}`"></span>
-                                        {{ c.status }}
-                                    </span>
-                                </td>
-                            </tr>
+                            <template v-for="c in claimRows" :key="c.id">
+                                <tr class="border-t border-outline-variant/40 hover:bg-surface-container-low/20 transition-colors cursor-pointer"
+                                    @click="toggleClaim(c)">
+                                    <td class="p-3 pl-6 font-mono text-[11.5px] font-bold text-primary">
+                                        <span class="material-symbols-outlined align-middle text-[15px] text-on-surface-variant/60 transition-transform"
+                                              :style="expandedClaimId === c.id ? 'transform:rotate(90deg)' : ''">chevron_right</span>
+                                        {{ c.claim_reference }}
+                                    </td>
+                                    <td class="p-3 text-[12px]">{{ c.enrolment?.plan_name ?? '—' }}</td>
+                                    <td class="p-3 text-right font-mono font-black text-primary">{{ c.currency }} {{ Number(c.amount).toFixed(2) }}</td>
+                                    <td class="p-3 text-[12px]">{{ fmtDate(c.claim_date) }}</td>
+                                    <td class="p-3 text-center">
+                                        <span :class="['inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider', statusTone[c.status]]">
+                                            <span class="h-1.5 w-1.5 rounded-full" :style="`background:${statusDot[c.status]}`"></span>
+                                            {{ c.status }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3 pr-6 text-right whitespace-nowrap">
+                                        <button @click.stop="toggleClaim(c)" type="button"
+                                                class="text-[11px] font-black uppercase tracking-wide text-on-surface-variant hover:underline">
+                                            {{ expandedClaimId === c.id ? 'Hide' : 'Details' }}
+                                        </button>
+                                        <button v-if="canWithdraw(c)" @click.stop="withdrawClaim(c)" type="button"
+                                                class="ml-3 text-[11px] font-black uppercase tracking-wide text-rose-600 hover:underline">Withdraw</button>
+                                    </td>
+                                </tr>
+                                <tr v-if="expandedClaimId === c.id" class="bg-surface-container-low/40">
+                                    <td colspan="6" class="px-6 py-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-[12px]">
+                                            <div class="md:col-span-2">
+                                                <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Description</p>
+                                                <p class="text-on-surface leading-relaxed">{{ c.description || '—' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Decision</p>
+                                                <p class="text-on-surface capitalize">{{ c.status }}</p>
+                                                <p v-if="c.decided_by" class="text-on-surface-variant mt-0.5">by {{ c.decided_by }}</p>
+                                                <p v-if="c.decision_at" class="text-on-surface-variant">on {{ fmtDate(c.decision_at) }}</p>
+                                                <div v-if="c.decision_notes" class="mt-2">
+                                                    <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-0.5">Reviewer note</p>
+                                                    <p class="text-on-surface italic">"{{ c.decision_notes }}"</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
                         </tbody>
                     </table>
                 </div>
@@ -562,7 +702,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
         </SlidePanel>
 
         <!-- ── Dependant slide-panel ── -->
-        <SlidePanel :open="showDependant" title="Add dependant" size="lg" @close="showDependant = false">
+        <SlidePanel :open="showDependant" :title="editingDependantId ? 'Edit dependant' : 'Add dependant'" size="lg" @close="showDependant = false">
             <form @submit.prevent="submitDependant" class="space-y-5 p-6">
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Full name <span class="text-rose-500">*</span></label>
@@ -601,6 +741,11 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                     <input aria-label="National ID (optional)" v-model="dependantForm.national_id" maxlength="32"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
                 </div>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" v-model="dependantForm.is_covered" aria-label="Covered under plan"
+                           class="rounded border-outline-variant text-secondary focus:ring-secondary/30" />
+                    <span class="text-[12px] font-bold text-on-surface">Covered under plan</span>
+                </label>
             </form>
             <template #footer>
                 <div class="flex items-center justify-end gap-3">
@@ -613,7 +758,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                             style="background:linear-gradient(135deg,#1a237e,#3949ab)">
                         <span v-if="dependantForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
                         <span v-else class="material-symbols-outlined text-[16px]">person_add</span>
-                        Add dependant
+                        {{ editingDependantId ? 'Save changes' : 'Add dependant' }}
                     </button>
                 </div>
             </template>

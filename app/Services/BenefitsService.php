@@ -124,6 +124,27 @@ class BenefitsService
         return $claim->fresh();
     }
 
+    /**
+     * Claimant withdraws their own claim while it is still in flight
+     * (Submitted or Reviewing). A decided claim — approved/paid/rejected — can
+     * no longer be withdrawn.
+     */
+    public function withdrawClaim(BenefitClaim $claim, User $actor): BenefitClaim
+    {
+        if (! in_array($claim->status, [ClaimStatus::Submitted, ClaimStatus::Reviewing], true)) {
+            throw new DomainException("Claim {$claim->claim_reference} is {$claim->status->value}; only a submitted or reviewing claim can be withdrawn.");
+        }
+
+        $claim->update([
+            'status'         => ClaimStatus::Withdrawn,
+            'decision_at'    => now(),
+            'decision_notes' => 'Withdrawn by claimant',
+            'decided_by'     => $actor->id,
+        ]);
+
+        return $claim->fresh();
+    }
+
     public function providentFundView(Employee $employee): array
     {
         $providentEnrolments = $employee->benefitEnrolments()

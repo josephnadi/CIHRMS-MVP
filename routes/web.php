@@ -823,6 +823,8 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:benefits.manage')->name('index');
             Route::post('/',                  [BenefitsController::class, 'submitClaim'])
                 ->middleware('permission:benefits.claim')->name('store');
+            Route::patch('/{claim}/withdraw', [BenefitsController::class, 'withdrawClaim'])
+                ->middleware('permission:benefits.claim')->name('withdraw');
             Route::patch('/{claim}/decide',   [BenefitsController::class, 'decideClaim'])
                 ->middleware('permission:benefits.manage')->name('decide');
         });

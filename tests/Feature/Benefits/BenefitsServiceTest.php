@@ -69,6 +69,61 @@ it('rejects more dependants than plan allows', function () {
     ]))->toThrow(\DomainException::class, 'cap');
 });
 
+it('lets a claimant withdraw a submitted or reviewing claim', function () {
+    $emp  = Employee::factory()->create();
+    $user = $emp->user;
+    $plan = BenefitPlan::create([
+        'name' => 'Health', 'code' => 'HLTH-WD', 'type' => 'health_insurance',
+        'monthly_cost' => 200, 'effective_from' => '2026-01-01', 'max_dependants' => 2,
+    ]);
+    $enrolment = app(BenefitsService::class)->enrol($plan, $emp, new \DateTimeImmutable('2026-02-01'));
+    $claim = app(BenefitsService::class)->submitClaim($enrolment, ['amount' => 150, 'description' => 'Outpatient visit']);
+
+    $withdrawn = app(BenefitsService::class)->withdrawClaim($claim, $user);
+
+    expect($withdrawn->status)->toBe(ClaimStatus::Withdrawn)
+        ->and($withdrawn->decided_by)->toBe($user->id);
+});
+
+it('refuses to withdraw a decided (approved/rejected/paid) claim', function () {
+    $emp  = Employee::factory()->create();
+    $hr   = User::factory()->create(['role' => 'hr_admin']);
+    $plan = BenefitPlan::create([
+        'name' => 'Health', 'code' => 'HLTH-WD2', 'type' => 'health_insurance',
+        'monthly_cost' => 200, 'effective_from' => '2026-01-01', 'max_dependants' => 2,
+    ]);
+    $enrolment = app(BenefitsService::class)->enrol($plan, $emp, new \DateTimeImmutable('2026-02-01'));
+    $claim = app(BenefitsService::class)->submitClaim($enrolment, ['amount' => 150, 'description' => 'Outpatient visit']);
+    app(BenefitsService::class)->decideClaim($claim, ClaimStatus::Rejected, $hr);
+
+    expect(fn () => app(BenefitsService::class)->withdrawClaim($claim->fresh(), $emp->user))
+        ->toThrow(DomainException::class);
+});
+
+it('the withdraw endpoint is owner-guarded', function () {
+    $emp  = Employee::factory()->create();
+    $emp->user->update(['permissions' => ['benefits.claim']]); // pass the route middleware
+    $plan = BenefitPlan::create([
+        'name' => 'Health', 'code' => 'HLTH-WD3', 'type' => 'health_insurance',
+        'monthly_cost' => 200, 'effective_from' => '2026-01-01', 'max_dependants' => 2,
+    ]);
+    $enrolment = app(BenefitsService::class)->enrol($plan, $emp, new \DateTimeImmutable('2026-02-01'));
+    $claim = app(BenefitsService::class)->submitClaim($enrolment, ['amount' => 150, 'description' => 'Outpatient visit']);
+
+    // A different employee (with the claim permission) cannot withdraw it.
+    $intruder = User::factory()->create(['role' => 'employee', 'permissions' => ['benefits.claim']]);
+    Employee::factory()->create(['user_id' => $intruder->id]);
+    $this->actingAs($intruder)
+        ->patch(route('benefits.claims.withdraw', $claim))
+        ->assertForbidden();
+
+    // The owner can.
+    $this->actingAs($emp->user)
+        ->patch(route('benefits.claims.withdraw', $claim))
+        ->assertRedirect();
+    expect($claim->fresh()->status)->toBe(ClaimStatus::Withdrawn);
+});
+
 it('generates a CLM- reference on submit', function () {
     $emp = Employee::factory()->create();
     $plan = BenefitPlan::create([

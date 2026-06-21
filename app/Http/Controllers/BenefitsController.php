@@ -181,6 +181,22 @@ class BenefitsController extends Controller
         return back()->with('success', 'Claim decision recorded.');
     }
 
+    public function withdrawClaim(Request $request, BenefitClaim $claim)
+    {
+        // Only the claimant (owner of the enrolment) may withdraw their own claim.
+        $employee = $request->user()->employee;
+        $claim->loadMissing('enrolment');
+        abort_unless($employee && $claim->enrolment?->employee_id === $employee->id, 403);
+
+        try {
+            $this->service->withdrawClaim($claim, $request->user());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Claim withdrawn.');
+    }
+
     public function downloadECard(Request $request, BenefitEnrolment $enrolment)
     {
         $this->authorize('viewEnrolment', $enrolment);
