@@ -83,6 +83,34 @@ it('super_admin can create a super_admin account with employee profile', functio
     expect($emp->employee_no)->toMatch('/^CIHRM-\d{4}$/');
 });
 
+it('hr_admin (users.manage) cannot create a super_admin account', function () {
+    $hr = User::factory()->create(['role' => 'hr_admin']);
+
+    $this->actingAs($hr)
+        ->post('/admin/users', basePayload([
+            'email'    => 'escalate@cihrm.local',
+            'staff_id' => 'ESC-001',
+            'role'     => 'super_admin',
+        ]))
+        ->assertSessionHasErrors('role');
+
+    expect(User::where('email', 'escalate@cihrm.local')->exists())->toBeFalse();
+});
+
+it('hr_admin cannot create a CEO account either', function () {
+    $hr = User::factory()->create(['role' => 'hr_admin']);
+
+    $this->actingAs($hr)
+        ->post('/admin/users', basePayload([
+            'email'    => 'ceo-escalate@cihrm.local',
+            'staff_id' => 'ESC-002',
+            'role'     => 'ceo',
+        ]))
+        ->assertSessionHasErrors('role');
+
+    expect(User::where('email', 'ceo-escalate@cihrm.local')->exists())->toBeFalse();
+});
+
 it('super_admin can create a CEO account with 2FA forced on', function () {
     $admin = User::factory()->create(['role' => 'super_admin']);
 

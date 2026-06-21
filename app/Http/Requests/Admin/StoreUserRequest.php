@@ -58,4 +58,21 @@ class StoreUserRequest extends FormRequest
             $this->merge(['email' => strtolower($this->email)]);
         }
     }
+
+    /**
+     * Privilege-escalation guard: users.manage lets HR/admins create accounts,
+     * but only a super_admin or CEO may mint another super_admin / CEO. Without
+     * this an hr_admin could bootstrap themselves a full-access account.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+            $privileged = [UserRole::SuperAdmin->value, UserRole::Ceo->value];
+
+            if (in_array($this->input('role'), $privileged, true)
+                && ! $this->user()?->hasRole([UserRole::SuperAdmin, UserRole::Ceo])) {
+                $validator->errors()->add('role', 'You are not allowed to assign the super-admin or CEO role.');
+            }
+        });
+    }
 }
