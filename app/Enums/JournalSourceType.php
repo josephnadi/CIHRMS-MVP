@@ -18,6 +18,7 @@ enum JournalSourceType: string
     case LoanRepayment    = 'loan_repayment';
     case MemberFee        = 'member_fee';
     case FinalSettlement  = 'final_settlement';
+    case StatutoryRemittance = 'statutory_remittance';
 
     public function label(): string
     {
@@ -34,6 +35,7 @@ enum JournalSourceType: string
             self::LoanRepayment    => 'Loan Repayment',
             self::MemberFee        => 'Member Fee',
             self::FinalSettlement   => 'Final Settlement',
+            self::StatutoryRemittance => 'Statutory Remittance',
         };
     }
 }

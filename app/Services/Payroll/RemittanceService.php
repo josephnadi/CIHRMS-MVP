@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Payroll;
 
+use App\Enums\JournalSourceType;
+use App\Enums\OrgBankAccountPurpose;
+use App\Models\OrgBankAccount;
 use App\Models\StatutoryRate;
 use App\Models\StatutoryReturn;
 use App\Models\User;
+use App\Services\Finance\Posting\PostingDocument;
+use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\PostingService;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use DomainException;
@@ -21,6 +27,8 @@ use Illuminate\Support\Facades\DB;
 class RemittanceService
 {
     private const DEFAULT_DEADLINE_DAYS = 14;
+
+    public function __construct(private readonly PostingService $posting) {}
 
     public function deadlineDays(CarbonInterface $periodEnd): int
     {
@@ -72,13 +80,73 @@ class RemittanceService
             throw new DomainException('This return has already been recorded as filed.');
         }
 
-        $return->update([
-            'submitted_at'         => $submittedAt ?? CarbonImmutable::now(),
-            'submitted_by'         => $by->id,
-            'submission_reference' => $reference,
-        ]);
+        return DB::transaction(function () use ($return, $by, $reference, $submittedAt) {
+            $return->update([
+                'submitted_at'         => $submittedAt ?? CarbonImmutable::now(),
+                'submitted_by'         => $by->id,
+                'submission_reference' => $reference,
+            ]);
 
-        return $return->fresh();
+            // Clear the accrued liability and move the cash out. If posting is
+            // blocked (closed period, missing bank/account map), the exception
+            // rolls the whole filing back — fail-closed, never off-ledger.
+            $this->postRemittance($return->fresh(), $by);
+
+            return $return->fresh();
+        });
+    }
+
+    /**
+     * DR the statutory liability this return clears, CR the statutory-escrow
+     * bank. Skipped for informational returns (NHIA/bank file) and zero-value
+     * returns. Idempotent via the PostingService source key.
+     */
+    private function postRemittance(StatutoryReturn $return, User $by): void
+    {
+        $slug   = $return->kind->liabilitySlug();
+        $amount = round((float) $return->total_amount, 2);
+
+        if ($slug === null || $amount <= 0.0) {
+            return;
+        }
+
+        $bankGlId = $this->resolveRemittanceBankGlId();
+
+        $this->posting->post(new PostingDocument(
+            sourceType: JournalSourceType::StatutoryRemittance,
+            sourceId: $return->id,
+            purpose: 'remittance',
+            date: CarbonImmutable::now()->toDateString(),
+            narration: "Statutory remittance: {$return->kind->label()} ({$return->submission_reference})",
+            lines: [
+                PostingLine::debit(slug: $slug, amount: $amount, narration: 'Clear statutory liability'),
+                PostingLine::credit(accountId: $bankGlId, amount: $amount, narration: 'Cash out to authority'),
+            ],
+        ), $by);
+    }
+
+    /**
+     * The bank the statutory payment leaves from — the dedicated statutory
+     * escrow account if configured, else the payroll account.
+     */
+    private function resolveRemittanceBankGlId(): int
+    {
+        $bank = OrgBankAccount::query()
+            ->whereIn('purpose', [
+                OrgBankAccountPurpose::StatutoryEscrow->value,
+                OrgBankAccountPurpose::Payroll->value,
+            ])
+            ->where('is_active', true)
+            // Prefer the statutory-escrow account when both exist.
+            ->orderByRaw("CASE WHEN purpose = ? THEN 0 ELSE 1 END", [OrgBankAccountPurpose::StatutoryEscrow->value])
+            ->orderBy('id')
+            ->first();
+
+        if (! $bank || ! $bank->gl_account_id) {
+            throw new DomainException('No active statutory-escrow or payroll bank account is configured; cannot post the remittance.');
+        }
+
+        return (int) $bank->gl_account_id;
     }
 
     /** @return array{generated:int, submitted:int, overdue:int} */

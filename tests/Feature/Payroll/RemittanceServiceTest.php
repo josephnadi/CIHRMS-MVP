@@ -7,10 +7,20 @@ use App\Models\StatutoryReturn;
 use App\Models\User;
 use App\Services\Payroll\RemittanceService;
 use Carbon\CarbonImmutable;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\GhanaStatutoryReferenceSeeder;
+use Database\Seeders\GlAccountBalanceSeeder;
+use Database\Seeders\OrgBankAccountSeeder;
+use Database\Seeders\PostingAccountSeeder;
 
 beforeEach(function () {
     $this->seed(GhanaStatutoryReferenceSeeder::class);
+    // Marking a return filed now posts a remittance JE, so the GL prerequisites
+    // (account map + an active bank account) must exist.
+    (new ChartOfAccountsSeeder())->run();
+    (new GlAccountBalanceSeeder())->run();
+    (new PostingAccountSeeder())->run();
+    (new OrgBankAccountSeeder())->run();
     $this->svc = app(RemittanceService::class);
 });
 

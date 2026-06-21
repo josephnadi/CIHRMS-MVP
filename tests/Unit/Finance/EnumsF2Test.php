@@ -35,10 +35,11 @@ it('JournalSourceType exposes manual + invoice + payment sources', function () {
     // F2 added: manual, vendor_invoice, ap_payment. F3 extended with ar_invoice, ar_receipt. F5 added bank_adjustment.
     // Universal Posting (Phase 1) added: payroll, disbursement, loan_disbursement, loan_repayment, member_fee.
     // Settlement→GL S-1 added: final_settlement.
+    // Audit remediation added: statutory_remittance (clears statutory liabilities on filing).
     expect($values)->toEqualCanonicalizing([
         'manual', 'vendor_invoice', 'ap_payment', 'ar_invoice', 'ar_receipt', 'bank_adjustment',
         'payroll', 'disbursement', 'loan_disbursement', 'loan_repayment', 'member_fee',
-        'final_settlement',
+        'final_settlement', 'statutory_remittance',
     ]);
 });
 

@@ -5,12 +5,21 @@ declare(strict_types=1);
 use App\Models\PayrollRun;
 use App\Models\StatutoryReturn;
 use App\Models\User;
+use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\GhanaStatutoryReferenceSeeder;
+use Database\Seeders\GlAccountBalanceSeeder;
+use Database\Seeders\OrgBankAccountSeeder;
+use Database\Seeders\PostingAccountSeeder;
 use Database\Seeders\RolePermissionSeeder;
 
 beforeEach(function () {
     (new RolePermissionSeeder())->run();
     $this->seed(GhanaStatutoryReferenceSeeder::class);
+    // Filing a return now posts a remittance JE — set up the GL prerequisites.
+    (new ChartOfAccountsSeeder())->run();
+    (new GlAccountBalanceSeeder())->run();
+    (new PostingAccountSeeder())->run();
+    (new OrgBankAccountSeeder())->run();
 });
 
 function seedReturn(): StatutoryReturn

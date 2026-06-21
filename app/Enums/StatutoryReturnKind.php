@@ -30,4 +30,21 @@ enum StatutoryReturnKind: string
             default        => 'csv',
         };
     }
+
+    /**
+     * The payroll liability account slug this return clears when filed, or null
+     * when the return is informational and carries no accrued liability of its
+     * own. NHIA is funded out of the SSNIT contribution (no separate payable),
+     * and the bank file is the net-pay disbursement instruction, not a return.
+     */
+    public function liabilitySlug(): ?string
+    {
+        return match ($this) {
+            self::Paye         => 'payroll.paye_payable',
+            self::SsnitTier1   => 'payroll.ssnit_payable',
+            self::Tier2Trustee => 'payroll.tier2_payable',
+            self::Tier3        => 'payroll.tier3_payable',
+            self::NhiaSplit, self::BankFile => null,
+        };
+    }
 }
