@@ -94,4 +94,18 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => $e->getMessage() ?: 'Error.'], $e->getStatusCode());
             }
         });
+
+        // A service-layer DomainException is a business-rule guard (e.g. "cannot
+        // archive an account with children", "only a calculated run can be
+        // approved"), not a server fault. Surface it as a friendly message
+        // instead of a raw 500: redirect back with a flash error on the web,
+        // 422 JSON on the API. Controllers may still catch it locally for
+        // field-specific errors; this is the safety net for the rest.
+        $exceptions->render(function (\DomainException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $e->getMessage() ?: 'Operation not allowed.'], 422);
+            }
+
+            return back()->with('error', $e->getMessage());
+        });
     })->create();
