@@ -76,6 +76,26 @@ it('is idempotent — running materialise twice does not duplicate rows', functi
     expect(Disbursement::where('payroll_run_id', $this->run->id)->count())->toBe(1);
 });
 
+it('the DB unique index is the hard backstop against a duplicate (run, line)', function () {
+    $line = PayrollLine::where('payroll_run_id', $this->run->id)->first();
+
+    $attrs = [
+        'employee_id'      => $this->employee->id,
+        'channel'          => DisbursementChannel::MtnMomo->value,
+        'status'           => DisbursementStatus::Pending->value,
+        'gross_amount'     => 4125, 'e_levy' => 0, 'provider_fee' => 0,
+        'net_to_recipient' => 4125,
+    ];
+
+    Disbursement::create(['payroll_run_id' => $this->run->id, 'payroll_line_id' => $line->id] + $attrs);
+
+    // A second non-deleted row for the same (run, line) must be rejected by the
+    // partial unique index even if the application-level guard is bypassed.
+    expect(fn () => Disbursement::create(
+        ['payroll_run_id' => $this->run->id, 'payroll_line_id' => $line->id] + $attrs
+    ))->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+});
+
 it('dispatch() routes through the per-channel provider and records the result', function () {
     // Stub provider that always succeeds
     $stub = new class implements DisbursementProvider {

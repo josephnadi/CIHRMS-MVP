@@ -15,6 +15,7 @@ use App\Services\Disbursement\Contracts\DisbursementProvider;
 use App\Services\Finance\Posting\PostingDocument;
 use App\Services\Finance\Posting\PostingLine;
 use App\Services\Finance\PostingService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -54,11 +55,6 @@ class BatchDisbursementService
         // $employee?->user?->name as `beneficiary_name` further down.
         $run->lines()->calculated()->with('employee.user')->chunk(200, function ($lines) use ($run, $eLevyRate, &$created) {
             foreach ($lines as $line) {
-                $exists = Disbursement::where('payroll_run_id', $run->id)
-                    ->where('payroll_line_id', $line->id)
-                    ->exists();
-                if ($exists) continue;
-
                 $employee = $line->employee;
                 $channel  = $this->resolveChannel($employee);
 
@@ -66,20 +62,32 @@ class BatchDisbursementService
                 $eLevy   = $channel->attractsELevy() ? round($gross * $eLevyRate, 2) : 0.0;
                 $netRcv  = round($gross - $eLevy, 2);
 
-                Disbursement::create([
-                    'payroll_run_id'      => $run->id,
-                    'payroll_line_id'     => $line->id,
-                    'employee_id'         => $employee?->id,
-                    'channel'             => $channel->value,
-                    'status'              => DisbursementStatus::Pending->value,
-                    'gross_amount'        => $gross,
-                    'e_levy'              => $eLevy,
-                    'provider_fee'        => 0,
-                    'net_to_recipient'    => $netRcv,
-                    'beneficiary_account' => $this->resolveBeneficiaryAccount($employee, $channel),
-                    'beneficiary_name'    => $employee?->user?->name,
-                ]);
-                $created++;
+                // firstOrCreate keys on (run, line) so a re-run is idempotent;
+                // the partial unique index is the hard backstop against the
+                // check-then-create race. A genuinely concurrent insert loses
+                // the race and throws — treat that as "already materialised".
+                try {
+                    $disbursement = Disbursement::firstOrCreate(
+                        ['payroll_run_id' => $run->id, 'payroll_line_id' => $line->id],
+                        [
+                            'employee_id'         => $employee?->id,
+                            'channel'             => $channel->value,
+                            'status'              => DisbursementStatus::Pending->value,
+                            'gross_amount'        => $gross,
+                            'e_levy'              => $eLevy,
+                            'provider_fee'        => 0,
+                            'net_to_recipient'    => $netRcv,
+                            'beneficiary_account' => $this->resolveBeneficiaryAccount($employee, $channel),
+                            'beneficiary_name'    => $employee?->user?->name,
+                        ]
+                    );
+                } catch (UniqueConstraintViolationException $e) {
+                    continue;
+                }
+
+                if ($disbursement->wasRecentlyCreated) {
+                    $created++;
+                }
             }
         });
 
