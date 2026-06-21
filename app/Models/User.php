@@ -131,7 +131,7 @@ class User extends Authenticatable
         'finance_officer' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
-            'payroll.view', 'payroll.manage', 'payroll.approve', 'payroll.view_all', 'statutory.export',
+            'payroll.view', 'payroll.run', 'payroll.manage', 'payroll.approve', 'payroll.view_all', 'statutory.export',
             'employees.view_salary',
             'attendance.correct',
             'loans.view', 'loans.apply', 'loans.approve', 'loans.disburse',

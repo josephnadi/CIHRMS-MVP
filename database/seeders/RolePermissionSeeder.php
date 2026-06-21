@@ -318,7 +318,7 @@ class RolePermissionSeeder extends Seeder
         'finance_officer' => [
             'dashboard.view',
             'leave.request', 'tickets.create', 'complaints.create', 'recruitment.apply',
-            'payroll.view', 'payroll.manage',
+            'payroll.view', 'payroll.run', 'payroll.manage',
             'payroll.approve', 'payroll.view_all', 'statutory.export', 'statutory.remit',
             'employees.view_salary',
             'attendance.correct',
