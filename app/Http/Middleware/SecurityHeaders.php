@@ -31,6 +31,12 @@ class SecurityHeaders
         'X-Content-Type-Options' => 'nosniff',
         'Referrer-Policy'        => 'strict-origin-when-cross-origin',
         'Permissions-Policy'     => 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()',
+        // Conservative CSP: the defensive directives that cannot break the
+        // Vite/Inertia app or external redirects (Paystack, SAML). We deliberately
+        // do NOT constrain script-src/style-src here — that needs nonce/hash
+        // plumbing and browser verification. frame-ancestors mirrors X-Frame-Options
+        // (clickjacking), base-uri blocks <base> hijacking, object-src kills plugins.
+        'Content-Security-Policy' => "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
     ];
 
     public function handle(Request $request, Closure $next): Response

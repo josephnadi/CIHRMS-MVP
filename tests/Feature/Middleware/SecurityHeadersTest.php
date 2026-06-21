@@ -10,6 +10,11 @@ it('sets default-deny security headers on a normal web response', function () {
     expect($resp->headers->get('X-Content-Type-Options'))->toBe('nosniff');
     expect($resp->headers->get('Referrer-Policy'))->toBe('strict-origin-when-cross-origin');
     expect($resp->headers->get('Permissions-Policy'))->toContain('geolocation=()');
+
+    $csp = $resp->headers->get('Content-Security-Policy');
+    expect($csp)->toContain("frame-ancestors 'none'")
+        ->and($csp)->toContain("base-uri 'self'")
+        ->and($csp)->toContain("object-src 'none'");
 });
 
 it('does not set HSTS on plain HTTP', function () {
