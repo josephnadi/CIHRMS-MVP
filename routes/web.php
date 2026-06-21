@@ -325,13 +325,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{job}/applicants',              [RecruitmentController::class, 'applicants'])
             ->middleware('permission:recruitment.manage')
             ->name('applicants');
-        Route::post('{jobPosting}/apply',           [RecruitmentController::class, 'apply'])
+        Route::post('{job}/apply',                  [RecruitmentController::class, 'apply'])
             ->middleware('permission:recruitment.apply')
             ->name('apply');
     });
     Route::patch('applicants/{applicant}', [RecruitmentController::class, 'updateApplicant'])
         ->middleware('permission:recruitment.manage')
         ->name('applicants.update');
+    Route::get('applicants/{applicant}/cv', [RecruitmentController::class, 'downloadCv'])
+        ->middleware('permission:recruitment.manage')
+        ->name('applicants.cv');
     Route::post('applicants/{applicant}/send-offer', [RecruitmentController::class, 'sendOffer'])
         ->middleware('permission:recruitment.manage')
         ->name('applicants.sendOffer');

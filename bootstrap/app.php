@@ -69,6 +69,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->throttleApi('60,1');
+
+        // Trust the reverse proxy / load balancer in front of the app so HTTPS
+        // detection, client IPs (audit trail + rate limiting), and signed-URL
+        // scheme resolution read the real X-Forwarded-* headers instead of the
+        // proxy's own address. Kept in env so the CIDR list stays out of code;
+        // '*' trusts any proxy and must only be used behind a trusted LB.
+        if ($proxies = env('APP_TRUSTED_PROXIES')) {
+            $middleware->trustProxies(
+                at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)),
+            );
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Return JSON for API routes on auth failures

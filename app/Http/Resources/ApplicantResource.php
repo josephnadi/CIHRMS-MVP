@@ -13,7 +13,8 @@ class ApplicantResource extends JsonResource
             'id'         => $this->id,
             'name'       => $this->name,
             'email'      => $this->email,
-            'cv_path'    => $this->cv_path,
+            // Authorized download URL (private disk); null when no CV uploaded.
+            'cv_url'     => $this->cv_path ? route('applicants.cv', $this->resource) : null,
             'status'     => $this->status?->value,
             'status_label' => $this->status?->label(),
             'job_posting' => $this->whenLoaded('jobPosting', fn () => [

@@ -54,6 +54,21 @@ class RecruitmentController extends Controller
         return back()->with('success', 'Applicant status updated.');
     }
 
+    /**
+     * Stream an applicant's CV from the private disk. The route's
+     * permission:recruitment.manage middleware is the access gate — CVs are PII
+     * and must never be reachable via the public /storage symlink.
+     */
+    public function downloadCv(Applicant $applicant): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        abort_if(
+            ! $applicant->cv_path || ! \Illuminate\Support\Facades\Storage::disk('local')->exists($applicant->cv_path),
+            404,
+        );
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download($applicant->cv_path);
+    }
+
     public function showPublic(JobPosting $job): Response
     {
         return Inertia::render('Careers/Show', [

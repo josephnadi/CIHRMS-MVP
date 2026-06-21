@@ -185,8 +185,8 @@ const initials = (name) => {
                                     <div class="mt-1.5 flex items-center gap-2 flex-wrap">
                                         <span class="text-[10px] text-on-surface-variant/60">{{ daysAgo(item.created_at) }}</span>
                                         <a
-                                            v-if="item.cv_path"
-                                            :href="`/storage/${item.cv_path}`"
+                                            v-if="item.cv_url"
+                                            :href="item.cv_url"
                                             target="_blank"
                                             @click.stop
                                             class="text-[10px] font-semibold text-secondary hover:underline flex items-center gap-0.5"

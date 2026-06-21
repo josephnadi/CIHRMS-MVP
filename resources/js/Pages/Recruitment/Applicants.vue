@@ -221,8 +221,8 @@ const filteredList = computed(() => {
                                         <span class="material-symbols-outlined text-[12px]">schedule</span>
                                         {{ timeAgo(item.created_at) }}
                                     </div>
-                                    <a v-if="item.cv_path"
-                                       :href="`/storage/${item.cv_path}`"
+                                    <a v-if="item.cv_url"
+                                       :href="item.cv_url"
                                        target="_blank"
                                        @click.stop
                                        class="inline-flex items-center gap-1 rounded-md bg-secondary/10 px-1.5 py-0.5 text-[10px] font-bold text-secondary hover:bg-secondary/20 transition-colors">
@@ -275,8 +275,8 @@ const filteredList = computed(() => {
                                     <StatusBadge :status="a.status" type="recruitment" />
                                 </td>
                                 <td class="px-5 py-3.5 hidden md:table-cell">
-                                    <a v-if="a.cv_path"
-                                       :href="`/storage/${a.cv_path}`"
+                                    <a v-if="a.cv_url"
+                                       :href="a.cv_url"
                                        target="_blank"
                                        @click.stop
                                        class="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-[11px] font-bold text-secondary hover:bg-secondary/20">
@@ -356,8 +356,8 @@ const filteredList = computed(() => {
                         </div>
                         <div class="rounded-xl bg-surface-container-low p-3">
                             <p class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50 mb-1">CV / Resume</p>
-                            <a v-if="selected.cv_path"
-                               :href="`/storage/${selected.cv_path}`"
+                            <a v-if="selected.cv_url"
+                               :href="selected.cv_url"
                                target="_blank"
                                class="inline-flex items-center gap-1.5 rounded-lg bg-secondary/10 px-2.5 py-1 text-[11px] font-bold text-secondary hover:bg-secondary/20 transition-colors">
                                 <span class="material-symbols-outlined text-[14px]">download</span>

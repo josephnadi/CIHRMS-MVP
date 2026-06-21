@@ -139,7 +139,7 @@ it('rolls back recordProgress when completion fails', function () {
 // a transaction. If the insert throws, the orphan file must be deleted.
 
 it('deletes the orphan CV when the applicant insert fails', function () {
-    Storage::fake('public');
+    Storage::fake('local');
 
     $job = JobPosting::factory()->create(['status' => JobPostingStatus::Open->value]);
 
@@ -166,7 +166,7 @@ it('deletes the orphan CV when the applicant insert fails', function () {
     expect(Applicant::where('job_posting_id', $job->id)->count())->toBe(0);
 
     // …and no orphan file remains on disk.
-    $allFiles = Storage::disk('public')->files('applicant-cvs');
+    $allFiles = Storage::disk('local')->files('applicant-cvs');
     expect($allFiles)->toBeEmpty();
 });
 

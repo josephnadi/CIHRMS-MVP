@@ -30,8 +30,11 @@ class RecruitmentService
         // Store the CV first, then attempt the DB insert inside a transaction.
         // If the insert (or any subsequent step inside the txn) throws, delete
         // the now-orphaned file so we don't leak storage on rollback.
+        // CVs are PII — they live on the private 'local' disk and are only
+        // reachable through the authorized RecruitmentController::downloadCv
+        // route, never the public /storage symlink.
         $cvPath = $request->hasFile('cv')
-            ? $request->file('cv')->store('applicant-cvs', 'public')
+            ? $request->file('cv')->store('applicant-cvs', 'local')
             : null;
 
         try {
@@ -45,7 +48,7 @@ class RecruitmentService
             });
         } catch (Throwable $e) {
             if ($cvPath) {
-                Storage::disk('public')->delete($cvPath);
+                Storage::disk('local')->delete($cvPath);
             }
             throw $e;
         }
