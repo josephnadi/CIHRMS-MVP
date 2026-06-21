@@ -21,6 +21,25 @@ it('shows the directory excluding the current user', function () {
         );
 });
 
+it('is reachable by every role and the directory spans all roles', function () {
+    // A non-privileged employee must be able to open chat and see people of
+    // EVERY role (admins, finance, support, …) — messaging cuts across roles.
+    $employee = User::factory()->create(['name' => 'Worker One', 'role' => 'employee']);
+    $admin    = User::factory()->create(['name' => 'Admin One',  'role' => 'super_admin']);
+    $finance  = User::factory()->create(['name' => 'Finance One','role' => 'finance_officer']);
+    $support  = User::factory()->create(['name' => 'IT One',     'role' => 'it_support']);
+
+    $res = $this->actingAs($employee)
+        ->get(route('chat.index'))
+        ->assertOk();
+
+    $names = collect($res->viewData('page')['props']['directory']['data'] ?? [])->pluck('name');
+    // Alice/Bob/Eve from beforeEach + the three other-role users are all present;
+    // the employee themselves is excluded.
+    expect($names)->toContain('Admin One', 'Finance One', 'IT One')
+        ->and($names)->not->toContain('Worker One');
+});
+
 it('searching the directory narrows by name', function () {
     $this->actingAs($this->alice)
         ->get(route('chat.index', ['q' => 'Bob']))

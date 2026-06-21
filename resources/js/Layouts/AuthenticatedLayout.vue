@@ -286,6 +286,10 @@ const navSections = computed(() => {
             items: [
                 { label: 'Dashboard',        route: 'dashboard',        module: 'overview',   icon: 'grid_view',      visible: true },
                 { label: 'Tasks',            route: 'modules.tickets',  module: 'tickets',    icon: 'task_alt',       visible: true },
+                // Internal chat is open to every authenticated user (no role gate
+                // on the route) — surface it for non-privileged roles too so all
+                // staff can message each other, not just admins.
+                { label: 'Chat',             route: 'chat.index',       module: 'chat',       icon: 'forum',          visible: true },
                 { label: 'Documents',        route: 'documents.index',  module: 'documents',  icon: 'description',    visible: can('documents.view') },
                 { label: 'Leave & Time-Off', route: 'modules.leave',    module: 'leave',      icon: 'calendar_today', visible: true },
                 { label: 'Benefits',         route: 'benefits.index',   module: 'benefits',   icon: 'diversity_3',    visible: can('benefits.view') || can('benefits.view_all') },
