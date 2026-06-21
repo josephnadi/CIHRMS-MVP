@@ -141,11 +141,16 @@ class ApPaymentService
             // F4-R-era hardening (I4): re-fetch the linked AP invoices with
             // lockForUpdate before mutating amount_paid, so concurrent voids /
             // payment-records can't lose state. Mirrors ArReceiptService::void().
+            // loadMissing keeps the allocation read off the lazy-loading guard;
+            // the locked instances (keyed by id) are the ones we mutate, so the
+            // lock actually protects the write instead of being discarded.
+            $payment->loadMissing('allocations');
             $invoiceIds = $payment->allocations->pluck('vendor_invoice_id')->all();
-            VendorInvoice::whereIn('id', $invoiceIds)->lockForUpdate()->get();
+            $locked = VendorInvoice::whereIn('id', $invoiceIds)->lockForUpdate()->get()->keyBy('id');
 
             foreach ($payment->allocations as $alloc) {
-                $inv = $alloc->invoice;
+                $inv = $locked->get($alloc->vendor_invoice_id);
+                if (! $inv) continue;
                 $inv->amount_paid = (float) $inv->amount_paid - (float) $alloc->allocated_amount;
                 if ($inv->amount_paid < 0) $inv->amount_paid = 0;
                 $inv->status = $inv->amount_paid > 0

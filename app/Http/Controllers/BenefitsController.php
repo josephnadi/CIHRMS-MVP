@@ -50,7 +50,7 @@ class BenefitsController extends Controller
             $data['claims']     = BenefitClaimResource::collection(
                 BenefitClaim::query()
                     ->whereIn('enrolment_id', $employee->benefitEnrolments()->pluck('id'))
-                    ->with(['enrolment.plan', 'decidedBy:id,name'])
+                    ->with(['enrolment.plan', 'enrolment.employee.user', 'decidedBy:id,name'])
                     ->latest('submitted_at')
                     ->limit(50)
                     ->get()

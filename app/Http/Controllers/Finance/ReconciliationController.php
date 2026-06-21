@@ -128,6 +128,8 @@ class ReconciliationController extends Controller
     public function adjust(BankStatementLine $line, PostBankAdjustmentRequest $request): RedirectResponse
     {
         $gl = GlAccount::findOrFail($request->validated('gl_account_id'));
+        // The adjustment service walks line->statement->orgBankAccount->glAccount.
+        $line->loadMissing('statement.orgBankAccount.glAccount');
 
         try {
             $this->adjustments->postAdjustment($line, $gl, $request->user(), $request->validated('narration'));
@@ -140,6 +142,8 @@ class ReconciliationController extends Controller
 
     public function rematch(BankStatement $bankStatement): RedirectResponse
     {
+        // The matcher reads $statement->importer to pick the matching strategy.
+        $bankStatement->loadMissing('importer');
         $counts = $this->matcher->matchUnreconciled($bankStatement);
 
         $linked = $counts['high'] + $counts['medium'] + $counts['low'];

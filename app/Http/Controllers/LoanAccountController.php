@@ -33,7 +33,7 @@ class LoanAccountController extends Controller
         $this->authorize('viewAny', LoanAccount::class);
 
         $loans = LoanAccount::query()
-            ->with(['employee.user', 'product'])
+            ->with(['employee.user', 'product', 'applicant', 'approver'])
             ->when($request->status,     fn ($q, $v) => $q->where('status', $v))
             ->when($request->product_id, fn ($q, $v) => $q->where('product_id', $v))
             ->when($request->q, function ($q, $v) {
@@ -96,7 +96,7 @@ class LoanAccountController extends Controller
     {
         $this->authorize('view', $loan);
 
-        $loan->load(['employee.user', 'product', 'applicant', 'approver', 'disburser']);
+        $loan->load(['employee.user', 'product', 'disburser']);
         $repayments = $loan->repayments()->orderBy('installment_no')->get();
 
         return Inertia::render('Loans/Show', [

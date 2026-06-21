@@ -21,6 +21,10 @@ class RefundController extends Controller
 
     public function store(StoreRefundRequest $request, PaymentIntent $paymentIntent): RedirectResponse
     {
+        // Eager-load the relations the void path walks (matches the bulk path),
+        // so a single refund doesn't trip the strict-mode lazy-load guard.
+        $paymentIntent->load(['receipt.journalEntry', 'receipt.allocations']);
+
         try {
             $this->refunds->refund($paymentIntent, $request->user(), $request->validated('reason'));
         } catch (DomainException $e) {
