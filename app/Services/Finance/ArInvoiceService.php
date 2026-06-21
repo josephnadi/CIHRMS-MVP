@@ -12,6 +12,7 @@ use App\Models\ArInvoice;
 use App\Models\ArInvoiceLine;
 use App\Models\Customer;
 use App\Models\GlAccount;
+use App\Models\JournalEntry;
 use App\Models\User;
 use App\Services\Finance\PostingService;
 use App\Services\Finance\Posting\PostingDocument;
@@ -116,6 +117,130 @@ class ArInvoiceService
             $invoice->save();
 
             return $invoice->fresh(['lines', 'accrualJournalEntry']);
+        });
+    }
+
+    /**
+     * Edit a DRAFT invoice. Because the accrual posts on create, a draft is
+     * already on the GL — so we reverse the old accrual, replace the lines, and
+     * post a fresh accrual. The new accrual rides a versioned source_purpose so
+     * it doesn't collide with the (now reversed) original on the idempotency
+     * index. Locked once the invoice leaves draft (then it's cancel/write-off).
+     */
+    public function update(ArInvoice $invoice, array $data, User $editor): ArInvoice
+    {
+        if ($invoice->status !== ArInvoiceStatus::Draft) {
+            throw new DomainException("Only draft invoices can be edited; {$invoice->reference} is {$invoice->status->value}.");
+        }
+        if (empty($data['lines'])) {
+            throw new DomainException('Invoice must have at least one line.');
+        }
+
+        return DB::transaction(function () use ($invoice, $data, $editor) {
+            if ($invoice->accrualJournalEntry && $invoice->accrualJournalEntry->status === JournalEntryStatus::Posted) {
+                $this->journal->reverse($invoice->accrualJournalEntry, $editor, "Edit: {$invoice->reference}");
+            }
+
+            $customer = Customer::findOrFail($data['customer_id'] ?? $invoice->customer_id);
+            $arGl     = $this->resolveArGl($customer);
+
+            $lines     = $this->buildLines($data['lines']);
+            $subtotal  = $lines->sum('line_total');
+            $taxAmount = $lines->sum('tax_amount');
+            $total     = $subtotal + $taxAmount;
+
+            // ar_invoice_lines hard-delete (no soft-delete + cascade), so the
+            // unique (ar_invoice_id, line_no) is free to be re-numbered 1..n.
+            $invoice->lines()->delete();
+            foreach ($lines as $line) {
+                ArInvoiceLine::create(array_merge($line, ['ar_invoice_id' => $invoice->id]));
+            }
+
+            $invoice->update([
+                'customer_id'         => $customer->id,
+                'customer_invoice_no' => $data['customer_invoice_no'] ?? null,
+                'invoice_date'        => $data['invoice_date'] ?? $invoice->invoice_date,
+                'due_date'            => $data['due_date'] ?? null,
+                'subtotal'            => $subtotal,
+                'tax_amount'          => $taxAmount,
+                'total'               => $total,
+                'currency'            => $data['currency'] ?? $invoice->currency,
+                'ar_gl_account_id'    => $arGl->id,
+                'notes'               => $data['notes'] ?? null,
+            ]);
+
+            $priorAccruals = JournalEntry::where('source_type', JournalSourceType::ArInvoice->value)
+                ->where('source_id', $invoice->id)
+                ->count();
+
+            $postingLines = [PostingLine::debit(amount: (float) $total, accountId: (int) $arGl->id, narration: 'Accounts Receivable')];
+            foreach ($lines as $line) {
+                $postingLines[] = PostingLine::credit(
+                    amount: (float) $line['line_total'] + (float) $line['tax_amount'],
+                    accountId: (int) $line['gl_account_id'],
+                    narration: $line['description'] ?? null,
+                );
+            }
+
+            $je = $this->posting->post(new PostingDocument(
+                sourceType: JournalSourceType::ArInvoice,
+                sourceId: $invoice->id,
+                purpose: "reissue-{$priorAccruals}",
+                date: $invoice->invoice_date->format('Y-m-d'),
+                narration: "Accrual (edit): {$customer->code} invoice " . ($invoice->customer_invoice_no ?? $invoice->reference),
+                lines: $postingLines,
+            ), $editor);
+
+            $invoice->accrual_journal_entry_id = $je->id;
+            $invoice->save();
+
+            return $invoice->fresh(['lines', 'accrualJournalEntry']);
+        });
+    }
+
+    /**
+     * Delete a DRAFT invoice: reverse its accrual (drafts are on the GL) and
+     * soft-delete the row. Approved+ invoices are financial records — they use
+     * cancel/write-off, never delete.
+     */
+    public function delete(ArInvoice $invoice, User $by): void
+    {
+        if ($invoice->status !== ArInvoiceStatus::Draft) {
+            throw new DomainException("Only draft invoices can be deleted; {$invoice->reference} is {$invoice->status->value}.");
+        }
+        if ($invoice->allocations()->exists()) {
+            throw new DomainException("Cannot delete invoice {$invoice->reference}: it has allocated receipts.");
+        }
+
+        DB::transaction(function () use ($invoice, $by) {
+            if ($invoice->accrualJournalEntry && $invoice->accrualJournalEntry->status === JournalEntryStatus::Posted) {
+                $this->journal->reverse($invoice->accrualJournalEntry, $by, "Delete draft: {$invoice->reference}");
+            }
+            $invoice->delete();
+        });
+    }
+
+    /** Shared line normaliser used by create() and update(). */
+    private function buildLines(array $rawLines): \Illuminate\Support\Collection
+    {
+        return collect($rawLines)->values()->map(function ($l, $i) {
+            $this->assertIncomeGl((int) $l['gl_account_id']);
+
+            $qty       = (float) ($l['quantity'] ?? 1);
+            $unit      = (float) ($l['unit_price'] ?? 0);
+            $taxRate   = (float) ($l['tax_rate'] ?? 0);
+            $lineTotal = round($qty * $unit, 2);
+
+            return [
+                'line_no'       => $i + 1,
+                'description'   => $l['description'] ?? '',
+                'quantity'      => $qty,
+                'unit_price'    => $unit,
+                'line_total'    => $lineTotal,
+                'tax_rate'      => $taxRate,
+                'tax_amount'    => round($lineTotal * $taxRate, 2),
+                'gl_account_id' => (int) $l['gl_account_id'],
+            ];
         });
     }
 

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\StoreArInvoiceRequest;
+use App\Http\Requests\Finance\UpdateArInvoiceRequest;
 use App\Http\Resources\Finance\ArInvoiceResource;
 use App\Models\ArInvoice;
 use App\Models\Customer;
@@ -27,7 +28,8 @@ class ArInvoiceController extends Controller
     {
         $filters = $request->only(['status', 'customer_id', 'search']);
 
-        $q = ArInvoice::query()->with(['customer:id,code,name']);
+        // Lines are eager-loaded so the Index can prefill the edit panel for drafts.
+        $q = ArInvoice::query()->with(['customer:id,code,name', 'lines']);
         if (! empty($filters['status']))       $q->where('status', $filters['status']);
         if (! empty($filters['customer_id']))  $q->where('customer_id', $filters['customer_id']);
         if (! empty($filters['search']))       $q->where('reference', 'like', '%'.$filters['search'].'%');
@@ -67,6 +69,41 @@ class ArInvoiceController extends Controller
             return back()->withErrors(['status' => $e->getMessage()]);
         }
         return back()->with('success', 'Invoice created — accrual journal posted.');
+    }
+
+    public function update(UpdateArInvoiceRequest $request, ArInvoice $arInvoice): RedirectResponse
+    {
+        try {
+            $this->service->update($arInvoice, $request->validated(), $request->user());
+        } catch (DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+        return back()->with('success', 'Invoice updated — accrual re-posted.');
+    }
+
+    public function destroy(ArInvoice $arInvoice, Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->hasPermission('ar_invoices.create'), 403);
+
+        try {
+            $this->service->delete($arInvoice, $request->user());
+        } catch (DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+        return back()->with('success', 'Draft invoice deleted — accrual reversed.');
+    }
+
+    /** Print-friendly view of the invoice (on-screen, browser print). */
+    public function print(ArInvoice $arInvoice, Request $request): Response
+    {
+        abort_unless($request->user()?->hasPermission('ar_invoices.view'), 403);
+
+        $arInvoice->load(['customer', 'lines.glAccount']);
+
+        return Inertia::render('Finance/ArInvoices/Print', [
+            'invoice' => (new ArInvoiceResource($arInvoice))->resolve(),
+            'org'     => ['name' => config('app.name')],
+        ]);
     }
 
     public function submit(ArInvoice $arInvoice, Request $request): RedirectResponse

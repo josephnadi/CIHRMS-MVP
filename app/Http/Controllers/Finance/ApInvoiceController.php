@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\StoreVendorInvoiceRequest;
+use App\Http\Requests\Finance\UpdateVendorInvoiceRequest;
 use App\Http\Resources\Finance\VendorInvoiceResource;
 use App\Models\GlAccount;
 use App\Models\Vendor;
@@ -27,7 +28,8 @@ class ApInvoiceController extends Controller
     {
         $filters = $request->only(['status', 'vendor_id', 'search']);
 
-        $q = VendorInvoice::query()->with(['vendor:id,code,name']);
+        // Lines are eager-loaded so the Index can prefill the edit panel for drafts.
+        $q = VendorInvoice::query()->with(['vendor:id,code,name', 'lines']);
         if (! empty($filters['status']))    $q->where('status', $filters['status']);
         if (! empty($filters['vendor_id'])) $q->where('vendor_id', $filters['vendor_id']);
         if (! empty($filters['search']))    $q->where('reference', 'like', '%'.$filters['search'].'%');
@@ -60,6 +62,41 @@ class ApInvoiceController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
         return back()->with('success', 'Invoice created — accrual journal posted.');
+    }
+
+    public function update(UpdateVendorInvoiceRequest $request, VendorInvoice $apInvoice): RedirectResponse
+    {
+        try {
+            $this->service->update($apInvoice, $request->validated(), $request->user());
+        } catch (DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+        return back()->with('success', 'Invoice updated — accrual re-posted.');
+    }
+
+    public function destroy(VendorInvoice $apInvoice, Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->hasPermission('ap_invoices.create'), 403);
+
+        try {
+            $this->service->delete($apInvoice, $request->user());
+        } catch (DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+        return back()->with('success', 'Draft invoice deleted — accrual reversed.');
+    }
+
+    /** Print-friendly view of the invoice (on-screen, browser print). */
+    public function print(VendorInvoice $apInvoice, Request $request): Response
+    {
+        abort_unless($request->user()?->hasPermission('ap_invoices.view'), 403);
+
+        $apInvoice->load(['vendor', 'lines.glAccount']);
+
+        return Inertia::render('Finance/ApInvoices/Print', [
+            'invoice' => (new VendorInvoiceResource($apInvoice))->resolve(),
+            'org'     => ['name' => config('app.name')],
+        ]);
     }
 
     public function submit(VendorInvoice $apInvoice, Request $request): RedirectResponse

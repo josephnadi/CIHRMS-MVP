@@ -22,6 +22,7 @@ class VendorInvoiceLineResource extends JsonResource
             'line_total'  => (float) $this->line_total,
             'tax_rate'    => (float) $this->tax_rate,
             'tax_amount'  => (float) $this->tax_amount,
+            'gl_account_id' => $this->gl_account_id,
             'gl_account'  => $this->whenLoaded('glAccount', fn () => [
                 'id' => $this->glAccount?->id,
                 'code' => $this->glAccount?->code,

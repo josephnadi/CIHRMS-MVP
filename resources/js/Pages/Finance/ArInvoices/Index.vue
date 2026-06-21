@@ -58,14 +58,42 @@ const totals = computed(() => {
 const addLine = () => form.lines.push({ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null });
 const removeLine = (i) => { if (form.lines.length > 1) form.lines.splice(i, 1); };
 
+const editingId = ref(null);
+
 const openNew = () => {
+    editingId.value = null;
     form.reset();
+    form.clearErrors();
     Object.assign(form, {
         customer_id: null, customer_invoice_no: '', invoice_date: new Date().toISOString().slice(0,10),
         due_date: '', currency: 'GHS', notes: '',
         lines: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null }],
     });
     panelOpen.value = true;
+};
+
+const openEdit = (inv) => {
+    editingId.value = inv.id;
+    form.clearErrors();
+    Object.assign(form, {
+        customer_id: inv.customer?.id ?? null,
+        customer_invoice_no: inv.customer_invoice_no ?? '',
+        invoice_date: inv.invoice_date,
+        due_date: inv.due_date ?? '',
+        currency: inv.currency ?? 'GHS',
+        notes: inv.notes ?? '',
+        lines: (inv.lines ?? []).map(l => ({
+            description: l.description, quantity: Number(l.quantity), unit_price: Number(l.unit_price),
+            tax_rate: Number(l.tax_rate), gl_account_id: l.gl_account_id ?? l.gl_account?.id ?? null,
+        })),
+    });
+    if (!form.lines.length) form.lines = [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null }];
+    panelOpen.value = true;
+};
+
+const destroyDraft = (inv) => {
+    if (!confirm(`Delete draft ${inv.reference}? Its accrual journal will be reversed.`)) return;
+    router.delete(route('finance.ar-invoices.destroy', inv.id), { preserveScroll: true });
 };
 
 const onCustomerChange = () => {
@@ -75,7 +103,15 @@ const onCustomerChange = () => {
     }
 };
 
-const submit = () => form.post(route('finance.ar-invoices.store'), { onSuccess: () => panelOpen.value = false });
+const submit = () => {
+    if (editingId.value) {
+        form.patch(route('finance.ar-invoices.update', editingId.value), {
+            onSuccess: () => { panelOpen.value = false; editingId.value = null; },
+        });
+    } else {
+        form.post(route('finance.ar-invoices.store'), { onSuccess: () => { panelOpen.value = false; } });
+    }
+};
 
 const submitForApproval = (inv) => router.post(route('finance.ar-invoices.submit', inv.id));
 const approve = (inv) => router.post(route('finance.ar-invoices.approve', inv.id));
@@ -168,10 +204,13 @@ const statusColor = (val) => ({
                         <td class="px-4 py-2">
                             <span class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase border" :class="statusColor(inv.status.value)">{{ inv.status.label }}</span>
                         </td>
-                        <td class="px-4 py-2 text-right space-x-2">
+                        <td class="px-4 py-2 text-right space-x-2 whitespace-nowrap">
+                            <a :href="route('finance.ar-invoices.print', inv.id)" target="_blank" class="text-[11px] font-bold text-on-surface-variant hover:underline">Print</a>
+                            <button v-if="canCreate && inv.status.value === 'draft'"            @click="openEdit(inv)"         class="text-[11px] font-bold text-blue-700 hover:underline">Edit</button>
                             <button v-if="canCreate && inv.status.value === 'draft'"            @click="submitForApproval(inv)" class="text-[11px] font-bold text-secondary hover:underline">Submit</button>
                             <button v-if="inv.status.value === 'pending_approval'"              @click="approve(inv)"          class="text-[11px] font-bold text-emerald-700 hover:underline">Approve</button>
-                            <button v-if="['draft','pending_approval','approved'].includes(inv.status.value)" @click="cancel(inv)" class="text-[11px] font-bold text-rose-600 hover:underline">Cancel</button>
+                            <button v-if="canCreate && inv.status.value === 'draft'"            @click="destroyDraft(inv)"     class="text-[11px] font-bold text-rose-600 hover:underline">Delete</button>
+                            <button v-if="['pending_approval','approved'].includes(inv.status.value)" @click="cancel(inv)" class="text-[11px] font-bold text-rose-600 hover:underline">Cancel</button>
                             <button v-if="canWriteOff && ['approved','partially_paid'].includes(inv.status.value)" @click="writeOff(inv)" class="text-[11px] font-bold text-rose-700 hover:underline">Write off</button>
                         </td>
                     </tr>
@@ -180,7 +219,7 @@ const statusColor = (val) => ({
         </div>
         <EmptyState v-else icon="request_quote" title="No invoices match" description="Adjust filters or create a new invoice." />
 
-        <SlidePanel :open="panelOpen" @close="panelOpen = false" title="New AR Invoice">
+        <SlidePanel :open="panelOpen" @close="panelOpen = false" :title="editingId ? 'Edit AR Invoice' : 'New AR Invoice'">
             <form @submit.prevent="submit" class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>

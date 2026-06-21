@@ -1068,10 +1068,14 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('permission:ap_invoices.view')->group(function () {
             Route::get('ap-invoices',                       [\App\Http\Controllers\Finance\ApInvoiceController::class, 'index'])->name('ap-invoices.index');
             Route::get('ap-invoices/{apInvoice}',           [\App\Http\Controllers\Finance\ApInvoiceController::class, 'show'])->name('ap-invoices.show');
+            Route::get('ap-invoices/{apInvoice}/print',     [\App\Http\Controllers\Finance\ApInvoiceController::class, 'print'])->name('ap-invoices.print');
         });
         Route::middleware('permission:ap_invoices.create')->group(function () {
             Route::post('ap-invoices',                      [\App\Http\Controllers\Finance\ApInvoiceController::class, 'store'])->name('ap-invoices.store');
             Route::post('ap-invoices/{apInvoice}/submit',   [\App\Http\Controllers\Finance\ApInvoiceController::class, 'submit'])->name('ap-invoices.submit');
+            // Draft-only edit/delete (service guards the status).
+            Route::patch('ap-invoices/{apInvoice}',         [\App\Http\Controllers\Finance\ApInvoiceController::class, 'update'])->name('ap-invoices.update');
+            Route::delete('ap-invoices/{apInvoice}',        [\App\Http\Controllers\Finance\ApInvoiceController::class, 'destroy'])->name('ap-invoices.destroy');
         });
         Route::middleware('permission:ap_invoices.approve')->group(function () {
             Route::post('ap-invoices/{apInvoice}/approve',  [\App\Http\Controllers\Finance\ApInvoiceController::class, 'approve'])->name('ap-invoices.approve');
@@ -1111,10 +1115,14 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('permission:ar_invoices.view')->group(function () {
             Route::get('ar-invoices',                       [\App\Http\Controllers\Finance\ArInvoiceController::class, 'index'])->name('ar-invoices.index');
             Route::get('ar-invoices/{arInvoice}',           [\App\Http\Controllers\Finance\ArInvoiceController::class, 'show'])->name('ar-invoices.show');
+            Route::get('ar-invoices/{arInvoice}/print',     [\App\Http\Controllers\Finance\ArInvoiceController::class, 'print'])->name('ar-invoices.print');
         });
         Route::middleware('permission:ar_invoices.create')->group(function () {
             Route::post('ar-invoices',                      [\App\Http\Controllers\Finance\ArInvoiceController::class, 'store'])->name('ar-invoices.store');
             Route::post('ar-invoices/{arInvoice}/submit',   [\App\Http\Controllers\Finance\ArInvoiceController::class, 'submit'])->name('ar-invoices.submit');
+            // Draft-only edit/delete (service guards the status).
+            Route::patch('ar-invoices/{arInvoice}',         [\App\Http\Controllers\Finance\ArInvoiceController::class, 'update'])->name('ar-invoices.update');
+            Route::delete('ar-invoices/{arInvoice}',        [\App\Http\Controllers\Finance\ArInvoiceController::class, 'destroy'])->name('ar-invoices.destroy');
         });
         Route::middleware('permission:ar_invoices.approve')->group(function () {
             Route::post('ar-invoices/{arInvoice}/approve',  [\App\Http\Controllers\Finance\ArInvoiceController::class, 'approve'])->name('ar-invoices.approve');
