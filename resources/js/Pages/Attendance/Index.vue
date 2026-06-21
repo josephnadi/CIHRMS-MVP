@@ -335,7 +335,7 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
             </div>
 
             <!-- ── Manual entry slide-panel ─────────────────────────────── -->
-            <SlidePanel v-model="showManual" title="Manual attendance entry">
+            <SlidePanel :open="showManual" @close="showManual = false" title="Manual attendance entry">
                 <form @submit.prevent="submitManual" class="space-y-4">
                     <div class="rounded-xl bg-cyan-50/60 border border-cyan-200/60 dark:bg-cyan-900/15 dark:border-cyan-800/40 px-4 py-3 flex items-start gap-3">
                         <span class="material-symbols-outlined text-cyan-600 text-[20px] mt-0.5">info</span>

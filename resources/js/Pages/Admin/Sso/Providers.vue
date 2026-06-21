@@ -433,7 +433,7 @@ const mapValid = computed(() => {
             </div>
 
             <!-- ── Register provider slide-panel ── -->
-            <SlidePanel v-model="showAdd" title="Register identity provider">
+            <SlidePanel :open="showAdd" @close="showAdd = false" title="Register identity provider">
                 <form @submit.prevent="submit" class="space-y-5 p-6">
 
                     <div class="rounded-xl bg-cyan-50/60 border border-cyan-200/60 dark:bg-cyan-900/15 dark:border-cyan-800/40 px-4 py-3 flex items-start gap-3">

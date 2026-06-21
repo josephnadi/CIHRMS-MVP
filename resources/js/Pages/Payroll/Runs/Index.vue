@@ -158,7 +158,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
                 </div>
             </div>
 
-            <SlidePanel v-model="showPanel" title="Create payroll run">
+            <SlidePanel :open="showPanel" @close="showPanel = false" title="Create payroll run">
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Year</label>

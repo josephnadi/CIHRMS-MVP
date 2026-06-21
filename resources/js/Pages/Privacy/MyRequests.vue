@@ -168,7 +168,7 @@ const editionLabel = computed(() => {
                 </div>
             </div>
 
-            <SlidePanel v-model="showPanel" title="New data-subject request">
+            <SlidePanel :open="showPanel" @close="showPanel = false" title="New data-subject request">
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Which right do you wish to exercise?</label>
