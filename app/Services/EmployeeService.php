@@ -94,9 +94,10 @@ class EmployeeService
         $path = $request->file('document')->store('employee-documents', 'local');
 
         return $employee->documents()->create([
-            'title'     => $request->validated('title'),
-            'file_path' => $path,
-            'mime_type' => $request->file('document')->getMimeType(),
+            'uploaded_by' => $request->user()?->id,
+            'title'       => $request->validated('title'),
+            'file_path'   => $path,
+            'mime_type'   => $request->file('document')->getMimeType(),
         ]);
     }
 

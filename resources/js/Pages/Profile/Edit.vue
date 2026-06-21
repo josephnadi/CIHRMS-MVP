@@ -133,6 +133,40 @@ function savePassword() {
     });
 }
 
+// ── My Documents (self-service CRUD) ──────────────────────────────────────
+const showUpload = ref(false);
+const uploadForm = useForm({ title: '', document: null });
+function pickUpload(e) { uploadForm.document = e.target.files?.[0] ?? null; }
+function submitUpload() {
+    uploadForm.post(route('profile.documents.store'), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => { uploadForm.reset(); showUpload.value = false; },
+    });
+}
+
+const editingDocId = ref(null);
+const editDocForm = useForm({ title: '', document: null });
+function startEditDoc(d) {
+    editingDocId.value = d.id;
+    editDocForm.reset();
+    editDocForm.clearErrors();
+    editDocForm.title = d.title;
+}
+function cancelEditDoc() { editingDocId.value = null; editDocForm.reset(); }
+function pickEditFile(e) { editDocForm.document = e.target.files?.[0] ?? null; }
+function submitEditDoc(d) {
+    editDocForm.post(route('profile.documents.update', d.id), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => { editingDocId.value = null; editDocForm.reset(); },
+    });
+}
+function deleteDoc(d) {
+    if (!confirm(`Delete "${d.title}"? This cannot be undone.`)) return;
+    router.delete(route('profile.documents.destroy', d.id), { preserveScroll: true });
+}
+
 // ── Skill add ────────────────────────────────────────────────────────────
 const skillForm = useForm({ name: '', level: 'intermediate', expires_at: '' });
 function addSkill() {
@@ -576,27 +610,93 @@ const hasEmployee = computed(() => !!emp.value);
             <div v-if="activeTab === 'documents'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
                 <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
                     <h3 class="text-[14px] font-bold text-on-surface">My Documents</h3>
-                    <span class="text-[11px] font-bold text-on-surface-variant/45">{{ documents?.length ?? 0 }} files</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[11px] font-bold text-on-surface-variant/45">{{ documents?.length ?? 0 }} files</span>
+                        <button type="button" @click="showUpload = !showUpload"
+                                class="rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-on-primary hover:bg-primary/90">
+                            {{ showUpload ? 'Cancel' : 'Upload' }}
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Upload panel -->
+                <div v-if="showUpload" class="border-b border-outline-variant/40 bg-surface-container/30 px-5 py-4 space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-on-surface-variant/70 mb-1">Title *</label>
+                        <input v-model="uploadForm.title" type="text" aria-label="Document title"
+                               class="w-full rounded-lg border-outline-variant/60 text-[13px]" placeholder="e.g. 2025 Bank statement" />
+                        <p v-if="uploadForm.errors.title" class="mt-1 text-[11px] text-rose-600">{{ uploadForm.errors.title }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-on-surface-variant/70 mb-1">File * (pdf/doc/docx/jpg/png, ≤10MB)</label>
+                        <input type="file" aria-label="Document file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="pickUpload"
+                               class="block w-full text-[12px] text-on-surface-variant" />
+                        <p v-if="uploadForm.errors.document" class="mt-1 text-[11px] text-rose-600">{{ uploadForm.errors.document }}</p>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" @click="submitUpload" :disabled="uploadForm.processing"
+                                class="rounded-lg bg-primary px-4 py-1.5 text-[12px] font-bold text-on-primary disabled:opacity-50">
+                            {{ uploadForm.processing ? 'Uploading…' : 'Save document' }}
+                        </button>
+                    </div>
+                </div>
+
                 <ul v-if="documents?.length" class="divide-y divide-outline-variant/30">
                     <li v-for="d in documents" :key="d.id"
-                        class="flex items-center justify-between gap-4 px-5 py-4 hover:bg-surface-container/40 transition-colors">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10">
-                                <span class="material-symbols-outlined text-[18px] text-secondary">attach_file</span>
+                        class="px-5 py-4 hover:bg-surface-container/40 transition-colors">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10">
+                                    <span class="material-symbols-outlined text-[18px] text-secondary">attach_file</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[13.5px] font-bold text-on-surface truncate">{{ d.title }}</p>
+                                    <p class="text-[11px] text-on-surface-variant/55">
+                                        {{ fmt(d.created_at) }} · {{ d.mime_type }}
+                                        <span v-if="!d.can_manage" class="ml-1 text-on-surface-variant/45">· from HR</span>
+                                    </p>
+                                </div>
                             </div>
-                            <div class="min-w-0">
-                                <p class="text-[13.5px] font-bold text-on-surface truncate">{{ d.title }}</p>
-                                <p class="text-[11px] text-on-surface-variant/55">{{ fmt(d.created_at) }} · {{ d.mime_type }}</p>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <a :href="d.download_url"
+                                   class="rounded-lg bg-secondary/10 px-3 py-1.5 text-[12px] font-bold text-secondary hover:bg-secondary/20">
+                                    Download
+                                </a>
+                                <button v-if="d.can_manage" type="button" @click="startEditDoc(d)"
+                                        class="rounded-lg px-2.5 py-1.5 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container">
+                                    Edit
+                                </button>
+                                <button v-if="d.can_manage" type="button" @click="deleteDoc(d)"
+                                        class="rounded-lg px-2.5 py-1.5 text-[12px] font-bold text-rose-600 hover:bg-rose-50">
+                                    Delete
+                                </button>
                             </div>
                         </div>
-                        <a :href="`/storage/${d.file_path}`" target="_blank"
-                           class="rounded-lg bg-secondary/10 px-3 py-1.5 text-[12px] font-bold text-secondary hover:bg-secondary/20">
-                            Download
-                        </a>
+
+                        <!-- Inline edit (rename + optional file replace) -->
+                        <div v-if="editingDocId === d.id" class="mt-3 rounded-xl bg-surface-container/40 p-3 space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-on-surface-variant/70 mb-1">Title *</label>
+                                <input v-model="editDocForm.title" type="text" aria-label="Edit document title"
+                                       class="w-full rounded-lg border-outline-variant/60 text-[13px]" />
+                                <p v-if="editDocForm.errors.title" class="mt-1 text-[11px] text-rose-600">{{ editDocForm.errors.title }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-on-surface-variant/70 mb-1">Replace file (optional)</label>
+                                <input type="file" aria-label="Replace document file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="pickEditFile"
+                                       class="block w-full text-[12px] text-on-surface-variant" />
+                                <p v-if="editDocForm.errors.document" class="mt-1 text-[11px] text-rose-600">{{ editDocForm.errors.document }}</p>
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" @click="cancelEditDoc"
+                                        class="rounded-lg px-3 py-1.5 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container">Cancel</button>
+                                <button type="button" @click="submitEditDoc(d)" :disabled="editDocForm.processing"
+                                        class="rounded-lg bg-primary px-4 py-1.5 text-[12px] font-bold text-on-primary disabled:opacity-50">Save</button>
+                            </div>
+                        </div>
                     </li>
                 </ul>
-                <EmptyState v-else title="No documents yet" description="Documents uploaded by HR will appear here." icon="folder" />
+                <EmptyState v-else-if="!showUpload" title="No documents yet" description="Upload your own, or documents from HR will appear here." icon="folder" />
             </div>
 
             <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

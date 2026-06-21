@@ -15,6 +15,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileDocumentController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\TicketController;
@@ -211,6 +212,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/avatar',             [ProfileController::class, 'updateAvatar'])   ->name('avatar');
         Route::patch('/password',          [ProfileController::class, 'updatePassword']) ->name('password');
         Route::delete('/',                 [ProfileController::class, 'destroy'])        ->name('destroy');
+
+        // My Documents — self-service CRUD over the employee's own uploads.
+        Route::post('/documents',                 [ProfileDocumentController::class, 'store'])   ->name('documents.store');
+        Route::get('/documents/{document}',       [ProfileDocumentController::class, 'download'])->name('documents.download');
+        // POST (not PATCH) so the optional file replacement rides a multipart body.
+        Route::post('/documents/{document}',      [ProfileDocumentController::class, 'update'])  ->name('documents.update');
+        Route::delete('/documents/{document}',    [ProfileDocumentController::class, 'destroy']) ->name('documents.destroy');
     });
 
     // Departments

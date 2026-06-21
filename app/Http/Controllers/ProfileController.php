@@ -82,11 +82,14 @@ class ProfileController extends Controller
                 : [],
             'documents' => $employee
                 ? $employee->documents->map(fn ($d) => [
-                    'id'        => $d->id,
-                    'title'     => $d->title,
-                    'file_path' => $d->file_path,
-                    'mime_type' => $d->mime_type,
-                    'created_at'=> $d->created_at?->toISOString(),
+                    'id'           => $d->id,
+                    'title'        => $d->title,
+                    'mime_type'    => $d->mime_type,
+                    // can_manage = this is the employee's OWN upload (HR docs are
+                    // download-only). Drives the rename/replace/delete controls.
+                    'can_manage'   => $d->uploaded_by === $user->id,
+                    'download_url' => route('profile.documents.download', $d->id),
+                    'created_at'   => $d->created_at?->toISOString(),
                 ])
                 : [],
             'skillLevels' => EmployeeSkill::LEVELS,
