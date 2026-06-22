@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body { margin: 0; background: #f6f8fb; font-family: Arial, sans-serif; }
+    .frame { position: relative; width: 1440px; height: 1000px; background: white; overflow: hidden; }
+    img { width: 1440px; min-height: 1000px; object-fit: cover; display: block; }
+    .callout {
+      position: absolute;
+      max-width: 330px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      color: #102033;
+      background: rgba(255, 255, 255, 0.97);
+      border: 2px solid #2563eb;
+      border-radius: 10px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.26);
+      font-size: 20px;
+      line-height: 1.25;
+    }
+    .callout::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      bottom: -24px;
+      width: 2px;
+      height: 24px;
+      background: #2563eb;
+    }
+    .num {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      color: white;
+      background: #2563eb;
+      font-weight: 700;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/screenshots/benefits.png" alt="Benefits administration">
+    
+    <div class="callout" style="left:16%; top:20%;">
+      <span class="num">1</span>
+      <span>Benefit plans, enrolments, dependants, and claims are managed centrally</span>
+    </div>
+  
+
+    <div class="callout" style="left:58%; top:28%;">
+      <span class="num">2</span>
+      <span>Benefit records support staff welfare and policy compliance</span>
+    </div>
+  
+  </div>
+</body>
+</html>

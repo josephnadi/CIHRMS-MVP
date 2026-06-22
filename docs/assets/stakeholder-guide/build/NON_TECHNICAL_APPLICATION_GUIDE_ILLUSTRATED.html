@@ -1,0 +1,1006 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CIHRMS Non-Technical Application Guide</title>
+  <style>
+    @page { size: A4; margin: 14mm 13mm; }
+    body { color: #172033; font-family: Arial, Helvetica, sans-serif; font-size: 12.5px; line-height: 1.55; }
+    h1 { color: #0f172a; font-size: 30px; line-height: 1.1; margin: 0 0 18px; }
+    h2 { color: #102033; font-size: 21px; margin: 26px 0 10px; padding-top: 4px; border-top: 1px solid #d8e0ea; }
+    h3 { color: #1d4ed8; font-size: 16px; margin: 18px 0 8px; }
+    p { margin: 0 0 10px; }
+    ul, ol { margin: 0 0 12px 22px; padding: 0; }
+    li { margin: 3px 0; }
+    figure { margin: 13px 0 18px; page-break-inside: avoid; }
+    img { display: block; width: 100%; max-height: 640px; object-fit: contain; border: 1px solid #d8e0ea; border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12); }
+    figcaption { color: #64748b; font-size: 11px; margin-top: 6px; text-align: center; }
+    code { background: #eef2ff; border-radius: 4px; padding: 1px 4px; }
+  </style>
+</head>
+<body>
+<h1>CIHRMS Non-Technical Application Guide</h1>
+<h2>Purpose of this document</h2>
+<p>This guide explains CIHRMS in plain language for executives, department heads, HR officers, finance teams, auditors, project sponsors, trainers, and other non-technical stakeholders.</p>
+<p>It describes what the system does, who uses it, and how each feature supports the daily work of CIHRM and similar institutions. It avoids software jargon and focuses on business value, user journeys, controls, and expected outcomes.</p>
+<h2>What CIHRMS is</h2>
+<p>CIHRMS is an integrated Human Resource Management System for managing people, HR operations, governance, payroll, finance, communication, compliance, and member billing in one place.</p>
+<p>The application brings together activities that are often handled through spreadsheets, paper files, email chains, isolated finance tools, and manual approvals. It gives staff and management one controlled platform where records can be created, reviewed, approved, tracked, reported on, and audited.</p>
+<h2>Main stakeholder benefits</h2>
+<ul>
+<li>Central employee and member records instead of scattered files.</li>
+<li>Faster approvals for leave, payroll, documents, payments, recruitment, and governance processes.</li>
+<li>Clear accountability because important actions are logged and traceable.</li>
+<li>Better compliance with HR policy, data protection, financial controls, and audit requirements.</li>
+<li>Self-service tools for employees, members, applicants, whistleblowers, and data subjects.</li>
+<li>Dashboards and reports that help managers make decisions from current information.</li>
+<li>Stronger security through roles, permissions, two-factor approval checks, private files, and signed integrations.</li>
+</ul>
+<h2>Current application entry experience</h2>
+<p>The current landing page is a clean card-based portal selector rather than a long scrolling marketing page. Stakeholders and users first see the main workspaces available in CIHRMS and choose the card that matches their role or purpose.</p>
+<p>The visible entry cards are:</p>
+<ul>
+<li>Admin / Super Admin for system control, users, roles, security, permissions, and audit oversight.</li>
+<li>HR Workspace for people operations such as employee records, recruitment, leave, attendance, performance, benefits, learning, and offboarding.</li>
+<li>Finance Hub for payroll, invoices, receipts, payments, reconciliation, journals, refunds, and other finance controls.</li>
+<li>Employee Portal for self-service activities such as profile updates, leave, attendance, tickets, documents, and learning.</li>
+<li>Member Portal for fees, invoices, statements, balances, receipts, and member payment options.</li>
+<li>Public Services for assisted or controlled access to public-facing services such as careers, complaints, data protection requests, whistleblower processes, kiosk access, and API information.</li>
+</ul>
+<p>Each card is designed as a role-based doorway. Selecting a card sends the user to the appropriate login or portal entry path. The general staff login and access request buttons are placed under the left-side introduction so they remain available without distracting from the workspace cards.</p>
+<h2>Main user groups</h2>
+<h3>Executive leadership</h3>
+<p>Executives use the system to monitor organizational health, view high-level HR and finance indicators, review audit information, and support governance decisions.</p>
+<h3>HR administrators</h3>
+<p>HR teams manage employee records, departments, leave, recruitment, performance, benefits, offboarding, learning, attendance, and employee communications.</p>
+<h3>Finance officers</h3>
+<p>Finance teams manage payroll, accounts, invoices, receipts, bank reconciliation, disbursements, Paystack payments, refunds, journal entries, and financial reporting.</p>
+<h3>Department heads and managers</h3>
+<p>Managers review team information, approve requests, monitor performance, handle incidents, assign assets, and support staff development.</p>
+<h3>Employees</h3>
+<p>Employees update their own profile, request leave, view attendance, raise tickets, participate in performance reviews, complete learning activities, receive notifications, and access relevant documents.</p>
+<h3>Members</h3>
+<p>Members use the portal to view their profile, fees, invoices, statements, and payment options.</p>
+<h3>Applicants and external users</h3>
+<p>Applicants can view vacancies and submit applications. External users can submit whistleblower reports, track complaints, and submit data protection requests where applicable.</p>
+<h3>Auditors and compliance teams</h3>
+<p>Auditors can review logs, reports, approvals, data access, governance records, statutory outputs, and financial evidence packs.</p>
+<h2>Visual walkthrough with screenshot indications</h2>
+<p>The screenshots below highlight the main areas stakeholders will see during demonstrations and training. Each numbered label points to the business purpose of that part of the screen.</p>
+<h3>Portal card landing page</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/welcome.png" alt="Portal card landing page"><figcaption>Portal card landing page</figcaption></figure>
+<ol>
+<li>Role guidance helps each user choose the correct workspace</li>
+<li>Module cards open the correct sign-in path for each user type</li>
+<li>Staff login and access request actions sit below the introduction</li>
+</ol>
+<h3>Staff login</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/staff-login.png" alt="Staff login"><figcaption>Staff login</figcaption></figure>
+<ol>
+<li>Staff sign in with full name, staff number, and password</li>
+<li>Recovery and access request options support users</li>
+</ol>
+<h3>Member portal login</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/member-portal.png" alt="Member portal login"><figcaption>Member portal login</figcaption></figure>
+<ol>
+<li>Members have a separate self-service entry point</li>
+<li>Members can access fees, invoices, statements, and payments</li>
+</ol>
+<h3>Attendance kiosk</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/kiosk.png" alt="Attendance kiosk"><figcaption>Attendance kiosk</figcaption></figure>
+<ol>
+<li>Shared devices can capture attendance without full staff login</li>
+<li>Employee number and name verification protect clocking</li>
+</ol>
+<h3>Whistleblower channel</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/whistleblower.png" alt="Whistleblower channel"><figcaption>Whistleblower channel</figcaption></figure>
+<ol>
+<li>Public reporting channel supports confidential governance cases</li>
+<li>Tracking lets reporters follow up safely</li>
+</ol>
+<h3>Data protection request portal</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/dpa.png" alt="Data protection request portal"><figcaption>Data protection request portal</figcaption></figure>
+<ol>
+<li>External data subjects can submit privacy requests</li>
+<li>Verification and tracking support accountable handling</li>
+</ol>
+<h3>Partner API documentation</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/api-docs.png" alt="Partner API documentation"><figcaption>Partner API documentation</figcaption></figure>
+<ol>
+<li>Partners can discover approved integration options</li>
+<li>API documentation supports external system onboarding</li>
+</ol>
+<h3>Public complaint tracking</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/complaint-tracking.png" alt="Public complaint tracking"><figcaption>Public complaint tracking</figcaption></figure>
+<ol>
+<li>Public users can check complaint progress by reference</li>
+<li>Tracking reduces manual follow-up calls and emails</li>
+</ol>
+<h3>Main dashboard</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/dashboard.png" alt="Main dashboard"><figcaption>Main dashboard</figcaption></figure>
+<ol>
+<li>Dashboard summarizes current HR, finance, and operational activity</li>
+<li>Quick indicators help leaders spot work that needs attention</li>
+</ol>
+<h3>Employee records</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/employees.png" alt="Employee records"><figcaption>Employee records</figcaption></figure>
+<ol>
+<li>HR can search and manage employee records from one register</li>
+<li>Employee information feeds leave, payroll, attendance, and reporting</li>
+</ol>
+<h3>Departments and structure</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/departments.png" alt="Departments and structure"><figcaption>Departments and structure</figcaption></figure>
+<ol>
+<li>Departments group employees into the organization structure</li>
+<li>Department views support managers, reporting, and access control</li>
+</ol>
+<h3>Leave management</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/leave.png" alt="Leave management"><figcaption>Leave management</figcaption></figure>
+<ol>
+<li>Employees and HR can track leave requests and balances</li>
+<li>Approval status is visible and auditable</li>
+</ol>
+<h3>Attendance management</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/attendance-admin.png" alt="Attendance management"><figcaption>Attendance management</figcaption></figure>
+<ol>
+<li>Attendance records support punctuality, absence monitoring, and payroll</li>
+<li>Managers can review attendance activity and corrections</li>
+</ol>
+<h3>Service desk tickets</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/tickets.png" alt="Service desk tickets"><figcaption>Service desk tickets</figcaption></figure>
+<ol>
+<li>Staff requests become trackable tickets instead of informal messages</li>
+<li>Teams can assign, update, and resolve work with accountability</li>
+</ol>
+<h3>Recruitment pipeline</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/recruitment.png" alt="Recruitment pipeline"><figcaption>Recruitment pipeline</figcaption></figure>
+<ol>
+<li>HR manages vacancies and applicant progress in one place</li>
+<li>Applicant records can support offers and onboarding</li>
+</ol>
+<h3>Payroll runs</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/payroll.png" alt="Payroll runs"><figcaption>Payroll runs</figcaption></figure>
+<ol>
+<li>Payroll work is organized into reviewable processing runs</li>
+<li>Payroll outputs connect to statutory and finance records</li>
+</ol>
+<h3>Finance hub</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/finance-hub.png" alt="Finance hub"><figcaption>Finance hub</figcaption></figure>
+<ol>
+<li>Finance users enter payables, receivables, banking, and reports from one hub</li>
+<li>Sensitive money workflows are grouped with finance controls</li>
+</ol>
+<h3>Chart of accounts</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/finance-accounts.png" alt="Chart of accounts"><figcaption>Chart of accounts</figcaption></figure>
+<ol>
+<li>The chart of accounts defines how transactions are classified</li>
+<li>Consistent accounts improve reporting and audit evidence</li>
+</ol>
+<h3>Supplier invoices and payables</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/finance-payables.png" alt="Supplier invoices and payables"><figcaption>Supplier invoices and payables</figcaption></figure>
+<ol>
+<li>Supplier invoices can be reviewed and controlled before payment</li>
+<li>Payables activity connects to journals and approvals</li>
+</ol>
+<h3>Customer invoices and receivables</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/finance-receivables.png" alt="Customer invoices and receivables"><figcaption>Customer invoices and receivables</figcaption></figure>
+<ol>
+<li>Receivables track invoices issued to customers or members</li>
+<li>Receipts, balances, and statements become easier to review</li>
+</ol>
+<h3>Bank reconciliation</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/finance-reconciliation.png" alt="Bank reconciliation"><figcaption>Bank reconciliation</figcaption></figure>
+<ol>
+<li>Imported bank statements can be matched against system records</li>
+<li>Reconciliation reports support finance review and audit</li>
+</ol>
+<h3>Document management</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/documents.png" alt="Document management"><figcaption>Document management</figcaption></figure>
+<ol>
+<li>Documents are drafted, stored, routed, and controlled inside the platform</li>
+<li>Templates, watermarks, and signed links protect official files</li>
+</ol>
+<h3>Learning and development</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/learning.png" alt="Learning and development"><figcaption>Learning and development</figcaption></figure>
+<ol>
+<li>Training courses and learning records support staff development</li>
+<li>Skills and certifications help managers plan capability growth</li>
+</ol>
+<h3>Performance management</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/performance.png" alt="Performance management"><figcaption>Performance management</figcaption></figure>
+<ol>
+<li>Goals, reviews, calibration, and improvement plans support performance cycles</li>
+<li>Performance records create a structured evidence trail</li>
+</ol>
+<h3>Governance and compliance</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/governance.png" alt="Governance and compliance"><figcaption>Governance and compliance</figcaption></figure>
+<ol>
+<li>Governance records organize policies, certifications, and compliance activity</li>
+<li>Controls support accountability and institutional oversight</li>
+</ol>
+<h3>Asset management</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/assets.png" alt="Asset management"><figcaption>Asset management</figcaption></figure>
+<ol>
+<li>Assets can be registered, assigned, maintained, and tracked</li>
+<li>Asset history supports responsibility and recovery during offboarding</li>
+</ol>
+<h3>Benefits administration</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/benefits.png" alt="Benefits administration"><figcaption>Benefits administration</figcaption></figure>
+<ol>
+<li>Benefit plans, enrolments, dependants, and claims are managed centrally</li>
+<li>Benefit records support staff welfare and policy compliance</li>
+</ol>
+<h3>User and permission administration</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/admin-users.png" alt="User and permission administration"><figcaption>User and permission administration</figcaption></figure>
+<ol>
+<li>Administrators manage user accounts, roles, and staff identifiers</li>
+<li>Permissions control what each person can view or change</li>
+</ol>
+<h3>System integrations</h3>
+<figure><img src="file:///D:/CIHRMS/cihrms-mvp/docs/assets/stakeholder-guide/annotated/integrations.png" alt="System integrations"><figcaption>System integrations</figcaption></figure>
+<ol>
+<li>Integration settings connect CIHRMS to approved external services</li>
+<li>Integration logs help monitor data exchange and provider activity</li>
+</ol>
+<h2>Application walkthrough</h2>
+<h2>1. Welcome, login, and access control</h2>
+<p>Users enter the application through a card-based welcome page. The page presents the main workspaces, including Admin / Super Admin, HR Workspace, Finance Hub, Employee Portal, Member Portal, and Public Services. Users select the card that matches their role or purpose and are then sent to the correct login or portal entry path.</p>
+<p>This matters because not every user should see or change the same information. CIHRMS separates access by role and permission so employees, managers, HR officers, finance officers, auditors, and administrators each see the right tools.</p>
+<p>Key functions:</p>
+<ul>
+<li>Role-based landing cards for Admin / Super Admin, HR, Finance, Employee Portal, Member Portal, and Public Services.</li>
+<li>Staff login and access request actions from the landing page.</li>
+<li>User registration where enabled.</li>
+<li>Password reset and password change.</li>
+<li>Email verification.</li>
+<li>Two-factor security checks for sensitive actions.</li>
+<li>Single Sign-On support for organizations that want login through an external identity provider.</li>
+<li>Permission-based access to modules and actions.</li>
+</ul>
+<h2>2. Dashboard</h2>
+<p>After login, users land on a dashboard that summarizes important activity across the organization.</p>
+<p>The dashboard gives management and staff a quick overview without searching through every module.</p>
+<p>Key functions:</p>
+<ul>
+<li>View key HR, payroll, finance, attendance, recruitment, and activity indicators.</li>
+<li>See recent system activity.</li>
+<li>Access common modules quickly.</li>
+<li>Support leadership visibility into operational health.</li>
+</ul>
+<h2>3. Employee records</h2>
+<p>HR teams maintain employee records, while employees can manage approved parts of their own profile.</p>
+<p>The employee record is the foundation of the system. Payroll, leave, attendance, benefits, learning, assets, performance, and reporting all depend on accurate employee information.</p>
+<p>Key functions:</p>
+<ul>
+<li>View employee directory.</li>
+<li>Create new employee profiles.</li>
+<li>Update employee personal, employment, contact, emergency, bank, and status information.</li>
+<li>Store employee documents privately.</li>
+<li>Upload and manage employee profile photos.</li>
+<li>Add and remove employee skills.</li>
+<li>View individual employee profiles.</li>
+<li>Remove employees when appropriate, while preserving audit needs.</li>
+<li>Maintain departments and department details.</li>
+<li>Generate secure temporary file links for employee photos and documents.</li>
+</ul>
+<h2>4. Profile self-service</h2>
+<p>Employees update their own profile information from the profile area.</p>
+<p>Self-service reduces HR workload and keeps staff information current.</p>
+<p>Key functions:</p>
+<ul>
+<li>Update personal details.</li>
+<li>Update emergency contact information.</li>
+<li>Update bank information.</li>
+<li>Upload a profile photo.</li>
+<li>Change password.</li>
+<li>Delete account where policy allows.</li>
+</ul>
+<h2>5. Departments and department portals</h2>
+<p>Staff can access department-specific portals such as HR, IT, Finance, Marketing, Membership, PCP, CPD, and Administration.</p>
+<p>Department portals give teams a focused entry point for information, services, and workflows relevant to their work.</p>
+<p>Key functions:</p>
+<ul>
+<li>Maintain department records.</li>
+<li>View department-specific pages.</li>
+<li>Link staff and workflows to departments.</li>
+<li>Support department heads in managing their teams.</li>
+</ul>
+<h2>6. Leave management</h2>
+<p>Employees submit leave requests. Managers or authorized HR officers review and approve or reject them.</p>
+<p>Leave management becomes transparent, traceable, and connected to staff records.</p>
+<p>Key functions:</p>
+<ul>
+<li>Submit leave requests.</li>
+<li>View leave requests and request details.</li>
+<li>Approve or reject leave.</li>
+<li>Track leave status.</li>
+<li>Remove or cancel leave requests where allowed.</li>
+<li>Update leave balances and related records.</li>
+<li>Notify relevant managers or officers when action is required.</li>
+</ul>
+<h2>7. Attendance and time management</h2>
+<p>Employees clock in and out, managers review attendance, and HR manages shifts and corrections.</p>
+<p>Attendance records support punctuality, payroll, overtime, absence monitoring, and workforce planning.</p>
+<p>Key functions:</p>
+<ul>
+<li>Employee self clock-in and clock-out.</li>
+<li>Public attendance kiosk for shared clock-in devices.</li>
+<li>Kiosk employee verification by employee number and name.</li>
+<li>Biometric attendance support for devices.</li>
+<li>View personal attendance.</li>
+<li>View attendance summaries.</li>
+<li>Create manual attendance entries.</li>
+<li>Submit attendance correction requests.</li>
+<li>Review and approve or reject corrections.</li>
+<li>Manage shifts.</li>
+<li>Assign shifts to employees.</li>
+<li>Mark absent employees through scheduled processing.</li>
+<li>Calculate overtime and daily attendance status.</li>
+</ul>
+<h2>8. Public attendance kiosk</h2>
+<p>Employees can use a shared kiosk device to identify themselves and record attendance.</p>
+<p>Organizations can place a kiosk at reception, work sites, or shared offices without requiring every user to log into the full system.</p>
+<p>Key functions:</p>
+<ul>
+<li>Display current kiosk time.</li>
+<li>Verify employee identity.</li>
+<li>Record clock-in and clock-out events.</li>
+<li>Show recent kiosk activity with limited personal information.</li>
+<li>Prepare for future face-recognition clock-in support.</li>
+</ul>
+<h2>9. Tickets and service desk</h2>
+<p>Employees raise support tickets, and service teams assign, update, and resolve them.</p>
+<p>Requests for IT, HR, facilities, or operational support become trackable instead of being lost in emails or informal messages.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create support tickets.</li>
+<li>View ticket list and details.</li>
+<li>Assign tickets.</li>
+<li>Update ticket status.</li>
+<li>Resolve tickets.</li>
+<li>Delete tickets where authorized.</li>
+<li>Track priority and ownership.</li>
+</ul>
+<h2>10. Complaints and complaint tracking</h2>
+<p>Users submit complaints and authorized officers manage their status. Public users can track a complaint by reference.</p>
+<p>Complaints are handled consistently, with a reference number and a clear status trail.</p>
+<p>Key functions:</p>
+<ul>
+<li>Submit complaints.</li>
+<li>View complaint queue.</li>
+<li>Update complaint status.</li>
+<li>Track complaints publicly using a reference.</li>
+<li>Support governance and accountability.</li>
+</ul>
+<h2>11. Recruitment and careers</h2>
+<p>HR publishes job openings. Applicants apply through the public careers page. Recruiters manage applicants and offers.</p>
+<p>Recruitment becomes organized from vacancy publication to applicant review and offer processing.</p>
+<p>Key functions:</p>
+<ul>
+<li>Publish job postings.</li>
+<li>View open jobs publicly.</li>
+<li>Accept public job applications.</li>
+<li>View applicant lists.</li>
+<li>Move applicants through recruitment stages.</li>
+<li>Send offer documents for signing.</li>
+<li>Connect applicant records to employee creation where appropriate.</li>
+<li>Support external contact synchronization where configured.</li>
+</ul>
+<h2>12. Performance management</h2>
+<p>Managers and HR create goals, reviews, review cycles, performance contracts, calibration sessions, and improvement plans.</p>
+<p>Performance management becomes continuous, documented, and aligned with institutional targets.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create and manage performance review cycles.</li>
+<li>Create employee goals.</li>
+<li>Record goal check-ins.</li>
+<li>Submit performance reviews.</li>
+<li>Acknowledge reviews.</li>
+<li>View 9-box talent matrix.</li>
+<li>Create performance contracts.</li>
+<li>Define contract indicators and weights.</li>
+<li>Send contracts for signature.</li>
+<li>Sign and revoke contracts.</li>
+<li>Evaluate performance contracts.</li>
+<li>Run calibration sessions.</li>
+<li>Adjust ratings during calibration.</li>
+<li>Lock, reopen, and apply calibration outcomes.</li>
+<li>Open Performance Improvement Plans.</li>
+<li>Record PIP check-ins.</li>
+<li>Extend or close PIPs.</li>
+</ul>
+<h2>13. Learning and skills</h2>
+<p>Employees and HR manage learning courses, certifications, progress, and skills.</p>
+<p>The organization can track staff development, required skills, expiring certifications, and training participation.</p>
+<p>Key functions:</p>
+<ul>
+<li>View learning catalog.</li>
+<li>Create and manage courses.</li>
+<li>Enroll in courses.</li>
+<li>Record learning progress.</li>
+<li>Track course completion.</li>
+<li>Manage certifications.</li>
+<li>Send certification expiry reminders.</li>
+<li>Maintain skills catalog.</li>
+<li>View skills matrix across roles and employees.</li>
+</ul>
+<h2>14. Payroll and payments</h2>
+<p>Finance and HR manage payroll runs, payslips, payment records, approvals, statutory returns, and payroll exports.</p>
+<p>Payroll becomes controlled, reviewable, and supported by approval steps and audit trails.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create payroll runs.</li>
+<li>Calculate payroll.</li>
+<li>Approve payroll runs.</li>
+<li>Mark payroll as paid.</li>
+<li>Reverse payroll runs where authorized.</li>
+<li>Generate payslips.</li>
+<li>Preview payslips.</li>
+<li>View payment records.</li>
+<li>Mark payments as paid.</li>
+<li>Download payroll exports.</li>
+<li>Generate statutory returns.</li>
+<li>Download statutory return files.</li>
+<li>Export payroll data for systems such as GIFMIS and IPPD.</li>
+<li>Apply dual-control rules so the same person cannot complete conflicting payroll actions.</li>
+</ul>
+<h2>15. Benefits</h2>
+<p>HR manages benefit plans, employees enroll in benefits, and claims are submitted and reviewed.</p>
+<p>Benefits administration becomes visible and connected to employee records.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create and manage benefit plans.</li>
+<li>Enroll employees in benefits.</li>
+<li>Submit benefit claims.</li>
+<li>Approve or reject claims.</li>
+<li>Add and maintain dependants.</li>
+<li>Generate or download benefit e-cards.</li>
+<li>Track benefit enrolment status.</li>
+</ul>
+<h2>16. Loans and advances</h2>
+<p>Employees apply for loans or advances, and authorized officers review, approve, disburse, and monitor repayments.</p>
+<p>Staff loan administration is controlled and connected to payroll and finance records.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create loan products.</li>
+<li>Apply for loans.</li>
+<li>Approve or reject loans.</li>
+<li>Disburse approved loans.</li>
+<li>View loan details.</li>
+<li>Track repayment progress.</li>
+<li>Calculate amortization and repayment schedules.</li>
+<li>Apply additional approval checks for disbursement.</li>
+</ul>
+<h2>17. Assets</h2>
+<p>The organization records assets, assigns them to employees or departments, tracks returns, maintenance, loss, and retirement.</p>
+<p>Assets are traceable from acquisition through assignment, maintenance, and disposal.</p>
+<p>Key functions:</p>
+<ul>
+<li>Register assets.</li>
+<li>View asset inventory.</li>
+<li>Assign assets.</li>
+<li>View personal assigned assets.</li>
+<li>Return assigned assets.</li>
+<li>Mark assets as lost.</li>
+<li>Retire assets.</li>
+<li>Record maintenance.</li>
+<li>Complete maintenance.</li>
+<li>Track asset condition and status.</li>
+<li>Calculate depreciation where applicable.</li>
+</ul>
+<h2>18. Offboarding and clearance</h2>
+<p>HR initiates offboarding when an employee exits. Departments clear required items and finance calculates settlement.</p>
+<p>Employee exits are handled consistently, reducing risk around assets, access, benefits, and final payments.</p>
+<p>Key functions:</p>
+<ul>
+<li>Initiate offboarding.</li>
+<li>View offboarding cases.</li>
+<li>Track clearance items by department or area.</li>
+<li>Update clearance status.</li>
+<li>Calculate final settlement.</li>
+<li>Approve settlement.</li>
+<li>Complete offboarding.</li>
+<li>Cancel offboarding where appropriate.</li>
+</ul>
+<h2>19. Governance, policies, and certifications</h2>
+<p>Governance teams manage policies, policy versions, acknowledgements, certifications, and compliance records.</p>
+<p>Important institutional rules and staff acknowledgements become documented and auditable.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create policies.</li>
+<li>Publish policy versions.</li>
+<li>Update policies.</li>
+<li>Record policy acknowledgements.</li>
+<li>Manage certifications.</li>
+<li>Track certification expiry.</li>
+<li>Send certification reminders.</li>
+<li>Maintain governance dashboards and compliance records.</li>
+</ul>
+<h2>20. Incident reporting</h2>
+<p>Employees submit private incident reports. Reviewers are assigned, messages are exchanged, attachments are reviewed, and reports are closed or reopened.</p>
+<p>Sensitive workplace incidents can be handled with privacy, accountability, and controlled access.</p>
+<p>Key functions:</p>
+<ul>
+<li>Submit incident reports.</li>
+<li>View permitted reports.</li>
+<li>Update reports before review begins.</li>
+<li>Assign and remove reviewers.</li>
+<li>Post messages on reports.</li>
+<li>Attach supporting documents.</li>
+<li>Download permitted attachments.</li>
+<li>Close or reopen incident reports.</li>
+</ul>
+<h2>21. Whistleblower channel</h2>
+<p>External or internal reporters submit whistleblower reports anonymously or with contact details. They receive tracking information and can follow up.</p>
+<p>The organization supports confidential reporting and investigation in line with governance expectations.</p>
+<p>Key functions:</p>
+<ul>
+<li>Submit whistleblower reports publicly.</li>
+<li>Receive confirmation and tracking code.</li>
+<li>Track a submitted report.</li>
+<li>Reply through the tracking page.</li>
+<li>Admin triage of reports.</li>
+<li>Assign investigators.</li>
+<li>Log investigation actions.</li>
+<li>Post messages to reporters.</li>
+<li>Close whistleblower cases.</li>
+<li>Protect sensitive report content.</li>
+</ul>
+<h2>22. Auditor-General and audit reporting</h2>
+<p>Authorized users generate audit-ready evidence packs and reports.</p>
+<p>Audit preparation is faster and more reliable because required information is gathered from controlled records.</p>
+<p>Key functions:</p>
+<ul>
+<li>Generate Auditor-General report packs.</li>
+<li>Download audit evidence packages.</li>
+<li>Include summaries without exposing sensitive whistleblower details.</li>
+<li>Verify evidence integrity through file hashes.</li>
+</ul>
+<h2>23. Documents, routing, signatures, and templates</h2>
+<p>Users upload documents, create documents inside the system, route them for review or signature, annotate them, share them, and download controlled copies.</p>
+<p>Official documents move through a clear approval process instead of informal email circulation.</p>
+<p>Key functions:</p>
+<ul>
+<li>Upload documents.</li>
+<li>Compose documents inside the portal.</li>
+<li>View document inbox, sent items, drafts, archive, and all accessible documents.</li>
+<li>Search documents by title or reference.</li>
+<li>Add new document versions.</li>
+<li>Route documents to recipients.</li>
+<li>Review, approve, complete, or reject routed documents.</li>
+<li>Add signatures, initials, stamps, text, or other annotations.</li>
+<li>Move, resize, and rotate annotations where allowed.</li>
+<li>Remove annotations where allowed.</li>
+<li>Withdraw routed documents.</li>
+<li>Archive documents.</li>
+<li>Edit draft document metadata.</li>
+<li>Soft-delete documents where allowed.</li>
+<li>Download documents through secure signed links.</li>
+<li>Automatically watermark restricted or controlled downloads.</li>
+<li>Convert documents to supported formats where available.</li>
+<li>Share documents with users, departments, or the organization.</li>
+<li>Manage stamp assets.</li>
+<li>Manage letterhead templates.</li>
+<li>Manage watermark templates.</li>
+</ul>
+<h2>24. Internal chat</h2>
+<p>Staff can send direct messages to other staff members.</p>
+<p>Work conversations can happen inside the same platform that holds the related HR and operational context.</p>
+<p>Key functions:</p>
+<ul>
+<li>View chat directory.</li>
+<li>Open one-to-one conversations.</li>
+<li>Send messages.</li>
+<li>Poll for new messages.</li>
+<li>Delete permitted messages.</li>
+<li>Start new conversations.</li>
+</ul>
+<h2>25. Announcements and notice board</h2>
+<p>Managers publish announcements for staff audiences.</p>
+<p>Important organizational messages are visible in one controlled channel.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create announcements.</li>
+<li>Set announcement type, severity, timing, and audience.</li>
+<li>Pin important notices.</li>
+<li>View announcement board.</li>
+<li>Update or remove announcements.</li>
+<li>Show birthdays and upcoming notices where configured.</li>
+</ul>
+<h2>26. Notifications and communication preferences</h2>
+<p>Users receive system notifications and manage preferred communication channels.</p>
+<p>Approvals, reminders, and alerts reach the right people through controlled channels.</p>
+<p>Key functions:</p>
+<ul>
+<li>View notifications.</li>
+<li>Mark notifications as read.</li>
+<li>Mark all notifications as read.</li>
+<li>Update notification channel preferences.</li>
+<li>Support email, SMS, and other channels where configured.</li>
+<li>Track consent and delivery preferences.</li>
+</ul>
+<h2>27. Messaging, SMS, and USSD</h2>
+<p>Authorized teams send messages and broadcasts. Members or staff can interact through USSD where configured.</p>
+<p>The system supports communication beyond email, including mobile-first access for users who may not always use the web portal.</p>
+<p>Key functions:</p>
+<ul>
+<li>Send messages.</li>
+<li>Manage broadcast campaigns.</li>
+<li>Create broadcast templates.</li>
+<li>Preview messages.</li>
+<li>Cancel broadcasts.</li>
+<li>Issue member or staff PINs.</li>
+<li>Receive SMS callbacks.</li>
+<li>Process USSD menu interactions.</li>
+<li>Support member fee inquiries and payment initiation through USSD.</li>
+</ul>
+<h2>28. Privacy and data protection</h2>
+<p>Employees and external data subjects submit data protection requests. Data protection officers review and fulfill them.</p>
+<p>The organization can respond to access, correction, erasure, portability, and related privacy requests in a structured way.</p>
+<p>Key functions:</p>
+<ul>
+<li>Submit authenticated privacy requests.</li>
+<li>Submit public data subject requests.</li>
+<li>Verify public requests by email.</li>
+<li>Track public requests by reference and email.</li>
+<li>View personal privacy requests.</li>
+<li>Withdraw requests.</li>
+<li>Admin acknowledgement of requests.</li>
+<li>Fulfill requests and attach export bundles.</li>
+<li>Reject requests with a statutory basis.</li>
+<li>Download approved data exports.</li>
+<li>Apply erasure or redaction where allowed.</li>
+<li>Track deadlines and overdue requests.</li>
+</ul>
+<h2>29. Member billing and self-service portal</h2>
+<p>Members sign in to their portal to view fees, invoices, statements, and payment options. Administrators manage member records, fee products, and billing runs.</p>
+<p>Membership fee collection becomes organized, traceable, and linked to finance records.</p>
+<p>Key functions:</p>
+<ul>
+<li>Member login and logout.</li>
+<li>Member dashboard.</li>
+<li>Member profile management.</li>
+<li>View member fees.</li>
+<li>View invoices and outstanding balances.</li>
+<li>Start payment for eligible invoices.</li>
+<li>View member statements.</li>
+<li>Admin member directory.</li>
+<li>Create and update member records.</li>
+<li>Manage fee catalog.</li>
+<li>Create billing runs.</li>
+<li>Generate invoices from fee assignments.</li>
+<li>Connect payments to receivables.</li>
+</ul>
+<h2>30. Finance hub</h2>
+<p>Finance users access a finance dashboard and the different finance work areas from one place.</p>
+<p>Financial operations are grouped into a controlled workspace for visibility and accountability.</p>
+<p>Key functions:</p>
+<ul>
+<li>View finance hub.</li>
+<li>Access accounts, bank accounts, vendors, customers, invoices, receipts, payments, statements, journals, reconciliation, payment gateway, and refunds.</li>
+<li>Enforce finance-specific permissions.</li>
+<li>Require fresh two-factor confirmation for sensitive money-moving actions.</li>
+</ul>
+<h2>31. Chart of accounts and posting rules</h2>
+<p>Finance teams maintain the official accounting structure and rules used for posting transactions.</p>
+<p>Consistent accounting rules reduce manual errors and support reliable reporting.</p>
+<p>Key functions:</p>
+<ul>
+<li>View chart of accounts.</li>
+<li>Create, update, or deactivate accounts.</li>
+<li>Maintain organization bank accounts.</li>
+<li>Manage posting rules that determine which accounts are used for transactions.</li>
+</ul>
+<h2>32. Vendors, accounts payable, and payments out</h2>
+<p>Finance teams manage vendors, supplier invoices, approvals, payments, disbursement, and voiding.</p>
+<p>Supplier payment processes become controlled from invoice receipt to payment completion.</p>
+<p>Key functions:</p>
+<ul>
+<li>Maintain vendor records.</li>
+<li>Record accounts payable invoices.</li>
+<li>Submit invoices for approval.</li>
+<li>Approve or cancel invoices.</li>
+<li>Record AP payments.</li>
+<li>Void payments where allowed.</li>
+<li>Disburse payments through configured channels.</li>
+<li>Post related accounting entries.</li>
+<li>View journal activity.</li>
+</ul>
+<h2>33. Customers, accounts receivable, and receipts</h2>
+<p>Finance teams manage customers, invoices issued to customers or members, receipts, write-offs, and customer statements.</p>
+<p>Receivables and collections are visible, auditable, and connected to payment channels.</p>
+<p>Key functions:</p>
+<ul>
+<li>Maintain customer records.</li>
+<li>Create accounts receivable invoices.</li>
+<li>Submit invoices for approval.</li>
+<li>Approve or cancel invoices.</li>
+<li>Record receipts.</li>
+<li>Void receipts where allowed.</li>
+<li>Write off bad debts where authorized.</li>
+<li>View customer statements.</li>
+<li>Track outstanding balances.</li>
+</ul>
+<h2>34. Paystack payment gateway and refunds</h2>
+<p>Finance teams create payment links or intents, receive Paystack payment notifications, and process refunds.</p>
+<p>Online payments can be connected to invoices without manual reconciliation of every transaction.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create payment intents.</li>
+<li>Generate hosted checkout links.</li>
+<li>Receive Paystack payment confirmations.</li>
+<li>Verify Paystack payment notifications.</li>
+<li>Match payments to invoices.</li>
+<li>Record receipts automatically.</li>
+<li>Process refunds.</li>
+<li>Process bulk refunds where authorized.</li>
+<li>Keep gateway activity auditable.</li>
+</ul>
+<h2>35. Bank reconciliation</h2>
+<p>Finance teams import bank statements, match statement lines to system transactions, make adjustments, and print reconciliation reports.</p>
+<p>Bank balances can be reconciled more quickly and with better evidence for review.</p>
+<p>Key functions:</p>
+<ul>
+<li>Import bank statements in supported formats.</li>
+<li>View bank statement details.</li>
+<li>Match bank lines to transactions.</li>
+<li>Unlink incorrect matches.</li>
+<li>Re-run matching.</li>
+<li>Post bank adjustments.</li>
+<li>Print reconciliation reports.</li>
+</ul>
+<h2>36. Journal explorer</h2>
+<p>Finance users review accounting entries and create approved manual journal entries where allowed.</p>
+<p>The journal provides an auditable record of financial postings.</p>
+<p>Key functions:</p>
+<ul>
+<li>View journal entries.</li>
+<li>View journal entry details.</li>
+<li>Create manual journal entries.</li>
+<li>Require additional security for manual posting.</li>
+<li>Link journal activity to source transactions.</li>
+</ul>
+<h2>37. Disbursements</h2>
+<p>Finance teams prepare and dispatch payment runs through configured channels and reconcile their results.</p>
+<p>Bulk payments can be managed with evidence, status tracking, and provider feedback.</p>
+<p>Key functions:</p>
+<ul>
+<li>View disbursement runs.</li>
+<li>Dispatch payment runs.</li>
+<li>Reconcile payment runs.</li>
+<li>Support ACH and mobile money providers where configured.</li>
+<li>Export provider-specific payment files.</li>
+</ul>
+<h2>38. Reports</h2>
+<p>Managers and authorized users generate operational and management reports.</p>
+<p>The organization can review trends and export data for meetings, compliance, and planning.</p>
+<p>Key functions:</p>
+<ul>
+<li>View reports dashboard.</li>
+<li>Export report data.</li>
+<li>Generate headcount, leave, payroll, turnover, ticket, audit, and related reports.</li>
+<li>Use filters to narrow report results.</li>
+</ul>
+<h2>39. Audit logs</h2>
+<p>Auditors and administrators review activity logs.</p>
+<p>The system records important actions so the organization can answer who did what, when, and from where.</p>
+<p>Key functions:</p>
+<ul>
+<li>View audit log list.</li>
+<li>Track authenticated changes.</li>
+<li>Support hash-chained audit trail checks.</li>
+<li>Verify audit chain integrity.</li>
+<li>Backfill or verify audit records through administrative commands.</li>
+</ul>
+<h2>40. API tokens and partner integrations</h2>
+<p>Administrators create controlled access tokens and manage webhook subscriptions for trusted systems.</p>
+<p>External systems can exchange information with CIHRMS without sharing user passwords.</p>
+<p>Key functions:</p>
+<ul>
+<li>Create API tokens.</li>
+<li>Revoke API tokens.</li>
+<li>Assign token permissions.</li>
+<li>View token introspection.</li>
+<li>Provide versioned API documentation.</li>
+<li>Allow partner systems to read approved employee, payroll, attendance, member, invoice, and webhook data.</li>
+<li>Manage webhook subscriptions.</li>
+<li>Send signed outbound webhooks to subscribed systems.</li>
+</ul>
+<h2>41. External integrations and webhooks</h2>
+<p>Administrators connect and monitor external services. External providers send approved updates into CIHRMS.</p>
+<p>Integrations reduce manual data entry and connect HR, finance, communications, identity, and payment systems.</p>
+<p>Key functions:</p>
+<ul>
+<li>Manage integration connections.</li>
+<li>Handle WhatsApp webhooks.</li>
+<li>Handle Zoho webhooks.</li>
+<li>Handle e-signature webhooks.</li>
+<li>Handle Microsoft Graph webhooks.</li>
+<li>Handle Google webhooks.</li>
+<li>Handle Slack event webhooks.</li>
+<li>Handle biometric device events.</li>
+<li>Handle SMS callbacks.</li>
+<li>Handle USSD callbacks.</li>
+<li>Handle Paystack payment notifications.</li>
+<li>Verify incoming provider signatures.</li>
+<li>Log failed integration events for review.</li>
+</ul>
+<h2>42. Admin user management</h2>
+<p>Administrators manage system users, roles, staff identifiers, and account setup.</p>
+<p>User access must be controlled as people join, move roles, or leave the organization.</p>
+<p>Key functions:</p>
+<ul>
+<li>View users.</li>
+<li>Create users.</li>
+<li>Assign roles and permissions.</li>
+<li>Generate staff IDs and employee numbers.</li>
+<li>Preview staff identifiers before account creation.</li>
+<li>Enforce password change requirements.</li>
+<li>Require two-factor enrolment for selected roles.</li>
+</ul>
+<h2>43. Security controls</h2>
+<p>Users see only what their role permits. Sensitive actions may require fresh two-factor confirmation. Public forms are rate-limited to reduce abuse.</p>
+<p>The system holds sensitive HR, finance, and governance data. Security controls protect staff, members, and the organization.</p>
+<p>Key controls:</p>
+<ul>
+<li>Role-based access.</li>
+<li>Permission-based actions.</li>
+<li>Two-factor checks for sensitive finance, payroll, SSO, and privacy actions.</li>
+<li>Private file storage.</li>
+<li>Temporary signed download links.</li>
+<li>Watermarked restricted documents.</li>
+<li>Public form rate limiting.</li>
+<li>Audit logging.</li>
+<li>Secure session and password controls.</li>
+</ul>
+<h2>44. Public and self-service pages</h2>
+<p>Some features are intentionally available without staff login because they serve applicants, whistleblowers, data subjects, members, or kiosk users.</p>
+<p>Key public or self-service functions:</p>
+<ul>
+<li>Public careers page.</li>
+<li>Public job application submission.</li>
+<li>Public complaint tracking.</li>
+<li>Public whistleblower submission and tracking.</li>
+<li>Public data protection request submission and tracking.</li>
+<li>Attendance kiosk.</li>
+<li>API documentation.</li>
+<li>Offline fallback page for progressive web app support.</li>
+<li>Member portal login and self-service.</li>
+</ul>
+<h2>45. Progressive web app and accessibility support</h2>
+<p>The system includes user experience support for offline fallback, installable app behavior, and accessibility checks.</p>
+<p>Staff should be able to use the system reliably and inclusively across different devices and conditions.</p>
+<p>Key functions:</p>
+<ul>
+<li>Web app manifest.</li>
+<li>Service worker support.</li>
+<li>Offline fallback page.</li>
+<li>Accessibility audit tooling.</li>
+<li>WCAG checklist documentation.</li>
+<li>Skip links, labels, and interface improvements where implemented.</li>
+</ul>
+<h2>46. AI employee summary assistant</h2>
+<p>Authorized users can request a short AI-generated summary of an employee profile.</p>
+<p>The assistant helps HR officers quickly understand an employee record before taking action.</p>
+<p>Key functions:</p>
+<ul>
+<li>Generate a short employee profile briefing.</li>
+<li>Focus the summary on a topic such as overall profile, leave, performance, or training.</li>
+<li>Remove sensitive details before sending information to the AI provider.</li>
+<li>Return usage information for cost awareness.</li>
+</ul>
+<h2>47. Typical end-to-end workflows</h2>
+<h3>Hiring a new employee</h3>
+<ol>
+<li>HR publishes a job.</li>
+<li>Applicant applies through the careers page.</li>
+<li>HR reviews the applicant.</li>
+<li>Applicant status is updated.</li>
+<li>Offer is sent for signing where required.</li>
+<li>Successful applicant becomes an employee record.</li>
+<li>Employee receives profile, department, role, and onboarding information.</li>
+</ol>
+<h3>Managing leave</h3>
+<ol>
+<li>Employee submits leave request.</li>
+<li>Manager or HR reviews request.</li>
+<li>Leave is approved or rejected.</li>
+<li>Balance and status are updated.</li>
+<li>The decision becomes part of the record.</li>
+</ol>
+<h3>Processing payroll</h3>
+<ol>
+<li>Payroll run is created.</li>
+<li>Payroll is calculated.</li>
+<li>Authorized reviewer approves it.</li>
+<li>Payments and payslips are generated.</li>
+<li>Payroll is marked paid.</li>
+<li>Statutory files and exports are produced.</li>
+</ol>
+<h3>Routing a document for approval</h3>
+<ol>
+<li>User uploads or composes a document.</li>
+<li>User chooses recipients and required actions.</li>
+<li>Recipients review, sign, approve, or reject.</li>
+<li>Document status updates automatically.</li>
+<li>Final document can be downloaded with controls and audit history.</li>
+</ol>
+<h3>Collecting member fees</h3>
+<ol>
+<li>Admin creates fee products.</li>
+<li>Billing run generates invoices.</li>
+<li>Member views invoice in the portal.</li>
+<li>Member pays online or through supported channels.</li>
+<li>Paystack confirms payment.</li>
+<li>Receipt and invoice status are updated.</li>
+</ol>
+<h3>Reconciling bank transactions</h3>
+<ol>
+<li>Finance imports bank statement.</li>
+<li>System suggests matches.</li>
+<li>Finance confirms, links, unlinks, or rematches lines.</li>
+<li>Adjustments are posted where needed.</li>
+<li>Reconciliation report is printed or reviewed.</li>
+</ol>
+<h3>Handling a privacy request</h3>
+<ol>
+<li>Data subject submits request.</li>
+<li>Email verification confirms the request.</li>
+<li>DPO reviews and acknowledges it.</li>
+<li>Request is fulfilled, rejected, or withdrawn.</li>
+<li>Export or erasure evidence is retained as appropriate.</li>
+</ol>
+<h2>48. Information stored in the system</h2>
+<p>CIHRMS stores and manages information such as:</p>
+<ul>
+<li>Employee profiles.</li>
+<li>Departments and positions.</li>
+<li>Attendance records.</li>
+<li>Leave requests and balances.</li>
+<li>Payroll runs, payslips, and statutory records.</li>
+<li>Documents, signatures, stamps, and templates.</li>
+<li>Performance goals, reviews, contracts, calibration, and PIPs.</li>
+<li>Recruitment jobs and applications.</li>
+<li>Tickets, complaints, incidents, and whistleblower reports.</li>
+<li>Assets, benefits, loans, and offboarding records.</li>
+<li>Members, fees, invoices, receipts, and statements.</li>
+<li>Finance accounts, journals, vendors, customers, payments, and bank statements.</li>
+<li>Audit logs, notifications, integrations, and API tokens.</li>
+</ul>
+<h2>49. What managers should know</h2>
+<ul>
+<li>CIHRMS is not just an HR filing system; it is a workflow and control platform.</li>
+<li>The system is built around approvals, permissions, and audit trails.</li>
+<li>Many modules connect to each other, so good data entry in one area improves outcomes elsewhere.</li>
+<li>Finance and HR actions can require additional security checks.</li>
+<li>Public-facing features are limited and controlled, while staff features require login.</li>
+<li>Reports are only as useful as the records maintained in the system.</li>
+</ul>
+<h2>50. What trainers should emphasize</h2>
+<ul>
+<li>Start users with their role-specific daily tasks.</li>
+<li>Teach employees profile, leave, attendance, tickets, notifications, and documents first.</li>
+<li>Teach managers approvals, team views, performance, incidents, and reports.</li>
+<li>Teach HR employees, recruitment, leave, performance, benefits, offboarding, learning, and governance.</li>
+<li>Teach finance users payroll, receivables, payables, reconciliation, statements, and payment gateway workflows.</li>
+<li>Teach administrators users, roles, permissions, integrations, templates, and audit logs.</li>
+</ul>
+<h2>51. Glossary</h2>
+<ul>
+<li>Approval: A decision by an authorized person to accept, reject, or move a request forward.</li>
+<li>Audit log: A record of important actions taken in the system.</li>
+<li>Benefit: A staff entitlement such as a plan, claim, dependant, or e-card.</li>
+<li>Billing run: A process that creates invoices for members based on configured fees.</li>
+<li>Calibration: A management review process used to align performance ratings.</li>
+<li>Disbursement: A payment sent out through a bank, ACH, or mobile money channel.</li>
+<li>Journal entry: A finance record showing how money is posted in the accounts.</li>
+<li>Kiosk: A shared attendance device or screen.</li>
+<li>Member portal: A self-service area for members to view fees, invoices, and statements.</li>
+<li>Performance Improvement Plan: A structured plan to support an employee whose performance needs improvement.</li>
+<li>Reconciliation: Matching bank statement activity against system records.</li>
+<li>Signed link: A secure temporary link used to access private files.</li>
+<li>Two-factor check: An extra security confirmation before sensitive actions.</li>
+<li>Webhook: A secure message sent between CIHRMS and another system when something happens.</li>
+</ul>
+</body>
+</html>

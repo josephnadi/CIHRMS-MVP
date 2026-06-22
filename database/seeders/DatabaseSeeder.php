@@ -69,6 +69,7 @@ class DatabaseSeeder extends Seeder
             $this->seedPayroll();
             $this->seedRecruitment();
             $this->seedComplaints();
+            $this->call(MemberPortalDemoSeeder::class);
 
             // Establishment demo data has to run AFTER departments exist.
             $this->call(EstablishmentDemoSeeder::class);

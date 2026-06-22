@@ -10,6 +10,7 @@ Index of every doc under `docs/`.
 |---|---|
 | Set the project up and run it | [../README.md](../README.md) |
 | Understand what's built today | [PROJECT_STATE.md](PROJECT_STATE.md) |
+| Explain the application to non-technical stakeholders | [NON_TECHNICAL_APPLICATION_GUIDE.md](NON_TECHNICAL_APPLICATION_GUIDE.md) |
 | Know what's planned next | [implementation_plan.md](implementation_plan.md) |
 | Log in as a seeded user | [credentials.md](credentials.md) |
 | Read the product spec | [Cihrm Hrms Product Requirements Document Prd.pdf](Cihrm%20Hrms%20Product%20Requirements%20Document%20Prd.pdf) |
@@ -18,6 +19,9 @@ Index of every doc under `docs/`.
 
 ### [PROJECT_STATE.md](PROJECT_STATE.md)
 A point-in-time snapshot of what exists in the codebase: per-layer counts (migrations, enums, models, controllers, routes, pages), per-module backend/frontend status, and the current gaps. Re-date this file whenever a layer materially moves.
+
+### [NON_TECHNICAL_APPLICATION_GUIDE.md](NON_TECHNICAL_APPLICATION_GUIDE.md)
+A plain-language walkthrough for executives, HR, finance, managers, auditors, trainers, and other non-technical stakeholders. It explains each major feature, who uses it, why it matters, and the business workflows it supports.
 
 ### [implementation_plan.md](implementation_plan.md)
 The forward-looking punch list, organised into seven phases (version control → dashboard real data → module depth → tests → integration smoke tests → notifications/flash → production hardening), with effort estimates and parallelisation notes.

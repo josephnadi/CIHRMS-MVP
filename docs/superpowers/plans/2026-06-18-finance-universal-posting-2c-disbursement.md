@@ -52,6 +52,7 @@ use App\Models\JournalEntry;
 use App\Models\OrgBankAccount;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
+use App\Models\User;
 use App\Services\Disbursement\BatchDisbursementService;
 use App\Services\Disbursement\Contracts\DisbursementProvider;
 use App\Services\Disbursement\DisbursementResult;
@@ -66,6 +67,10 @@ beforeEach(function () {
     (new GlAccountBalanceSeeder())->run();
     (new PostingAccountSeeder())->run();
     (new OrgBankAccountSeeder())->run(); // creates an active Payroll-purpose account → GL 1110
+
+    // Settlement posts actor-less (no auth, no explicit actor), so PostingActorResolver
+    // falls through to "first super_admin" for created_by/posted_by — seed one.
+    User::factory()->create(['role' => 'super_admin']);
 
     $this->dept = Department::factory()->create();
     $this->employee = Employee::factory()->create([

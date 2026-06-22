@@ -31,6 +31,17 @@ Each fixed account also has a matching `Employee` row (employee numbers `CIHRM-0
 
 > **CEO accounts** are not seeded. Create one via the admin UI at [`/admin/users`](../resources/js/Pages/Admin/Users/Index.vue) (requires `users.manage`). The form auto-provisions an `Employee` row and forces 2FA for the role.
 
+## Fixed member portal accounts
+
+Members log in separately at `/portal/login` with **Email + Password**.
+
+All accounts below: password = `password`.
+
+| Member type | Name | Member No | Email | Password |
+| :--- | :--- | :--- | :--- | :--- |
+| **Professional Member** | `Kwame Member` | `CIHRM-M-2026-00001` | `member@cihrms.local` | `password` |
+| **Student Member** | `Ama Student` | `CIHRM-S-2026-00001` | `student.member@cihrms.local` | `password` |
+
 ### If you can't log in with the documented password
 
 A previous dev session may have changed the password through the must-change wall, leaving the doc out of sync. Two recovery options:
