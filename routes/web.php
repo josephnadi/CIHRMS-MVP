@@ -300,8 +300,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{ticket}',     [TicketController::class, 'show'])
             ->middleware('permission:tickets.create')
             ->name('show');
+        // Authorization is handled by UpdateTicketStatusRequest via TicketPolicy
+        // (managers OR the ticket's assignee) — no blanket manage gate here, so
+        // an assignee can change the status of their own ticket (drag-to-move).
         Route::patch('{ticket}',   [TicketController::class, 'updateStatus'])
-            ->middleware('permission:tickets.manage')
             ->name('update');
         Route::delete('{ticket}',  [TicketController::class, 'destroy'])
             ->middleware('permission:tickets.manage')

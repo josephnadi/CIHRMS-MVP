@@ -15,7 +15,10 @@ class UpdateTicketStatusRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasPermission('tickets.manage');
+        // Managers may update any ticket; an assignee may update their own.
+        // Delegates to TicketPolicy::update so the route, request, and UI
+        // (the per-card `draggable` flag) all agree on who can change a ticket.
+        return $this->user()->can('update', $this->route('ticket'));
     }
 
     public function rules(): array

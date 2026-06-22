@@ -6,6 +6,8 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\TicketAssigned;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     $this->dept = Department::factory()->create();
@@ -34,6 +36,79 @@ test('employee can open a ticket', function () {
         'status'      => TicketStatus::Open->value,
         'employee_id' => $this->employee->id,
     ]);
+});
+
+test('a manager can assign a ticket to support staff while creating it', function () {
+    Notification::fake();
+    $assignee = User::factory()->create(['role' => 'it_support']);
+
+    $this->actingAs($this->hr)
+        ->post(route('tickets.store'), [
+            'title'       => 'Printer offline',
+            'description' => 'The 3rd floor printer will not come online.',
+            'priority'    => TicketPriority::Medium->value,
+            'assigned_to' => $assignee->id,
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    $this->assertDatabaseHas('tickets', [
+        'title'       => 'Printer offline',
+        'assigned_to' => $assignee->id,
+        'status'      => TicketStatus::Open->value,
+    ]);
+
+    Notification::assertSentTo($assignee, TicketAssigned::class);
+});
+
+test('an employee without manage rights cannot self-assign a ticket at creation', function () {
+    $assignee = User::factory()->create(['role' => 'it_support']);
+
+    $this->actingAs($this->employeeUser)
+        ->post(route('tickets.store'), [
+            'title'       => 'Laptop slow',
+            'description' => 'My laptop has become very slow this week.',
+            'priority'    => TicketPriority::Low->value,
+            'assigned_to' => $assignee->id,
+        ])
+        ->assertRedirect();
+
+    // The assignment is silently ignored — non-managers may not route tickets.
+    $this->assertDatabaseHas('tickets', [
+        'title'       => 'Laptop slow',
+        'assigned_to' => null,
+    ]);
+});
+
+test('an assignee can change the status of their ticket without manage permission', function () {
+    // `marketing` holds tickets.create but NOT tickets.manage — the policy
+    // still lets the assignee work their own ticket (drag-to-change-status).
+    $agent  = User::factory()->create(['role' => 'marketing']);
+    $ticket = Ticket::factory()->open()->create([
+        'employee_id' => $this->employee->id,
+        'assigned_to' => $agent->id,
+    ]);
+
+    $this->actingAs($agent)
+        ->patch(route('tickets.update', $ticket), [
+            'status' => TicketStatus::InProgress->value,
+        ])
+        ->assertRedirect();
+
+    expect($ticket->refresh()->status->value)->toBe(TicketStatus::InProgress->value);
+});
+
+test('a non-manager who is not the assignee cannot update a ticket', function () {
+    $outsider = User::factory()->create(['role' => 'marketing']);
+    $ticket   = Ticket::factory()->open()->create(['employee_id' => $this->employee->id]);
+
+    $this->actingAs($outsider)
+        ->patch(route('tickets.update', $ticket), [
+            'status' => TicketStatus::Resolved->value,
+        ])
+        ->assertForbidden();
+
+    expect($ticket->refresh()->status->value)->toBe(TicketStatus::Open->value);
 });
 
 test('manager can mark a ticket resolved and resolved_at is stamped', function () {

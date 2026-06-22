@@ -102,15 +102,29 @@ const form = useForm({
     description: '',
     priority:    'medium',
     due_at:      '',
+    assigned_to: '',
 });
 
 const submit = () => {
     form.post(route('tickets.store'), {
+        preserveScroll: true,
         onSuccess: () => {
+            // Created — clear the form and close the panel so the refreshed
+            // list (the redirect reloads `tickets`) is visible underneath.
             form.reset();
             showAddPanel.value = false;
         },
+        // On validation failure Inertia keeps `showAddPanel` open and populates
+        // `form.errors`; the panel now renders those errors inline (see below)
+        // instead of appearing to hang with no feedback.
     });
+};
+
+// Closing the create panel by any means (Cancel, backdrop, Esc) should also
+// drop any stale validation errors so re-opening starts clean.
+const closeAddPanel = () => {
+    showAddPanel.value = false;
+    form.clearErrors();
 };
 
 const confirmDelete = (id, e) => {
@@ -133,7 +147,7 @@ const quickAssign = (ticket, userId) => {
     router.patch(route('tickets.update', ticket.id), {
         status:      ticket.status,
         assigned_to: userId || null,
-    }, { preserveScroll: true });
+    }, { preserveScroll: true, preserveState: true });
 };
 
 const quickStatus = (ticket, status) => {
@@ -871,8 +885,36 @@ const ops = computed(() => {
                                                     <span class="material-symbols-outlined text-[14px]">group</span>
                                                     Assignees
                                                 </dt>
-                                                <dd class="tk-field__value">
-                                                    <span class="tk-avatar-stack">
+                                                <dd class="tk-field__value" @click.stop @mousedown.stop>
+                                                    <!-- Manager: reassign inline via a real native select dropdown.
+                                                         A native select renders its menu in the browser's own
+                                                         overlay layer, so it isn't clipped by the board's
+                                                         overflow-hidden drop zone. Stop click/drag so picking an
+                                                         assignee neither opens the drawer nor starts a card drag. -->
+                                                    <div v-if="canManage" class="flex items-center gap-2" draggable="false">
+                                                        <span v-if="item.assigned_to"
+                                                              class="tk-avatar flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-surface-container-lowest shrink-0"
+                                                              :style="`background:${avatarTone(item.assigned_to.name).bg};color:${avatarTone(item.assigned_to.name).fg}`"
+                                                              :title="`Assigned to ${item.assigned_to.name}`">
+                                                            {{ initials(item.assigned_to.name) }}
+                                                        </span>
+                                                        <div class="relative min-w-0 flex-1">
+                                                            <select aria-label="Assign ticket"
+                                                                    :value="item.assigned_to?.id ?? ''"
+                                                                    @change="ev => quickAssign(item, ev.target.value || null)"
+                                                                    @click.stop
+                                                                    @mousedown.stop
+                                                                    @dragstart.stop.prevent
+                                                                    draggable="false"
+                                                                    class="w-full appearance-none rounded-md border border-outline-variant/60 bg-surface-container-low pl-2 pr-6 py-1 text-[11.5px] font-semibold text-on-surface cursor-pointer hover:border-secondary/50 focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15 transition-colors">
+                                                                <option value="">Unassigned</option>
+                                                                <option v-for="u in staff" :key="u.id" :value="u.id">{{ u.name }}</option>
+                                                            </select>
+                                                            <span class="material-symbols-outlined pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-on-surface-variant/50">expand_more</span>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Non-manager: read-only assignee display -->
+                                                    <span v-else class="tk-avatar-stack">
                                                         <span v-if="item.assigned_to"
                                                               class="tk-avatar flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-surface-container-lowest"
                                                               :style="`background:${avatarTone(item.assigned_to.name).bg};color:${avatarTone(item.assigned_to.name).fg}`"
@@ -880,13 +922,6 @@ const ops = computed(() => {
                                                             {{ initials(item.assigned_to.name) }}
                                                         </span>
                                                         <span v-else class="text-[11px] text-on-surface-variant/50 italic">Unassigned</span>
-                                                        <button v-if="canManage"
-                                                                type="button"
-                                                                @click.stop="openDrawer(item)"
-                                                                class="tk-avatar tk-avatar--add flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-outline-variant/70 text-on-surface-variant/50 hover:border-secondary hover:text-secondary transition-colors"
-                                                                title="Add assignee">
-                                                            <span class="material-symbols-outlined text-[14px]">add</span>
-                                                        </button>
                                                     </span>
                                                 </dd>
                                             </div>
@@ -1112,7 +1147,7 @@ const ops = computed(() => {
             </div>
 
             <!-- New Ticket -->
-            <SlidePanel :open="showAddPanel" title="Open New Ticket" size="lg" @close="showAddPanel = false">
+            <SlidePanel :open="showAddPanel" title="Open New Ticket" size="lg" @close="closeAddPanel">
                 <form @submit.prevent="submit" class="space-y-5 p-6">
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Title <span class="text-red-500">*</span></label>
@@ -1160,8 +1195,30 @@ const ops = computed(() => {
                                 v-model="form.due_at"
                                 type="datetime-local"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.due_at }"
                             />
+                            <p v-if="form.errors.due_at" class="mt-1 text-[11px] text-red-500">{{ form.errors.due_at }}</p>
                         </div>
+                    </div>
+
+                    <!-- Assignee — routing a ticket is a manager action, so the
+                         picker only appears for users who can manage tickets. -->
+                    <div v-if="canManage">
+                        <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Assign to</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px]" style="color:#1a237e;opacity:0.7">person</span>
+                            <select aria-label="Assign to"
+                                v-model="form.assigned_to"
+                                class="w-full appearance-none rounded-xl border border-outline-variant bg-surface-container-low pl-9 pr-9 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.assigned_to }"
+                            >
+                                <option value="">Unassigned — triage later</option>
+                                <option v-for="user in staff" :key="user.id" :value="user.id">{{ user.name }}</option>
+                            </select>
+                            <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant/60">expand_more</span>
+                        </div>
+                        <p v-if="form.errors.assigned_to" class="mt-1 text-[11px] text-red-500">{{ form.errors.assigned_to }}</p>
+                        <p class="mt-1.5 text-[11px] text-on-surface-variant/60">The assignee is notified as soon as the ticket is opened.</p>
                     </div>
                 </form>
 
@@ -1169,7 +1226,7 @@ const ops = computed(() => {
                     <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
-                            @click="showAddPanel = false"
+                            @click="closeAddPanel"
                             class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
                             Cancel

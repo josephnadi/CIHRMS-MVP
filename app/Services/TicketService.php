@@ -7,6 +7,8 @@ use App\Events\TicketCreated;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketStatusRequest;
 use App\Models\Ticket;
+use App\Models\User;
+use App\Notifications\TicketAssigned;
 use App\Notifications\TicketResolved;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
@@ -21,6 +23,12 @@ class TicketService
         $ticket = Ticket::create($data);
 
         event(new TicketCreated($ticket, $request->user()));
+
+        // Ticket was routed to a colleague at creation time — let them know.
+        // Don't ping the actor if they assigned the ticket to themselves.
+        if ($ticket->assigned_to && $ticket->assigned_to !== $request->user()?->id) {
+            User::find($ticket->assigned_to)?->notify(new TicketAssigned($ticket));
+        }
 
         return $ticket;
     }
