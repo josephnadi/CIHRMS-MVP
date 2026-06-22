@@ -1,25 +1,19 @@
 import { ref } from 'vue';
 
-// Module-level singleton — shared across all components
+// Dark mode has been removed — the app is light-only.
+// `isDark` stays permanently false so all theme-conditional UI resolves to light.
 const isDark = ref(false);
 
-function applyTheme(dark) {
-    document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('cihrms-theme', dark ? 'dark' : 'light');
-}
-
 export function useDark() {
+    // Actively clear any legacy dark preference / class so returning users
+    // who previously selected dark mode are reset to light.
     function init() {
-        const stored = localStorage.getItem('cihrms-theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        isDark.value = stored === 'dark' || (!stored && prefersDark);
-        applyTheme(isDark.value);
+        document.documentElement.classList.remove('dark');
+        localStorage.removeItem('cihrms-theme');
     }
 
-    function toggle() {
-        isDark.value = !isDark.value;
-        applyTheme(isDark.value);
-    }
+    // No-op: theme switching is no longer supported.
+    function toggle() {}
 
     return { isDark, toggle, init };
 }

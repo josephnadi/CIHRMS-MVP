@@ -13,6 +13,46 @@
     box-shadow: 0 0 10px #0d1452, 0 0 5px #0d1452 !important;
 }
 
+.cihrms-table-export-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    padding: 0.6rem 0.75rem 0.45rem;
+}
+
+.cihrms-table-export-button {
+    border: 1px solid rgb(var(--ct-outline-variant) / 0.7);
+    border-radius: 999px;
+    background: rgb(var(--ct-surface-lowest) / 0.92);
+    color: rgb(var(--ct-on-surface));
+    padding: 0.38rem 0.7rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+    box-shadow: 0 8px 20px rgb(15 23 42 / 0.06);
+    transition: transform 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+.cihrms-table-export-button:hover {
+    transform: translateY(-1px);
+    border-color: rgb(37 99 235 / 0.65);
+    background: rgb(var(--ct-surface-low) / 0.95);
+}
+
+.cihrms-table-export-button:focus-visible {
+    outline: 3px solid rgb(37 99 235 / 0.35);
+    outline-offset: 2px;
+}
+
+@media print {
+    .cihrms-table-export-toolbar {
+        display: none !important;
+    }
+}
+
 /* ─── Design Token CSS Variables ─────────────────────────
    RGB triplet format so Tailwind opacity modifiers work:
    bg-background/80  â†’  rgb(var(--ct-background) / 0.8)
@@ -706,19 +746,6 @@ html[data-theme="high-contrast"].dark {
         -webkit-mask-composite: xor;
         mask-composite: exclude;
         pointer-events: none;
-    }
-
-    /* Dark mode toggle button */
-    .theme-toggle {
-        position: relative;
-        display: flex; align-items: center; justify-content: center;
-        width: 2.25rem; height: 2.25rem;
-        border-radius: 0.75rem;
-        transition: all 0.2s ease;
-    }
-    .theme-toggle:hover {
-        background: rgb(var(--ct-surface-low));
-        color: rgb(var(--ct-on-surface));
     }
 }
 

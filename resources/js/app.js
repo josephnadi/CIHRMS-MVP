@@ -8,6 +8,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import PwaInstallPrompt   from './Components/PwaInstallPrompt.vue';
 import SkipLink           from './Components/SkipLink.vue';
 import AriaLiveAnnouncer  from './Components/AriaLiveAnnouncer.vue';
+import { initTableExportEnhancer } from './utils/table-export';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -25,7 +26,7 @@ createInertiaApp({
         import.meta.glob('./Pages/**/*.vue'),
     ),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        const vueApp = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             // PWA install + update + offline banner — registered globally so
@@ -35,6 +36,10 @@ createInertiaApp({
             .component('SkipLink',          SkipLink)
             .component('AriaLiveAnnouncer', AriaLiveAnnouncer)
             .mount(el);
+
+        initTableExportEnhancer();
+
+        return vueApp;
     },
     progress: {
         color: '#0d1452',
