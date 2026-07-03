@@ -58,6 +58,14 @@ RUN rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
+# Recreate framework scratch dirs (their .gitignore contents are stripped by .dockerignore).
+RUN mkdir -p \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        bootstrap/cache
+
 # Writable dirs for the web server user.
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
