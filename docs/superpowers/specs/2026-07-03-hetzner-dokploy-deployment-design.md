@@ -21,7 +21,7 @@ Take CIHRMS (`josephnadi/CIHRMS-MVP`, app in `cihrms-mvp/`) from local-only to a
 | 2 | Server | **Hetzner CPX21** — 3 vCPU / 4 GB, Ubuntu 22.04. |
 | 3 | Database | **Dokploy managed PostgreSQL** service (own volume + backups UI), self-hosted on same box. |
 | 4 | Runtime | **docker-compose, 3 services** (web / worker / scheduler) from one shared image. Cache/session/queue stay on Postgres — **no Redis** yet. |
-| 5 | Deploy trigger | Dokploy tracks a dedicated **`develop`** branch; `main` stays clean for future prod. |
+| 5 | Deploy trigger | Merge everything to **`main`**, branch **`develop`** off `main`; Dokploy tracks `develop`. `main` stays the stable base for future prod. |
 
 ---
 
@@ -113,7 +113,7 @@ MAIL_MAILER=log
 - Hetzner Cloud account + project. Namecheap holds `cihrms.org`. GitHub access confirmed.
 
 ### Phase 1 — Provision server
-1. Create **CPX21**, Ubuntu 22.04, Hetzner **EU location** (Falkenstein/Nuremberg — good latency to Ghana; US Ashburn is the alternative). Attach SSH key.
+1. Create **CPX21**, Ubuntu 22.04, Hetzner **Falkenstein (Germany, `fsn1`)** — the closest Hetzner datacenter to Ghana. Attach SSH key.
 2. Harden: create non-root sudo user; `ufw allow 22,80,443`; enable unattended-upgrades.
 3. Install Dokploy via its one-line installer (pulls Traefik + panel Postgres).
 
@@ -123,9 +123,9 @@ MAIL_MAILER=log
 6. Leave `cihrms.org` root + `www` untouched (prod is a later project).
 
 ### Phase 3 — Prepare repo
-7. Feature branch: add all §3 artifacts.
-8. Verify the image **builds locally** (`docker build`) before pushing.
-9. Create **`develop`** branch from the current clean state; this is Dokploy's tracked branch.
+7. Merge all outstanding work (incl. `fix/audit-remediation`) into **`main`** so `main` is the clean, current source of truth.
+8. Feature branch off `main`: add all §3 artifacts. Verify the image **builds locally** (`docker build`) before pushing; merge the artifacts branch into `main`.
+9. Create **`develop`** branch **from `main`**; this is Dokploy's tracked branch for `dev.cihrms.org`.
 
 ### Phase 4 — Wire up Dokploy
 10. Set the Dokploy panel domain; connect GitHub (GitHub App or deploy key) to `josephnadi/CIHRMS-MVP`.
