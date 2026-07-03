@@ -7,7 +7,7 @@ x-app: &app
     context: .
     dockerfile: Dockerfile
   restart: unless-stopped
-  environment: &app-env
+  environment:
     - APP_NAME
     - APP_ENV
     - APP_KEY
@@ -32,10 +32,9 @@ x-app: &app
 
 services:
   web:
+    # Inherits the full environment list + volume from *app.
+    # CONTAINER_ROLE is unset here, so the entrypoint defaults it to "web" (the migration owner).
     <<: *app
-    environment:
-      <<: *app-env
-      # CONTAINER_ROLE defaults to "web" in the entrypoint; set explicitly for clarity.
     command: ["/usr/local/bin/serve-web"]
     expose:
       - "80"
