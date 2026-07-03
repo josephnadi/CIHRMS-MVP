@@ -29,6 +29,7 @@ x-app: &app
     - CIHRMS_ALLOW_DEMO_SEEDERS
   volumes:
     - app_storage:/var/www/html/storage/app
+    - app_logs:/var/www/html/storage/logs
 
 services:
   web:
@@ -84,3 +85,4 @@ services:
 
 volumes:
   app_storage:
+  app_logs:

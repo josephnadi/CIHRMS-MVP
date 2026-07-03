@@ -70,8 +70,10 @@ RUN mkdir -p \
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
-# Web-role process manager: start php-fpm in background, nginx in foreground.
-RUN printf '#!/bin/sh\nset -e\nphp-fpm -D\nexec nginx -g "daemon off;"\n' > /usr/local/bin/serve-web \
+# Web-role process manager: run php-fpm and nginx together; if EITHER exits,
+# the script exits so tini reaps and Docker (restart: unless-stopped) restarts
+# the whole container — avoids a half-dead web service returning 502s.
+RUN printf '#!/bin/bash\nphp-fpm &\nnginx -g "daemon off;" &\nwait -n\nexit $?\n' > /usr/local/bin/serve-web \
     && chmod +x /usr/local/bin/serve-web
 
 EXPOSE 80
