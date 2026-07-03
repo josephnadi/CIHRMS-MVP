@@ -1,0 +1,88 @@
+# CIHRMS dev stack for Dokploy. Postgres is a SEPARATE Dokploy-managed
+# database (not defined here) reached over the shared Docker network.
+# All env values are injected by Dokploy at deploy time (pass-through).
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  environment:
+    - APP_NAME
+    - APP_ENV
+    - APP_KEY
+    - APP_DEBUG
+    - APP_URL
+    - APP_TRUSTED_PROXIES
+    - SESSION_DRIVER
+    - SESSION_SECURE_COOKIE
+    - SESSION_ENCRYPT
+    - QUEUE_CONNECTION
+    - CACHE_STORE
+    - DB_CONNECTION
+    - DB_HOST
+    - DB_PORT
+    - DB_DATABASE
+    - DB_USERNAME
+    - DB_PASSWORD
+    - MAIL_MAILER
+    - CIHRMS_ALLOW_DEMO_SEEDERS
+  volumes:
+    - app_storage:/var/www/html/storage/app
+    - app_logs:/var/www/html/storage/logs
+
+services:
+  web:
+    # Inherits the full environment list + volume from *app.
+    # CONTAINER_ROLE is unset here, so the entrypoint defaults it to "web" (the migration owner).
+    <<: *app
+    command: ["/usr/local/bin/serve-web"]
+    expose:
+      - "80"
+
+  worker:
+    <<: *app
+    entrypoint: ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    environment:
+      - APP_NAME
+      - APP_ENV
+      - APP_KEY
+      - APP_DEBUG
+      - APP_URL
+      - CONTAINER_ROLE=worker
+      - SESSION_DRIVER
+      - QUEUE_CONNECTION
+      - CACHE_STORE
+      - DB_CONNECTION
+      - DB_HOST
+      - DB_PORT
+      - DB_DATABASE
+      - DB_USERNAME
+      - DB_PASSWORD
+      - MAIL_MAILER
+
+  scheduler:
+    <<: *app
+    command: ["sh", "-c", "while true; do php artisan schedule:run --no-interaction; sleep 60; done"]
+    environment:
+      - APP_NAME
+      - APP_ENV
+      - APP_KEY
+      - APP_DEBUG
+      - APP_URL
+      - CONTAINER_ROLE=scheduler
+      - SESSION_DRIVER
+      - QUEUE_CONNECTION
+      - CACHE_STORE
+      - DB_CONNECTION
+      - DB_HOST
+      - DB_PORT
+      - DB_DATABASE
+      - DB_USERNAME
+      - DB_PASSWORD
+      - MAIL_MAILER
+
+volumes:
+  app_storage:
+  app_logs:
