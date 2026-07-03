@@ -10,9 +10,14 @@ Claude produced the repo artifacts; **you** perform the console steps below.
 2. SSH in as root. Create a sudo user and harden:
    ```bash
    adduser deploy && usermod -aG sudo deploy
-   ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw --force enable
+   # Give the deploy user your SSH key so you never depend on root login.
+   rsync --archive --chown=deploy:deploy ~/.ssh /home/deploy
+   # 3000 = the Dokploy panel (temporary; closed again once it's behind HTTPS in Phase 3).
+   ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw allow 3000/tcp && ufw --force enable
    apt update && apt -y install unattended-upgrades && dpkg-reconfigure -plow unattended-upgrades
    ```
+   Optional (recommended) after you confirm you can SSH in as `deploy`: disable root
+   SSH login — `sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl reload ssh`.
 3. Install Dokploy:
    ```bash
    curl -sSL https://dokploy.com/install.sh | sh
@@ -29,7 +34,8 @@ Claude produced the repo artifacts; **you** perform the console steps below.
 ## Phase 3 — Dokploy first login
 7. Open `http://<IP>:3000`, create the admin account.
 8. Settings → Server/Domain: set the panel domain to `panel.cihrms.org`, enable HTTPS.
-   Re-open the panel at `https://panel.cihrms.org`.
+   Re-open the panel at `https://panel.cihrms.org`, then close the temporary port:
+   `ufw delete allow 3000/tcp`.
 
 ## Phase 4 — Wire up the app
 9. Dokploy → Git → connect GitHub (GitHub App) to `josephnadi/CIHRMS-MVP`.
@@ -42,7 +48,7 @@ Claude produced the repo artifacts; **you** perform the console steps below.
       build context/base directory to `cihrms-mvp` if the repo is nested).
 12. **Environment** tab: paste `.env.production.example`, then fill in:
     - `APP_KEY` — generate locally: `php artisan key:generate --show` and paste.
-    - `DB_HOST` / `DB_PASSWORD` — from step 10.
+    - `DB_HOST` / `DB_USERNAME` / `DB_PASSWORD` — from step 10 (username is `cihrms` unless you changed it).
 13. **Domains** tab: add `dev.cihrms.org` → service `web`, container port `80`,
     enable **Let's Encrypt (HTTPS)** and **HTTP→HTTPS redirect**.
 14. **Volumes/Mounts**: confirm the `app_storage` volume maps to
