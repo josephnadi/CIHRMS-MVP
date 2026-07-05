@@ -20,7 +20,7 @@ class GlAccount extends Model
     protected $table = 'gl_accounts';
 
     protected $fillable = [
-        'code', 'name', 'type', 'parent_id', 'is_active', 'currency', 'description',
+        'code', 'name', 'type', 'statement_section', 'parent_id', 'is_active', 'currency', 'description',
     ];
 
     protected $attributes = [

@@ -19,30 +19,46 @@ class IncomeExpenditureReport
     {
     }
 
-    /** @return array{from:string, to:string, income:array, expenditure:array, surplus_current:float, surplus_prior:float} */
+    /**
+     * CIHRM Income & Expenditure:
+     *   Operating Income − Expenditure = Net Operating Income
+     *   Net Operating Income + Other Income = Surplus / (Deficit)
+     * `income` (combined) and the surplus fields are retained for back-compat.
+     */
     public function forPeriod(CarbonInterface $from, CarbonInterface $to): array
     {
         $current = $this->ledger->activity($from, $to)->keyBy('code');
         [$priorFrom, $priorTo] = $this->ledger->priorPeriod($from, $to);
         $prior = $this->ledger->activity($priorFrom, $priorTo)->keyBy('code');
 
-        $income      = $this->section($current, $prior, 'income');
+        // Operating = income not flagged 'other'; Other = flagged 'other'.
+        $operating   = $this->section($current, $prior, 'income', fn ($r) => $r->statement_section !== 'other');
+        $other       = $this->section($current, $prior, 'income', fn ($r) => $r->statement_section === 'other');
+        $income       = $this->section($current, $prior, 'income');
         $expenditure = $this->section($current, $prior, 'expense');
 
+        $netOpCurrent = round($operating['total_current'] - $expenditure['total_current'], 2);
+        $netOpPrior   = round($operating['total_prior']   - $expenditure['total_prior'], 2);
+
         return [
-            'from'            => $from->toDateString(),
-            'to'              => $to->toDateString(),
-            'income'          => $income,
-            'expenditure'     => $expenditure,
-            'surplus_current' => round($income['total_current'] - $expenditure['total_current'], 2),
-            'surplus_prior'   => round($income['total_prior'] - $expenditure['total_prior'], 2),
+            'from'                  => $from->toDateString(),
+            'to'                    => $to->toDateString(),
+            'operating_income'      => $operating,
+            'expenditure'           => $expenditure,
+            'net_operating_current' => $netOpCurrent,
+            'net_operating_prior'   => $netOpPrior,
+            'other_income'          => $other,
+            'income'                => $income, // combined (back-compat)
+            'surplus_current'       => round($netOpCurrent + $other['total_current'], 2),
+            'surplus_prior'         => round($netOpPrior + $other['total_prior'], 2),
         ];
     }
 
     /** Build a section (income or expense) with current + prior amounts per account. */
-    private function section(Collection $current, Collection $prior, string $type): array
+    private function section(Collection $current, Collection $prior, string $type, ?callable $filter = null): array
     {
-        $codes = $current->union($prior)->filter(fn ($r) => $r->type === $type)->keys()->unique()->sort()->values();
+        $match = fn ($r) => $r->type === $type && ($filter === null || $filter($r));
+        $codes = $current->union($prior)->filter($match)->keys()->unique()->sort()->values();
 
         $rows = [];
         $totalCurrent = 0.0;

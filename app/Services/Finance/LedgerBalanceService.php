@@ -41,8 +41,8 @@ class LedgerBalanceService
         }
 
         return $query
-            ->groupBy('ga.id', 'ga.code', 'ga.name', 'ga.type')
-            ->selectRaw('ga.id as account_id, ga.code, ga.name, ga.type, SUM(jl.debit_amount) as debit_total, SUM(jl.credit_amount) as credit_total')
+            ->groupBy('ga.id', 'ga.code', 'ga.name', 'ga.type', 'ga.statement_section')
+            ->selectRaw('ga.id as account_id, ga.code, ga.name, ga.type, ga.statement_section, SUM(jl.debit_amount) as debit_total, SUM(jl.credit_amount) as credit_total')
             ->orderBy('ga.code')
             ->get()
             ->map(function ($r) {
@@ -50,13 +50,14 @@ class LedgerBalanceService
                 $credit = (float) $r->credit_total;
 
                 return (object) [
-                    'account_id'      => (int) $r->account_id,
-                    'code'            => $r->code,
-                    'name'            => $r->name,
-                    'type'            => $r->type,
-                    'debit_total'     => round($debit, 2),
-                    'credit_total'    => round($credit, 2),
-                    'natural_balance' => $this->naturalBalance($r->type, $debit, $credit),
+                    'account_id'        => (int) $r->account_id,
+                    'code'              => $r->code,
+                    'name'              => $r->name,
+                    'type'              => $r->type,
+                    'statement_section' => $r->statement_section,
+                    'debit_total'       => round($debit, 2),
+                    'credit_total'      => round($credit, 2),
+                    'natural_balance'   => $this->naturalBalance($r->type, $debit, $credit),
                 ];
             });
     }

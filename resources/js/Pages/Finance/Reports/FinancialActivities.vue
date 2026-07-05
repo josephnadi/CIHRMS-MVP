@@ -22,19 +22,41 @@ const money = (n) => Number(n).toLocaleString('en-GH', { minimumFractionDigits: 
             </div>
         </header>
         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 space-y-5">
-            <section v-for="key in ['income','expenditure']" :key="key">
-                <h2 class="text-sm font-black uppercase tracking-wide text-secondary/80 mb-2">{{ key }}</h2>
+            <!-- Section renderer: Operating Income, then Expenditure -->
+            <section v-for="s in [
+                { key: 'operating_income', label: 'Operating Income' },
+                { key: 'expenditure',      label: 'Expenditure' },
+            ]" :key="s.key">
+                <h2 class="text-sm font-black uppercase tracking-wide text-secondary/80 mb-2">{{ s.label }}</h2>
                 <table class="w-full text-sm">
                     <thead class="text-on-surface-variant text-[11px] uppercase"><tr><th class="text-left p-2">Account</th><th class="text-right p-2">Current</th><th class="text-right p-2">Prior</th></tr></thead>
                     <tbody class="divide-y divide-outline-variant/30">
-                        <tr v-for="r in report[key].rows" :key="r.code"><td class="p-2 text-primary">{{ r.code }} {{ r.name }}</td><td class="p-2 text-right text-primary">{{ money(r.current) }}</td><td class="p-2 text-right text-on-surface-variant">{{ money(r.prior) }}</td></tr>
+                        <tr v-for="r in report[s.key].rows" :key="r.code"><td class="p-2 text-primary">{{ r.code }} {{ r.name }}</td><td class="p-2 text-right text-primary">{{ money(r.current) }}</td><td class="p-2 text-right text-on-surface-variant">{{ money(r.prior) }}</td></tr>
                     </tbody>
-                    <tfoot class="font-black border-t border-outline-variant/50"><tr><td class="p-2">Total {{ key }}</td><td class="p-2 text-right">{{ money(report[key].total_current) }}</td><td class="p-2 text-right">{{ money(report[key].total_prior) }}</td></tr></tfoot>
+                    <tfoot class="font-black border-t border-outline-variant/50"><tr><td class="p-2">Total {{ s.label }}</td><td class="p-2 text-right">{{ money(report[s.key].total_current) }}</td><td class="p-2 text-right">{{ money(report[s.key].total_prior) }}</td></tr></tfoot>
                 </table>
             </section>
-            <div class="flex justify-between border-t border-outline-variant/60 pt-3 font-black text-primary">
+
+            <!-- Net Operating Income subtotal -->
+            <div class="flex justify-between border-t border-outline-variant/50 pt-3 font-bold text-primary">
+                <span>Net Operating Income</span>
+                <span>{{ money(report.net_operating_current) }} <span class="text-on-surface-variant font-medium">({{ money(report.net_operating_prior) }})</span></span>
+            </div>
+
+            <!-- Other Income -->
+            <section v-if="report.other_income.rows.length">
+                <h2 class="text-sm font-black uppercase tracking-wide text-secondary/80 mb-2">Other Income</h2>
+                <table class="w-full text-sm">
+                    <tbody class="divide-y divide-outline-variant/30">
+                        <tr v-for="r in report.other_income.rows" :key="r.code"><td class="p-2 text-primary">{{ r.code }} {{ r.name }}</td><td class="p-2 text-right text-primary">{{ money(r.current) }}</td><td class="p-2 text-right text-on-surface-variant">{{ money(r.prior) }}</td></tr>
+                    </tbody>
+                    <tfoot class="font-black border-t border-outline-variant/50"><tr><td class="p-2">Total Other Income</td><td class="p-2 text-right">{{ money(report.other_income.total_current) }}</td><td class="p-2 text-right">{{ money(report.other_income.total_prior) }}</td></tr></tfoot>
+                </table>
+            </section>
+
+            <div class="flex justify-between border-t-2 border-primary/40 pt-3 font-black text-primary text-lg">
                 <span>Surplus / (Deficit)</span>
-                <span>{{ money(report.surplus_current) }} <span class="text-on-surface-variant font-medium">(prior {{ money(report.surplus_prior) }})</span></span>
+                <span>{{ money(report.surplus_current) }} <span class="text-on-surface-variant text-sm font-medium">(prior {{ money(report.surplus_prior) }})</span></span>
             </div>
         </div>
     </div>

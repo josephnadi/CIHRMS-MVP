@@ -89,6 +89,31 @@ class CihrmChartOfAccountsSeeder extends Seeder
         ['5725', 'Depreciation & Amortisation',                  'expense', '5000'],
     ];
 
+    /**
+     * Statement placement per account code — where each line sits on the
+     * Income & Expenditure and the SOFP. Covers both these CIHRM accounts and
+     * the generic structural accounts so the reports present the audited layout.
+     *   income → operating | other · asset → current | non_current · equity → members_fund
+     */
+    private const SECTIONS = [
+        // Assets
+        '1010' => 'current', '1100' => 'current', '1110' => 'current', '1120' => 'current',
+        '1130' => 'current', '1200' => 'current', '1300' => 'current',
+        '1400' => 'non_current', '1410' => 'non_current', '1500' => 'current', '1600' => 'current',
+        // Liabilities (CIHRM has only current liabilities)
+        '2400' => 'current', '2410' => 'current', '2420' => 'current', '2430' => 'current', '2440' => 'current',
+        // Equity → Member's Fund
+        '3100' => 'members_fund', '3200' => 'members_fund', '3300' => 'members_fund', '3400' => 'members_fund',
+        // Operating income
+        '4100' => 'operating', '4200' => 'operating', '4300' => 'operating',
+        '4110' => 'operating', '4120' => 'operating', '4130' => 'operating', '4140' => 'operating',
+        '4150' => 'operating', '4160' => 'operating', '4170' => 'operating', '4180' => 'operating', '4190' => 'operating',
+        // Other income
+        '4400' => 'other', '4500' => 'other', '4600' => 'other',
+        '4610' => 'other', '4620' => 'other', '4630' => 'other', '4640' => 'other',
+        '4650' => 'other', '4660' => 'other', '4670' => 'other', '4680' => 'other',
+    ];
+
     public function run(): void
     {
         // Resolve structural parents already seeded by ChartOfAccountsSeeder.
@@ -100,14 +125,20 @@ class CihrmChartOfAccountsSeeder extends Seeder
             $account = GlAccount::updateOrCreate(
                 ['code' => $code],
                 [
-                    'name'      => $name,
-                    'type'      => $type,
-                    'parent_id' => $codeToId[$parentCode] ?? null,
-                    'is_active' => true,
-                    'currency'  => 'GHS',
+                    'name'              => $name,
+                    'type'              => $type,
+                    'statement_section' => self::SECTIONS[$code] ?? null,
+                    'parent_id'         => $codeToId[$parentCode] ?? null,
+                    'is_active'         => true,
+                    'currency'          => 'GHS',
                 ]
             );
             $codeToId[$code] = $account->id;
+        }
+
+        // Classify the generic structural accounts too, so the statements group them.
+        foreach (self::SECTIONS as $code => $section) {
+            GlAccount::where('code', $code)->update(['statement_section' => $section]);
         }
     }
 }
