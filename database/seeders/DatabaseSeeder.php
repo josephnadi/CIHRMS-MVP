@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
         // Finance F1 — chart of accounts, bank accounts, zero balances.
         // Order matters: chart first (bank accounts reference GL codes), balances last.
         $this->call(ChartOfAccountsSeeder::class);
+        $this->call(CihrmChartOfAccountsSeeder::class); // CIHRM's real income/expense/asset lines
         $this->call(OrgBankAccountSeeder::class);
         $this->call(GlAccountBalanceSeeder::class);
         $this->call(PostingAccountSeeder::class);
