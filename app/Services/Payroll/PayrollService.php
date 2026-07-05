@@ -151,13 +151,63 @@ class PayrollService
         });
     }
 
+    /**
+     * Pure, tax-sensitive core of a payslip for a given basic salary — allowances,
+     * SSNIT, Tier-2/3, chargeable income, PAYE and the statutory net (before
+     * overtime, loans and voluntary deductions). Single source of truth shared by
+     * the monthly run and the back-pay/arrears computation, so both tax identically.
+     *
+     * @return array{basic:float, allowances:array, allowance_total:float, gross:float,
+     *   ssnit:array, tier2:array, tier3:array, taxable_gross:float, chargeable:float,
+     *   paye_bundle:array, paye:float, net:float}
+     */
+    public function computeCore(Employee $employee, float $basic, CarbonImmutable $periodDate): array
+    {
+        $allowanceBundle = $this->allowances->aggregate($employee, $periodDate, $basic);
+        $allowanceTotal  = round($allowanceBundle['taxable_total'] + $allowanceBundle['non_taxable_total'], 2);
+        $gross           = round($basic + $allowanceTotal, 2);
+
+        $ssnit = $this->ssnit->calculate($basic, $periodDate);
+        $tier2 = $this->tier2->calculate($basic, $periodDate);
+        $tier3 = $this->tier3->calculate($basic, (float) ($employee->tier3_rate ?? 0), $periodDate);
+
+        // Chargeable income = taxable gross − SSNIT employee − relieved Tier-3.
+        // Non-taxable allowances are excluded; Tier-3 relief is capped at (16.5−5)% of basic.
+        $taxableGross = round($basic + $allowanceBundle['taxable_total'], 2);
+        $chargeable   = max(round($taxableGross - $ssnit['employee'] - $tier3['relieved'], 2), 0);
+
+        $payeBundle = $this->paye->calculate($chargeable, $periodDate);
+        $paye       = (float) $payeBundle['tax'];
+
+        return [
+            'basic'           => round($basic, 2),
+            'allowances'      => $allowanceBundle,
+            'allowance_total' => $allowanceTotal,
+            'gross'           => $gross,
+            'ssnit'           => $ssnit,
+            'tier2'           => $tier2,
+            'tier3'           => $tier3,
+            'taxable_gross'   => $taxableGross,
+            'chargeable'      => $chargeable,
+            'paye_bundle'     => $payeBundle,
+            'paye'            => round($paye, 2),
+            'net'             => round($gross - $ssnit['employee'] - $tier3['employee'] - $paye, 2),
+        ];
+    }
+
     private function calculateLine(PayrollRun $run, Employee $employee, CarbonImmutable $periodDate): PayrollLine
     {
         $basic = $this->resolveBasicSalary($employee, $periodDate);
 
-        $allowanceBundle = $this->allowances->aggregate($employee, $periodDate, $basic);
-        $allowanceTotal  = round($allowanceBundle['taxable_total'] + $allowanceBundle['non_taxable_total'], 2);
-        $gross           = round($basic + $allowanceTotal, 2);
+        $core            = $this->computeCore($employee, $basic, $periodDate);
+        $allowanceBundle = $core['allowances'];
+        $allowanceTotal  = $core['allowance_total'];
+        $ssnit           = $core['ssnit'];
+        $tier2           = $core['tier2'];
+        $tier3           = $core['tier3'];
+        $payeBundle      = $core['paye_bundle'];
+        $paye            = $core['paye'];
+        $gross           = $core['gross'];
 
         // Overtime supplement: sum overtime_hours recorded in the pay period.
         // overtime_hours on AttendanceSummary already incorporates premium multipliers
@@ -174,20 +224,8 @@ class PayrollService
             $gross       = round($gross + $overtimePay, 2);
         }
 
-        $ssnit = $this->ssnit->calculate($basic, $periodDate);
-        $tier2 = $this->tier2->calculate($basic, $periodDate);
-        $tier3 = $this->tier3->calculate($basic, (float) ($employee->tier3_rate ?? 0), $periodDate);
-
-        // Chargeable income = (gross taxable income) - SSNIT employee - relieved Tier-3.
-        // Non-taxable allowances are excluded from chargeable income. Tier-3 relief is
-        // capped at (16.5−5)% of basic; any elected excess stays in chargeable (taxed).
-        $taxableGross = round($basic + $allowanceBundle['taxable_total'], 2);
-        $chargeable   = max(round($taxableGross - $ssnit['employee'] - $tier3['relieved'], 2), 0);
-
-        $payeBundle = $this->paye->calculate($chargeable, $periodDate);
-        $paye       = (float) $payeBundle['tax'];
-
-        $netAfterStatutory = round($gross - $ssnit['employee'] - $tier3['employee'] - $paye, 2);
+        // Overtime rides into net untaxed (added after the statutory core).
+        $netAfterStatutory = round($core['net'] + $overtimePay, 2);
         $deductionBundle   = $this->deductions->aggregate($employee, $gross, $netAfterStatutory, $periodDate);
 
         // Loan repayments — claim scheduled installments for this employee for the

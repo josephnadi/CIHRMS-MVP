@@ -59,6 +59,18 @@ class SalaryRevisionController extends Controller
         ]);
     }
 
+    /** Arrears / back-pay preview for a revision (per-employee, per-month deltas). */
+    public function backPay(Request $request, SalaryRevision $revision, \App\Services\Payroll\BackPayService $backPay): Response
+    {
+        abort_unless($request->user()?->hasPermission('payroll.run'), 403);
+
+        return Inertia::render('Payroll/Revisions/BackPay', [
+            'revision'     => $revision->only(['id', 'reference', 'percentage', 'effective_from']),
+            'arrears'      => $backPay->computeForRevision($revision),
+            'activeModule' => 'payroll',
+        ]);
+    }
+
     public function store(StoreSalaryRevisionRequest $request): RedirectResponse
     {
         try {

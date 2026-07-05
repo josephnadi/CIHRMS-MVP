@@ -505,6 +505,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',        [\App\Http\Controllers\SalaryRevisionController::class, 'index'])  ->name('index');
         Route::post('/preview',[\App\Http\Controllers\SalaryRevisionController::class, 'preview'])->name('preview');
         Route::post('/',       [\App\Http\Controllers\SalaryRevisionController::class, 'store'])  ->name('store');
+        Route::get('/{revision}/back-pay', [\App\Http\Controllers\SalaryRevisionController::class, 'backPay'])->name('back-pay');
     });
 
     // ── Phase 1: Establishment (Positions) ──

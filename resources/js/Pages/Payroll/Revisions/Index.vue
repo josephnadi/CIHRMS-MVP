@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
@@ -142,7 +142,7 @@ const submit = () => form.post(route('salary-revisions.store'), {
             <table v-if="revisions.length" class="w-full text-sm">
                 <thead class="text-on-surface-variant text-[10px] uppercase bg-surface-container-low/20"><tr>
                     <th class="text-left p-3">Reference</th><th class="text-right p-3">%</th><th class="text-left p-3">Effective</th>
-                    <th class="text-left p-3">Scope</th><th class="text-right p-3">Steps</th><th class="text-left p-3">By</th>
+                    <th class="text-left p-3">Scope</th><th class="text-right p-3">Steps</th><th class="text-left p-3">By</th><th class="p-3"></th>
                 </tr></thead>
                 <tbody class="divide-y divide-outline-variant/30">
                     <tr v-for="r in revisions" :key="r.id">
@@ -152,6 +152,7 @@ const submit = () => form.post(route('salary-revisions.store'), {
                         <td class="p-3 capitalize">{{ r.scope }}</td>
                         <td class="p-3 text-right">{{ r.affected_count }}</td>
                         <td class="p-3 text-on-surface-variant">{{ r.applied_by?.name ?? '—' }}</td>
+                        <td class="p-3 text-right"><Link :href="route('salary-revisions.back-pay', r.id)" class="text-[12px] font-bold text-blue-600 hover:underline">Back-pay</Link></td>
                     </tr>
                 </tbody>
             </table>
