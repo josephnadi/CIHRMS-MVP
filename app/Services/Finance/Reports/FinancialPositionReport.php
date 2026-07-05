@@ -34,6 +34,10 @@ class FinancialPositionReport
         $liabilities = $this->section($current, $prior, 'liability');
         $equity      = $this->section($current, $prior, 'equity');
 
+        // CIHRM SOFP groupings: non-current vs current assets.
+        $nonCurrentAssets = $this->section($current, $prior, 'asset', fn ($r) => $r->statement_section === 'non_current');
+        $currentAssets    = $this->section($current, $prior, 'asset', fn ($r) => $r->statement_section !== 'non_current');
+
         $surplusCurrent = $this->surplus($current);
         $surplusPrior   = $this->surplus($prior);
 
@@ -44,6 +48,8 @@ class FinancialPositionReport
             'as_of'               => $date->toDateString(),
             'comparative_as_of'   => $priorDate->toDateString(),
             'assets'              => $assets,
+            'non_current_assets'  => $nonCurrentAssets,
+            'current_assets'      => $currentAssets,
             'liabilities'         => $liabilities,
             'equity'              => $equity,
             'surplus_current'     => $surplusCurrent,
@@ -63,9 +69,10 @@ class FinancialPositionReport
         return round((float) $income - (float) $expense, 2);
     }
 
-    private function section(Collection $current, Collection $prior, string $type): array
+    private function section(Collection $current, Collection $prior, string $type, ?callable $filter = null): array
     {
-        $codes = $current->union($prior)->filter(fn ($r) => $r->type === $type)->keys()->unique()->sort()->values();
+        $match = fn ($r) => $r->type === $type && ($filter === null || $filter($r));
+        $codes = $current->union($prior)->filter($match)->keys()->unique()->sort()->values();
 
         $rows = [];
         $totalCurrent = 0.0;

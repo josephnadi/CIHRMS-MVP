@@ -39,3 +39,19 @@ it('balances: assets = liabilities + equity + surplus', function () {
         ->and($report['total_funds_current'])->toBe(3000.0) // equity 0 + surplus 3000
         ->and($report['balanced_current'])->toBeTrue();      // assets 3000 = liab 0 + funds 3000
 });
+
+it('groups assets into non-current and current (CIHRM SOFP layout)', function () {
+    (new \Database\Seeders\CihrmChartOfAccountsSeeder())->run(); // sets statement_section
+
+    // Non-current: PP&E 1400 (10,000). Current: bank 1100 (3,000), inventory 1500 (2,000).
+    fp_post([['1400', 10_000, 0], ['3300', 0, 10_000]], '2026-06-01'); // PP&E funded by accumulated fund
+    fp_post([['1100', 3_000, 0], ['3300', 0, 3_000]], '2026-06-02');
+    fp_post([['1500', 2_000, 0], ['3300', 0, 2_000]], '2026-06-03');
+
+    $r = app(FinancialPositionReport::class)->asOf(CarbonImmutable::create(2026, 6, 30));
+
+    expect($r['non_current_assets']['total_current'])->toBe(10_000.0)  // PP&E
+        ->and($r['current_assets']['total_current'])->toBe(5_000.0)     // bank + inventory
+        ->and($r['assets']['total_current'])->toBe(15_000.0)
+        ->and($r['balanced_current'])->toBeTrue();
+});
