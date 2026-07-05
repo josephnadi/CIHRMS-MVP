@@ -88,6 +88,11 @@ const submit = () => form.post(route('payroll-runs.store'), {
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
+                        <Link :href="route('salary-revisions.index')"
+                              class="flex items-center gap-2 rounded-xl border border-outline-variant px-4 py-2.5 text-[13px] font-bold text-primary hover:bg-surface-container-low transition-colors">
+                            <span class="material-symbols-outlined text-[17px]">trending_up</span>
+                            Salary Revisions
+                        </Link>
                         <button @click="showPanel = true"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
                                 style="background:linear-gradient(135deg,#0d1452,#1a237e);">

@@ -500,6 +500,13 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:statutory.export')->name('gifmis-export');
     });
 
+    // Salary revisions (across-the-board % — writes new effective-dated grade rates)
+    Route::prefix('salary-revisions')->name('salary-revisions.')->middleware('permission:payroll.run')->group(function () {
+        Route::get('/',        [\App\Http\Controllers\SalaryRevisionController::class, 'index'])  ->name('index');
+        Route::post('/preview',[\App\Http\Controllers\SalaryRevisionController::class, 'preview'])->name('preview');
+        Route::post('/',       [\App\Http\Controllers\SalaryRevisionController::class, 'store'])  ->name('store');
+    });
+
     // ── Phase 1: Establishment (Positions) ──
     Route::prefix('positions')->name('positions.')->group(function () {
         Route::get('/',                 [PositionController::class, 'index'])
