@@ -155,7 +155,7 @@ class PayrollService
     {
         $basic = $this->resolveBasicSalary($employee, $periodDate);
 
-        $allowanceBundle = $this->allowances->aggregate($employee, $periodDate);
+        $allowanceBundle = $this->allowances->aggregate($employee, $periodDate, $basic);
         $allowanceTotal  = round($allowanceBundle['taxable_total'] + $allowanceBundle['non_taxable_total'], 2);
         $gross           = round($basic + $allowanceTotal, 2);
 

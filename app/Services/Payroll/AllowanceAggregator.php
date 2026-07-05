@@ -15,19 +15,29 @@ class AllowanceAggregator
      *     lines: array<int, array{label:string, type:string, amount:float, is_taxable:bool}>
      * }
      */
-    public function aggregate(Employee $employee, \DateTimeInterface|string $periodDate): array
+    public function aggregate(Employee $employee, \DateTimeInterface|string $periodDate, float $basic = 0.0): array
     {
         /** @var Collection<int, Allowance> $items */
         $items = Allowance::where('employee_id', $employee->id)
             ->effectiveOn($periodDate)
             ->get();
 
+        // Cash emolument = basic + fixed cash allowances. Percentage-of-emolument
+        // allowances (e.g. the fuel benefit-in-kind) are computed off this base,
+        // so fixed allowances must be resolved first.
+        $emolument = $basic;
+        foreach ($items as $item) {
+            if (($item->calc_method ?? Allowance::CALC_FIXED) === Allowance::CALC_FIXED) {
+                $emolument += $item->resolveAmount($basic, $basic);
+            }
+        }
+
         $taxable    = 0.0;
         $nonTaxable = 0.0;
         $lines      = [];
 
         foreach ($items as $item) {
-            $amount = (float) $item->amount;
+            $amount = $item->resolveAmount($basic, $emolument);
             if ($item->is_taxable) {
                 $taxable += $amount;
             } else {
@@ -35,10 +45,11 @@ class AllowanceAggregator
             }
 
             $lines[] = [
-                'label'      => $item->label,
-                'type'       => $item->type?->value ?? 'other',
-                'amount'     => round($amount, 2),
-                'is_taxable' => (bool) $item->is_taxable,
+                'label'       => $item->label,
+                'type'        => $item->type?->value ?? 'other',
+                'amount'      => round($amount, 2),
+                'is_taxable'  => (bool) $item->is_taxable,
+                'calc_method' => $item->calc_method ?? Allowance::CALC_FIXED,
             ];
         }
 
