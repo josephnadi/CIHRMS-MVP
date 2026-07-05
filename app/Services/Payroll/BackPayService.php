@@ -27,7 +27,9 @@ class BackPayService
      * @param array<int>|null $employeeIds  limit to these employees (null = all)
      * @return array<int, array{
      *   employee_id:int, employee_name:?string, employee_no:?string,
-     *   arrears_net:float, back_paye:float, months:array<int, array{
+     *   arrears_net:float, back_paye:float, gross:float,
+     *   ssnit_employee:float, ssnit_employer:float, tier2_employer:float, tier3_employee:float,
+     *   months:array<int, array{
      *     period:string, old_basic:float, new_basic:float, arrears:float, back_paye:float}>
      * }>
      */
@@ -76,18 +78,37 @@ class BackPayService
                 $arrears  = round($new['net'] - $old['net'], 2);
                 $backPaye = round($new['paye'] - $old['paye'], 2);
 
+                // Statutory contribution deltas — the increased basic also raises SSNIT
+                // (employee + employer), Tier-2 (employer) and any relieved Tier-3. These
+                // are what make the arrears accrual balance like a normal payroll accrual.
+                $dGross         = round($new['gross'] - $old['gross'], 2);
+                $dSsnitEmployee = round($new['ssnit']['employee'] - $old['ssnit']['employee'], 2);
+                $dSsnitEmployer = round($new['ssnit']['employer'] - $old['ssnit']['employer'], 2);
+                $dTier2         = round($new['tier2']['employer'] - $old['tier2']['employer'], 2);
+                $dTier3         = round($new['tier3']['employee'] - $old['tier3']['employee'], 2);
+
                 $id = (int) $line->employee_id;
                 $acc[$id] ??= [
-                    'employee_id'   => $id,
-                    'employee_name' => $employee->user?->name ?? $employee->full_name ?? null,
-                    'employee_no'   => $employee->employee_no,
-                    'arrears_net'   => 0.0,
-                    'back_paye'     => 0.0,
-                    'months'        => [],
+                    'employee_id'    => $id,
+                    'employee_name'  => $employee->user?->name ?? $employee->full_name ?? null,
+                    'employee_no'    => $employee->employee_no,
+                    'arrears_net'    => 0.0,
+                    'back_paye'      => 0.0,
+                    'gross'          => 0.0,
+                    'ssnit_employee' => 0.0,
+                    'ssnit_employer' => 0.0,
+                    'tier2_employer' => 0.0,
+                    'tier3_employee' => 0.0,
+                    'months'         => [],
                 ];
-                $acc[$id]['arrears_net'] = round($acc[$id]['arrears_net'] + $arrears, 2);
-                $acc[$id]['back_paye']   = round($acc[$id]['back_paye'] + $backPaye, 2);
-                $acc[$id]['months'][]    = [
+                $acc[$id]['arrears_net']    = round($acc[$id]['arrears_net'] + $arrears, 2);
+                $acc[$id]['back_paye']      = round($acc[$id]['back_paye'] + $backPaye, 2);
+                $acc[$id]['gross']          = round($acc[$id]['gross'] + $dGross, 2);
+                $acc[$id]['ssnit_employee'] = round($acc[$id]['ssnit_employee'] + $dSsnitEmployee, 2);
+                $acc[$id]['ssnit_employer'] = round($acc[$id]['ssnit_employer'] + $dSsnitEmployer, 2);
+                $acc[$id]['tier2_employer'] = round($acc[$id]['tier2_employer'] + $dTier2, 2);
+                $acc[$id]['tier3_employee'] = round($acc[$id]['tier3_employee'] + $dTier3, 2);
+                $acc[$id]['months'][]       = [
                     'period'    => $label,
                     'old_basic' => $oldBasic,
                     'new_basic' => $newBasic,

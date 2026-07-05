@@ -506,6 +506,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/preview',[\App\Http\Controllers\SalaryRevisionController::class, 'preview'])->name('preview');
         Route::post('/',       [\App\Http\Controllers\SalaryRevisionController::class, 'store'])  ->name('store');
         Route::get('/{revision}/back-pay', [\App\Http\Controllers\SalaryRevisionController::class, 'backPay'])->name('back-pay');
+        Route::post('/{revision}/back-pay', [\App\Http\Controllers\BackPayRunController::class, 'store'])->name('back-pay.run');
+    });
+
+    Route::prefix('back-pay-runs')->name('back-pay-runs.')->middleware('permission:payroll.run')->group(function () {
+        Route::get('/{run}',         [\App\Http\Controllers\BackPayRunController::class, 'show'])   ->name('show');
+        Route::post('/{run}/approve',[\App\Http\Controllers\BackPayRunController::class, 'approve'])->name('approve');
+        Route::post('/{run}/pay',    [\App\Http\Controllers\BackPayRunController::class, 'pay'])    ->name('pay');
     });
 
     // ── Phase 1: Establishment (Positions) ──

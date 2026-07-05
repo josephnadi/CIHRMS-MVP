@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
@@ -9,6 +10,9 @@ const props = defineProps({
     arrears:      { type: Array, default: () => [] },
     activeModule: String,
 });
+
+const runForm = useForm({});
+const createRun = () => runForm.post(route('salary-revisions.back-pay.run', props.revision.id), { preserveScroll: true });
 
 const ghs = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const totals = computed(() => ({
@@ -85,9 +89,13 @@ const toggle = (id) => expanded.value = expanded.value === id ? null : id;
             </p>
         </div>
 
-        <p class="text-[12px] text-on-surface-variant">
-            This is a preview of what's owed. Paying the arrears (a back-pay run that posts the net + back-PAYE to the GL)
-            is the next step in this feature.
-        </p>
+        <div v-if="arrears.length" class="flex items-center justify-between gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
+            <p class="text-[12px] text-on-surface-variant">
+                Creating a back-pay run snapshots these figures into an approvable run that posts the arrears net +
+                back-PAYE to the general ledger under dual control.
+            </p>
+            <PrimaryButton :disabled="runForm.processing" @click="createRun">Create back-pay run</PrimaryButton>
+        </div>
+        <p v-if="runForm.errors.back_pay" class="text-[12px] text-rose-600">{{ runForm.errors.back_pay }}</p>
     </div>
 </template>
