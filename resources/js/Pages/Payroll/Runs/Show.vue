@@ -117,6 +117,7 @@ const submitFiled = (rt) => fileForm.post(
                                     <th class="px-4 py-3 text-right">PAYE</th>
                                     <th class="px-4 py-3 text-right">Net</th>
                                     <th class="px-4 py-3 text-left">Status</th>
+                                    <th class="px-4 py-3"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -135,6 +136,10 @@ const submitFiled = (rt) => fileForm.post(
                                     <td class="px-4 py-2">
                                         <StatusBadge :status="l.status" :label="l.status" />
                                         <div v-if="l.skip_reason" class="text-xs text-amber-700">{{ l.skip_reason }}</div>
+                                    </td>
+                                    <td class="px-4 py-2 text-right">
+                                        <a v-if="l.status !== 'skipped'" :href="route('payroll-runs.payslip', { run: R.id, line: l.id })"
+                                           target="_blank" class="text-[12px] font-bold text-blue-600 hover:underline">Payslip</a>
                                     </td>
                                 </tr>
                             </tbody>

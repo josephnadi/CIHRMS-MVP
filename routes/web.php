@@ -480,6 +480,8 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:payroll.run')->name('store');
         Route::get('{run}',                   [PayrollRunController::class, 'show'])
             ->middleware('permission:payroll.view_all')->name('show');
+        Route::get('{run}/payslip/{line}',    [PayrollRunController::class, 'payslip'])
+            ->middleware('permission:payroll.view_all')->name('payslip');
         Route::post('{run}/calculate',        [PayrollRunController::class, 'calculate'])
             ->middleware('permission:payroll.run')->name('calculate');
         Route::post('{run}/approve',          [PayrollRunController::class, 'approve'])

@@ -91,6 +91,25 @@ it('computes the CIHRM payslip (fuel BIK, reliefs, transport refund) exactly', f
     expect((float) $line->net)->toEqualWithDelta(7_524.07, 0.03);
 });
 
+it('renders the CIHRM-format payslip for a line', function () {
+    $svc = app(PayrollService::class);
+    $run = $svc->calculate($svc->createDraft(2026, 4, null, $this->creator));
+    $line = PayrollLine::where('payroll_run_id', $run->id)->firstOrFail();
+
+    $viewer = User::factory()->create(['role' => 'finance_officer', 'permissions' => ['payroll.view_all']]);
+
+    $this->actingAs($viewer)
+        ->get(route('payroll-runs.payslip', ['run' => $run->id, 'line' => $line->id]))
+        ->assertOk()
+        ->assertInertia(fn ($p) => $p->component('Payroll/Payslip')
+            ->where('payslip.basic', 8_151.72)
+            ->where('payslip.assessable_income', 8_559.31)
+            ->where('payslip.chargeable_income', 7_540.35)
+            ->where('payslip.transport_total', 1_467.31)
+            ->where('payslip.take_home', fn ($v) => abs((float) $v - 7_524.07) < 0.03)
+        );
+});
+
 it('caps the fuel benefit-in-kind at GHS 625 for higher earners', function () {
     // Dr Eduku: basic 36,300 → 5% = 1,815, capped at 625.
     GradeStep::where('step', 1)->update(['base_salary' => 36_300]);

@@ -66,6 +66,62 @@ class PayrollRunController extends Controller
         ]);
     }
 
+    /**
+     * CIHRM-format payslip for a single line: Basic → + Fuel BIK → Assessable
+     * → − SSF − Provident → Chargeable → − PAYE → Net → + Transport → Take-Home.
+     * Derived entirely from the stored line + its calculator breakdown.
+     */
+    public function payslip(Request $request, PayrollRun $run, \App\Models\PayrollLine $line): Response
+    {
+        $this->authorize('view', $run);
+        abort_unless($line->payroll_run_id === $run->id, 404);
+
+        $line->load(['employee.user', 'employee.department', 'grade']);
+        $bundle    = $line->breakdown['allowances'] ?? ['lines' => [], 'taxable_total' => 0, 'non_taxable_total' => 0];
+        $taxable   = round((float) ($bundle['taxable_total'] ?? 0), 2);
+        $nonTax    = round((float) ($bundle['non_taxable_total'] ?? 0), 2);
+
+        $basic      = round((float) $line->basic, 2);
+        $ssf        = round((float) $line->ssnit_tier1_employee, 2);
+        $provident  = round((float) $line->tier3_employee, 2);
+        $paye       = round((float) $line->paye, 2);
+        $assessable = round($basic + $taxable, 2);
+        $chargeable = round($assessable - $ssf - $provident, 2);
+        $netSalary  = round($chargeable - $paye, 2);
+
+        $split = fn (bool $t) => collect($bundle['lines'] ?? [])
+            ->filter(fn ($l) => (bool) ($l['is_taxable'] ?? false) === $t)
+            ->map(fn ($l) => ['label' => $l['label'] ?? 'Allowance', 'amount' => round((float) ($l['amount'] ?? 0), 2)])
+            ->values()->all();
+
+        return Inertia::render('Payroll/Payslip', [
+            'org'     => ['name' => config('app.name')],
+            'run'     => ['reference' => $run->reference, 'period_label' => $run->period_label],
+            'payslip' => [
+                'employee'          => [
+                    'name'        => $line->employee?->user?->name ?? $line->employee?->full_name ?? '—',
+                    'employee_no' => $line->employee?->employee_no,
+                    'department'  => $line->employee?->department?->name,
+                    'grade'       => $line->grade?->code,
+                    'step'        => $line->step,
+                ],
+                'basic'             => $basic,
+                'taxable_lines'     => $split(true),
+                'taxable_total'     => $taxable,
+                'assessable_income' => $assessable,
+                'ssf'               => $ssf,
+                'provident'         => $provident,
+                'chargeable_income' => $chargeable,
+                'paye'              => $paye,
+                'net_salary'        => $netSalary,
+                'transport_lines'   => $split(false),
+                'transport_total'   => $nonTax,
+                'deductions'        => round((float) $line->voluntary_deductions, 2),
+                'take_home'         => round((float) $line->net, 2),
+            ],
+        ]);
+    }
+
     public function store(StorePayrollRunRequest $request): RedirectResponse
     {
         $run = $this->payroll->createDraft(
