@@ -72,3 +72,24 @@ it('parks a non-GHS collection as error', function () {
     $c = app(CollectionIngestionService::class)->ingest(wsRecord(['currency' => 'USD', 'external_ref' => 'PR-9']));
     expect($c->status)->toBe(ExternalCollection::STATUS_ERROR);
 });
+
+it('parks a posting-time failure (closed fiscal period) as error instead of throwing', function () {
+    // Deterministic posting-time failure: JournalPostingService::post() throws
+    // ClosedPeriodException when the entry_date's fiscal period is not Open.
+    // This exercises the DB::transaction try/catch in ingest() (Fix A) — the
+    // collection reaches the transaction (mapping resolved, currency OK) but
+    // posting itself fails, so it must roll back and park as `error`, not throw.
+    $year = app(\App\Services\Finance\FiscalCalendarService::class)->ensureYear(2026);
+    \App\Models\FiscalPeriod::where('fiscal_year_id', $year->id)->where('period_no', 7)
+        ->update(['status' => \App\Enums\FiscalPeriodStatus::Closed->value]);
+
+    $c = app(CollectionIngestionService::class)->ingest(wsRecord(['external_ref' => 'PR-CLOSED']));
+
+    expect($c->status)->toBe(ExternalCollection::STATUS_ERROR)
+        ->and($c->status_note)->not->toBeNull()
+        ->and($c->journal_entry_id)->toBeNull()
+        ->and($c->exists)->toBeTrue()
+        ->and(ExternalCollection::where('external_ref', 'PR-CLOSED')->count())->toBe(1)
+        ->and(JournalEntry::where('source_type', JournalSourceType::WebsiteCollection->value)
+            ->where('source_id', $c->id)->exists())->toBeFalse();
+});

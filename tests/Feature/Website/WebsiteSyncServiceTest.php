@@ -122,6 +122,31 @@ it('breaks out of pagination when the feed returns a non-advancing cursor', func
     expect($report['pulled'])->toBe(2);
 });
 
+it('does not abort the batch on a malformed row; tallies it as error and keeps processing', function () {
+    $fake = new FakeWebsiteFeedClient(collections: [
+        ['source' => 'payment_record', 'source_id' => 1, 'external_ref' => 'GOOD-1', 'external_user_id' => null,
+         'payer_name' => 'A', 'fee_code' => 'exam', 'amount' => 100, 'currency' => 'GHS',
+         'paid_at' => '2026-07-05T09:00:00Z', 'method' => 'cash', 'gateway_ref' => null, 'meta' => []],
+        // Malformed: missing 'fee_code' entirely. ingest() dereferences
+        // $r['fee_code'] while building the fill() array, which throws (Laravel
+        // converts the "undefined array key" warning into an ErrorException)
+        // before the row can even be keyed/parked — this must be caught by the
+        // sync loop itself (Fix B), not ingest()'s internal try/catch.
+        ['source' => 'payment_record', 'source_id' => 2, 'external_ref' => 'BAD-1', 'external_user_id' => null,
+         'payer_name' => 'B', 'amount' => 50, 'currency' => 'GHS',
+         'paid_at' => '2026-07-05T09:30:00Z', 'method' => 'cash', 'gateway_ref' => null, 'meta' => []],
+    ]);
+    app()->instance(WebsiteFeedClient::class, $fake);
+
+    $report = app(WebsiteSyncService::class)->sync();
+
+    expect($report['pulled'])->toBe(2)
+        ->and($report['posted'])->toBe(1)
+        ->and($report['error'])->toBe(1)
+        ->and(ExternalCollection::where('external_ref', 'GOOD-1')->where('status', 'posted')->exists())->toBeTrue()
+        ->and(ExternalCollection::where('external_ref', 'BAD-1')->exists())->toBeFalse();
+});
+
 it('does not double-post on a second sync', function () {
     $fake = new FakeWebsiteFeedClient(collections: [
         ['source' => 'payment_record', 'source_id' => 2, 'external_ref' => 'PR-2', 'external_user_id' => null,
