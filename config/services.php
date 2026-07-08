@@ -44,4 +44,9 @@ return [
         'callback_default_url' => env('PAYSTACK_CALLBACK_DEFAULT_URL'),
     ],
 
+    'cihrm_website' => [
+        'url'   => env('WEBSITE_SYNC_URL'),
+        'token' => env('WEBSITE_SYNC_TOKEN'),
+    ],
+
 ];
