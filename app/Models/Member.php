@@ -34,7 +34,9 @@ class Member extends Authenticatable
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
+        'external_user_id',
         'member_no',
+        'student_no',
         'class',
         'status',
         'name',
