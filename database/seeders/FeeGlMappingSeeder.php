@@ -18,14 +18,17 @@ use Illuminate\Database\Seeder;
  * here, not created.
  *
  * Income code choice: member.subscription/student.subscription/induction/
- * building_levy/combined reuse existing CIHRM income lines (4110, 4120, 4100)
- * because they map semantically. The remaining fee types (tuition, exemption,
- * exam, conference, exhibitor, transcript, premium) get NEW codes in the 47xx
- * block rather than the 4130-4180 codes an earlier draft of this seeder used —
+ * building_levy/combined/conference/exhibitor reuse existing CIHRM income
+ * lines (4110, 4120, 4100, 4190, 4640, 4680) because they map semantically
+ * to specific, already-audited accounts. The remaining fee types (tuition,
+ * exemption, exam, transcript, premium) get NEW codes in the 47xx block
+ * rather than the 4130-4180 codes an earlier draft of this seeder used —
  * those codes are already taken by unrelated CIHRM chart lines (e.g. 4150 is
  * "Corporate Membership", 4160 is "Sale of Admission Forms"), and GlAccount::
  * firstOrCreate() would have silently attached the website fee to that
- * existing, wrongly-named account instead of creating a new one.
+ * existing, wrongly-named account instead of creating a new one. Codes 4730
+ * and 4740 are no longer referenced (conference/exhibitor route to 4680
+ * instead) and are intentionally not created by this seeder.
  */
 class FeeGlMappingSeeder extends Seeder
 {
@@ -62,16 +65,16 @@ class FeeGlMappingSeeder extends Seeder
         // fee_code => [label, income code, deferred?, months]
         $map = [
             'member.subscription'   => ['Member subscription',        '4110', true,  12],
-            'member.induction'      => ['Member induction fee',       '4100', false, null],
-            'member.building_levy'  => ['Building levy',              '4100', false, null],
+            'member.induction'      => ['Member induction fee',       '4190', false, null],
+            'member.building_levy'  => ['Building levy',              '4640', false, null],
             'member.combined'       => ['Member combined fee',        '4100', false, null],
             'student.subscription'  => ['Student subscription',       '4120', true,  12],
             'student.tuition'       => ['Student tuition',            '4700', false, null],
             'student.exemption'     => ['Student exemption fee',      '4710', false, null],
             'student.combined'      => ['Student combined fee',       '4120', false, null],
             'exam'                  => ['Examination fee',            '4720', false, null],
-            'conference'            => ['Conference fee',             '4730', false, null],
-            'exhibitor'             => ['Exhibitor package',          '4740', false, null],
+            'conference'            => ['Conference fee',             '4680', false, null],
+            'exhibitor'             => ['Exhibitor package',          '4680', false, null],
             'transcript'            => ['Transcript fee',             '4750', false, null],
             'premium'               => ['Premium fee',                '4760', false, null],
         ];
