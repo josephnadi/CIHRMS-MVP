@@ -212,6 +212,12 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(\App\Services\Ai\PiiRedactor::class);
         $this->app->singleton(\App\Services\Ai\EmployeeSummaryService::class);
+
+        // Website finance integration — real HTTP feed client for
+        // cihrm_website. Tests override this via
+        // app()->instance(WebsiteFeedClient::class, $fake) in the test body,
+        // which wins over this container binding.
+        $this->app->bind(\App\Services\Website\WebsiteFeedClient::class, \App\Services\Website\HttpWebsiteFeedClient::class);
     }
 
     public function boot(): void
