@@ -74,10 +74,12 @@ Returns members/students changed since `since` (by `updated_at`), ordered by id,
 
 ```json
 {
-  "member_no": "CIHRM/2021/00456",
+  "external_user_id": 4821,            // website users.id — the stable cross-cutting key
+  "member_number": "CIHRM/2021/00456" | null,
+  "student_number": "STU/2019/01123" | null,
   "user_type": "member" | "student",
   "class": "student|associate|full|fellow|chartered",
-  "status": "active|lapsed|...",
+  "status": "active|inactive|suspended|expired|lapsed",
   "name": "…", "email": "…", "phone": "…",
   "chartered_at": "2024-06-01" | null,
   "lapsed_at": null,
@@ -85,9 +87,12 @@ Returns members/students changed since `since` (by `updated_at`), ordered by id,
 }
 ```
 
-`member_no` is the stable external key. Students that later become members keep a
-single `member_no` where possible; if the website uses distinct student vs member
-numbers, both are emitted and mvp links them via the `meta` on collections.
+**Key resolution (confirmed against the website schema):** the website keeps
+`members.member_number` and `students.student_number` as *separate* unique
+identifiers, both hanging off `users.id`. A person can be a student and later a
+member under one `user_id`. So the **stable external key for the mirror is
+`external_user_id` (the website `users.id`)**; `member_number`/`student_number`
+are attributes. Collections reference the same `external_user_id`.
 
 ### `GET /api/finance-sync/collections?since=<ISO8601>&cursor=<id>&limit=200`
 
@@ -98,7 +103,7 @@ Returns **only settled** collections across all surfaces, normalized:
   "source": "member_fee_payment|student_payment|payment_record|conference|exhibitor|transcript|premium|payment",
   "source_id": 12345,
   "external_ref": "TXN-9F3A…",        // globally unique idempotency key
-  "member_no": "CIHRM/2021/00456" | null,
+  "external_user_id": 4821 | null,    // website users.id → mirror key
   "payer_name": "…", "payer_email": "…", "payer_phone": "…",
   "fee_code": "member.subscription",  // canonical taxonomy (see mapping)
   "amount": 350.00,
@@ -115,10 +120,10 @@ Returns **only settled** collections across all surfaces, normalized:
   `external_ref = transaction_reference`. `paid_at = confirmed_at ?? payment_date`.
 - `payment_records` (offline learning-partner): `status = 'approved'`.
   `external_ref = "PR-" + id`. `paid_at = approved_at`.
-- conference / exhibitor / transcript / premium / generic `payments`: the
-  surface's own paid/verified flag; `external_ref` = its unique reference (or
-  `"<source>-" + id` if none). Surfaces without a settled flag are excluded and
-  listed in the spec's open items rather than guessed.
+- conference / exhibitor / transcript: `payment_status = 'paid'` (confirmed in
+  schema), `paid_at` set; `external_ref = payment_reference ?? "<source>-" + id`.
+- premium / generic `payments`: the surface's own paid flag; `external_ref` = its
+  unique reference (or `"<source>-" + id`).
 
 `fee_code` is derived on the website from `(source, fee_type, user_type)` so the
 canonical taxonomy is owned in one place. `combined` fee_types are **split into
@@ -179,11 +184,15 @@ Initial mapping (illustrative — finalized against the real CoA during planning
 ## Component 3 — Member mirror (`cihrms-mvp`)
 
 `Member` (and its linked AR `Customer`) is **upserted** from the members feed,
-keyed by `member_no`. mvp never edits mirrored fields; it is a projection.
+keyed by `external_user_id` (website `users.id`). mvp never edits mirrored
+fields; it is a projection. A new nullable `external_user_id` (unique) column is
+added to `members` for the link; `member_number`/`student_number` are stored as
+attributes.
 
-- Match on `member_no`; create if absent, update name/email/phone/class/status
-  if present. `customer_id` links to an AR `Customer` for statement drill-down.
-- Collections whose `member_no` is null or unmatched attach to a generic
+- Match on `external_user_id`; create if absent, update
+  name/email/phone/class/status if present. `customer_id` links to an AR
+  `Customer` for statement drill-down.
+- Collections whose `external_user_id` is null or unmatched attach to a generic
   **"Website Collections"** `Customer` so no revenue is lost; the raw payer
   identity is retained on the staging row for later attribution.
 - The existing demo `MemberPortalDemoSeeder` data is superseded by real mirror
@@ -334,12 +343,18 @@ anyone trusts a future real-time path.
 Steps 1–4 are pure mvp and testable with fixtures before the website endpoint
 exists, so the two codebases can proceed in parallel against the frozen contract.
 
-## Open items to confirm during planning
+## Open items
 
-- Exact "settled" flag for conference / exhibitor / transcript / premium / generic
-  `payments` surfaces (read each model's payment state before emitting).
-- Whether students and members share one `member_no` or need a link table in the
-  mirror.
+**Resolved during planning (2026-07-08):**
+- *Settled flags* — conference / exhibitor / transcript use `payment_status =
+  'paid'` (+ `paid_at`); member/student payments use `completed + payment_verified`;
+  `payment_records` use `approved`. Premium/generic `payments` use their own paid
+  flag (verify the exact column when building the endpoint).
+- *Member vs student key* — separate `member_number`/`student_number`, both under
+  `users.id`; mirror keys on `external_user_id` (= website `users.id`).
+
+**Still open (confirm while building):**
 - Final `fee_code` → account rows against the real CIHRM chart of accounts.
 - Whether `*.combined` payments carry a splittable breakdown in `meta_data`, or
   need a suspense account + manual allocation.
+- Exact paid-flag column on the `premium_fees` / generic `payments` tables.
