@@ -41,3 +41,20 @@ it('maps an unrecognized website status like expired to lapsed', function () {
 
     expect($m->status->value)->toBe('lapsed');
 });
+
+it('preserves existing class and status when a partial sync omits them', function () {
+    $svc = app(MemberMirrorService::class);
+
+    $svc->upsert([
+        'external_user_id' => 5555, 'name' => 'Yaw Owusu', 'email' => 'yaw@example.com',
+        'user_type' => 'member', 'class' => 'fellow', 'status' => 'suspended',
+    ]);
+
+    // Partial sync: no class/status supplied — should NOT downgrade to student/active.
+    $m = $svc->upsert([
+        'external_user_id' => 5555, 'name' => 'Yaw K. Owusu', 'email' => 'yaw@example.com',
+    ]);
+
+    expect($m->class->value)->toBe('fellow')
+        ->and($m->status->value)->toBe('suspended');
+});

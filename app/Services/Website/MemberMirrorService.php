@@ -8,6 +8,7 @@ use App\Enums\MemberClass;
 use App\Enums\MemberStatus;
 use App\Models\Customer;
 use App\Models\Member;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Read-only member mirror. mvp's `Member` is a projection of the CIHRM
@@ -23,35 +24,37 @@ class MemberMirrorService
     /** Upsert a member mirror from a website feed record, keyed by external_user_id. */
     public function upsert(array $r): Member
     {
-        $member = Member::firstOrNew(['external_user_id' => $r['external_user_id']]);
+        return DB::transaction(function () use ($r) {
+            $member = Member::firstOrNew(['external_user_id' => $r['external_user_id']]);
 
-        $member->fill([
-            'external_user_id' => $r['external_user_id'],
-            'member_no'        => $r['member_number'] ?? $member->member_no ?? ('WEB-'.$r['external_user_id']),
-            'student_no'       => $r['student_number'] ?? $member->student_no,
-            'class'            => $this->mapClass($r['class'] ?? null)->value,
-            'status'           => $this->mapStatus($r['status'] ?? null)->value,
-            'name'             => $r['name'] ?? $member->name,
-            'email'            => $r['email'] ?? $member->email,
-            'phone'            => $r['phone'] ?? $member->phone,
-        ]);
+            $member->fill([
+                'external_user_id' => $r['external_user_id'],
+                'member_no'        => $r['member_number'] ?? $member->member_no ?? ('WEB-'.$r['external_user_id']),
+                'student_no'       => $r['student_number'] ?? $member->student_no,
+                'class'            => $this->mapClass($r['class'] ?? $member->class?->value)->value,
+                'status'           => $this->mapStatus($r['status'] ?? $member->status?->value)->value,
+                'name'             => $r['name'] ?? $member->name,
+                'email'            => $r['email'] ?? $member->email,
+                'phone'            => $r['phone'] ?? $member->phone,
+            ]);
 
-        if (! empty($r['chartered_at'])) {
-            $member->chartered_at = $r['chartered_at'];
-        }
+            if (! empty($r['chartered_at'])) {
+                $member->chartered_at = $r['chartered_at'];
+            }
 
-        if (! $member->customer_id) {
-            $member->customer_id = Customer::create([
-                'code'  => 'WEB-'.$r['external_user_id'],
-                'name'  => $member->name ?? 'Member '.$r['external_user_id'],
-                'email' => $member->email,
-                'phone' => $member->phone,
-            ])->id;
-        }
+            if (! $member->customer_id) {
+                $member->customer_id = Customer::create([
+                    'code'  => 'WEB-'.$r['external_user_id'],
+                    'name'  => $member->name ?? 'Member '.$r['external_user_id'],
+                    'email' => $member->email,
+                    'phone' => $member->phone,
+                ])->id;
+            }
 
-        $member->save();
+            $member->save();
 
-        return $member;
+            return $member;
+        });
     }
 
     /**
