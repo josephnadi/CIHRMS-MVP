@@ -22,10 +22,17 @@ class WebsiteSyncService
         $mState = SyncState::for('members');
         $cursor = null;
         do {
+            $requestedCursor = $cursor;
             $page = $this->client->members($mState->watermark, $cursor, 200);
             foreach ($page['data'] as $rec) {
                 $this->mirror->upsert($rec);
                 $report['members']++;
+            }
+            if ($page['next_cursor'] !== null && $page['next_cursor'] === $requestedCursor) {
+                \Illuminate\Support\Facades\Log::warning('WebsiteSyncService: members feed returned a non-advancing cursor; aborting pagination to avoid an infinite loop.', [
+                    'cursor' => $requestedCursor,
+                ]);
+                break;
             }
             $cursor = $page['next_cursor'];
         } while ($cursor !== null);
@@ -35,6 +42,7 @@ class WebsiteSyncService
         $cState = SyncState::for('collections');
         $cursor = null;
         do {
+            $requestedCursor = $cursor;
             $page = $this->client->collections($cState->watermark, $cursor, 200);
             foreach ($page['data'] as $rec) {
                 $report['pulled']++;
@@ -52,6 +60,12 @@ class WebsiteSyncService
                     ExternalCollection::STATUS_FLAGGED  => $report['flagged']++,
                     default => null,
                 };
+            }
+            if ($page['next_cursor'] !== null && $page['next_cursor'] === $requestedCursor) {
+                \Illuminate\Support\Facades\Log::warning('WebsiteSyncService: collections feed returned a non-advancing cursor; aborting pagination to avoid an infinite loop.', [
+                    'cursor' => $requestedCursor,
+                ]);
+                break;
             }
             $cursor = $page['next_cursor'];
         } while ($cursor !== null);

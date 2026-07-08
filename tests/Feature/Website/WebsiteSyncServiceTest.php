@@ -52,6 +52,76 @@ it('mirrors members and posts collections, returning a report', function () {
         ->and(ExternalCollection::where('status', 'posted')->count())->toBe(1);
 });
 
+it('follows a paginated collections feed across multiple pages', function () {
+    $client = new class implements WebsiteFeedClient {
+        public function members(?string $since, ?int $cursor, int $limit = 200): array
+        {
+            return ['data' => [], 'next_cursor' => null];
+        }
+
+        public function collections(?string $since, ?int $cursor, int $limit = 200): array
+        {
+            if ($cursor === null) {
+                return [
+                    'data' => [
+                        ['source' => 'payment_record', 'source_id' => 1, 'external_ref' => 'PAGE-1', 'external_user_id' => null,
+                         'payer_name' => 'A', 'fee_code' => 'exam', 'amount' => 100, 'currency' => 'GHS',
+                         'paid_at' => '2026-07-05T09:00:00Z', 'method' => 'cash', 'gateway_ref' => null, 'meta' => []],
+                    ],
+                    'next_cursor' => 2,
+                ];
+            }
+
+            return [
+                'data' => [
+                    ['source' => 'payment_record', 'source_id' => 2, 'external_ref' => 'PAGE-2', 'external_user_id' => null,
+                     'payer_name' => 'B', 'fee_code' => 'exam', 'amount' => 150, 'currency' => 'GHS',
+                     'paid_at' => '2026-07-05T09:30:00Z', 'method' => 'cash', 'gateway_ref' => null, 'meta' => []],
+                ],
+                'next_cursor' => null,
+            ];
+        }
+    };
+    app()->instance(WebsiteFeedClient::class, $client);
+
+    $report = app(WebsiteSyncService::class)->sync();
+
+    expect($report['pulled'])->toBe(2)
+        ->and($report['posted'])->toBe(2)
+        ->and(ExternalCollection::where('external_ref', 'PAGE-1')->where('status', 'posted')->exists())->toBeTrue()
+        ->and(ExternalCollection::where('external_ref', 'PAGE-2')->where('status', 'posted')->exists())->toBeTrue();
+});
+
+it('breaks out of pagination when the feed returns a non-advancing cursor', function () {
+    $client = new class implements WebsiteFeedClient {
+        public function members(?string $since, ?int $cursor, int $limit = 200): array
+        {
+            return ['data' => [], 'next_cursor' => null];
+        }
+
+        public function collections(?string $since, ?int $cursor, int $limit = 200): array
+        {
+            // Buggy feed: always returns the same non-null cursor, never
+            // progressing. The stuck-cursor guard must break the loop.
+            return [
+                'data' => [
+                    ['source' => 'payment_record', 'source_id' => 9, 'external_ref' => 'STUCK-'.($cursor ?? 'first'), 'external_user_id' => null,
+                     'payer_name' => 'C', 'fee_code' => 'exam', 'amount' => 75, 'currency' => 'GHS',
+                     'paid_at' => '2026-07-05T09:45:00Z', 'method' => 'cash', 'gateway_ref' => null, 'meta' => []],
+                ],
+                'next_cursor' => 5,
+            ];
+        }
+    };
+    app()->instance(WebsiteFeedClient::class, $client);
+
+    $report = app(WebsiteSyncService::class)->sync();
+
+    // First iteration: cursor null -> requested null, page returns next_cursor 5 (advances, null !== 5).
+    // Second iteration: cursor 5 -> requested 5, page returns next_cursor 5 again (stuck) -> break.
+    expect($report['pulled'])->toBe(2);
+});
+
 it('does not double-post on a second sync', function () {
     $fake = new FakeWebsiteFeedClient(collections: [
         ['source' => 'payment_record', 'source_id' => 2, 'external_ref' => 'PR-2', 'external_user_id' => null,
