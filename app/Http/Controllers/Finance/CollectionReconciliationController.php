@@ -14,7 +14,7 @@ class CollectionReconciliationController extends Controller
 {
     public function index(Request $request): Response
     {
-        abort_unless($request->user()?->hasPermission('finance.reports'), 403);
+        abort_unless($request->user()?->hasPermission('finance.reports.view'), 403);
 
         $summary = ExternalCollection::query()
             ->select('fee_code',

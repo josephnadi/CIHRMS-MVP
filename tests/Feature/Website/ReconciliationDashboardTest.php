@@ -10,7 +10,7 @@ it('renders the reconciliation dashboard with summary + unresolved worklist', fu
     ExternalCollection::create(['source' => 's', 'source_id' => 2, 'external_ref' => 'B', 'fee_code' => 'mystery',
         'amount' => 50, 'currency' => 'GHS', 'paid_at' => now(), 'status' => 'unmapped', 'status_note' => 'no map']);
 
-    $user = User::factory()->create(['role' => 'finance_officer', 'permissions' => ['finance.reports']]);
+    $user = User::factory()->create(['role' => 'finance_officer', 'permissions' => ['finance.reports.view']]);
 
     $this->actingAs($user)->get(route('finance.reconciliation'))
         ->assertOk()

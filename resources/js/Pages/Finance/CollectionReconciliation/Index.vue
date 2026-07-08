@@ -22,6 +22,9 @@ const ghs = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumFr
                     <th class="text-right p-3">Posted</th><th class="text-right p-3">Unresolved</th>
                 </tr></thead>
                 <tbody class="divide-y divide-outline-variant/30">
+                    <tr v-if="!summary.length">
+                        <td class="p-4 text-center text-on-surface-variant" colspan="4">No website collections ingested yet.</td>
+                    </tr>
                     <tr v-for="s in summary" :key="s.fee_code">
                         <td class="p-3 font-bold text-primary">{{ s.fee_code }}</td>
                         <td class="p-3 text-right tabular-nums">{{ ghs(s.collected) }}</td>

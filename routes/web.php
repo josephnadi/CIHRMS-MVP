@@ -1052,7 +1052,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Website collections reconciliation dashboard (Website Finance Integration — Task 8)
         Route::get('/reconciliation-dashboard', [\App\Http\Controllers\Finance\CollectionReconciliationController::class, 'index'])
-            ->middleware('permission:finance.reports')->name('reconciliation');
+            ->middleware('permission:finance.reports.view')->name('reconciliation');
 
         // Analytics dashboard (KPIs + charts) — read-only
         Route::middleware('permission:finance.analytics.view')->group(function () {
