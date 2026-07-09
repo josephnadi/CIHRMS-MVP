@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Enums\IncomingInvoiceStatus;
+use App\Events\IncomingInvoiceApproved;
 use App\Events\IncomingInvoiceReturned;
 use App\Events\IncomingInvoiceSubmitted;
 use App\Events\IncomingInvoiceVetted;
@@ -128,6 +129,33 @@ class IncomingInvoiceService
         }
 
         return $this->markReturned($inv, $auditor, $reason, IncomingInvoiceStatus::Submitted->value);
+    }
+
+    public function ceoApprove(IncomingInvoice $inv, User $ceo): IncomingInvoice
+    {
+        if ($inv->status !== IncomingInvoiceStatus::Vetted) {
+            throw new DomainException('Only vetted invoices can be approved.');
+        }
+
+        $inv->update([
+            'status'      => IncomingInvoiceStatus::Approved->value,
+            'approved_by' => $ceo->id,
+            'approved_at' => now(),
+        ]);
+
+        $this->recordEvent($inv, $ceo, 'approved', IncomingInvoiceStatus::Vetted->value, IncomingInvoiceStatus::Approved->value);
+        IncomingInvoiceApproved::dispatch($inv->fresh());
+
+        return $inv->fresh();
+    }
+
+    public function ceoReturn(IncomingInvoice $inv, User $ceo, string $reason): IncomingInvoice
+    {
+        if ($inv->status !== IncomingInvoiceStatus::Vetted) {
+            throw new DomainException('Only vetted invoices can be returned by the CEO.');
+        }
+
+        return $this->markReturned($inv, $ceo, $reason, IncomingInvoiceStatus::Vetted->value);
     }
 
     protected function markReturned(IncomingInvoice $inv, User $actor, string $reason, string $from): IncomingInvoice

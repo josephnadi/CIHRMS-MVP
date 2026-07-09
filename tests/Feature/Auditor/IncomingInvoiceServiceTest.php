@@ -109,3 +109,38 @@ it('can resubmit a returned invoice', function () {
     $this->service->submit($inv->fresh(), $sub);
     expect($inv->fresh()->status)->toBe(IncomingInvoiceStatus::Submitted);
 });
+
+it('ceo approves a vetted invoice', function () {
+    $sub = User::factory()->create(['role' => 'dept_head']);
+    $aud = User::factory()->create(['role' => 'auditor']);
+    $ceo = User::factory()->create(['role' => 'ceo']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+    $this->service->vetAccept($inv->fresh(), $aud);
+
+    $this->service->ceoApprove($inv->fresh(), $ceo);
+
+    expect($inv->fresh()->status)->toBe(IncomingInvoiceStatus::Approved);
+    expect($inv->fresh()->approved_by)->toBe($ceo->id);
+});
+
+it('ceo cannot approve an un-vetted invoice', function () {
+    $sub = User::factory()->create(['role' => 'dept_head']);
+    $ceo = User::factory()->create(['role' => 'ceo']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+
+    $this->service->ceoApprove($inv->fresh(), $ceo);
+})->throws(DomainException::class);
+
+it('ceoReturn sends a vetted invoice back', function () {
+    $sub = User::factory()->create(['role' => 'dept_head']);
+    $aud = User::factory()->create(['role' => 'auditor']);
+    $ceo = User::factory()->create(['role' => 'ceo']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+    $this->service->vetAccept($inv->fresh(), $aud);
+
+    $this->service->ceoReturn($inv->fresh(), $ceo, 'over budget');
+    expect($inv->fresh()->status)->toBe(IncomingInvoiceStatus::Returned);
+});
