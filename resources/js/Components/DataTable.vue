@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const props = defineProps({
     columns:    { type: Array,   required: true },
@@ -46,7 +47,7 @@ const skeletonRows = Array.from({ length: 6 });
                             @click="handleSort(col)"
                         >
                             <span class="flex items-center gap-1.5">
-                                {{ col.label }}
+                                <GlossaryText :text="col.label" />
                                 <span v-if="col.sortable" class="flex flex-col gap-px">
                                     <span
                                         class="material-symbols-outlined text-[12px] leading-none"

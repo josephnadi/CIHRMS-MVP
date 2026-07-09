@@ -16,8 +16,10 @@ export const GLOSSARY = {
     WHT:     { term: 'Withholding Tax', definition: 'Tax deducted from a payment at source and remitted to the tax authority on the payee’s behalf.' },
     YTD:     { term: 'Year to Date', definition: 'The running total from the start of the year up to today.' },
     VAT:     { term: 'Value Added Tax', definition: 'A tax charged on the sale of most goods and services.' },
-    'DR':    { term: 'Debit', definition: 'The left side of an entry — increases assets/expenses, decreases income/liabilities.' },
-    'CR':    { term: 'Credit', definition: 'The right side of an entry — increases income/liabilities, decreases assets/expenses.' },
+    // `auto: false` — too ambiguous to auto-detect in free label text (they read
+    // as ordinary words/initials); only shown when wrapped explicitly with <Term>.
+    'DR':    { term: 'Debit', definition: 'The left side of an entry — increases assets/expenses, decreases income/liabilities.', auto: false },
+    'CR':    { term: 'Credit', definition: 'The right side of an entry — increases income/liabilities, decreases assets/expenses.', auto: false },
 
     // ── Payroll / statutory (Ghana) ──
     PAYE:    { term: 'Pay As You Earn', definition: 'Income tax deducted from an employee’s salary each month and paid to the GRA.' },
@@ -38,8 +40,8 @@ export const GLOSSARY = {
     PIP:     { term: 'Performance Improvement Plan', definition: 'A structured plan to help an underperforming employee reach the expected standard.' },
     KPI:     { term: 'Key Performance Indicator', definition: 'A measurable value that shows how well a goal is being met.' },
     SLA:     { term: 'Service Level Agreement', definition: 'A promised standard — e.g. how quickly a request should be handled.' },
-    CV:      { term: 'Curriculum Vitae', definition: 'A document summarising a person’s work history and qualifications.' },
-    OT:      { term: 'Overtime', definition: 'Hours worked beyond normal working hours, usually paid at a premium.' },
+    CV:      { term: 'Curriculum Vitae', definition: 'A document summarising a person’s work history and qualifications.', auto: false },
+    OT:      { term: 'Overtime', definition: 'Hours worked beyond normal working hours, usually paid at a premium.', auto: false },
 
     // ── Compliance / data ──
     DPA:     { term: 'Data Protection Act', definition: 'Ghana’s law governing how personal data must be collected, stored and used.' },
@@ -61,4 +63,16 @@ export function lookupTerm(code) {
     if (GLOSSARY[code]) return GLOSSARY[code];
     const hit = Object.keys(GLOSSARY).find(k => k.toLowerCase() === String(code).toLowerCase());
     return hit ? GLOSSARY[hit] : null;
+}
+
+/**
+ * Keys eligible for automatic detection in free label text: alphanumeric only
+ * (so `\b` word boundaries behave) and not flagged `auto: false`. Matching is
+ * case-sensitive against these exact keys, so plain words like "car" or "or"
+ * are never wrapped. Longest-first so multi-char codes win.
+ */
+export function autoTermKeys() {
+    return Object.keys(GLOSSARY)
+        .filter(k => /^[A-Za-z0-9]+$/.test(k) && GLOSSARY[k].auto !== false)
+        .sort((a, b) => b.length - a.length);
 }
