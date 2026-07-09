@@ -10,6 +10,7 @@ use App\Models\Member;
 use App\Services\Finance\PostingService;
 use App\Services\Finance\Posting\PostingDocument;
 use App\Services\Finance\Posting\PostingLine;
+use App\Services\Finance\RevenueRecognitionService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -21,6 +22,7 @@ class CollectionIngestionService
     // MemberMirrorService for a future AR-based posting model.
     public function __construct(
         private readonly PostingService $posting,
+        private readonly RevenueRecognitionService $recognition,
     ) {}
 
     /** Stage + post one normalized collection. Idempotent, fail-soft. */
@@ -81,6 +83,13 @@ class CollectionIngestionService
                 $entry = $this->posting->post($doc);
                 $collection->journal_entry_id = $entry->id;
                 $collection->save();
+
+                // Deferred subscriptions land in 2400; build the straight-line
+                // release schedule (period starts on the payment date) so the
+                // monthly recognition run can move it to income over time.
+                if ($mapping->is_deferred) {
+                    $this->recognition->scheduleForCollection($collection, $mapping);
+                }
 
                 return $collection;
             });

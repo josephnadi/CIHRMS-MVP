@@ -21,6 +21,7 @@ enum JournalSourceType: string
     case StatutoryRemittance = 'statutory_remittance';
     case BackPay             = 'back_pay';
     case WebsiteCollection   = 'website_collection';
+    case RevenueRecognition  = 'revenue_recognition';
 
     public function label(): string
     {
@@ -40,6 +41,7 @@ enum JournalSourceType: string
             self::StatutoryRemittance => 'Statutory Remittance',
             self::BackPay             => 'Back Pay',
             self::WebsiteCollection   => 'Website Collection',
+            self::RevenueRecognition  => 'Revenue Recognition',
         };
     }
 }
