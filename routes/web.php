@@ -1269,4 +1269,33 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// ── Auditors: hub + incoming-invoice vetting ────────────────────────────────
+Route::middleware(['auth', 'verified'])->prefix('auditor')->name('auditor.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\AuditorController::class, 'hub'])
+        ->middleware('permission:auditor.hub')->name('hub');
+
+    Route::middleware('permission:incoming_invoices.view')->group(function () {
+        Route::get('incoming-invoices',                 [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'index'])->name('incoming-invoices.index');
+        Route::get('incoming-invoices/create',          [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'create'])->name('incoming-invoices.create');
+        Route::get('incoming-invoices/{incomingInvoice}', [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'show'])->name('incoming-invoices.show');
+        Route::get('incoming-invoices/{incomingInvoice}/attachments/{attachment}', [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'download'])->name('incoming-invoices.download');
+    });
+    Route::middleware('permission:incoming_invoices.submit')->group(function () {
+        Route::post('incoming-invoices',                        [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'store'])->name('incoming-invoices.store');
+        Route::patch('incoming-invoices/{incomingInvoice}',     [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'update'])->name('incoming-invoices.update');
+        Route::post('incoming-invoices/{incomingInvoice}/submit',[\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'submit'])->name('incoming-invoices.submit');
+    });
+    Route::middleware('permission:incoming_invoices.vet')->group(function () {
+        Route::post('incoming-invoices/{incomingInvoice}/vet',        [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'vet'])->name('incoming-invoices.vet');
+        Route::post('incoming-invoices/{incomingInvoice}/vet-return', [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'vetReturn'])->name('incoming-invoices.vet-return');
+    });
+    Route::middleware('permission:incoming_invoices.approve')->group(function () {
+        Route::post('incoming-invoices/{incomingInvoice}/approve',    [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'approve'])->name('incoming-invoices.approve');
+        Route::post('incoming-invoices/{incomingInvoice}/ceo-return', [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'ceoReturn'])->name('incoming-invoices.ceo-return');
+    });
+    Route::middleware('permission:incoming_invoices.post')->group(function () {
+        Route::post('incoming-invoices/{incomingInvoice}/post', [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'post'])->name('incoming-invoices.post');
+    });
+});
+
 require __DIR__.'/auth.php';
