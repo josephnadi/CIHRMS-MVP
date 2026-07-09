@@ -86,3 +86,8 @@ Schedule::command('compliance:remind')->dailyAt('07:00')->withoutOverlapping();
 // from cihrm_website, posted to the GL. 01:30 lands after other nightly
 // jobs (audit chain 03:00 excepted) and well before office hours.
 Schedule::command('sync:website-collections')->dailyAt('01:30')->withoutOverlapping();
+
+// Deferred income — monthly release of Subscription-in-Advance (2400) to income.
+// Runs on the 1st; recognizeForMonth is cumulative (<= month) + idempotent, so it
+// also sweeps up any stragglers from a missed run.
+Schedule::command('finance:recognize-revenue')->monthlyOn(1, '02:00')->withoutOverlapping();
