@@ -12,39 +12,70 @@ const props = defineProps({
 const entry = computed(() => lookupTerm(props.code));
 const text  = computed(() => props.label ?? props.code);
 
-const show   = ref(false);   // currently visible (hover/focus)
-const pinned = ref(false);   // tapped open (touch) — stays until dismissed
+const show   = ref(false);   // currently visible (hover/focus/tap)
+const pinned = ref(false);   // tapped open — stays until dismissed
 const uid    = `term-${Math.random().toString(36).slice(2, 9)}`;
 
-const open  = () => { show.value = true; };
-const close = () => { if (! pinned.value) show.value = false; };
+const trigger = ref(null);
+const coords  = ref({ top: 0, left: 0 });
 
-const toggle = () => {
-    pinned.value = ! pinned.value;
-    show.value = pinned.value;
-    if (pinned.value) document.addEventListener('click', onDocClick, true);
-    else document.removeEventListener('click', onDocClick, true);
-};
+// The card is teleported to <body> and fixed-positioned so it is never clipped
+// by an ancestor's overflow (stat cards, table scroll areas, truncated titles).
+const CARD_W = 256; // matches w-64
+function place() {
+    const el = trigger.value;
+    if (! el) return;
+    const r = el.getBoundingClientRect();
+    let left = r.left;
+    if (left + CARD_W > window.innerWidth - 8) left = Math.max(8, window.innerWidth - CARD_W - 8);
+    coords.value = { top: Math.round(r.bottom + 6), left: Math.round(left) };
+}
 
-const root = ref(null);
-const onDocClick = (e) => {
-    if (root.value && ! root.value.contains(e.target)) { pinned.value = false; show.value = false; document.removeEventListener('click', onDocClick, true); }
-};
-const onEsc = () => { pinned.value = false; show.value = false; };
+function open() {
+    place();
+    show.value = true;
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', close, true);
+}
+function close() {
+    if (pinned.value) return;
+    show.value = false;
+    cleanup();
+}
+function onScroll() { pinned.value = false; show.value = false; cleanup(); }
 
-onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
+function toggle() {
+    if (pinned.value) { pinned.value = false; show.value = false; cleanup(); return; }
+    pinned.value = true;
+    open();
+    document.addEventListener('click', onDocClick, true);
+}
+function onDocClick(e) {
+    if (trigger.value && ! trigger.value.contains(e.target)) { pinned.value = false; show.value = false; cleanup(); }
+}
+function onEsc() { pinned.value = false; show.value = false; cleanup(); }
+
+function cleanup() {
+    window.removeEventListener('scroll', onScroll, true);
+    window.removeEventListener('resize', close, true);
+    document.removeEventListener('click', onDocClick, true);
+}
+onBeforeUnmount(cleanup);
 </script>
 
 <template>
     <!-- Unknown term: render plain text, no affordance. -->
     <span v-if="! entry">{{ text }}</span>
 
-    <span v-else ref="root" class="tw-term relative inline-block" @mouseenter="open" @mouseleave="close">
+    <span v-else class="inline">
         <abbr
+            ref="trigger"
             :title="entry.term"
             :aria-describedby="show ? uid : undefined"
             tabindex="0"
-            class="cursor-help no-underline decoration-dotted underline-offset-2 [text-decoration-line:underline] decoration-1 decoration-on-surface-variant/50 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm"
+            class="cursor-help [text-decoration-line:underline] decoration-dotted decoration-1 underline-offset-2 decoration-on-surface-variant/50 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm"
+            @mouseenter="open"
+            @mouseleave="close"
             @focus="open"
             @blur="close"
             @click.stop="toggle"
@@ -52,21 +83,24 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true));
             @keydown.esc="onEsc"
         >{{ text }}</abbr>
 
-        <transition
-            enter-active-class="transition ease-out duration-100"
-            enter-from-class="opacity-0 translate-y-0.5"
-            leave-active-class="transition ease-in duration-75"
-            leave-to-class="opacity-0"
-        >
-            <span
-                v-if="show"
-                :id="uid"
-                role="tooltip"
-                class="absolute z-50 left-0 top-full mt-1.5 w-64 max-w-[16rem] rounded-xl border border-outline-variant/70 bg-surface-container-lowest p-3 text-left shadow-lg ring-1 ring-black/5"
+        <Teleport to="body">
+            <transition
+                enter-active-class="transition ease-out duration-100"
+                enter-from-class="opacity-0 translate-y-0.5"
+                leave-active-class="transition ease-in duration-75"
+                leave-to-class="opacity-0"
             >
-                <span class="block text-[12px] font-black text-primary leading-snug">{{ entry.term }}</span>
-                <span class="mt-1 block text-[12px] leading-snug text-on-surface-variant">{{ entry.definition }}</span>
-            </span>
-        </transition>
+                <span
+                    v-if="show"
+                    :id="uid"
+                    role="tooltip"
+                    :style="{ top: coords.top + 'px', left: coords.left + 'px' }"
+                    class="fixed z-[100] w-64 max-w-[16rem] rounded-xl border border-outline-variant/70 bg-surface-container-lowest p-3 text-left shadow-xl ring-1 ring-black/5"
+                >
+                    <span class="block text-[12px] font-black text-primary leading-snug">{{ entry.term }}</span>
+                    <span class="mt-1 block text-[12px] leading-snug text-on-surface-variant">{{ entry.definition }}</span>
+                </span>
+            </transition>
+        </Teleport>
     </span>
 </template>
