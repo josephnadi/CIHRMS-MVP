@@ -10,7 +10,6 @@ const props = defineProps({
 });
 
 const s = props.invoice.status.value;
-const isOwner = true; // submitter actions are gated server-side; UI shows when relevant
 
 const vetForm = useForm({ notes: '' });
 const returnForm = useForm({ reason: '' });
@@ -83,8 +82,8 @@ function act(name) { router.post(route(name, props.invoice.id)); }
                 </select>
                 <div v-for="(line, i) in postForm.lines" :key="i" class="grid grid-cols-4 gap-2">
                     <input v-model="line.description" placeholder="Description" aria-label="Line description" class="rounded-lg border-gray-300" />
-                    <input type="number" v-model="line.quantity" placeholder="Qty" aria-label="Quantity" class="rounded-lg border-gray-300" />
-                    <input type="number" v-model="line.unit_price" placeholder="Unit price" aria-label="Unit price" class="rounded-lg border-gray-300" />
+                    <input type="number" v-model.number="line.quantity" placeholder="Qty" aria-label="Quantity" class="rounded-lg border-gray-300" />
+                    <input type="number" v-model.number="line.unit_price" placeholder="Unit price" aria-label="Unit price" class="rounded-lg border-gray-300" />
                     <select v-model="line.gl_account_id" aria-label="GL account" class="rounded-lg border-gray-300">
                         <option value="">GL account…</option>
                         <option v-for="a in expenseAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>

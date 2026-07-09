@@ -167,6 +167,24 @@ class IncomingInvoiceService
             throw new DomainException('Only CEO-approved invoices can be posted.');
         }
 
+        // Reconcile the Finance-coded line total against the face amount the CEO
+        // approved: the posted GL accrual must equal what was signed off, so a
+        // mis-keyed line can't inflate the accrual past the approved value.
+        // Tolerance absorbs per-line rounding only.
+        $postedTotal = collect($data['lines'])->reduce(function (float $carry, array $line): float {
+            $lineTotal = round((float) ($line['quantity'] ?? 1) * (float) ($line['unit_price'] ?? 0), 2);
+            $tax       = round($lineTotal * (float) ($line['tax_rate'] ?? 0), 2);
+            return $carry + $lineTotal + $tax;
+        }, 0.0);
+
+        if (abs($postedTotal - (float) $inv->amount) > 0.01) {
+            throw new DomainException(sprintf(
+                'Posted line total (%.2f) does not match the CEO-approved amount (%.2f).',
+                $postedTotal,
+                (float) $inv->amount,
+            ));
+        }
+
         return DB::transaction(function () use ($inv, $data, $poster) {
             $vendorInvoice = $this->vendorInvoices->create([
                 'vendor_id'         => $data['vendor_id'],
