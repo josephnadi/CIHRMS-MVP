@@ -70,8 +70,7 @@ onBeforeUnmount(cleanup);
     <span v-else class="inline">
         <abbr
             ref="trigger"
-            :title="entry.term"
-            :aria-describedby="show ? uid : undefined"
+            :aria-label="`${text}: ${entry.term}`"
             tabindex="0"
             class="cursor-help [text-decoration-line:underline] decoration-dotted decoration-1 underline-offset-2 decoration-on-surface-variant/50 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm"
             @mouseenter="open"
