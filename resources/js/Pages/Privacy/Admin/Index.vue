@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -119,9 +120,9 @@ const editionLabel = computed(() => {
                     <div>
                         <div class="flex items-center gap-2 mb-1">
                             <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">shield_lock</span>
-                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">DPO QUEUE · ACT 843</p>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80"><GlossaryText text="DPO QUEUE · ACT 843" /></p>
                         </div>
-                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">DPA Requests — DPO Queue</h1>
+                        <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight"><GlossaryText text="DPA Requests — DPO Queue" /></h1>
                         <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
                             Statutory subject requests — access, rectification, erasure, objection — adjudicated within 30 days per Act 843 §22.
                         </p>
@@ -152,7 +153,7 @@ const editionLabel = computed(() => {
                             <span class="material-symbols-outlined">priority_high</span>
                         </div>
                         <div>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300">SLA breach — Act 843 §22</p>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300"><GlossaryText text="SLA breach — Act 843 §22" /></p>
                             <p class="text-[13.5px] font-black text-rose-900 dark:text-rose-200 mt-0.5">
                                 {{ stats.overdue }} request{{ stats.overdue === 1 ? '' : 's' }} past the 30-day statutory window — fulfil or formally reject with statutory basis.
                             </p>
@@ -170,7 +171,7 @@ const editionLabel = computed(() => {
                     <!-- SLA compliance ring -->
                     <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-6 flex flex-col">
                         <div class="flex items-center justify-between mb-1">
-                            <h3 class="text-[15px] font-black text-primary">SLA compliance</h3>
+                            <h3 class="text-[15px] font-black text-primary"><GlossaryText text="SLA compliance" /></h3>
                             <span class="text-[9.5px] font-black uppercase tracking-widest text-on-surface-variant/60">30-day window</span>
                         </div>
                         <p class="text-[11px] text-on-surface-variant mb-4">% of open requests still within the statutory window.</p>
@@ -184,7 +185,7 @@ const editionLabel = computed(() => {
                                         style="transition: stroke-dasharray 0.7s cubic-bezier(0.22,1,0.36,1), stroke 0.3s ease;"/>
                             </svg>
                             <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">Within SLA</p>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70"><GlossaryText text="Within SLA" /></p>
                                 <p class="text-3xl font-black tabular-nums text-primary leading-none">{{ stats?.within_sla_pct ?? 100 }}%</p>
                                 <p class="mt-0.5 text-[9.5px] font-bold text-on-surface-variant/70">
                                     avg age {{ stats?.avg_age_days ?? 0 }}d

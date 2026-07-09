@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -89,7 +90,7 @@ const stageLabel = computed(() => {
                         </div>
                         <div class="flex items-center gap-2 mb-1">
                             <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">flag</span>
-                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">PIP CASE FILE</p>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80"><GlossaryText text="PIP CASE FILE" /></p>
                         </div>
                         <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">{{ P.employee?.name ?? 'Case' }}</h1>
                         <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
@@ -158,7 +159,7 @@ const stageLabel = computed(() => {
                 <!-- Extension / Close -->
                 <div v-if="!isClosed" class="grid md:grid-cols-2 gap-5">
                     <div class="rounded-2xl border border-outline-variant/40 p-5 space-y-3 bg-amber-50/30">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-800">Extend PIP</p>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-800"><GlossaryText text="Extend PIP" /></p>
                         <p class="text-xs text-on-surface-variant/70">Extensions used: {{ P.extensions_used }} / {{ P.max_extensions }}</p>
                         <input aria-label="Additional days" v-model.number="extendForm.additional_days" type="number" min="14" max="90"
                                class="w-full rounded-lg border-outline-variant text-sm" placeholder="Additional days">
@@ -171,7 +172,7 @@ const stageLabel = computed(() => {
                     </div>
 
                     <div class="rounded-2xl border border-outline-variant/40 p-5 space-y-3 bg-brand-navy/[0.03]">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-navy/70">Close PIP (2FA required)</p>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-navy/70"><GlossaryText text="Close PIP (2FA required)" /></p>
                         <select v-model="closeForm.outcome" aria-label="PIP close outcome" class="w-full rounded-lg border-outline-variant text-sm">
                             <option value="succeeded">Succeeded — return to normal cycle</option>
                             <option value="failed_demoted">Failed — Demote</option>

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 /**
  * Finance Officer overview — real money posture, driven by live data
@@ -204,7 +205,7 @@ const statusTone = (s) => ({
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-secondary/80">Disbursement channel</p>
-                            <h3 class="text-lg font-black text-primary mt-0.5">GhIPSS &amp; MoMo settlement health</h3>
+                            <h3 class="text-lg font-black text-primary mt-0.5"><GlossaryText text="GhIPSS & MoMo settlement health" /></h3>
                         </div>
                         <Link :href="route('disbursements.index')" class="text-[11px] font-black text-secondary hover:underline">
                             Open disbursement queue →
@@ -240,7 +241,7 @@ const statusTone = (s) => ({
                     <div class="flex items-center justify-between mb-5">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-secondary/80">Statutory returns</p>
-                            <h3 class="text-base font-black text-primary mt-0.5">PAYE · SSNIT · NHIA · Tier-2</h3>
+                            <h3 class="text-base font-black text-primary mt-0.5"><GlossaryText text="PAYE · SSNIT · NHIA · Tier-2" /></h3>
                         </div>
                     </div>
 

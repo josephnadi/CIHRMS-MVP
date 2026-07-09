@@ -7,6 +7,7 @@ import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import StatusPill from '@/Components/StatusPill.vue';
 import { STATUS_PILL_REGISTRY } from '@/Components/statusPillRegistry.js';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -192,7 +193,7 @@ const outcomeMix = computed(() => {
                     <div>
                         <div class="flex items-center gap-2 mb-1">
                             <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">flag</span>
-                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">PIP REGISTER</p>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80"><GlossaryText text="PIP REGISTER" /></p>
                         </div>
                         <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Performance Improvement Plans</h1>
                         <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
@@ -413,7 +414,7 @@ const outcomeMix = computed(() => {
                     <div class="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4">
                         <div class="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-rose-700 mb-1">
                             <span class="material-symbols-outlined text-[15px]">warning</span>
-                            HR Action — Sensitive
+                            <GlossaryText text="HR Action — Sensitive" />
                         </div>
                         <p class="text-[12px] text-on-surface-variant/70">
                             Opening a PIP is a formal process under Labour Act Â§63. Ensure manager conversation has occurred and documentation is complete.

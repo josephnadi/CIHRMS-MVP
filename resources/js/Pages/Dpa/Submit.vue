@@ -1,5 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 defineProps({
     types: Array,
@@ -22,7 +23,7 @@ const submit = () => form.post(route('dpa.submit'));
     <main class="min-h-screen bg-slate-50">
         <div class="mx-auto max-w-2xl px-6 py-10">
             <header class="mb-6">
-                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-secondary">DPA 2012 · Act 843</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-secondary"><GlossaryText text="DPA 2012 · Act 843" /></p>
                 <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-900">Data-subject request</h1>
                 <p class="mt-2 text-[13px] text-slate-600">
                     File a request for access, rectification, erasure, portability, or objection regarding personal data CIHRM Ghana holds about you. You'll receive a confirmation email — click the link inside to verify and start the statutory 30-day clock.

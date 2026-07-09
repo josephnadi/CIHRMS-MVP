@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -63,7 +64,7 @@ const editionLabel = computed(() => {
             <Teleport to="#page-header-mount" defer>
                 <div class="space-y-2">
                     <nav class="flex items-center gap-1.5 text-[12px] font-semibold text-on-surface-variant/60" aria-label="Breadcrumb">
-                        <Link :href="route('privacy.admin.index')" class="hover:text-secondary transition-colors">DPO Queue</Link>
+                        <Link :href="route('privacy.admin.index')" class="hover:text-secondary transition-colors"><GlossaryText text="DPO Queue" /></Link>
                         <span class="material-symbols-outlined text-[14px]" aria-hidden="true">chevron_right</span>
                         <span class="text-on-surface" aria-current="page">{{ R.reference }}</span>
                     </nav>
@@ -71,7 +72,7 @@ const editionLabel = computed(() => {
                         <div>
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">folder_shared</span>
-                                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">DPO CASE FILE · ACT 843</p>
+                                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80"><GlossaryText text="DPO CASE FILE · ACT 843" /></p>
                             </div>
                             <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">{{ R.reference }}</h1>
                             <p class="mt-1 text-[13px] font-medium text-on-surface-variant">
