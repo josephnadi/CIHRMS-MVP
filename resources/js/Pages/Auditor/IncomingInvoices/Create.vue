@@ -25,28 +25,28 @@ function submit() {
 
             <div>
                 <label class="block text-sm">Vendor name</label>
-                <input v-model="form.vendor_name" class="w-full rounded-lg border-gray-300" />
+                <input v-model="form.vendor_name" aria-label="Vendor name" class="w-full rounded-lg border-gray-300" />
                 <div v-if="form.errors.vendor_name" class="text-red-600 text-xs">{{ form.errors.vendor_name }}</div>
             </div>
             <div>
                 <label class="block text-sm">Vendor invoice #</label>
-                <input v-model="form.vendor_invoice_no" class="w-full rounded-lg border-gray-300" />
+                <input v-model="form.vendor_invoice_no" aria-label="Vendor invoice number" class="w-full rounded-lg border-gray-300" />
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-sm">Invoice date</label>
-                    <input type="date" v-model="form.invoice_date" class="w-full rounded-lg border-gray-300" />
+                    <input type="date" v-model="form.invoice_date" aria-label="Invoice date" class="w-full rounded-lg border-gray-300" />
                     <div v-if="form.errors.invoice_date" class="text-red-600 text-xs">{{ form.errors.invoice_date }}</div>
                 </div>
                 <div>
                     <label class="block text-sm">Amount</label>
-                    <input type="number" step="0.01" v-model="form.amount" class="w-full rounded-lg border-gray-300" />
+                    <input type="number" step="0.01" v-model="form.amount" aria-label="Amount" class="w-full rounded-lg border-gray-300" />
                     <div v-if="form.errors.amount" class="text-red-600 text-xs">{{ form.errors.amount }}</div>
                 </div>
             </div>
             <div>
                 <label class="block text-sm">Description</label>
-                <textarea v-model="form.description" class="w-full rounded-lg border-gray-300"></textarea>
+                <textarea v-model="form.description" aria-label="Description" class="w-full rounded-lg border-gray-300"></textarea>
             </div>
             <div>
                 <label class="block text-sm">Attachments (scan/upload)</label>

@@ -55,12 +55,12 @@ function act(name) { router.post(route(name, props.invoice.id)); }
 
             <!-- Auditor -->
             <div v-if="can.vet && s === 'submitted'" class="space-y-2 border-t pt-4">
-                <textarea v-model="vetForm.notes" placeholder="Vetting notes (optional)" class="w-full rounded-lg border-gray-300"></textarea>
+                <textarea v-model="vetForm.notes" placeholder="Vetting notes (optional)" aria-label="Vetting notes" class="w-full rounded-lg border-gray-300"></textarea>
                 <div class="flex gap-2">
                     <button @click="vetForm.post(route('auditor.incoming-invoices.vet', invoice.id))" class="rounded-lg bg-green-600 text-white px-4 py-2">Accept & send to CEO</button>
                     <button @click="returnForm.post(route('auditor.incoming-invoices.vet-return', invoice.id))" class="rounded-lg bg-red-600 text-white px-4 py-2">Return</button>
                 </div>
-                <input v-model="returnForm.reason" placeholder="Return reason" class="w-full rounded-lg border-gray-300" />
+                <input v-model="returnForm.reason" placeholder="Return reason" aria-label="Return reason" class="w-full rounded-lg border-gray-300" />
                 <div v-if="returnForm.errors.reason" class="text-red-600 text-xs">{{ returnForm.errors.reason }}</div>
             </div>
 
@@ -70,22 +70,22 @@ function act(name) { router.post(route(name, props.invoice.id)); }
                     <button @click="act('auditor.incoming-invoices.approve')" class="rounded-lg bg-green-600 text-white px-4 py-2">Approve</button>
                     <button @click="returnForm.post(route('auditor.incoming-invoices.ceo-return', invoice.id))" class="rounded-lg bg-red-600 text-white px-4 py-2">Return</button>
                 </div>
-                <input v-model="returnForm.reason" placeholder="Return reason" class="w-full rounded-lg border-gray-300" />
+                <input v-model="returnForm.reason" placeholder="Return reason" aria-label="Return reason" class="w-full rounded-lg border-gray-300" />
                 <div v-if="returnForm.errors.reason" class="text-red-600 text-xs">{{ returnForm.errors.reason }}</div>
             </div>
 
             <!-- Finance posting -->
             <div v-if="can.post && s === 'approved'" class="space-y-2 border-t pt-4">
                 <h2 class="font-medium">Post to ledger</h2>
-                <select v-model="postForm.vendor_id" class="w-full rounded-lg border-gray-300">
+                <select v-model="postForm.vendor_id" aria-label="Vendor" class="w-full rounded-lg border-gray-300">
                     <option value="">Select vendor…</option>
                     <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.code }} — {{ v.name }}</option>
                 </select>
                 <div v-for="(line, i) in postForm.lines" :key="i" class="grid grid-cols-4 gap-2">
-                    <input v-model="line.description" placeholder="Description" class="rounded-lg border-gray-300" />
-                    <input type="number" v-model="line.quantity" placeholder="Qty" class="rounded-lg border-gray-300" />
-                    <input type="number" v-model="line.unit_price" placeholder="Unit price" class="rounded-lg border-gray-300" />
-                    <select v-model="line.gl_account_id" class="rounded-lg border-gray-300">
+                    <input v-model="line.description" placeholder="Description" aria-label="Line description" class="rounded-lg border-gray-300" />
+                    <input type="number" v-model="line.quantity" placeholder="Qty" aria-label="Quantity" class="rounded-lg border-gray-300" />
+                    <input type="number" v-model="line.unit_price" placeholder="Unit price" aria-label="Unit price" class="rounded-lg border-gray-300" />
+                    <select v-model="line.gl_account_id" aria-label="GL account" class="rounded-lg border-gray-300">
                         <option value="">GL account…</option>
                         <option v-for="a in expenseAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
                     </select>

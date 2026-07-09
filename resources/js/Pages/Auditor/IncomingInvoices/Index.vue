@@ -27,11 +27,11 @@ function applyFilters() {
             </div>
 
             <div class="flex gap-3">
-                <select v-model="status" @change="applyFilters" class="rounded-lg border-gray-300 text-sm">
+                <select v-model="status" @change="applyFilters" aria-label="Filter by status" class="rounded-lg border-gray-300 text-sm">
                     <option value="">All statuses</option>
                     <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
                 </select>
-                <input v-model="search" @keyup.enter="applyFilters" placeholder="Search vendor…" class="rounded-lg border-gray-300 text-sm" />
+                <input v-model="search" @keyup.enter="applyFilters" placeholder="Search vendor…" aria-label="Search vendor" class="rounded-lg border-gray-300 text-sm" />
             </div>
 
             <table class="w-full text-sm">
