@@ -66,3 +66,46 @@ it('update refuses a submitted invoice', function () {
 
     $this->service->update($inv->fresh(), makeData(['amount' => 99]), $u);
 })->throws(DomainException::class);
+
+it('auditor vets a submitted invoice', function () {
+    $sub = User::factory()->create(['role' => 'dept_head']);
+    $aud = User::factory()->create(['role' => 'auditor']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+
+    $this->service->vetAccept($inv->fresh(), $aud, 'looks good');
+
+    expect($inv->fresh()->status)->toBe(IncomingInvoiceStatus::Vetted);
+    expect($inv->fresh()->vetted_by)->toBe($aud->id);
+});
+
+it('blocks the submitter from vetting their own invoice (dual control)', function () {
+    $sub = User::factory()->create(['role' => 'finance_officer']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+
+    $this->service->vetAccept($inv->fresh(), $sub);
+})->throws(DomainException::class);
+
+it('vetReturn sends it back to returned with a reason', function () {
+    $sub = User::factory()->create(['role' => 'dept_head']);
+    $aud = User::factory()->create(['role' => 'auditor']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+
+    $this->service->vetReturn($inv->fresh(), $aud, 'missing receipt');
+
+    expect($inv->fresh()->status)->toBe(IncomingInvoiceStatus::Returned);
+    expect($inv->fresh()->return_reason)->toBe('missing receipt');
+});
+
+it('can resubmit a returned invoice', function () {
+    $sub = User::factory()->create(['role' => 'dept_head']);
+    $aud = User::factory()->create(['role' => 'auditor']);
+    $inv = $this->service->create(makeData(), $sub);
+    $this->service->submit($inv, $sub);
+    $this->service->vetReturn($inv->fresh(), $aud, 'fix it');
+
+    $this->service->submit($inv->fresh(), $sub);
+    expect($inv->fresh()->status)->toBe(IncomingInvoiceStatus::Submitted);
+});

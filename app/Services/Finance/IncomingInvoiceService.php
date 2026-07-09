@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Enums\IncomingInvoiceStatus;
+use App\Events\IncomingInvoiceReturned;
 use App\Events\IncomingInvoiceSubmitted;
+use App\Events\IncomingInvoiceVetted;
 use App\Models\IncomingInvoice;
 use App\Models\IncomingInvoiceEvent;
 use App\Models\User;
@@ -93,6 +95,52 @@ class IncomingInvoiceService
 
         $this->recordEvent($inv, $actor, 'submitted', $from, IncomingInvoiceStatus::Submitted->value);
         IncomingInvoiceSubmitted::dispatch($inv->fresh());
+
+        return $inv->fresh();
+    }
+
+    public function vetAccept(IncomingInvoice $inv, User $auditor, ?string $notes = null): IncomingInvoice
+    {
+        if ($inv->status !== IncomingInvoiceStatus::Submitted) {
+            throw new DomainException('Only submitted invoices can be vetted.');
+        }
+        if ($auditor->id === $inv->created_by) {
+            throw new DomainException('Dual-control violation: the submitter cannot vet their own invoice.');
+        }
+
+        $inv->update([
+            'status'        => IncomingInvoiceStatus::Vetted->value,
+            'vetted_by'     => $auditor->id,
+            'vetted_at'     => now(),
+            'vetting_notes' => $notes,
+        ]);
+
+        $this->recordEvent($inv, $auditor, 'vetted', IncomingInvoiceStatus::Submitted->value, IncomingInvoiceStatus::Vetted->value, $notes);
+        IncomingInvoiceVetted::dispatch($inv->fresh());
+
+        return $inv->fresh();
+    }
+
+    public function vetReturn(IncomingInvoice $inv, User $auditor, string $reason): IncomingInvoice
+    {
+        if ($inv->status !== IncomingInvoiceStatus::Submitted) {
+            throw new DomainException('Only submitted invoices can be returned by the auditor.');
+        }
+
+        return $this->markReturned($inv, $auditor, $reason, IncomingInvoiceStatus::Submitted->value);
+    }
+
+    protected function markReturned(IncomingInvoice $inv, User $actor, string $reason, string $from): IncomingInvoice
+    {
+        $inv->update([
+            'status'        => IncomingInvoiceStatus::Returned->value,
+            'returned_by'   => $actor->id,
+            'returned_at'   => now(),
+            'return_reason' => $reason,
+        ]);
+
+        $this->recordEvent($inv, $actor, 'returned', $from, IncomingInvoiceStatus::Returned->value, $reason);
+        IncomingInvoiceReturned::dispatch($inv->fresh());
 
         return $inv->fresh();
     }
