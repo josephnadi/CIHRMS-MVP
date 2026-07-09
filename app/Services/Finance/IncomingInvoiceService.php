@@ -6,6 +6,7 @@ namespace App\Services\Finance;
 
 use App\Enums\IncomingInvoiceStatus;
 use App\Events\IncomingInvoiceApproved;
+use App\Events\IncomingInvoicePosted;
 use App\Events\IncomingInvoiceReturned;
 use App\Events\IncomingInvoiceSubmitted;
 use App\Events\IncomingInvoiceVetted;
@@ -17,8 +18,10 @@ use Illuminate\Support\Facades\DB;
 
 class IncomingInvoiceService
 {
-    public function __construct(private readonly SequenceService $sequences)
-    {
+    public function __construct(
+        private readonly SequenceService $sequences,
+        private readonly VendorInvoiceService $vendorInvoices,
+    ) {
     }
 
     public function create(array $data, User $creator): IncomingInvoice
@@ -156,6 +159,36 @@ class IncomingInvoiceService
         }
 
         return $this->markReturned($inv, $ceo, $reason, IncomingInvoiceStatus::Vetted->value);
+    }
+
+    public function post(IncomingInvoice $inv, array $data, User $poster): IncomingInvoice
+    {
+        if ($inv->status !== IncomingInvoiceStatus::Approved) {
+            throw new DomainException('Only CEO-approved invoices can be posted.');
+        }
+
+        return DB::transaction(function () use ($inv, $data, $poster) {
+            $vendorInvoice = $this->vendorInvoices->create([
+                'vendor_id'         => $data['vendor_id'],
+                'vendor_invoice_no' => $inv->vendor_invoice_no,
+                'invoice_date'      => $inv->invoice_date->format('Y-m-d'),
+                'currency'          => $inv->currency,
+                'notes'             => 'Promoted from incoming invoice ' . $inv->reference,
+                'lines'             => $data['lines'],
+            ], $poster);
+
+            $inv->update([
+                'status'            => IncomingInvoiceStatus::Posted->value,
+                'posted_by'         => $poster->id,
+                'posted_at'         => now(),
+                'vendor_invoice_id' => $vendorInvoice->id,
+            ]);
+
+            $this->recordEvent($inv, $poster, 'posted', IncomingInvoiceStatus::Approved->value, IncomingInvoiceStatus::Posted->value, "VendorInvoice #{$vendorInvoice->id}");
+            IncomingInvoicePosted::dispatch($inv->fresh());
+
+            return $inv->fresh();
+        });
     }
 
     protected function markReturned(IncomingInvoice $inv, User $actor, string $reason, string $from): IncomingInvoice
