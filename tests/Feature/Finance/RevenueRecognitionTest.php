@@ -93,6 +93,26 @@ it('recognises only the due month: DR 2400 / CR income, and leaves future months
         ->and($je->lines->firstWhere('credit_amount', '>', 0)->glAccount->code)->toBe('4110');
 });
 
+it('dates each recognition inside its own month even when run on a 31st (no month overflow)', function () {
+    // Subscription paid 2026-01-10 → first entry is 2026-02 after Jan.
+    $collection = ExternalCollection::create([
+        'source' => 'member_fee_payment', 'source_id' => 5, 'external_ref' => 'TXN-FEB',
+        'fee_code' => 'member.subscription', 'amount' => 360, 'currency' => 'GHS',
+        'paid_at' => '2026-01-10 10:00:00', 'status' => ExternalCollection::STATUS_POSTED,
+    ]);
+    app(RevenueRecognitionService::class)->scheduleForCollection($collection, FeeGlMapping::forCode('member.subscription'));
+
+    // Run "on the 31st" — the buggy createFromFormat('Y-m') would inherit day 31
+    // and overflow 2026-02 into March.
+    \Illuminate\Support\Carbon::setTestNow('2026-01-31 02:00:00');
+    app(RevenueRecognitionService::class)->recognizeForMonth('2026-02');
+    \Illuminate\Support\Carbon::setTestNow();
+
+    $entry = RevenueRecognitionEntry::where('period_month', '2026-02')->where('status', 'recognized')->first();
+    $je = JournalEntry::find($entry->journal_entry_id);
+    expect($je->entry_date->format('Y-m'))->toBe('2026-02'); // February, not March
+});
+
 it('is idempotent and completes the schedule once fully released', function () {
     $svc = app(RevenueRecognitionService::class);
     $schedule = $svc->scheduleForCollection(subscriptionCollection(350.00), FeeGlMapping::forCode('member.subscription'));

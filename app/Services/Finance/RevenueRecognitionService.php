@@ -104,7 +104,10 @@ class RevenueRecognitionService
 
             try {
                 DB::transaction(function () use ($entry, $schedule, $actor, &$report) {
-                    $date = CarbonImmutable::createFromFormat('Y-m', $entry->period_month)->endOfMonth()->toDateString();
+                    // Anchor the day explicitly — createFromFormat('Y-m', ...) fills the
+                    // missing day from *today*, so a run on the 31st recognising a short
+                    // month (e.g. Feb) would overflow into the next month.
+                    $date = CarbonImmutable::createFromFormat('Y-m-d', $entry->period_month.'-01')->endOfMonth()->toDateString();
 
                     $doc = new PostingDocument(
                         sourceType: JournalSourceType::RevenueRecognition,
@@ -126,7 +129,13 @@ class RevenueRecognitionService
                         'journal_entry_id' => $je->id,
                     ]);
 
-                    $schedule->recognized_total = round((float) $schedule->recognized_total + (float) $entry->amount, 2);
+                    // Recompute from the recognised entries (which now include this one)
+                    // rather than incrementing a possibly-stale in-memory value — drift-free
+                    // if a manual run ever overlaps the scheduled one.
+                    $schedule->recognized_total = round((float) RevenueRecognitionEntry::query()
+                        ->where('schedule_id', $schedule->id)
+                        ->where('status', RevenueRecognitionEntry::STATUS_RECOGNIZED)
+                        ->sum('amount'), 2);
                     if ($schedule->recognized_total >= round((float) $schedule->total_amount, 2) - 0.005) {
                         $schedule->status = RevenueRecognitionSchedule::STATUS_COMPLETED;
                         $report['completed']++;
