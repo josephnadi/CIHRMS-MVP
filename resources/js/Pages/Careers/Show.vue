@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import StatusBadge from '@/Components/StatusBadge.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const props = defineProps({
     job: Object,
@@ -54,7 +55,7 @@ const formatDate = (d) => {
                         <span class="material-symbols-outlined text-[20px] text-white" style="font-variation-settings:'FILL' 1">account_balance</span>
                     </div>
                     <div>
-                        <p class="text-[15px] font-black leading-none text-on-surface">CIHRM <span class="text-secondary">Ghana</span></p>
+                        <p class="text-[15px] font-black leading-none text-on-surface"><GlossaryText text="CIHRM" /> <span class="text-secondary">Ghana</span></p>
                         <p class="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">Careers Portal</p>
                     </div>
                 </Link>

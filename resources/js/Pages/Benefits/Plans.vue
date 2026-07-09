@@ -4,6 +4,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -81,7 +82,7 @@ const typeLabel = {
                     <Link :href="route('benefits.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← My Benefits</Link>
                     <div class="flex items-center gap-2 mt-1 mb-1">
                         <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">card_membership</span>
-                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Benefits catalogue · HR administration</p>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80"><GlossaryText text="Benefits catalogue · HR administration" /></p>
                     </div>
                     <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Benefit Plans</h1>
                     <p class="mt-1 text-[13px] font-medium text-on-surface-variant">

@@ -7,6 +7,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -72,7 +73,7 @@ const statusColor = (val) => ({
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">FINANCE — ACCOUNTS PAYABLE</p>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">AP Payments</h1>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight"><GlossaryText text="AP Payments" /></h1>
                 <p class="mt-1 text-[13px] font-medium text-on-surface-variant">{{ rows.length }} payments · journal posts atomically with each record.</p>
             </div>
             <PrimaryButton v-if="canPay" @click="panelOpen = true">

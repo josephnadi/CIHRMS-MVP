@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import Sparkline from '@/Components/charts/Sparkline.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const props = defineProps({
     spark:     { type: Object,  required: true },    // deptSparkData.hr slice
@@ -156,7 +157,7 @@ const trainingNow = computed(() => props.spark.training[props.spark.training.len
 
                 <!-- Compliance -->
                 <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                    <h4 class="text-[13px] font-black text-primary mb-4">HR Compliance</h4>
+                    <h4 class="text-[13px] font-black text-primary mb-4"><GlossaryText text="HR Compliance" /></h4>
                     <div class="space-y-3">
                         <div v-for="item in [
                             { label: 'Labor Act 2003',   pct: 100, pass: true  },

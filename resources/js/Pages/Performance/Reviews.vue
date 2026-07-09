@@ -6,6 +6,7 @@ import SlidePanel from '@/Components/SlidePanel.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import SearchInput from '@/Components/SearchInput.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -392,7 +393,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'"
                         >
                             <span class="material-symbols-outlined text-[15px]" aria-hidden="true">{{ tab.icon }}</span>
-                            {{ tab.label }}
+                            <GlossaryText :text="tab.label" />
                         </button>
                     </div>
 

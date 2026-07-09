@@ -8,6 +8,7 @@ import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -80,7 +81,7 @@ const statusColor = (val) => ({
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">FINANCE — ACCOUNTS RECEIVABLE</p>
-                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">AR Receipts</h1>
+                <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight"><GlossaryText text="AR Receipts" /></h1>
                 <p class="mt-1 text-[13px] font-medium text-on-surface-variant">{{ rows.length }} receipt{{ rows.length === 1 ? '' : 's' }} · journal posts atomically with each record.</p>
             </div>
             <PrimaryButton v-if="canReceive" @click="panelOpen = true">

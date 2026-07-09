@@ -1,5 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const form = useForm({
     email: '',
@@ -19,7 +20,7 @@ function submit() {
     <div class="w-full max-w-md rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-8 shadow-card">
         <div class="text-center mb-6">
             <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white font-black text-lg">CI</span>
-            <h1 class="text-xl font-black text-primary mt-3">CIHRM Member Portal</h1>
+            <h1 class="text-xl font-black text-primary mt-3"><GlossaryText text="CIHRM Member Portal" /></h1>
             <p class="text-xs text-on-surface-variant mt-1">Sign in to view and pay your fees.</p>
         </div>
 

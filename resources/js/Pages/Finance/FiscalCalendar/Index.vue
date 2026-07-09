@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -54,7 +55,7 @@ const statusChip = (status) => ({
         </header>
 
         <section class="mb-6 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
-            <h2 class="text-sm font-black uppercase tracking-wide text-secondary/80 mb-3">Subledger ↔ GL reconciliation</h2>
+            <h2 class="text-sm font-black uppercase tracking-wide text-secondary/80 mb-3"><GlossaryText text="Subledger ↔ GL reconciliation" /></h2>
             <div class="grid gap-2 sm:grid-cols-3">
                 <div v-for="r in reconciliation" :key="r.gl_code"
                      class="rounded-xl border border-outline-variant/40 p-3"

@@ -1,6 +1,7 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const props = defineProps({
     result: { type: Object, default: null },
@@ -22,7 +23,7 @@ const hit = computed(() => props.result && !notFound.value ? props.result : null
     <main class="min-h-screen bg-slate-50">
         <div class="mx-auto max-w-xl px-6 py-10">
             <header class="mb-6">
-                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-secondary">DPA 2012 · Act 843</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-secondary"><GlossaryText text="DPA 2012 · Act 843" /></p>
                 <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-900">Track your request</h1>
                 <p class="mt-2 text-[13px] text-slate-600">
                     Enter your reference number and the email you used to submit. We'll show the current status.

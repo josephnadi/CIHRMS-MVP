@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const props = defineProps({
     value:   { type: [String, Number], required: true },
@@ -127,7 +128,7 @@ watch(() => props.value, (v) => animateTo(v));
 
             <!-- Label -->
             <p class="relative mt-1.5 text-[12px] font-semibold text-on-surface-variant">
-                {{ label }}
+                <GlossaryText :text="label" />
             </p>
 
             <!-- Thin accent bar at the bottom — slides in from left on hover -->

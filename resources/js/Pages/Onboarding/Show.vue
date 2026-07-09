@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -166,7 +167,7 @@ const submitCancel = () => cancelForm.post(route('onboarding.cancel', C.value.id
 
                 <!-- ── HR Action bar ───────────────────────────────────────────────── -->
                 <div v-if="C.can?.complete || C.can?.manage" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-5 shadow-card space-y-4">
-                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">HR Actions</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70"><GlossaryText text="HR Actions" /></p>
                     <div class="flex flex-wrap gap-3">
                         <button
                             v-if="C.can?.complete"

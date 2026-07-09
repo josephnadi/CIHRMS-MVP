@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 const props = defineProps({
     open:     { type: Boolean, required: true },
@@ -80,7 +81,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKey));
             <div class="flex items-start justify-between px-6 py-5 flex-shrink-0">
                 <div class="flex-1 min-w-0 pr-4">
                     <h2 class="text-[17px] font-bold text-on-surface leading-tight truncate">
-                        {{ title }}
+                        <GlossaryText :text="title" />
                     </h2>
                     <p
                         v-if="subtitle"
