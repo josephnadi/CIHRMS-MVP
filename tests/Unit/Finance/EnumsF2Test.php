@@ -37,10 +37,11 @@ it('JournalSourceType exposes manual + invoice + payment sources', function () {
     // Settlement→GL S-1 added: final_settlement.
     // Audit remediation added: statutory_remittance (clears statutory liabilities on filing).
     // Salary revision B2 added: back_pay (retroactive arrears catch-up accrual).
+    // Website Finance Integration added: website_collection (cash-basis website fee postings).
     expect($values)->toEqualCanonicalizing([
         'manual', 'vendor_invoice', 'ap_payment', 'ar_invoice', 'ar_receipt', 'bank_adjustment',
         'payroll', 'disbursement', 'loan_disbursement', 'loan_repayment', 'member_fee',
-        'final_settlement', 'statutory_remittance', 'back_pay',
+        'final_settlement', 'statutory_remittance', 'back_pay', 'website_collection',
     ]);
 });
 

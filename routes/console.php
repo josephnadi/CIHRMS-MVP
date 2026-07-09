@@ -81,3 +81,8 @@ Schedule::command('compliance:sync')->dailyAt('06:00')->withoutOverlapping();
 // Learning compliance — daily reminder to employees with overdue mandatory
 // training. Soft enforcement: surfaces an inbox nudge, never blocks access.
 Schedule::command('compliance:remind')->dailyAt('07:00')->withoutOverlapping();
+
+// Website finance integration — nightly pull of verified fee collections
+// from cihrm_website, posted to the GL. 01:30 lands after other nightly
+// jobs (audit chain 03:00 excepted) and well before office hours.
+Schedule::command('sync:website-collections')->dailyAt('01:30')->withoutOverlapping();

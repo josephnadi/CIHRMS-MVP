@@ -20,6 +20,7 @@ enum JournalSourceType: string
     case FinalSettlement  = 'final_settlement';
     case StatutoryRemittance = 'statutory_remittance';
     case BackPay             = 'back_pay';
+    case WebsiteCollection   = 'website_collection';
 
     public function label(): string
     {
@@ -38,6 +39,7 @@ enum JournalSourceType: string
             self::FinalSettlement   => 'Final Settlement',
             self::StatutoryRemittance => 'Statutory Remittance',
             self::BackPay             => 'Back Pay',
+            self::WebsiteCollection   => 'Website Collection',
         };
     }
 }
