@@ -51,6 +51,14 @@ class RolePermissionSeeder extends Seeder
         // Audit
         'audit.view'             => ['Audit',        'View audit log'],
 
+        // Auditors — invoice vetting + hub
+        'auditor.hub'                => ['Auditors', 'Access the Auditor Hub landing page'],
+        'incoming_invoices.view'     => ['Auditors', 'View incoming invoices submitted for vetting'],
+        'incoming_invoices.submit'   => ['Auditors', 'Create / submit / resubmit incoming invoices for vetting'],
+        'incoming_invoices.vet'      => ['Auditors', 'Vet (accept/return) submitted invoices'],
+        'incoming_invoices.approve'  => ['Auditors', 'CEO approval / return of vetted invoices'],
+        'incoming_invoices.post'     => ['Auditors', 'Finance: code + post an approved invoice to the GL'],
+
         // Integrations
         'integrations.manage'    => ['System',       'Manage integrations and webhooks'],
 
@@ -273,6 +281,8 @@ class RolePermissionSeeder extends Seeder
             // M1 — HR owns the member directory (CIHRM members + students).
             'members.view', 'members.manage',
             'fee_catalog.view',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.submit',
         ],
         'manager' => [
             'dashboard.view', 'employees.view',
@@ -289,6 +299,8 @@ class RolePermissionSeeder extends Seeder
             'reports.view',
             // AI assistant — line managers get LLM-backed tooling.
             'ai.use',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.submit',
         ],
         'dept_head' => [
             'dashboard.view', 'employees.view', 'employees.transfer',
@@ -304,6 +316,8 @@ class RolePermissionSeeder extends Seeder
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
             'reports.view',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.submit',
         ],
         'employee' => [
             'dashboard.view',
@@ -359,6 +373,8 @@ class RolePermissionSeeder extends Seeder
             'billing.run', 'billing.cancel',
             // N3 — Broadcasts
             'broadcasts.view', 'broadcasts.manage',
+            // Auditors — invoice vetting + hub
+            'incoming_invoices.view', 'incoming_invoices.submit', 'incoming_invoices.post',
         ],
         'it_support' => [
             'dashboard.view',
@@ -404,6 +420,8 @@ class RolePermissionSeeder extends Seeder
             'gateway.view',
             // F5 — Read-only reconciliation oversight
             'reconciliation.view',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.vet',
         ],
     ];
 

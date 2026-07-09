@@ -85,6 +85,8 @@ class User extends Authenticatable
             'portal.membership', 'portal.pcp', 'portal.cpd', 'portal.administration',
             // AI assistant — executives + HR line management get LLM-backed tooling.
             'ai.use',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.submit',
         ],
         'manager' => [
             'dashboard.view', 'employees.view',
@@ -101,6 +103,8 @@ class User extends Authenticatable
             'reports.view',
             // AI assistant — line managers get LLM-backed tooling.
             'ai.use',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.submit',
         ],
         'dept_head' => [
             'dashboard.view', 'employees.view', 'employees.transfer',
@@ -116,6 +120,8 @@ class User extends Authenticatable
             'benefits.view', 'benefits.enrol', 'benefits.claim',
             'governance.view', 'governance.acknowledge',
             'reports.view',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.submit',
         ],
         'employee' => [
             'dashboard.view',
@@ -160,6 +166,8 @@ class User extends Authenticatable
             'gateway.view', 'gateway.create', 'gateway.refund',
             // F5 — Bank Reconciliation
             'reconciliation.view', 'reconciliation.import', 'reconciliation.match', 'reconciliation.adjust',
+            // Auditors — invoice vetting + hub
+            'incoming_invoices.view', 'incoming_invoices.submit', 'incoming_invoices.post',
         ],
         'it_support' => [
             'dashboard.view',
@@ -201,6 +209,8 @@ class User extends Authenticatable
             'gateway.view',
             // F5 — Read-only reconciliation oversight
             'reconciliation.view',
+            // Auditors — invoice vetting + hub
+            'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.vet',
         ],
     ];
 
