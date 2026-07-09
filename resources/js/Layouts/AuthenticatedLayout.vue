@@ -134,6 +134,14 @@ const navSections = computed(() => {
                         ],
                     },
                     {
+                        label: 'Auditor', icon: 'verified_user', expandable: true,
+                        visible: can('auditor.hub') || can('incoming_invoices.view'),
+                        children: [
+                            { label: 'Hub',              route: 'auditor.hub',                    module: 'auditor',                     icon: 'verified_user', visible: can('auditor.hub') },
+                            { label: 'Incoming Invoices',route: 'auditor.incoming-invoices.index', module: 'auditor-incoming-invoices',  icon: 'request_page',  visible: can('incoming_invoices.view') },
+                        ],
+                    },
+                    {
                         label: 'Billing', icon: 'card_membership', expandable: true,
                         visible: can('members.view') || can('members.manage') || can('fee_catalog.view') || can('fee_catalog.manage') || can('billing.run'),
                         children: [
