@@ -1,4 +1,6 @@
 <script setup>
+import GlossaryText from '@/Components/GlossaryText.vue';
+
 defineProps({
     title:     { type: String, default: '' },
     subtitle:  { type: String, default: '' },
@@ -22,7 +24,7 @@ const emit = defineEmits(['refresh']);
                     <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">{{ icon }}</span>
                 </div>
                 <div>
-                    <h3 class="chart-card__title">{{ title }}</h3>
+                    <h3 class="chart-card__title"><GlossaryText :text="title" /></h3>
                     <p v-if="subtitle" class="chart-card__subtitle">{{ subtitle }}</p>
                 </div>
             </div>

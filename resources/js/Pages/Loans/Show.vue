@@ -4,6 +4,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import TabBar from '@/Components/TabBar.vue';
+import GlossaryText from '@/Components/GlossaryText.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -207,7 +208,7 @@ const rowClass = (r) => {
 
                 <!-- ── HR / Finance action bar ────────────────────────────────────── -->
                 <div v-if="L.can?.approve || L.can?.disburse" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 p-5 shadow-card space-y-4">
-                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70">HR / Finance Actions</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/70"><GlossaryText text="HR / Finance Actions" /></p>
 
                     <div class="flex flex-wrap gap-3">
                         <!-- Approve -->
