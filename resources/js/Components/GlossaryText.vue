@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { autoTermKeys } from '@/glossary';
+import { AUTO_TERM_PATTERN } from '@/glossary';
 import Term from '@/Components/Term.vue';
 
 // Renders a plain label string, auto-wrapping any whole-word glossary
@@ -12,18 +12,14 @@ const props = defineProps({
     text: { type: [String, Number], default: '' },
 });
 
-// Precompiled once: \b(PAYE|SSNIT|AR|…)\b, longest-first, case-sensitive.
-const keys = autoTermKeys();
-const pattern = keys.length ? new RegExp(`\\b(${keys.join('|')})\\b`) : null;
-
 const segments = computed(() => {
     const s = String(props.text ?? '');
-    if (! pattern || ! s) return [{ term: false, value: s }];
+    if (! AUTO_TERM_PATTERN || ! s) return [{ term: false, value: s }];
 
     const out = [];
     let rest = s;
-    // Split iteratively so we can tag each matched token as a term.
-    const splitter = new RegExp(pattern.source, 'g');
+    // Fresh 'g' regex per eval so lastIndex state never leaks between renders.
+    const splitter = new RegExp(AUTO_TERM_PATTERN.source, 'g');
     let last = 0, m;
     while ((m = splitter.exec(rest)) !== null) {
         if (m.index > last) out.push({ term: false, value: rest.slice(last, m.index) });

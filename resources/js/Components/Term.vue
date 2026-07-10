@@ -14,6 +14,7 @@ const text  = computed(() => props.label ?? props.code);
 
 const show   = ref(false);   // currently visible (hover/focus/tap)
 const pinned = ref(false);   // tapped open — stays until dismissed
+const above  = ref(false);   // flip above the trigger when there's no room below
 const uid    = `term-${Math.random().toString(36).slice(2, 9)}`;
 
 const trigger = ref(null);
@@ -28,7 +29,12 @@ function place() {
     const r = el.getBoundingClientRect();
     let left = r.left;
     if (left + CARD_W > window.innerWidth - 8) left = Math.max(8, window.innerWidth - CARD_W - 8);
-    coords.value = { top: Math.round(r.bottom + 6), left: Math.round(left) };
+    // Flip above if the trigger sits near the bottom of the viewport.
+    above.value = (window.innerHeight - r.bottom) < 120;
+    coords.value = {
+        top:  Math.round(above.value ? r.top - 6 : r.bottom + 6),
+        left: Math.round(left),
+    };
 }
 
 function open() {
@@ -40,25 +46,39 @@ function open() {
 function close() {
     if (pinned.value) return;
     show.value = false;
-    cleanup();
+    detachWindow();
 }
-function onScroll() { pinned.value = false; show.value = false; cleanup(); }
+function onScroll() { dismiss(); }
 
+// Tap/click and Enter pin the card open (touch + keyboard); a second toggle,
+// Esc, an outside click, or scrolling dismisses it.
 function toggle() {
-    if (pinned.value) { pinned.value = false; show.value = false; cleanup(); return; }
+    if (pinned.value) { dismiss(); return; }
     pinned.value = true;
     open();
     document.addEventListener('click', onDocClick, true);
+    document.addEventListener('keydown', onDocKey, true);
 }
 function onDocClick(e) {
-    if (trigger.value && ! trigger.value.contains(e.target)) { pinned.value = false; show.value = false; cleanup(); }
+    if (trigger.value && ! trigger.value.contains(e.target)) dismiss();
 }
-function onEsc() { pinned.value = false; show.value = false; cleanup(); }
+function onDocKey(e) {
+    if (e.key === 'Escape') dismiss();
+}
+function dismiss() {
+    pinned.value = false;
+    show.value = false;
+    cleanup();
+}
 
-function cleanup() {
+function detachWindow() {
     window.removeEventListener('scroll', onScroll, true);
     window.removeEventListener('resize', close, true);
+}
+function cleanup() {
+    detachWindow();
     document.removeEventListener('click', onDocClick, true);
+    document.removeEventListener('keydown', onDocKey, true);
 }
 onBeforeUnmount(cleanup);
 </script>
@@ -70,16 +90,16 @@ onBeforeUnmount(cleanup);
     <span v-else class="inline">
         <abbr
             ref="trigger"
-            :aria-label="`${text}: ${entry.term}`"
+            :aria-label="`${text}: ${entry.term} — ${entry.definition}`"
             tabindex="0"
             class="cursor-help [text-decoration-line:underline] decoration-dotted decoration-1 underline-offset-2 decoration-on-surface-variant/50 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm"
             @mouseenter="open"
             @mouseleave="close"
             @focus="open"
             @blur="close"
-            @click.stop="toggle"
+            @click="toggle"
             @keydown.enter.prevent="toggle"
-            @keydown.esc="onEsc"
+            @keydown.esc="dismiss"
         >{{ text }}</abbr>
 
         <Teleport to="body">
@@ -94,6 +114,7 @@ onBeforeUnmount(cleanup);
                     :id="uid"
                     role="tooltip"
                     :style="{ top: coords.top + 'px', left: coords.left + 'px' }"
+                    :class="above ? '-translate-y-full' : ''"
                     class="fixed z-[100] w-64 max-w-[16rem] rounded-xl border border-outline-variant/70 bg-surface-container-lowest p-3 text-left shadow-xl ring-1 ring-black/5"
                 >
                     <span class="block text-[12px] font-black text-primary leading-snug">{{ entry.term }}</span>
