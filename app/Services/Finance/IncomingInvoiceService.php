@@ -108,7 +108,7 @@ class IncomingInvoiceService
         if ($inv->status !== IncomingInvoiceStatus::Submitted) {
             throw new DomainException('Only submitted invoices can be vetted.');
         }
-        if ($auditor->id === $inv->created_by) {
+        if ($auditor->id === $inv->created_by || $auditor->id === $inv->submitted_by) {
             throw new DomainException('Dual-control violation: the submitter cannot vet their own invoice.');
         }
 
@@ -138,6 +138,9 @@ class IncomingInvoiceService
     {
         if ($inv->status !== IncomingInvoiceStatus::Vetted) {
             throw new DomainException('Only vetted invoices can be approved.');
+        }
+        if (in_array($ceo->id, array_filter([$inv->created_by, $inv->submitted_by, $inv->vetted_by]), true)) {
+            throw new DomainException('Dual-control violation: the approver must differ from the submitter and vetter.');
         }
 
         $inv->update([
@@ -186,6 +189,14 @@ class IncomingInvoiceService
         }
 
         return DB::transaction(function () use ($inv, $data, $poster) {
+            // Re-read under a row lock and re-check status inside the transaction:
+            // without this, two concurrent "Post" requests both pass the guard
+            // above and each promote a distinct VendorInvoice → a double GL accrual.
+            $inv = IncomingInvoice::whereKey($inv->getKey())->lockForUpdate()->firstOrFail();
+            if ($inv->status !== IncomingInvoiceStatus::Approved) {
+                throw new DomainException('Only CEO-approved invoices can be posted.');
+            }
+
             $vendorInvoice = $this->vendorInvoices->create([
                 'vendor_id'         => $data['vendor_id'],
                 'vendor_invoice_no' => $inv->vendor_invoice_no,

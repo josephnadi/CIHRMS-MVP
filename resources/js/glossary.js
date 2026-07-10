@@ -66,13 +66,23 @@ export function lookupTerm(code) {
 }
 
 /**
- * Keys eligible for automatic detection in free label text: alphanumeric only
- * (so `\b` word boundaries behave) and not flagged `auto: false`. Matching is
+ * Keys eligible for automatic detection in free label text: alphanumeric (plus
+ * an internal hyphen, e.g. "Tier-2") and not flagged `auto: false`. Matching is
  * case-sensitive against these exact keys, so plain words like "car" or "or"
  * are never wrapped. Longest-first so multi-char codes win.
  */
 export function autoTermKeys() {
     return Object.keys(GLOSSARY)
-        .filter(k => /^[A-Za-z0-9]+$/.test(k) && GLOSSARY[k].auto !== false)
+        .filter(k => /^[A-Za-z0-9][A-Za-z0-9-]*$/.test(k) && GLOSSARY[k].auto !== false)
         .sort((a, b) => b.length - a.length);
 }
+
+/**
+ * Precompiled once at module load: \b(PAYE|SSNIT|Tier-2|…)\b, case-sensitive.
+ * Shared by every GlossaryText instance so the pattern isn't rebuilt per render.
+ * null if the glossary somehow has no auto-eligible keys.
+ */
+const _autoKeys = autoTermKeys();
+export const AUTO_TERM_PATTERN = _autoKeys.length
+    ? new RegExp(`\\b(${_autoKeys.join('|')})\\b`)
+    : null;

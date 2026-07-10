@@ -37,6 +37,17 @@ class IncomingInvoiceController extends Controller
         if (! empty($filters['status'])) $q->where('status', $filters['status']);
         if (! empty($filters['search'])) $q->where('vendor_name', 'like', '%'.$filters['search'].'%');
 
+        // Department users see only their own / their department's invoices;
+        // central processors (auditor/CEO/finance/super_admin) see everything.
+        $user = $request->user();
+        if (! $this->seesAllInvoices($user) && ! $user->isSuperAdmin()) {
+            $deptIds = $user->managedDepartmentIds()->all();
+            $q->where(function ($w) use ($user, $deptIds) {
+                $w->where('created_by', $user->id);
+                if (! empty($deptIds)) $w->orWhereIn('department_id', $deptIds);
+            });
+        }
+
         $invoices = $q->orderByDesc('created_at')->paginate(50)->withQueryString();
 
         return Inertia::render('Auditor/IncomingInvoices/Index', [
@@ -57,6 +68,7 @@ class IncomingInvoiceController extends Controller
     public function show(IncomingInvoice $incomingInvoice, Request $request): Response
     {
         abort_unless($request->user()?->hasPermission('incoming_invoices.view'), 403);
+        $this->assertCanView($request->user(), $incomingInvoice);
         $incomingInvoice->load(['department', 'attachments', 'events.actor']);
 
         return Inertia::render('Auditor/IncomingInvoices/Show', [
@@ -81,6 +93,7 @@ class IncomingInvoiceController extends Controller
 
     public function update(UpdateIncomingInvoiceRequest $request, IncomingInvoice $incomingInvoice): RedirectResponse
     {
+        $this->assertCanEdit($request->user(), $incomingInvoice);
         try {
             $this->service->update($incomingInvoice, $this->withAttachments($request), $request->user());
         } catch (DomainException $e) {
@@ -92,6 +105,7 @@ class IncomingInvoiceController extends Controller
     public function submit(IncomingInvoice $incomingInvoice, Request $request): RedirectResponse
     {
         abort_unless($request->user()?->hasPermission('incoming_invoices.submit'), 403);
+        $this->assertCanEdit($request->user(), $incomingInvoice);
         try {
             $this->service->submit($incomingInvoice, $request->user());
         } catch (DomainException $e) {
@@ -156,9 +170,37 @@ class IncomingInvoiceController extends Controller
     public function download(IncomingInvoice $incomingInvoice, int $attachment, Request $request): StreamedResponse
     {
         abort_unless($request->user()?->hasPermission('incoming_invoices.view'), 403);
+        $this->assertCanView($request->user(), $incomingInvoice);
         $file = $incomingInvoice->attachments()->findOrFail($attachment);
         abort_unless(Storage::disk('local')->exists($file->path), 404);
         return Storage::disk('local')->download($file->path, $file->original_name);
+    }
+
+    /** Central processors (auditor/CEO/finance) see & act on every invoice; department users are scoped. */
+    private function seesAllInvoices(\App\Models\User $u): bool
+    {
+        return $u->hasPermission('incoming_invoices.vet')
+            || $u->hasPermission('incoming_invoices.approve')
+            || $u->hasPermission('incoming_invoices.post');
+    }
+
+    /** May read this invoice: a central processor, super admin, its creator, or a manager of its department. */
+    private function assertCanView(\App\Models\User $u, IncomingInvoice $inv): void
+    {
+        abort_unless(
+            $this->seesAllInvoices($u) || $u->isSuperAdmin()
+                || $inv->created_by === $u->id || $u->managesDepartment($inv->department_id),
+            403,
+        );
+    }
+
+    /** May edit/submit this invoice: super admin, its creator, or a manager of its department. */
+    private function assertCanEdit(\App\Models\User $u, IncomingInvoice $inv): void
+    {
+        abort_unless(
+            $u->isSuperAdmin() || $inv->created_by === $u->id || $u->managesDepartment($inv->department_id),
+            403,
+        );
     }
 
     /** Store uploaded files to the private disk and fold their metadata into the payload. */
