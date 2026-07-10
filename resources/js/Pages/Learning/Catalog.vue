@@ -11,6 +11,7 @@ import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
+const money = (v) => Number(v || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const props = defineProps({
     courses:      Object, // paginated: { data: [], links: [], meta: {} }
     filters:      Object, // { search, category, format }
@@ -641,7 +642,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                         </span>
                         <span v-if="selectedCourse.price > 0" class="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-bold text-amber-700">
                             <span class="material-symbols-outlined text-[14px]">payments</span>
-                            {{ selectedCourse.currency }} {{ selectedCourse.price }}
+                            {{ selectedCourse.currency }} {{ money(selectedCourse.price) }}
                         </span>
                         <span v-else class="rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700">Free</span>
                     </div>

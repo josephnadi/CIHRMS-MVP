@@ -96,6 +96,7 @@ const rowClass = (r) => {
                     <div class="flex items-center gap-4">
                         <Link
                             :href="route('loans.index')"
+                            aria-label="Back to loans"
                             class="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
                             <span class="material-symbols-outlined text-[20px]">arrow_back</span>

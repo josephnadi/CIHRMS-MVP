@@ -246,7 +246,7 @@ const fmtWhen = (d) => {
                                 </div>
                                 <h2 class="text-[13px] font-black uppercase tracking-[0.12em] text-primary">Compose a notice</h2>
                             </div>
-                            <button @click="showForm = false" class="rounded-lg p-1 text-on-surface-variant hover:bg-surface-container transition-colors">
+                            <button @click="showForm = false" aria-label="Close" class="rounded-lg p-1 text-on-surface-variant hover:bg-surface-container transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">close</span>
                             </button>
                         </header>

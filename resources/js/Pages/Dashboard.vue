@@ -531,6 +531,7 @@ const moduleLabel = computed(() => {
                                     </Link>
                                     <button @click="router.visit(route('profile.edit'))"
                                             type="button"
+                                            aria-label="More options"
                                             class="rounded-xl border border-outline-variant px-3 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all">
                                         <span class="material-symbols-outlined">more_vert</span>
                                     </button>

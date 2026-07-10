@@ -453,7 +453,7 @@ const hasEmployee = computed(() => !!emp.value);
                             <span class="text-[12.5px] font-bold text-blue-800 dark:text-blue-200">{{ s.name }}</span>
                             <span v-if="s.level" class="text-[10px] font-bold uppercase tracking-wider text-blue-600/70 dark:text-blue-300/70">{{ s.level }}</span>
                             <span v-if="s.expires_at" class="text-[10px] text-blue-500/70">exp {{ fmt(s.expires_at) }}</span>
-                            <button @click="removeSkill(s)" class="opacity-40 hover:opacity-100 hover:text-red-500 transition-all">
+                            <button @click="removeSkill(s)" :aria-label="`Remove ${s.name}`" class="opacity-40 hover:opacity-100 hover:text-red-500 transition-all">
                                 <span class="material-symbols-outlined text-[13px]">close</span>
                             </button>
                         </span>

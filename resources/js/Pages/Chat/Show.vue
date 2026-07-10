@@ -137,6 +137,7 @@ const otherInitials = computed(() => props.conversation?.other?.initials ?? '?')
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <Link :href="route('chat.index')"
+                          aria-label="Back to chat list"
                           class="h-9 w-9 rounded-xl border border-outline-variant bg-surface-container-lowest flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-secondary transition-all">
                         <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                     </Link>
