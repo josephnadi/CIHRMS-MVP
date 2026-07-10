@@ -8,6 +8,7 @@ import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -48,10 +49,18 @@ const form = useForm({
     due_date: '', currency: 'GHS', notes: '',
     lines: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null }],
 });
+// tax_rate is entered as a PERCENTAGE in the form (e.g. 12 = 12%); it is
+// converted to the fraction the backend stores (0.12) on submit via transform().
+form.transform((data) => ({
+    ...data,
+    lines: (data.lines ?? []).map((l) => ({ ...l, tax_rate: (Number(l.tax_rate) || 0) / 100 })),
+}));
+
+const showCreatedPrompt = ref(false);
 
 const totals = computed(() => {
     const sub = form.lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_price) || 0), 0);
-    const tax = form.lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_price) || 0) * (Number(l.tax_rate) || 0), 0);
+    const tax = form.lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_price) || 0) * ((Number(l.tax_rate) || 0) / 100), 0);
     return { subtotal: sub, tax_amount: tax, total: sub + tax };
 });
 
@@ -84,7 +93,8 @@ const openEdit = (inv) => {
         notes: inv.notes ?? '',
         lines: (inv.lines ?? []).map(l => ({
             description: l.description, quantity: Number(l.quantity), unit_price: Number(l.unit_price),
-            tax_rate: Number(l.tax_rate), gl_account_id: l.gl_account_id ?? l.gl_account?.id ?? null,
+            tax_rate: Number(l.tax_rate) * 100, // stored as fraction → show as %
+            gl_account_id: l.gl_account_id ?? l.gl_account?.id ?? null,
         })),
     });
     if (!form.lines.length) form.lines = [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null }];
@@ -109,7 +119,10 @@ const submit = () => {
             onSuccess: () => { panelOpen.value = false; editingId.value = null; },
         });
     } else {
-        form.post(route('finance.ap-invoices.store'), { onSuccess: () => { panelOpen.value = false; } });
+        form.post(route('finance.ap-invoices.store'), {
+            preserveScroll: true,
+            onSuccess: () => { panelOpen.value = false; showCreatedPrompt.value = true; },
+        });
     }
 };
 
@@ -250,21 +263,27 @@ const statusColor = (val) => ({
                         <div v-for="(line, i) in form.lines" :key="i" class="rounded-xl border border-outline-variant/50 p-3 space-y-2">
                             <input aria-label="Description" v-model="line.description" type="text" placeholder="Description"
                                    class="block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[12px]" />
+                            <InputError :message="form.errors[`lines.${i}.description`]" />
                             <div class="grid grid-cols-4 gap-2">
                                 <input aria-label="Quantity" v-model.number="line.quantity"   type="number" step="0.001" placeholder="Qty"
                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
                                 <input aria-label="Unit price" v-model.number="line.unit_price" type="number" step="0.0001" placeholder="Unit price"
                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
-                                <input aria-label="Tax rate" v-model.number="line.tax_rate"   type="number" step="0.001" placeholder="Tax rate (0.125 = 12.5%)"
+                                <input v-model.number="line.tax_rate"   type="number" step="0.01" min="0" max="100" placeholder="Tax %" aria-label="Tax percent"
                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
                                 <button type="button" @click="removeLine(i)" :disabled="form.lines.length === 1"
                                         class="text-[11px] font-bold text-rose-600 disabled:text-on-surface-variant/30">Remove</button>
                             </div>
+                            <p class="text-[10px] text-on-surface-variant/70">Qty · Unit price · Tax % (0–100)</p>
+                            <InputError :message="form.errors[`lines.${i}.quantity`]" />
+                            <InputError :message="form.errors[`lines.${i}.unit_price`]" />
+                            <InputError :message="form.errors[`lines.${i}.tax_rate`]" />
                             <select aria-label="Gl account id" v-model="line.gl_account_id"
                                     class="block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[12px]">
                                 <option :value="null">— Expense GL —</option>
                                 <option v-for="a in expenseAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
                             </select>
+                            <InputError :message="form.errors[`lines.${i}.gl_account_id`]" />
                         </div>
                     </div>
                     <InputError :message="form.errors.lines" />
@@ -278,9 +297,19 @@ const statusColor = (val) => ({
 
                 <div class="pt-2 flex justify-end gap-2">
                     <button type="button" @click="panelOpen = false" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>
-                    <PrimaryButton type="submit" :disabled="form.processing">Create</PrimaryButton>
+                    <PrimaryButton type="submit" :disabled="form.processing">{{ editingId ? 'Save changes' : 'Create' }}</PrimaryButton>
                 </div>
             </form>
         </SlidePanel>
+
+        <!-- After a successful create, offer to add another. -->
+        <ConfirmDialog
+            :open="showCreatedPrompt"
+            title="Invoice created"
+            message="The vendor invoice was created. Would you like to create another?"
+            confirm-text="Create another"
+            @confirm="() => { showCreatedPrompt = false; openNew(); }"
+            @cancel="() => { showCreatedPrompt = false; }"
+        />
     </div>
 </template>
