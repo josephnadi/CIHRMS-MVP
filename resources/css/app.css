@@ -347,12 +347,16 @@ html[data-theme="high-contrast"].dark {
         display: inline-block;
     }
 
-    /* Icons that carry their own colour keep it, ignoring the module accent:
-       interactive elements (their icon inherits the button/link colour),
-       coloured icon tiles + stat/chart cards, and status chips. Explicit
-       Tailwind text-<colour> utilities already win via the utilities layer,
-       so a directly-coloured icon (e.g. text-rose-500) is untouched. */
-    :is(button, a, summary, label, [role="button"]) .material-symbols-outlined,
+    /* Icons keep their own colour only where it is deliberately set, so the
+       module accent applies to plain link/card/nav icons (which is the point).
+       A directly-set text-<colour> utility on the icon already wins via the
+       utilities layer (e.g. the amber warning icon). These exclusions cover the
+       cases where the colour lives on an ancestor and must be inherited:
+         · filled / dark surfaces (text-white, text-on-primary) → white icon
+         · coloured icon tiles and stat / chart cards → their tile colour
+         · status chips / badges → their semantic colour */
+    [class*="text-white"] .material-symbols-outlined,
+    [class*="text-on-primary"] .material-symbols-outlined,
     .icon-tile .material-symbols-outlined,
     .chart-card__icon .material-symbols-outlined,
     .stat-card__icon .material-symbols-outlined,
