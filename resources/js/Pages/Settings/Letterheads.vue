@@ -44,17 +44,30 @@ const SCOPES = ['personal', 'department', 'organization'];
 
         <form @submit.prevent="submit" enctype="multipart/form-data"
               class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card mb-6 grid md:grid-cols-5 gap-3">
-            <input aria-label="Name" v-model="form.name" required maxlength="120" placeholder="Template name"
-                   class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
-            <select v-model="form.owner_scope" aria-label="Scope" class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
-                <option v-for="s in SCOPES" :key="s" :value="s"
-                        :disabled="(s === 'organization' && !canManageOrg) || (s === 'department' && !departmentId)">{{ s }}</option>
-            </select>
-            <input v-model.number="form.header_height_mm" type="number" min="20" max="80"
-                   aria-label="Header height mm"
-                   class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
-            <input type="file" required accept="image/png,image/jpeg"
-                   @change="e => form.file = e.target.files[0]" class="text-[12px]" />
+            <div>
+                <input aria-label="Name" v-model="form.name" required maxlength="120" placeholder="Template name"
+                       class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                <p v-if="form.errors.name" class="mt-1 text-[11px] text-rose-600">{{ form.errors.name }}</p>
+            </div>
+            <div>
+                <select v-model="form.owner_scope" aria-label="Scope" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                    <option v-for="s in SCOPES" :key="s" :value="s"
+                            :disabled="(s === 'organization' && !canManageOrg) || (s === 'department' && !departmentId)">{{ s }}</option>
+                </select>
+                <p v-if="form.errors.owner_scope" class="mt-1 text-[11px] text-rose-600">{{ form.errors.owner_scope }}</p>
+                <p v-if="form.errors.owner_id" class="mt-1 text-[11px] text-rose-600">{{ form.errors.owner_id }}</p>
+            </div>
+            <div>
+                <input v-model.number="form.header_height_mm" type="number" min="20" max="80"
+                       aria-label="Header height mm"
+                       class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                <p v-if="form.errors.header_height_mm" class="mt-1 text-[11px] text-rose-600">{{ form.errors.header_height_mm }}</p>
+            </div>
+            <div>
+                <input type="file" required accept="image/png,image/jpeg" aria-label="Letterhead file (PNG or JPEG)"
+                       @change="e => form.file = e.target.files[0]" class="text-[12px]" />
+                <p v-if="form.errors.file" class="mt-1 text-[11px] text-rose-600">{{ form.errors.file }}</p>
+            </div>
             <button type="submit" :disabled="form.processing"
                     class="rounded-lg px-4 py-2 text-[12px] font-black text-white"
                     style="background:linear-gradient(135deg,#0d1452,#1a237e)">
@@ -80,6 +93,9 @@ const SCOPES = ['personal', 'department', 'organization'];
                     <button v-if="!t.is_default" @click="remove(t)" class="text-[11px] font-black text-rose-600">Remove</button>
                 </div>
             </div>
+            <p v-if="!templates.data.some(x => x.owner_scope === scope)" class="col-span-full text-center text-on-surface-variant text-[12px] py-6">
+                No {{ scope }} letterheads yet.
+            </p>
         </div>
     </div>
 </template>

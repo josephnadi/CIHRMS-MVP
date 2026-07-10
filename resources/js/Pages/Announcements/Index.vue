@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -275,6 +276,7 @@ const fmtWhen = (d) => {
                                 <textarea aria-label="Details (optional)" v-model="form.body" rows="3" maxlength="2000"
                                           placeholder="Add context, dates, location, or a brief explanation."
                                           class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13.5px] focus:border-secondary focus:ring-secondary/20 resize-none"></textarea>
+                                <InputError :message="form.errors.body" />
                             </div>
 
                             <!-- Type selector — pill row -->
@@ -292,6 +294,7 @@ const fmtWhen = (d) => {
                                         {{ meta.label }}
                                     </button>
                                 </div>
+                                <InputError :message="form.errors.type" />
                             </div>
 
                             <!-- Severity + Audience + Link -->
@@ -302,6 +305,7 @@ const fmtWhen = (d) => {
                                             class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                                         <option v-for="(meta, k) in SEVERITY_META" :key="k" :value="k">{{ meta.label }}</option>
                                     </select>
+                                    <InputError :message="form.errors.severity" />
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Audience</label>
@@ -309,11 +313,13 @@ const fmtWhen = (d) => {
                                             class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20">
                                         <option v-for="r in audienceRoles" :key="r.value" :value="r.value">{{ r.label }}</option>
                                     </select>
+                                    <InputError :message="form.errors.audience_role" />
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Link <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
                                     <input aria-label="Link (optional)" v-model="form.link_url" type="url" placeholder="https://…"
                                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                                    <InputError :message="form.errors.link_url" />
                                 </div>
                             </div>
 
@@ -323,11 +329,13 @@ const fmtWhen = (d) => {
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Starts <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
                                     <input aria-label="Starts (optional)" v-model="form.starts_at" type="datetime-local"
                                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                                    <InputError :message="form.errors.starts_at" />
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Ends <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span></label>
                                     <input aria-label="Ends (optional)" v-model="form.ends_at" type="datetime-local"
                                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                                    <InputError :message="form.errors.ends_at" />
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <label class="cursor-pointer flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12px] font-black transition-all flex-1"

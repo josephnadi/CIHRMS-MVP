@@ -10,6 +10,10 @@ import StampPicker from '@/Components/Documents/StampPicker.vue';
 import RoutingSlipPanel from '@/Components/Documents/RoutingSlipPanel.vue';
 import TimelineRail from '@/Components/Documents/TimelineRail.vue';
 import RecipientPicker from '@/Components/Documents/RecipientPicker.vue';
+import InputError from '@/Components/InputError.vue';
+import { useToast } from '@/composables/useToast';
+
+const { error: toastError } = useToast();
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -63,14 +67,16 @@ const showSigPad   = ref(false);
 const showStamp    = ref(false);
 
 const showRouteModal = ref(false);
-const routeForm = useForm({ recipients: [{ user_id: null, action_required: 'sign' }] });
+let recipientKeySeq = 0;
+const routeForm = useForm({ recipients: [{ _key: recipientKeySeq++, user_id: null, action_required: 'sign' }] });
 
-function addRecipient() { routeForm.recipients.push({ user_id: null, action_required: 'sign' }); }
+function addRecipient() { routeForm.recipients.push({ _key: recipientKeySeq++, user_id: null, action_required: 'sign' }); }
 function removeRecipient(i) { routeForm.recipients.splice(i, 1); }
 
 function submitRoute() {
     routeForm.post(route('documents.route', D.value.uuid), {
         onSuccess: () => { showRouteModal.value = false; routeForm.reset(); },
+        onError: () => { toastError('Could not route this document. Check the recipients below.'); },
     });
 }
 
@@ -87,7 +93,11 @@ function placeAnnotation({ x_pct, y_pct, page: pageNo }) {
         x_pct, y_pct,
         ...dimensions,
         data:  fromPending.data,
-    }, { preserveScroll: true, onSuccess: () => { pendingAnnotation.value = null; } });
+    }, {
+        preserveScroll: true,
+        onSuccess: () => { pendingAnnotation.value = null; },
+        onError: () => { toastError('Could not place the annotation. Please try again.'); },
+    });
 }
 
 function onSigned({ png_base64 }) {
@@ -118,6 +128,7 @@ function act(routeId, decision) {
     actForm.post(route('documents.routes.act', { document: D.value.uuid, route: routeId }), {
         preserveScroll: true,
         onSuccess: () => { actForm.reset(); },
+        onError: () => { toastError('Could not record your decision. Please try again.'); },
     });
 }
 
@@ -313,6 +324,8 @@ function revokeShare(shareId) {
                         <p class="text-[12px] font-bold text-amber-900">{{ myActiveRoute.action_label }}</p>
                         <textarea aria-label="Comment" v-model="actForm.comment" rows="2" placeholder="Comment (optional)"
                                   class="mt-2 w-full rounded-lg border border-outline-variant px-2 py-1.5 text-[12px]"></textarea>
+                        <InputError :message="actForm.errors.comment" />
+                        <InputError :message="actForm.errors.decision" />
                         <div class="mt-2 flex items-center gap-2">
                             <button @click="act(myActiveRoute.id, 'complete')" class="flex-1 rounded-lg px-3 py-2 text-[12px] font-black text-white"
                                     style="background:linear-gradient(135deg,#059669,#10b981)">Sign &amp; forward</button>
@@ -461,19 +474,25 @@ function revokeShare(shareId) {
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary mb-1">Send to recipients in order</p>
                     <h2 class="text-lg font-black text-primary mb-3">Route document</h2>
                     <div class="space-y-2">
-                        <div v-for="(r, i) in routeForm.recipients" :key="i" class="flex items-start gap-2">
-                            <span class="w-7 text-center font-mono text-[12px] font-black pt-2">{{ i + 1 }}</span>
-                            <RecipientPicker v-model="r.user_id" />
-                            <select v-model="r.action_required" :aria-label="`Action required for recipient ${i + 1}`"
-                                    class="rounded-lg border border-outline-variant px-2 py-2 text-[12px]">
-                                <option value="sign">Sign</option>
-                                <option value="review">Review</option>
-                                <option value="approve">Approve</option>
-                                <option value="acknowledge">Acknowledge</option>
-                            </select>
-                            <button v-if="routeForm.recipients.length > 1" @click="removeRecipient(i)" class="text-rose-600 text-[14px] pt-2">✕</button>
+                        <div v-for="(r, i) in routeForm.recipients" :key="r._key" class="flex items-start gap-2">
+                            <div class="flex-1">
+                                <div class="flex items-start gap-2">
+                                    <span class="w-7 text-center font-mono text-[12px] font-black pt-2">{{ i + 1 }}</span>
+                                    <RecipientPicker v-model="r.user_id" />
+                                    <select v-model="r.action_required" :aria-label="`Action required for recipient ${i + 1}`"
+                                            class="rounded-lg border border-outline-variant px-2 py-2 text-[12px]">
+                                        <option value="sign">Sign</option>
+                                        <option value="review">Review</option>
+                                        <option value="approve">Approve</option>
+                                        <option value="acknowledge">Acknowledge</option>
+                                    </select>
+                                    <button v-if="routeForm.recipients.length > 1" @click="removeRecipient(i)" :aria-label="`Remove recipient ${i + 1}`" class="text-rose-600 text-[14px] pt-2">✕</button>
+                                </div>
+                                <InputError :message="routeForm.errors[`recipients.${i}.user_id`]" />
+                            </div>
                         </div>
                     </div>
+                    <InputError :message="routeForm.errors.recipients" />
                     <button @click="addRecipient" class="mt-2 text-[12px] font-black text-secondary">+ Add recipient</button>
                     <div class="mt-4 flex justify-end gap-2">
                         <button @click="showRouteModal = false" class="rounded-lg border border-outline-variant px-4 py-2 text-[12px] font-bold">Cancel</button>

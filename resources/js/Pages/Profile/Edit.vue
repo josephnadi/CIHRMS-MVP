@@ -6,6 +6,7 @@ import StatusBadge        from '@/Components/StatusBadge.vue';
 import EmptyState         from '@/Components/EmptyState.vue';
 import TabBar             from '@/Components/TabBar.vue';
 import ProgressRing       from '@/Components/ProgressRing.vue';
+import InputError         from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -130,6 +131,15 @@ function savePassword() {
     passwordForm.patch(route('profile.password'), {
         preserveScroll: true,
         onSuccess: () => passwordForm.reset(),
+    });
+}
+
+// ── Delete account ───────────────────────────────────────────────────────
+const deleteAccountForm = useForm({ password: '' });
+function deleteAccount() {
+    deleteAccountForm.delete(route('profile.destroy'), {
+        preserveScroll: true,
+        onFinish: () => deleteAccountForm.reset(),
     });
 }
 
@@ -770,13 +780,14 @@ const hasEmployee = computed(() => !!emp.value);
                     <p class="text-[12.5px] text-on-surface-variant/70 leading-relaxed mb-4">
                         Deleting your account is permanent. All your records — leave history, documents, ticket trail — will be removed. Contact HR before proceeding.
                     </p>
-                    <form @submit.prevent="router.delete(route('profile.destroy'), { data: { password: $event.target.password.value } })" class="flex items-end gap-3">
+                    <form @submit.prevent="deleteAccount" class="flex items-end gap-3">
                         <div class="flex-1 max-w-xs">
                             <label :class="labelCls">Confirm with current password</label>
-                            <input name="password" aria-label="Current password (account deletion confirmation)" type="password" autocomplete="current-password" :class="inputCls" required />
+                            <input v-model="deleteAccountForm.password" aria-label="Current password (account deletion confirmation)" type="password" autocomplete="current-password" :class="inputCls" required />
+                            <InputError :message="deleteAccountForm.errors.password" />
                         </div>
-                        <button type="submit"
-                                class="rounded-xl border border-red-300 dark:border-red-700/50 bg-red-100 dark:bg-red-900/40 px-4 py-2 text-[12px] font-bold text-red-700 dark:text-red-400 hover:bg-red-200 transition-colors">
+                        <button type="submit" :disabled="deleteAccountForm.processing"
+                                class="rounded-xl border border-red-300 dark:border-red-700/50 bg-red-100 dark:bg-red-900/40 px-4 py-2 text-[12px] font-bold text-red-700 dark:text-red-400 hover:bg-red-200 transition-colors disabled:opacity-60">
                             Delete Account
                         </button>
                     </form>

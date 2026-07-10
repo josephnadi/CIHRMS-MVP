@@ -4,6 +4,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import Scanner from '@/Components/Documents/Scanner.vue';
+import InputError from '@/Components/InputError.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -185,6 +186,7 @@ const tone = (status) => ({
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Description</label>
                         <textarea v-model="form.description" rows="3" aria-label="Document description"
                                   class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]"></textarea>
+                        <InputError :message="form.errors.description" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Confidentiality</label>
@@ -194,6 +196,7 @@ const tone = (status) => ({
                             <option value="confidential">Confidential</option>
                             <option value="restricted">Restricted</option>
                         </select>
+                        <InputError :message="form.errors.confidentiality" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">File (PDF, DOCX, PNG, JPG · ≤ 25 MB)</label>
@@ -215,7 +218,7 @@ const tone = (status) => ({
                         <p v-if="form.errors.file" class="text-rose-600 text-xs mt-1">{{ form.errors.file }}</p>
                     </div>
                     <div class="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
-                        <button type="button" @click="showUpload = false" class="rounded-lg border border-outline-variant px-4 py-2 text-[12px] font-bold">Cancel</button>
+                        <button type="button" @click="() => { showUpload = false; scanFileName = ''; form.reset(); }" class="rounded-lg border border-outline-variant px-4 py-2 text-[12px] font-bold">Cancel</button>
                         <button type="submit" :disabled="form.processing"
                                 class="rounded-lg px-4 py-2 text-[12px] font-black text-white shadow-glow-sm"
                                 style="background:linear-gradient(135deg,#0d1452,#1a237e)">

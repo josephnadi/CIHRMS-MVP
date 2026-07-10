@@ -8,6 +8,7 @@ import Pagination from '@/Components/Pagination.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import BiometricCapture from '@/Components/Identity/BiometricCapture.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -106,6 +107,7 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                             <label for="identity-employee-id" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Employee ID</label>
                             <input id="identity-employee-id" v-model="form.employee_id" type="number" placeholder="Employee ID"
                                    class="w-full rounded-lg border-outline-variant text-sm" required>
+                            <InputError :message="form.errors.employee_id" />
                         </div>
                         <div>
                             <label for="identity-ghana-card" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Ghana Card number</label>
@@ -137,7 +139,7 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                               class="inline-flex items-center gap-1.5 rounded-lg bg-secondary/[0.06] border border-secondary/30 px-2.5 py-1 text-[11px] font-bold text-secondary">
                             <span class="material-symbols-outlined text-[12px]">verified</span>
                             {{ capturedName }}
-                            <button type="button" @click="clearCapture" class="ml-1 hover:text-rose-600">×</button>
+                            <button type="button" @click="clearCapture" aria-label="Clear captured evidence" class="ml-1 hover:text-rose-600">×</button>
                         </span>
                     </div>
 

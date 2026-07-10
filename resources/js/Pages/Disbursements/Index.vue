@@ -122,45 +122,47 @@ const channelClass = (c) => ({
                                     description="Approving a payroll run will materialise disbursement instructions here." />
                     </div>
 
-                    <table v-else class="w-full text-sm">
-                        <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase">
-                            <tr>
-                                <th class="px-5 py-3 text-left">Run</th>
-                                <th class="px-5 py-3 text-left">Employee</th>
-                                <th class="px-5 py-3 text-left">Channel</th>
-                                <th class="px-5 py-3 text-right">Gross</th>
-                                <th class="px-5 py-3 text-right">E-Levy</th>
-                                <th class="px-5 py-3 text-right">Net</th>
-                                <th class="px-5 py-3 text-left">Status</th>
-                                <th class="px-5 py-3 text-left">Provider Ref</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-outline-variant/30">
-                            <tr v-for="d in disbursements.data" :key="d.id"
-                                :class="d.status === 'failed' ? 'bg-rose-50/40' : 'hover:bg-surface-container-low/60'">
-                                <td class="px-5 py-3 font-mono text-xs">{{ d.run?.reference }}</td>
-                                <td class="px-5 py-3">
-                                    <div class="font-medium">{{ d.employee?.name ?? '—' }}</div>
-                                    <div class="text-xs text-on-surface-variant/60 font-mono">{{ d.beneficiary_account }}</div>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <span class="px-2 py-0.5 text-xs rounded-full font-semibold uppercase"
-                                          :class="channelClass(d.channel)">{{ d.channel_label }}</span>
-                                </td>
-                                <td class="px-5 py-3 text-right">{{ cedi(d.gross_amount) }}</td>
-                                <td class="px-5 py-3 text-right text-xs">
-                                    <span v-if="d.e_levy > 0">{{ cedi(d.e_levy) }}</span>
-                                    <span v-else class="text-on-surface-variant/40">—</span>
-                                </td>
-                                <td class="px-5 py-3 text-right font-semibold">{{ cedi(d.net_to_recipient) }}</td>
-                                <td class="px-5 py-3">
-                                    <StatusBadge :status="d.status" :label="d.status_label" />
-                                    <p v-if="d.failure_reason" class="text-xs text-rose-700 mt-1">{{ d.failure_reason }}</p>
-                                </td>
-                                <td class="px-5 py-3 font-mono text-xs">{{ d.provider_reference ?? '—' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div v-else class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase">
+                                <tr>
+                                    <th class="px-5 py-3 text-left">Run</th>
+                                    <th class="px-5 py-3 text-left">Employee</th>
+                                    <th class="px-5 py-3 text-left">Channel</th>
+                                    <th class="px-5 py-3 text-right">Gross</th>
+                                    <th class="px-5 py-3 text-right">E-Levy</th>
+                                    <th class="px-5 py-3 text-right">Net</th>
+                                    <th class="px-5 py-3 text-left">Status</th>
+                                    <th class="px-5 py-3 text-left">Provider Ref</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant/30">
+                                <tr v-for="d in disbursements.data" :key="d.id"
+                                    :class="d.status === 'failed' ? 'bg-rose-50/40' : 'hover:bg-surface-container-low/60'">
+                                    <td class="px-5 py-3 font-mono text-xs">{{ d.run?.reference }}</td>
+                                    <td class="px-5 py-3">
+                                        <div class="font-medium">{{ d.employee?.name ?? '—' }}</div>
+                                        <div class="text-xs text-on-surface-variant/60 font-mono">{{ d.beneficiary_account }}</div>
+                                    </td>
+                                    <td class="px-5 py-3">
+                                        <span class="px-2 py-0.5 text-xs rounded-full font-semibold uppercase"
+                                              :class="channelClass(d.channel)">{{ d.channel_label }}</span>
+                                    </td>
+                                    <td class="px-5 py-3 text-right">{{ cedi(d.gross_amount) }}</td>
+                                    <td class="px-5 py-3 text-right text-xs">
+                                        <span v-if="d.e_levy > 0">{{ cedi(d.e_levy) }}</span>
+                                        <span v-else class="text-on-surface-variant/40">—</span>
+                                    </td>
+                                    <td class="px-5 py-3 text-right font-semibold">{{ cedi(d.net_to_recipient) }}</td>
+                                    <td class="px-5 py-3">
+                                        <StatusBadge :status="d.status" :label="d.status_label" />
+                                        <p v-if="d.failure_reason" class="text-xs text-rose-700 mt-1">{{ d.failure_reason }}</p>
+                                    </td>
+                                    <td class="px-5 py-3 font-mono text-xs">{{ d.provider_reference ?? '—' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="px-5 py-3 border-t border-outline-variant/40">
                         <Pagination :links="disbursements?.meta?.links ?? []" />

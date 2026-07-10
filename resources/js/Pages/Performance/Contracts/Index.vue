@@ -91,16 +91,15 @@ const form = useForm({
 
 const submitContract = () => {
     // kpis field is a JSON textarea; parse before submit
-    const payload = {
-        cycle_id:      form.cycle_id,
-        employee_id:   form.employee_id,
-        supervisor_id: form.supervisor_id || undefined,
+    form.transform((data) => ({
+        cycle_id:      data.cycle_id,
+        employee_id:   data.employee_id,
+        supervisor_id: data.supervisor_id || undefined,
         kpis:          (() => {
-            try { return form.kpis ? JSON.parse(form.kpis) : []; }
+            try { return data.kpis ? JSON.parse(data.kpis) : []; }
             catch { return []; }
         })(),
-    };
-    router.post(route('performance.contracts.store'), payload, {
+    })).post(route('performance.contracts.store'), {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
@@ -433,10 +432,12 @@ const editorialMetrics = computed(() => {
                                 v-model="form.cycle_id"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.cycle_id }"
                             >
                                 <option value="" disabled>Select cycle</option>
                                 <option v-for="c in cycles" :key="c.id" :value="c.id">{{ c.name }}</option>
                             </select>
+                            <p v-if="form.errors.cycle_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.cycle_id }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Employee ID <span class="text-red-500">*</span></label>
@@ -446,8 +447,10 @@ const editorialMetrics = computed(() => {
                                 placeholder="Employee ID"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.employee_id }"
                             />
                             <p class="mt-1 text-[11px] text-on-surface-variant/60">Enter the employee's database ID</p>
+                            <p v-if="form.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_id }}</p>
                         </div>
                     </div>
 
@@ -458,7 +461,9 @@ const editorialMetrics = computed(() => {
                             type="number"
                             placeholder="Supervisor employee ID (optional)"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            :class="{ 'border-red-400': form.errors.supervisor_id }"
                         />
+                        <p v-if="form.errors.supervisor_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.supervisor_id }}</p>
                     </div>
 
                     <div>
@@ -470,7 +475,9 @@ const editorialMetrics = computed(() => {
                             rows="6"
                             placeholder='[{"name":"Reduce report turnaround","weight":100,"target":3,"unit":"days"}]'
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[12px] font-mono text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': form.errors.kpis }"
                         />
+                        <p v-if="form.errors.kpis" class="mt-1 text-[11px] text-red-500">{{ form.errors.kpis }}</p>
                     </div>
                 </form>
 
@@ -483,7 +490,8 @@ const editorialMetrics = computed(() => {
                         >Cancel</button>
                         <button
                             @click="submitContract"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
+                            :disabled="form.processing"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
                             style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[16px]">description</span>

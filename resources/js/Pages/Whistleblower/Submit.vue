@@ -130,20 +130,28 @@ const charCount = computed(() => (form.description || '').length);
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">When did it happen?</label>
                                 <input v-model="form.incident_date" aria-label="Incident date" type="date" class="w-full rounded-lg border-outline-variant">
+                                <p v-if="form.errors.incident_date" class="text-rose-600 text-xs mt-1">{{ form.errors.incident_date }}</p>
                             </div>
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">Where did it happen?</label>
                                 <input aria-label="Where did it happen?" v-model="form.incident_location" class="w-full rounded-lg border-outline-variant"
                                        placeholder="Office, department, location">
+                                <p v-if="form.errors.incident_location" class="text-rose-600 text-xs mt-1">{{ form.errors.incident_location }}</p>
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-xs text-on-surface-variant mb-2">People involved (optional)</label>
-                            <div v-for="(s, i) in form.subjects" :key="i" class="flex gap-2 mb-2">
-                                <input v-model="s.label" :aria-label="`Subject ${i + 1} name or role`" placeholder="Name or role" class="flex-1 rounded-lg border-outline-variant text-sm">
-                                <input v-model="s.role_context" :aria-label="`Subject ${i + 1} role in incident`" placeholder="Their role in the incident" class="flex-1 rounded-lg border-outline-variant text-sm">
-                                <button type="button" @click="removeSubject(i)" class="text-rose-600 text-sm hover:underline">Remove</button>
+                            <div v-for="(s, i) in form.subjects" :key="i" class="mb-2">
+                                <div class="flex gap-2">
+                                    <input v-model="s.label" :aria-label="`Subject ${i + 1} name or role`" placeholder="Name or role" class="flex-1 rounded-lg border-outline-variant text-sm">
+                                    <input v-model="s.role_context" :aria-label="`Subject ${i + 1} role in incident`" placeholder="Their role in the incident" class="flex-1 rounded-lg border-outline-variant text-sm">
+                                    <button type="button" @click="removeSubject(i)" class="text-rose-600 text-sm hover:underline">Remove</button>
+                                </div>
+                                <div class="flex gap-2 mt-1">
+                                    <p v-if="form.errors[`subjects.${i}.label`]" class="flex-1 text-rose-600 text-xs">{{ form.errors[`subjects.${i}.label`] }}</p>
+                                    <p v-if="form.errors[`subjects.${i}.role_context`]" class="flex-1 text-rose-600 text-xs">{{ form.errors[`subjects.${i}.role_context`] }}</p>
+                                </div>
                             </div>
                             <button type="button" @click="addSubject" class="text-secondary text-xs hover:underline">+ Add another person</button>
                         </div>
@@ -152,13 +160,15 @@ const charCount = computed(() => (form.description || '').length);
                             <label class="block text-xs text-on-surface-variant mb-1">Desired outcome</label>
                             <textarea aria-label="Desired outcome" v-model="form.desired_outcome" rows="3" class="w-full rounded-lg border-outline-variant"
                                       placeholder="What would resolution look like for you?"></textarea>
+                            <p v-if="form.errors.desired_outcome" class="text-rose-600 text-xs mt-1">{{ form.errors.desired_outcome }}</p>
                         </div>
 
                         <div>
                             <label class="block text-xs text-on-surface-variant mb-1">Attach evidence (optional, max 10 files, 10MB each)</label>
-                            <input type="file" multiple @change="onFile"
+                            <input type="file" multiple @change="onFile" aria-label="Attach evidence"
                                    accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx,.txt,.mp3,.mp4"
                                    class="text-sm">
+                            <p v-if="form.errors.evidence" class="text-rose-600 text-xs mt-1">{{ form.errors.evidence }}</p>
                         </div>
                     </div>
                 </details>

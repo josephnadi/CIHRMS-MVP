@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -151,7 +152,7 @@ const editionLabel = computed(() => {
                                 <td class="px-5 py-3 text-xs"
                                     :class="r.is_overdue ? 'text-rose-700 font-semibold' : ''">
                                     {{ r.target_completion_date }}
-                                    <span v-if="!r.status?.startsWith?.('fulfilled') && !r.status?.startsWith?.('rejected') && !r.is_overdue"
+                                    <span v-if="!r.status_is_terminal && !r.is_overdue"
                                           class="text-on-surface-variant/60"> ({{ r.days_remaining }}d)</span>
                                     <span v-if="r.is_overdue" class="text-rose-700"> · overdue</span>
                                 </td>
@@ -180,6 +181,7 @@ const editionLabel = computed(() => {
                             <option value="objection">Right to Object — stop processing for a purpose</option>
                             <option value="information">Right to Information — what is collected and why</option>
                         </select>
+                        <InputError :message="form.errors.request_type" />
                     </div>
 
                     <div>
@@ -187,6 +189,7 @@ const editionLabel = computed(() => {
                         <textarea aria-label="Statement" v-model="form.subject_statement" rows="4" required minlength="10"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Describe your request in your own words."></textarea>
+                        <InputError :message="form.errors.subject_statement" />
                     </div>
 
                     <div v-if="form.request_type === 'rectification'">
@@ -194,6 +197,7 @@ const editionLabel = computed(() => {
                         <textarea aria-label="What needs correcting?" v-model="form.rectification_details" rows="3"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Field name + current value + proposed correction"></textarea>
+                        <InputError :message="form.errors.rectification_details" />
                     </div>
 
                     <div v-if="form.request_type === 'objection'">
@@ -201,6 +205,7 @@ const editionLabel = computed(() => {
                         <textarea aria-label="Which processing do you object to?" v-model="form.objection_purpose" rows="3"
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="e.g. marketing communications, profiling for performance review"></textarea>
+                        <InputError :message="form.errors.objection_purpose" />
                     </div>
 
                     <PrimaryButton type="submit" :disabled="form.processing">Submit request</PrimaryButton>

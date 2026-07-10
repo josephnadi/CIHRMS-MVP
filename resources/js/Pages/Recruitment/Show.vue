@@ -4,6 +4,10 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import KanbanBoard from '@/Components/KanbanBoard.vue';
+import InputError from '@/Components/InputError.vue';
+import { useToast } from '@/composables/useToast';
+
+const toast = useToast();
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -72,8 +76,16 @@ const columns = computed(() =>
 );
 
 const moveApplicant = ({ itemId, toColumnId }) => {
+    const applicant = applicants.value.find(a => a.id === itemId);
+    if (!applicant) return;
+    const previousStatus = applicant.status;
+    applicant.status = toColumnId; // optimistic move
     router.patch(route('applicants.update', itemId), { status: toColumnId }, {
         preserveScroll: true,
+        onError: () => {
+            applicant.status = previousStatus; // revert optimistic move
+            toast.error('Could not move applicant to that stage — please try again.');
+        },
     });
 };
 
@@ -250,6 +262,7 @@ const initials = (name) => {
                                     class="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px]"
                                     placeholder="e.g. 60000"
                                 />
+                                <InputError :message="offerForm.errors.salary" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70 mb-1.5">Proposed start date</label>
@@ -258,6 +271,7 @@ const initials = (name) => {
                                     type="date"
                                     class="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px]"
                                 />
+                                <InputError :message="offerForm.errors.start_date" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-[0.10em] text-on-surface-variant/70 mb-1.5">Offer valid for (days)</label>
@@ -266,6 +280,7 @@ const initials = (name) => {
                                     type="number" min="1" max="30"
                                     class="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low/40 px-3 py-2 text-[13px]"
                                 />
+                                <InputError :message="offerForm.errors.expires_in" />
                             </div>
 
                             <p class="text-[11px] text-on-surface-variant/70 leading-relaxed">

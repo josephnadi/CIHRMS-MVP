@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -27,12 +28,12 @@ const lostForm = useForm({ reason: '' });
 
 function submitReturn() {
     returnForm.post(route('assets.return', props.asset.current_assignment.id), {
-        preserveScroll: true, onSuccess: () => showReturn.value = false,
+        preserveScroll: true, onSuccess: () => { showReturn.value = false; returnForm.reset(); },
     });
 }
 function submitMaint() {
     maintForm.post(route('assets.maintenance.store', props.asset.id), {
-        preserveScroll: true, onSuccess: () => showMaint.value = false,
+        preserveScroll: true, onSuccess: () => { showMaint.value = false; maintForm.reset(); },
     });
 }
 function completeMaint(m) {
@@ -41,12 +42,12 @@ function completeMaint(m) {
 }
 function submitRetire() {
     retireForm.patch(route('assets.retire', props.asset.id), {
-        preserveScroll: true, onSuccess: () => showRetire.value = false,
+        preserveScroll: true, onSuccess: () => { showRetire.value = false; retireForm.reset(); },
     });
 }
 function submitLost() {
     lostForm.patch(route('assets.lost', props.asset.id), {
-        preserveScroll: true, onSuccess: () => showLost.value = false,
+        preserveScroll: true, onSuccess: () => { showLost.value = false; lostForm.reset(); },
     });
 }
 
@@ -78,7 +79,7 @@ const statusCls = {
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 mb-3">Details</h2>
                         <dl class="space-y-2 text-sm">
                             <div class="flex justify-between"><dt class="text-on-surface-variant">Purchase</dt><dd>{{ asset.purchase_date ?? '—' }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-on-surface-variant">Cost</dt><dd>{{ asset.purchase_cost !== null ? `${asset.currency} ${asset.purchase_cost.toFixed(2)}` : '—' }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-on-surface-variant">Cost</dt><dd>{{ asset.purchase_cost !== null ? `${asset.currency} ${Number(asset.purchase_cost).toFixed(2)}` : '—' }}</dd></div>
                             <div class="flex justify-between"><dt class="text-on-surface-variant">Supplier</dt><dd>{{ asset.supplier ?? '—' }}</dd></div>
                             <div class="flex justify-between"><dt class="text-on-surface-variant">Warranty</dt><dd>{{ asset.warranty_expires_at ?? '—' }}</dd></div>
                             <div class="flex justify-between"><dt class="text-on-surface-variant">Location</dt><dd>{{ asset.location ?? '—' }}</dd></div>
@@ -138,7 +139,7 @@ const statusCls = {
                                     <td class="text-xs">{{ new Date(m.started_at).toLocaleDateString() }}</td>
                                     <td class="text-xs">{{ m.completed_at ? new Date(m.completed_at).toLocaleDateString() : '—' }}</td>
                                     <td class="text-xs">{{ m.vendor ?? '—' }}</td>
-                                    <td class="text-xs">{{ m.cost !== null ? m.cost.toFixed(2) : '—' }}</td>
+                                    <td class="text-xs">{{ m.cost !== null ? Number(m.cost).toFixed(2) : '—' }}</td>
                                     <td>
                                         <button v-if="m.status === 'open' && $page.props.auth.permissions?.includes('assets.manage')" @click="completeMaint(m)" class="rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold hover:bg-emerald-100">Complete</button>
                                     </td>
@@ -171,32 +172,32 @@ const statusCls = {
 
         <SlidePanel :open="showReturn" @close="showReturn = false" title="Return Asset">
             <form @submit.prevent="submitReturn" class="space-y-3 p-4">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Condition on return</label><select v-model="returnForm.condition_on_return" aria-label="Condition on return" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="damaged">Damaged (auto-opens maintenance)</option></select></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="returnForm.notes" aria-label="Return notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Condition on return</label><select v-model="returnForm.condition_on_return" aria-label="Condition on return" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="damaged">Damaged (auto-opens maintenance)</option></select><InputError :message="returnForm.errors.condition_on_return" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="returnForm.notes" aria-label="Return notes" rows="2" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /><InputError :message="returnForm.errors.notes" /></div>
                 <button type="submit" :disabled="returnForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Confirm Return</button>
             </form>
         </SlidePanel>
 
         <SlidePanel :open="showMaint" @close="showMaint = false" title="Log Maintenance">
             <form @submit.prevent="submitMaint" class="space-y-3 p-4">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Type</label><select v-model="maintForm.type" aria-label="Maintenance type" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="repair">Repair</option><option value="service">Service</option><option value="upgrade">Upgrade</option></select></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Vendor</label><input v-model="maintForm.vendor" aria-label="Maintenance vendor" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Cost ({{ asset.currency }})</label><input v-model.number="maintForm.cost" aria-label="Maintenance cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="maintForm.notes" aria-label="Maintenance notes" rows="3" maxlength="1000" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Type</label><select v-model="maintForm.type" aria-label="Maintenance type" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="repair">Repair</option><option value="service">Service</option><option value="upgrade">Upgrade</option></select><InputError :message="maintForm.errors.type" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Vendor</label><input v-model="maintForm.vendor" aria-label="Maintenance vendor" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="maintForm.errors.vendor" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Cost ({{ asset.currency }})</label><input v-model.number="maintForm.cost" aria-label="Maintenance cost" type="number" step="0.01" min="0" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="maintForm.errors.cost" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Notes</label><textarea v-model="maintForm.notes" aria-label="Maintenance notes" rows="3" maxlength="1000" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /><InputError :message="maintForm.errors.notes" /></div>
                 <button type="submit" :disabled="maintForm.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Log Maintenance</button>
             </form>
         </SlidePanel>
 
         <SlidePanel :open="showRetire" @close="showRetire = false" title="Retire Asset">
             <form @submit.prevent="submitRetire" class="space-y-3 p-4">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="retireForm.reason" aria-label="Retirement reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="retireForm.reason" aria-label="Retirement reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /><InputError :message="retireForm.errors.reason" /></div>
                 <button type="submit" :disabled="retireForm.processing" class="w-full rounded-xl bg-slate-700 px-4 py-2 text-sm font-bold text-white">Retire Asset</button>
             </form>
         </SlidePanel>
 
         <SlidePanel :open="showLost" @close="showLost = false" title="Mark Asset Lost">
             <form @submit.prevent="submitLost" class="space-y-3 p-4">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="lostForm.reason" aria-label="Loss-circumstances reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Reason (5+ chars)</label><textarea v-model="lostForm.reason" aria-label="Loss-circumstances reason" required minlength="5" maxlength="500" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /><InputError :message="lostForm.errors.reason" /></div>
                 <button type="submit" :disabled="lostForm.processing" class="w-full rounded-xl bg-rose-700 px-4 py-2 text-sm font-bold text-white">Mark Lost</button>
             </form>
         </SlidePanel>

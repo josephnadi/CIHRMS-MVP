@@ -7,6 +7,7 @@ import EmptyState          from '@/Components/EmptyState.vue';
 import TabBar              from '@/Components/TabBar.vue';
 import FileUpload          from '@/Components/FileUpload.vue';
 import ProgressRing        from '@/Components/ProgressRing.vue';
+import InputError          from '@/Components/InputError.vue';
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { computed, ref, watch, onMounted } from 'vue';
@@ -167,13 +168,18 @@ const hrTabs = computed(() => [
 const showActionModal = ref(false);
 const actionTarget    = ref(null);
 const actionType      = ref('approved'); // 'approved' | 'rejected'
-const actionComment   = ref('');
-const actionLoading   = ref(false);
+
+const actionForm = useForm({
+    status:  'approved',
+    comment: '',
+});
 
 function initiateAction(req, type) {
     actionTarget.value  = req;
     actionType.value    = type;
-    actionComment.value = '';
+    actionForm.reset();
+    actionForm.clearErrors();
+    actionForm.status = type;
     showActionModal.value = true;
 }
 
@@ -188,17 +194,13 @@ function withdrawRequest(req) {
 
 function submitAction() {
     if (!actionTarget.value) return;
-    actionLoading.value = true;
-    router.patch(
-        route('leave.update', actionTarget.value.id),
-        { status: actionType.value, comment: actionComment.value },
-        {
-            preserveState: false,
-            // Close only on success; on failure keep the modal open so the error shows.
-            onSuccess: () => { showActionModal.value = false; actionTarget.value = null; },
-            onFinish:  () => { actionLoading.value = false; },
-        }
-    );
+    actionForm.status = actionType.value;
+    actionForm.patch(route('leave.update', actionTarget.value.id), {
+        preserveState: false,
+        preserveScroll: true,
+        // Close only on success; on failure keep the modal open so the error shows.
+        onSuccess: () => { showActionModal.value = false; actionTarget.value = null; },
+    });
 }
 
 // HR Filters
@@ -1292,11 +1294,13 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                 <div>
                                     <label :class="labelCls">Comment <span class="normal-case font-medium text-on-surface-variant/40">(optional)</span></label>
                                     <textarea aria-label="Comment (optional)"
-                                        v-model="actionComment"
+                                        v-model="actionForm.comment"
                                         :class="inputCls + ' resize-none'"
                                         rows="3"
                                         :placeholder="actionType === 'approved' ? 'Any notes for the employee…' : 'Reason for rejection…'"
                                     ></textarea>
+                                    <InputError :message="actionForm.errors.comment" />
+                                    <InputError :message="actionForm.errors.status" />
                                 </div>
 
                                 <!-- Actions -->
@@ -1310,10 +1314,10 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                         :style="actionType === 'approved'
                                             ? 'background:linear-gradient(135deg,#059669,#10b981)'
                                             : 'background:linear-gradient(135deg,#dc2626,#ef4444)'"
-                                        :disabled="actionLoading"
+                                        :disabled="actionForm.processing"
                                         @click="submitAction"
                                     >
-                                        <svg v-if="actionLoading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                        <svg v-if="actionForm.processing" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
                                         </svg>

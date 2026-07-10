@@ -89,6 +89,12 @@ const toggleScope = (s) => {
     else          form.abilities.splice(i, 1);
 };
 
+const closePanel = () => {
+    showPanel.value = false;
+    form.reset();
+    form.abilities = [];
+};
+
 // ── Helpers ────────────────────────────────────────────────────────
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const fmtRelative = (d) => {
@@ -298,7 +304,7 @@ const statusMeta = (t) => {
         </div>
 
         <!-- ── Issue token panel ──────────────────────────────────────── -->
-        <SlidePanel :open="showPanel" title="Issue API token" size="lg" @close="showPanel = false">
+        <SlidePanel :open="showPanel" title="Issue API token" size="lg" @close="closePanel">
             <form @submit.prevent="submit" class="space-y-5 p-6">
 
                 <div class="rounded-xl bg-amber-50/60 border border-amber-200/60 dark:bg-amber-900/15 dark:border-amber-800/40 px-4 py-3 flex items-start gap-3">
@@ -313,6 +319,7 @@ const statusMeta = (t) => {
                     <input aria-label="Token name" v-model="form.name" required maxlength="120" placeholder="e.g. GIFMIS production integration"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': form.errors.name }"/>
+                    <p v-if="form.errors.name" class="mt-1 text-[11px] text-rose-600">{{ form.errors.name }}</p>
                 </div>
 
                 <div>
@@ -363,7 +370,7 @@ const statusMeta = (t) => {
 
             <template #footer>
                 <div class="flex items-center justify-end gap-3">
-                    <button type="button" @click="showPanel = false"
+                    <button type="button" @click="closePanel"
                             class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
                         Cancel
                     </button>

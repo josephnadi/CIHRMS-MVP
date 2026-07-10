@@ -7,6 +7,9 @@ import StatusBadge         from '@/Components/StatusBadge.vue';
 import EmptyState          from '@/Components/EmptyState.vue';
 import SlidePanel          from '@/Components/SlidePanel.vue';
 import TabBar              from '@/Components/TabBar.vue';
+import { useToast }        from '@/composables/useToast';
+
+const toast = useToast();
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -83,9 +86,17 @@ const columns = computed(() =>
 );
 
 function onMove({ itemId, toColumnId }) {
+    const applicant = list.value.find(a => a.id === itemId);
+    if (!applicant) return;
+    const previousStatus = applicant.status;
+    applicant.status = toColumnId; // optimistic move
     router.patch(route('applicants.update', itemId), { status: toColumnId }, {
         preserveScroll: true,
         preserveState: true,
+        onError: () => {
+            applicant.status = previousStatus; // revert optimistic move
+            toast.error('Could not move applicant to that stage — please try again.');
+        },
     });
 }
 
@@ -131,10 +142,16 @@ const showDetail = computed({
 });
 
 function moveStage(applicant, status) {
+    const previousStatus = applicant.status;
+    applicant.status = status; // optimistic move
     router.patch(route('applicants.update', applicant.id), { status }, {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => { selected.value = null; },
+        onError: () => {
+            applicant.status = previousStatus; // revert optimistic move
+            toast.error('Could not move applicant to that stage — please try again.');
+        },
     });
 }
 

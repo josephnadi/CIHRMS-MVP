@@ -1,11 +1,14 @@
 ﻿<script setup>
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import { useToast } from '@/composables/useToast';
+
+const toast = useToast();
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -32,17 +35,35 @@ const applyFilters = () => router.get(route('positions.index'), {
 // Freeze a position when it's vacant but the headcount ceiling needs
 // to be enforced. Vacate when an employee leaves the post (HR records
 // the reason — feeds the audit trail). Both routes are POST.
+// `busyPositionId` tracks the row currently in flight so its buttons can be
+// disabled (prevents double-submit) and drives the shared onError toast.
+const busyPositionId = ref(null);
+
 const freezePosition = (p) => {
     const reason = window.prompt(`Freeze position ${p.code} — ${p.title}?\n\nReason (required, audit-logged):`, '');
     if (! reason || ! reason.trim()) return;
-    router.post(route('positions.freeze', p.id), { reason }, { preserveScroll: true });
+    busyPositionId.value = p.id;
+    router.post(route('positions.freeze', p.id), { reason }, {
+        preserveScroll: true,
+        onError: (errors) => {
+            toast.error(errors?.reason || Object.values(errors || {})[0] || 'Failed to freeze this position.');
+        },
+        onFinish: () => { busyPositionId.value = null; },
+    });
 };
 
 const vacatePosition = (p) => {
     if (p.status !== 'filled' && p.status !== 'acting') return;
     const reason = window.prompt(`Vacate position ${p.code} — ${p.title}?\n\nReason (e.g. transfer, termination, resignation):`, '');
     if (! reason || ! reason.trim()) return;
-    router.post(route('positions.vacate', p.id), { reason }, { preserveScroll: true });
+    busyPositionId.value = p.id;
+    router.post(route('positions.vacate', p.id), { reason }, {
+        preserveScroll: true,
+        onError: (errors) => {
+            toast.error(errors?.reason || Object.values(errors || {})[0] || 'Failed to vacate this position.');
+        },
+        onFinish: () => { busyPositionId.value = null; },
+    });
 };
 </script>
 
@@ -114,7 +135,8 @@ const vacatePosition = (p) => {
                                         <button v-if="(p.status === 'filled' || p.status === 'acting')"
                                                 type="button"
                                                 @click="vacatePosition(p)"
-                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors"
+                                                :disabled="busyPositionId === p.id"
+                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                 title="Vacate this position">
                                             <span class="material-symbols-outlined text-[14px]">person_remove</span>
                                             Vacate
@@ -122,7 +144,8 @@ const vacatePosition = (p) => {
                                         <button v-if="p.status !== 'frozen'"
                                                 type="button"
                                                 @click="freezePosition(p)"
-                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-outline-variant bg-surface-container px-2 text-[11px] font-bold text-on-surface-variant hover:bg-surface-container/70 transition-colors"
+                                                :disabled="busyPositionId === p.id"
+                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-outline-variant bg-surface-container px-2 text-[11px] font-bold text-on-surface-variant hover:bg-surface-container/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                 title="Freeze (suspend hiring against this slot)">
                                             <span class="material-symbols-outlined text-[14px]">ac_unit</span>
                                             Freeze

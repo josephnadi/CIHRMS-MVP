@@ -85,7 +85,7 @@ const statusColor = (val) => ({
             </table>
         </div>
 
-        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
+        <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-x-auto">
             <table class="w-full text-[12px]">
                 <thead class="bg-surface-container border-b border-outline-variant/40">
                     <tr class="text-left">

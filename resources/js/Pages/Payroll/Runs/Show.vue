@@ -23,7 +23,15 @@ const cedi = (v) => 'GHS ' + (Number(v) || 0).toLocaleString('en-GH', { minimumF
 
 const tab = ref('summary');
 
-const calculate = () => router.post(route('payroll-runs.calculate', R.value.id), {}, { preserveScroll: true });
+// Actions dispatched via router.post() directly (not backed by useForm) share
+// this busy flag so their buttons can be disabled while in flight.
+const busy = ref(false);
+const busyPost = (url) => {
+    busy.value = true;
+    router.post(url, {}, { preserveScroll: true, onFinish: () => { busy.value = false; } });
+};
+
+const calculate = () => busyPost(route('payroll-runs.calculate', R.value.id));
 
 const approveForm = useForm({ confirmation: 'approve' });
 const approve = () => approveForm.post(route('payroll-runs.approve', R.value.id), { preserveScroll: true });
@@ -31,14 +39,16 @@ const approve = () => approveForm.post(route('payroll-runs.approve', R.value.id)
 const reverseForm = useForm({ reason: '' });
 const reverse = () => reverseForm.post(route('payroll-runs.reverse', R.value.id), { preserveScroll: true });
 
-const markPaid = () => router.post(route('payroll-runs.mark-paid', R.value.id), {}, { preserveScroll: true });
+const markPaid = () => busyPost(route('payroll-runs.mark-paid', R.value.id));
 
 // Disbursement: push the materialised payout instructions to their providers
 // (MoMo/GhIPSS), then reconcile sent-but-unsettled ones.
-const dispatchPayouts  = () => router.post(route('disbursements.dispatch', R.value.id), {}, { preserveScroll: true });
-const reconcilePayouts = () => router.post(route('disbursements.reconcile', R.value.id), {}, { preserveScroll: true });
+const dispatchPayouts  = () => busyPost(route('disbursements.dispatch', R.value.id));
+const reconcilePayouts = () => busyPost(route('disbursements.reconcile', R.value.id));
 // GhIPSS has no status API — the operator confirms the bank settled the batch.
-const confirmGhipss    = () => router.post(route('disbursements.confirm-ghipss', R.value.id), {}, { preserveScroll: true });
+const confirmGhipss    = () => busyPost(route('disbursements.confirm-ghipss', R.value.id));
+
+const lineRows = computed(() => props.lines?.data ?? props.lines ?? []);
 
 const fileForm = useForm({ reference: '', submitted_at: '' });
 const filingId = ref(null);
@@ -57,7 +67,7 @@ const submitFiled = (rt) => fileForm.post(
             <Teleport to="#page-header-mount" defer>
                 <div class="flex items-center justify-between">
                     <div>
-                        <Link :href="route('payroll-runs.index')" class="text-xs text-slate-500 hover:underline">← All runs</Link>
+                        <Link :href="route('payroll-runs.index')" class="text-xs text-on-surface-variant hover:underline">← All runs</Link>
                         <div class="flex items-center gap-2 mt-1 mb-1">
                             <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">receipt_long</span>
                             <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">{{ R.period_label }} · {{ R.department?.name ?? 'Whole organization' }}</p>
@@ -82,32 +92,32 @@ const submitFiled = (rt) => fileForm.post(
 
                 <div class="flex flex-wrap gap-3">
                     <PrimaryButton v-if="['draft', 'calculated'].includes(R.status)"
-                                   @click="calculate">Calculate / Recalculate</PrimaryButton>
+                                   :disabled="busy" @click="calculate">Calculate / Recalculate</PrimaryButton>
                     <PrimaryButton v-if="R.status === 'calculated' && R.can?.approve"
-                                   @click="approve">Approve (2FA required)</PrimaryButton>
-                    <PrimaryButton v-if="R.status === 'approved'" @click="markPaid">Mark as paid</PrimaryButton>
-                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" @click="dispatchPayouts">Dispatch payouts</SecondaryButton>
-                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" @click="reconcilePayouts">Reconcile payouts</SecondaryButton>
-                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" @click="confirmGhipss">Confirm GhIPSS settlement</SecondaryButton>
-                    <DangerButton  v-if="R.can?.reverse" @click="reverse">Reverse</DangerButton>
+                                   :disabled="approveForm.processing" @click="approve">Approve (2FA required)</PrimaryButton>
+                    <PrimaryButton v-if="R.status === 'approved'" :disabled="busy" @click="markPaid">Mark as paid</PrimaryButton>
+                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" :disabled="busy" @click="dispatchPayouts">Dispatch payouts</SecondaryButton>
+                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" :disabled="busy" @click="reconcilePayouts">Reconcile payouts</SecondaryButton>
+                    <SecondaryButton v-if="['approved','paid'].includes(R.status) && R.can?.disburse" :disabled="busy" @click="confirmGhipss">Confirm GhIPSS settlement</SecondaryButton>
+                    <DangerButton  v-if="R.can?.reverse" :disabled="!reverseForm.reason || reverseForm.processing" @click="reverse">Reverse</DangerButton>
                 </div>
 
                 <div v-if="R.can?.reverse">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Reversal reason (required if reversing)</label>
+                    <label class="block text-xs font-medium text-on-surface-variant mb-1">Reversal reason (required if reversing)</label>
                     <textarea aria-label="Reversal reason (required if reversing)" v-model="reverseForm.reason" rows="2"
-                              class="w-full rounded-lg border-slate-200"></textarea>
+                              class="w-full rounded-lg border-outline-variant"></textarea>
                     <p v-if="reverseForm.errors.reason" class="mt-1 text-xs text-rose-600">{{ reverseForm.errors.reason }}</p>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
-                    <div class="px-5 py-3 border-b border-slate-100 flex gap-6 text-sm">
-                        <button @click="tab='lines'" :class="tab==='lines' ? 'text-blue-600 font-semibold' : 'text-slate-500'">Lines ({{ lines?.meta?.total ?? lines?.data?.length ?? 0 }})</button>
-                        <button @click="tab='returns'" :class="tab==='returns' ? 'text-blue-600 font-semibold' : 'text-slate-500'">Statutory returns ({{ returns?.data?.length ?? returns?.length ?? 0 }})</button>
+                <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/60">
+                    <div class="px-5 py-3 border-b border-outline-variant/50 flex gap-6 text-sm">
+                        <button @click="tab='lines'" :class="tab==='lines' ? 'text-blue-600 font-semibold' : 'text-on-surface-variant'">Lines ({{ lines?.meta?.total ?? lines?.data?.length ?? 0 }})</button>
+                        <button @click="tab='returns'" :class="tab==='returns' ? 'text-blue-600 font-semibold' : 'text-on-surface-variant'">Statutory returns ({{ returns?.data?.length ?? returns?.length ?? 0 }})</button>
                     </div>
 
                     <div v-if="tab==='lines'" class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                        <table v-if="lineRows.length" class="w-full text-sm">
+                            <thead class="bg-surface-container-low/20 text-on-surface-variant text-xs uppercase">
                                 <tr>
                                     <th class="px-4 py-3 text-left">Employee</th>
                                     <th class="px-4 py-3 text-left">Grade/Step</th>
@@ -120,12 +130,12 @@ const submitFiled = (rt) => fileForm.post(
                                     <th class="px-4 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr v-for="l in (lines?.data ?? lines ?? [])" :key="l.id"
-                                    :class="l.status === 'skipped' ? 'bg-amber-50' : 'hover:bg-slate-50'">
+                            <tbody class="divide-y divide-outline-variant/30">
+                                <tr v-for="l in lineRows" :key="l.id"
+                                    :class="l.status === 'skipped' ? 'bg-amber-50' : 'hover:bg-surface-container-low/20'">
                                     <td class="px-4 py-2">
                                         <div class="font-medium">{{ l.employee?.name ?? '—' }}</div>
-                                        <div class="text-xs text-slate-500">{{ l.employee?.employee_no }}</div>
+                                        <div class="text-xs text-on-surface-variant">{{ l.employee?.employee_no }}</div>
                                     </td>
                                     <td class="px-4 py-2">{{ l.grade_code }} / {{ l.step }}</td>
                                     <td class="px-4 py-2 text-right">{{ cedi(l.basic) }}</td>
@@ -144,15 +154,18 @@ const submitFiled = (rt) => fileForm.post(
                                 </tr>
                             </tbody>
                         </table>
+                        <p v-else class="p-8 text-center text-sm text-on-surface-variant">
+                            No payroll lines yet — calculate the run to generate them.
+                        </p>
                     </div>
 
-                    <div v-if="tab==='returns'" class="divide-y divide-slate-100">
+                    <div v-if="tab==='returns'" class="divide-y divide-outline-variant/30">
                         <div v-for="rt in (returns?.data ?? returns ?? [])" :key="rt.id"
                              class="px-5 py-4">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <div class="font-medium">{{ rt.kind_label }}</div>
-                                    <div class="text-xs text-slate-500">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
+                                    <div class="text-xs text-on-surface-variant">{{ rt.record_count }} records · {{ cedi(rt.total_amount) }}</div>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <span :class="{
@@ -160,8 +173,8 @@ const submitFiled = (rt) => fileForm.post(
                                             'text-rose-600': rt.status === 'overdue',
                                             'text-emerald-600': rt.status === 'submitted',
                                         }" class="text-[12px] font-bold capitalize">{{ rt.status }}</span>
-                                    <span v-if="rt.due_date && rt.status !== 'submitted'" class="text-[11px] text-slate-500">due {{ rt.due_date }}</span>
-                                    <span v-if="rt.status === 'submitted'" class="text-[11px] text-slate-500">filed {{ rt.submission_reference }}</span>
+                                    <span v-if="rt.due_date && rt.status !== 'submitted'" class="text-[11px] text-on-surface-variant">due {{ rt.due_date }}</span>
+                                    <span v-if="rt.status === 'submitted'" class="text-[11px] text-on-surface-variant">filed {{ rt.submission_reference }}</span>
                                     <button v-if="canRemit && rt.status !== 'submitted' && filingId !== rt.id"
                                             @click="openMarkFiled(rt)"
                                             class="text-[12px] font-bold text-blue-600 hover:underline">Mark filed</button>
@@ -172,14 +185,14 @@ const submitFiled = (rt) => fileForm.post(
                             <div v-if="filingId === rt.id" class="mt-3 flex items-center gap-2">
                                 <input v-model="fileForm.reference" type="text" aria-label="Filing reference"
                                        placeholder="Filing reference (e.g. GRA-2026-06)"
-                                       class="flex-1 rounded-lg border-slate-200 text-sm" />
+                                       class="flex-1 rounded-lg border-outline-variant text-sm" />
                                 <PrimaryButton @click="submitFiled(rt)" :disabled="fileForm.processing">Save</PrimaryButton>
                                 <SecondaryButton @click="cancelFiled">Cancel</SecondaryButton>
                             </div>
                             <p v-if="filingId === rt.id && fileForm.errors.reference" class="mt-1 text-xs text-rose-600">{{ fileForm.errors.reference }}</p>
                         </div>
                         <div v-if="(returns?.data?.length ?? returns?.length ?? 0) === 0"
-                             class="px-5 py-8 text-center text-slate-500 text-sm">
+                             class="px-5 py-8 text-center text-on-surface-variant text-sm">
                             Approve the run to generate statutory return files.
                         </div>
                     </div>

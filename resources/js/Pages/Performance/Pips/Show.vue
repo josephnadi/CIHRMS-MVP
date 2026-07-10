@@ -147,7 +147,9 @@ const stageLabel = computed(() => {
                         <p class="text-xs font-semibold">Add check-in</p>
                         <textarea aria-label="Note" v-model="checkinForm.note" rows="3" required
                                   class="w-full rounded-lg border-outline-variant text-sm"
+                                  :class="{ 'border-red-400': checkinForm.errors.note }"
                                   placeholder="Notes on observed progress, blockers, and next steps."></textarea>
+                        <p v-if="checkinForm.errors.note" class="mt-1 text-[11px] text-red-500">{{ checkinForm.errors.note }}</p>
                         <label class="flex items-center gap-2 text-sm">
                             <input v-model="checkinForm.met_target" aria-label="Targets met for this check-in" type="checkbox">
                             Targets met for this check-in period
@@ -162,7 +164,9 @@ const stageLabel = computed(() => {
                         <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-800"><GlossaryText text="Extend PIP" /></p>
                         <p class="text-xs text-on-surface-variant/70">Extensions used: {{ P.extensions_used }} / {{ P.max_extensions }}</p>
                         <input aria-label="Additional days" v-model.number="extendForm.additional_days" type="number" min="14" max="90"
-                               class="w-full rounded-lg border-outline-variant text-sm" placeholder="Additional days">
+                               class="w-full rounded-lg border-outline-variant text-sm" placeholder="Additional days"
+                               :class="{ 'border-red-400': extendForm.errors.additional_days }">
+                        <p v-if="extendForm.errors.additional_days" class="mt-1 text-[11px] text-red-500">{{ extendForm.errors.additional_days }}</p>
                         <textarea aria-label="Reason" v-model="extendForm.reason" rows="2" required
                                   class="w-full rounded-lg border-outline-variant text-sm"
                                   placeholder="Reason for extension"></textarea>
@@ -181,7 +185,9 @@ const stageLabel = computed(() => {
                         </select>
                         <textarea aria-label="Summary" v-model="closeForm.summary" rows="3" required minlength="10"
                                   class="w-full rounded-lg border-outline-variant text-sm"
+                                  :class="{ 'border-red-400': closeForm.errors.summary }"
                                   placeholder="Outcome summary — included in employee's permanent record."></textarea>
+                        <p v-if="closeForm.errors.summary" class="mt-1 text-[11px] text-red-500">{{ closeForm.errors.summary }}</p>
                         <DangerButton v-if="closeForm.outcome.startsWith('failed')" @click="submitClose" :disabled="closeForm.processing">
                             Close as {{ closeForm.outcome.replace('_', ' ') }}
                         </DangerButton>

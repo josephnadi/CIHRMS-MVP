@@ -4,6 +4,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import GlossaryText from '@/Components/GlossaryText.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -90,6 +91,7 @@ const submitCancel = () => cancelForm.post(route('onboarding.cancel', C.value.id
                     <div class="flex items-center gap-4">
                         <Link
                             :href="route('onboarding.index')"
+                            aria-label="Back to onboarding list"
                             class="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
                             <span class="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -197,6 +199,7 @@ const submitCancel = () => cancelForm.post(route('onboarding.cancel', C.value.id
                             placeholder="Provide a reason for cancellation…"
                             class="w-full rounded-xl border border-red-300/60 bg-white dark:bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
                         ></textarea>
+                        <InputError :message="cancelForm.errors.reason" />
                         <div class="flex items-center gap-3">
                             <button
                                 @click="submitCancel"
@@ -308,6 +311,7 @@ const submitCancel = () => cancelForm.post(route('onboarding.cancel', C.value.id
                                                 placeholder="Enter skip reason…"
                                                 required
                                             />
+                                            <InputError :message="skipForm.errors.reason" />
                                         </div>
                                         <button
                                             type="submit"

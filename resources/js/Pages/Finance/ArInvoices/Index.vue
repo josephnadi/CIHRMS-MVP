@@ -238,7 +238,7 @@ const statusColor = (val) => ({
                    class="ml-auto rounded-xl border border-outline-variant px-3 py-1.5 text-[12px] bg-surface-container-lowest" />
         </div>
 
-        <div v-if="rows.length" class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
+        <div v-if="rows.length" class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-x-auto">
             <table class="w-full text-[12px]">
                 <thead class="bg-surface-container border-b border-outline-variant/40">
                     <tr class="text-left">

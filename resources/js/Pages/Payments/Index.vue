@@ -121,7 +121,7 @@ const showCreatePanel = ref(false);
 onMounted(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('new') === '1') {
-        showCreatePanel.value = true;
+        openCreatePanel();
         params.delete('new');
         const qs = params.toString();
         window.history.replaceState(
@@ -137,6 +137,12 @@ const form = useForm({
     amount:      '',
     currency:    'GHS',
 });
+
+const openCreatePanel = () => {
+    form.reset();
+    form.clearErrors();
+    showCreatePanel.value = true;
+};
 
 const submit = () => {
     form.post(route('payments.store'), {
@@ -163,6 +169,12 @@ const payslipForm = useForm({
     tier3_employee:       '',
     mark_paid:            false,
 });
+
+const openPayslipPanel = () => {
+    payslipForm.reset();
+    payslipForm.clearErrors();
+    showPayslipPanel.value = true;
+};
 
 const addAllowance = () => payslipForm.allowances.push({ label: '', amount: '' });
 const removeAllowance = (i) => payslipForm.allowances.splice(i, 1);
@@ -259,6 +271,7 @@ const submitPayslip = () => {
     payslipForm.post(route('payments.payslip.generate'), {
         onSuccess: () => {
             showPayslipPanel.value = false;
+            payslipForm.reset();
         },
     });
 };
@@ -338,12 +351,12 @@ const formatDate = (d) => {
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button @click="showPayslipPanel = true" type="button"
+                        <button @click="openPayslipPanel" type="button"
                                 class="flex items-center gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-4 py-2.5 text-[13px] font-black text-primary shadow-card transition-all hover:-translate-y-px hover:shadow-card-hover">
                             <span class="material-symbols-outlined text-[17px]">receipt_long</span>
                             Generate Payslip
                         </button>
-                        <button @click="showCreatePanel = true" type="button"
+                        <button @click="openCreatePanel" type="button"
                                 class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-black text-white shadow-glow-sm transition-all hover:-translate-y-px"
                                 style="background:linear-gradient(135deg,#0d1452,#1a237e);">
                             <span class="material-symbols-outlined text-[17px]">payments</span>
@@ -717,7 +730,7 @@ const formatDate = (d) => {
                         >
                             <template #action>
                                 <button
-                                    @click="showCreatePanel = true"
+                                    @click="openCreatePanel"
                                     class="btn-shimmer flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold text-white"
                                     style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                                 >
@@ -922,7 +935,9 @@ const formatDate = (d) => {
                                     type="month"
                                     required
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
+                                    :class="{ 'border-red-400': payslipForm.errors.period }"
                                 />
+                                <p v-if="payslipForm.errors.period" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors.period }}</p>
                             </div>
                         </div>
 
@@ -961,27 +976,33 @@ const formatDate = (d) => {
                                 No allowances added.
                             </div>
 
-                            <div v-for="(row, i) in payslipForm.allowances" :key="`a-${i}`" class="flex gap-2 mb-2">
-                                <input aria-label="Label"
-                                    v-model="row.label"
-                                    type="text"
-                                    placeholder="e.g. Fuel Allowance"
-                                    class="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
-                                />
-                                <input aria-label="Amount"
-                                    v-model="row.amount"
-                                    type="number" step="0.01" min="0"
-                                    placeholder="0.00"
-                                    class="w-28 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-mono text-on-surface focus:outline-none focus:border-secondary/50"
-                                />
-                                <button
-                                    type="button"
-                                    @click="removeAllowance(i)"
-                                    class="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-red-500/10 hover:text-red-600 transition-colors"
-                                    title="Remove"
-                                >
-                                    <span class="material-symbols-outlined text-[16px]">close</span>
-                                </button>
+                            <div v-for="(row, i) in payslipForm.allowances" :key="`a-${i}`" class="mb-2">
+                                <div class="flex gap-2">
+                                    <input aria-label="Label"
+                                        v-model="row.label"
+                                        type="text"
+                                        placeholder="e.g. Fuel Allowance"
+                                        class="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
+                                        :class="{ 'border-red-400': payslipForm.errors[`allowances.${i}.label`] }"
+                                    />
+                                    <input aria-label="Amount"
+                                        v-model="row.amount"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        class="w-28 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-mono text-on-surface focus:outline-none focus:border-secondary/50"
+                                        :class="{ 'border-red-400': payslipForm.errors[`allowances.${i}.amount`] }"
+                                    />
+                                    <button
+                                        type="button"
+                                        @click="removeAllowance(i)"
+                                        class="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-red-500/10 hover:text-red-600 transition-colors"
+                                        title="Remove"
+                                    >
+                                        <span class="material-symbols-outlined text-[16px]">close</span>
+                                    </button>
+                                </div>
+                                <p v-if="payslipForm.errors[`allowances.${i}.label`]" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors[`allowances.${i}.label`] }}</p>
+                                <p v-if="payslipForm.errors[`allowances.${i}.amount`]" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors[`allowances.${i}.amount`] }}</p>
                             </div>
                         </div>
 
@@ -996,7 +1017,9 @@ const formatDate = (d) => {
                                 type="number" step="0.01" min="0"
                                 placeholder="0.00"
                                 class="w-full rounded-lg border border-blue-300 dark:border-blue-800/60 bg-white/60 dark:bg-black/20 px-3 py-2 text-[13px] font-mono text-on-surface focus:outline-none focus:border-blue-500/60"
+                                :class="{ 'border-red-400': payslipForm.errors.tier3_employee }"
                             />
+                            <p v-if="payslipForm.errors.tier3_employee" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors.tier3_employee }}</p>
                             <p class="mt-1.5 text-[10px] text-blue-700 dark:text-blue-400">
                                 Deductible up to 16.5% of basic salary (cap: GHS {{ payslipPreview.tier3Cap.toFixed(2) }})
                             </p>
@@ -1021,27 +1044,33 @@ const formatDate = (d) => {
                                 No voluntary deductions added.
                             </div>
 
-                            <div v-for="(row, i) in payslipForm.voluntary_deductions" :key="`d-${i}`" class="flex gap-2 mb-2">
-                                <input aria-label="Label"
-                                    v-model="row.label"
-                                    type="text"
-                                    placeholder="e.g. Loan repayment"
-                                    class="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
-                                />
-                                <input aria-label="Amount"
-                                    v-model="row.amount"
-                                    type="number" step="0.01" min="0"
-                                    placeholder="0.00"
-                                    class="w-28 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-mono text-on-surface focus:outline-none focus:border-secondary/50"
-                                />
-                                <button
-                                    type="button"
-                                    @click="removeDeduction(i)"
-                                    class="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-red-500/10 hover:text-red-600 transition-colors"
-                                    title="Remove"
-                                >
-                                    <span class="material-symbols-outlined text-[16px]">close</span>
-                                </button>
+                            <div v-for="(row, i) in payslipForm.voluntary_deductions" :key="`d-${i}`" class="mb-2">
+                                <div class="flex gap-2">
+                                    <input aria-label="Label"
+                                        v-model="row.label"
+                                        type="text"
+                                        placeholder="e.g. Loan repayment"
+                                        class="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
+                                        :class="{ 'border-red-400': payslipForm.errors[`voluntary_deductions.${i}.label`] }"
+                                    />
+                                    <input aria-label="Amount"
+                                        v-model="row.amount"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        class="w-28 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] font-mono text-on-surface focus:outline-none focus:border-secondary/50"
+                                        :class="{ 'border-red-400': payslipForm.errors[`voluntary_deductions.${i}.amount`] }"
+                                    />
+                                    <button
+                                        type="button"
+                                        @click="removeDeduction(i)"
+                                        class="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-red-500/10 hover:text-red-600 transition-colors"
+                                        title="Remove"
+                                    >
+                                        <span class="material-symbols-outlined text-[16px]">close</span>
+                                    </button>
+                                </div>
+                                <p v-if="payslipForm.errors[`voluntary_deductions.${i}.label`]" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors[`voluntary_deductions.${i}.label`] }}</p>
+                                <p v-if="payslipForm.errors[`voluntary_deductions.${i}.amount`]" class="mt-1 text-[11px] text-red-500">{{ payslipForm.errors[`voluntary_deductions.${i}.amount`] }}</p>
                             </div>
                         </div>
 

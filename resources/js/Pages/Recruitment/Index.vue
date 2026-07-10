@@ -85,6 +85,10 @@ const statusDot = (s) => (STATUS_PILL_REGISTRY[s] ?? STATUS_PILL_REGISTRY.draft)
 const showCreatePanel = ref(false);
 const form = useForm({ title: '', description: '', closes_at: '' });
 
+// Today's date (ISO) — used as the floor for the closing-date picker so a
+// posting can't be created with a closing date in the past.
+const todayIso = computed(() => new Date().toISOString().slice(0, 10));
+
 const submit = () => {
     form.post(route('jobs.store'), {
         onSuccess: () => { form.reset(); showCreatePanel.value = false; },
@@ -329,7 +333,10 @@ const pipeline = computed(() => {
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Closing date <span class="ml-1 font-normal normal-case text-on-surface-variant/60">(blank = open until filled)</span></label>
                         <input aria-label="Closing date (blank = open until filled)" v-model="form.closes_at" type="date"
-                               class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                               :min="todayIso"
+                               class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
+                               :class="{ 'border-rose-400': form.errors.closes_at }"/>
+                        <p v-if="form.errors.closes_at" class="mt-1 text-[11px] text-rose-500">{{ form.errors.closes_at }}</p>
                     </div>
                 </form>
 

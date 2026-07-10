@@ -47,24 +47,48 @@ const SCOPES = ['personal', 'department', 'organization'];
 
         <form @submit.prevent="submit" enctype="multipart/form-data"
               class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-4 shadow-card mb-6 grid md:grid-cols-6 gap-3">
-            <input aria-label="Name" v-model="form.name" required placeholder="Name"
-                   class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
-            <select v-model="form.owner_scope" aria-label="Ownership scope" class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
-                <option v-for="s in SCOPES" :key="s" :value="s"
-                        :disabled="(s === 'organization' && !canManageOrg) || (s === 'department' && !departmentId)">{{ s }}</option>
-            </select>
+            <div>
+                <input aria-label="Name" v-model="form.name" required placeholder="Name"
+                       class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" />
+                <p v-if="form.errors.name" class="mt-1 text-[11px] text-rose-600">{{ form.errors.name }}</p>
+            </div>
+            <div>
+                <select v-model="form.owner_scope" aria-label="Ownership scope" class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
+                    <option v-for="s in SCOPES" :key="s" :value="s"
+                            :disabled="(s === 'organization' && !canManageOrg) || (s === 'department' && !departmentId)">{{ s }}</option>
+                </select>
+                <p v-if="form.errors.owner_id" class="mt-1 text-[11px] text-rose-600">{{ form.errors.owner_id }}</p>
+            </div>
             <select v-model="form.type" aria-label="Watermark type" class="rounded-lg border border-outline-variant px-3 py-2 text-[13px]">
                 <option value="text">Text</option>
                 <option value="image">Image (PNG)</option>
             </select>
             <template v-if="form.type === 'text'">
-                <input aria-label="Text" v-model="form.text" required placeholder="WATERMARK TEXT"
-                       class="rounded-lg border border-outline-variant px-3 py-2 text-[13px] font-bold uppercase" />
-                <input v-model="form.color" type="color" aria-label="Watermark colour" class="rounded-lg border border-outline-variant w-full h-10" />
+                <div>
+                    <input aria-label="Text" v-model="form.text" required placeholder="WATERMARK TEXT"
+                           class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px] font-bold uppercase" />
+                    <p v-if="form.errors.text" class="mt-1 text-[11px] text-rose-600">{{ form.errors.text }}</p>
+                </div>
+                <div>
+                    <input v-model="form.color" type="color" aria-label="Watermark colour" class="rounded-lg border border-outline-variant w-full h-10" />
+                </div>
+                <div>
+                    <input v-model.number="form.opacity" type="number" step="0.01" min="0.05" max="1" aria-label="Opacity"
+                           class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" placeholder="Opacity" />
+                    <p v-if="form.errors.opacity" class="mt-1 text-[11px] text-rose-600">{{ form.errors.opacity }}</p>
+                </div>
+                <div>
+                    <input v-model.number="form.angle_deg" type="number" min="-90" max="90" aria-label="Angle degrees"
+                           class="w-full rounded-lg border border-outline-variant px-3 py-2 text-[13px]" placeholder="Angle°" />
+                    <p v-if="form.errors.angle_deg" class="mt-1 text-[11px] text-rose-600">{{ form.errors.angle_deg }}</p>
+                </div>
             </template>
             <template v-else>
-                <input type="file" required accept="image/png"
-                       @change="e => form.file = e.target.files[0]" class="text-[12px] md:col-span-2" />
+                <div class="md:col-span-2">
+                    <input type="file" required accept="image/png" aria-label="Watermark file (PNG)"
+                           @change="e => form.file = e.target.files[0]" class="text-[12px]" />
+                    <p v-if="form.errors.file" class="mt-1 text-[11px] text-rose-600">{{ form.errors.file }}</p>
+                </div>
             </template>
             <button type="submit" :disabled="form.processing"
                     class="rounded-lg px-4 py-2 text-[12px] font-black text-white"
@@ -92,6 +116,9 @@ const SCOPES = ['personal', 'department', 'organization'];
                     <button @click="remove(t)" class="text-[11px] font-black text-rose-600">Remove</button>
                 </div>
             </div>
+            <p v-if="!templates.data.some(x => x.owner_scope === scope)" class="col-span-full text-center text-on-surface-variant text-[12px] py-6">
+                No {{ scope }} watermarks yet.
+            </p>
         </div>
     </div>
 </template>
