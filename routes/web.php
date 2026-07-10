@@ -1144,6 +1144,7 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::middleware('permission:ar_invoices.create')->group(function () {
             Route::post('ar-invoices',                      [\App\Http\Controllers\Finance\ArInvoiceController::class, 'store'])->name('ar-invoices.store');
+            Route::post('ar-invoices/bulk',                 [\App\Http\Controllers\Finance\ArInvoiceController::class, 'bulkStore'])->name('ar-invoices.bulk-store');
             Route::post('ar-invoices/{arInvoice}/submit',   [\App\Http\Controllers\Finance\ArInvoiceController::class, 'submit'])->name('ar-invoices.submit');
             // Draft-only edit/delete (service guards the status).
             Route::patch('ar-invoices/{arInvoice}',         [\App\Http\Controllers\Finance\ArInvoiceController::class, 'update'])->name('ar-invoices.update');
