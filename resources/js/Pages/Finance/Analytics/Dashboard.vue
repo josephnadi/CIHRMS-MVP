@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import StatCard from '@/Components/StatCard.vue';
 import ChartCard from '@/Components/charts/ChartCard.vue';
 import LineChart from '@/Components/charts/ChartJs/LineChart.vue';
 import BarChart from '@/Components/charts/ChartJs/BarChart.vue';
@@ -33,17 +34,20 @@ const money = (v) => 'GHS ' + fmt.format(Number(v) || 0);
 const signClass = (v) => (Number(v) >= 0 ? 'text-emerald-600' : 'text-rose-600');
 
 const kpiCards = computed(() => [
-    { key: 'cash_position',       label: 'Cash Position',        signed: false },
-    { key: 'income_ytd',          label: 'Income YTD',           signed: false },
-    { key: 'expenditure_ytd',     label: 'Expenditure YTD',      signed: false },
-    { key: 'surplus_ytd',         label: 'Surplus YTD',          signed: true },
-    { key: 'ap_outstanding',      label: 'AP Outstanding',       signed: false },
-    { key: 'ar_outstanding',      label: 'AR Outstanding',       signed: false },
-    { key: 'budget_variance',     label: 'Budget Variance',      signed: true },
-    { key: 'latest_payroll_cost', label: 'Latest Payroll Cost',  signed: false },
+    { key: 'cash_position',       label: 'Cash Position',        signed: false, icon: 'account_balance_wallet', base: 'green'  },
+    { key: 'income_ytd',          label: 'Income YTD',           signed: false, icon: 'trending_up',            base: 'blue'   },
+    { key: 'expenditure_ytd',     label: 'Expenditure YTD',      signed: false, icon: 'trending_down',          base: 'amber'  },
+    { key: 'surplus_ytd',         label: 'Surplus YTD',          signed: true,  icon: 'savings',                base: 'navy'   },
+    { key: 'ap_outstanding',      label: 'AP Outstanding',       signed: false, icon: 'receipt_long',           base: 'red'    },
+    { key: 'ar_outstanding',      label: 'AR Outstanding',       signed: false, icon: 'request_page',           base: 'cyan'   },
+    { key: 'budget_variance',     label: 'Budget Variance',      signed: true,  icon: 'balance',                base: 'violet' },
+    { key: 'latest_payroll_cost', label: 'Latest Payroll Cost',  signed: false, icon: 'payments',              base: 'navy'   },
 ].map((c) => {
     const value = Number(props.kpis?.[c.key] ?? 0);
-    return { ...c, value, display: money(value), cls: c.signed ? signClass(value) : 'text-primary' };
+    // Signed KPIs (surplus, variance) carry meaning in their sign — colour the
+    // card green when in the black, red when negative; others keep a fixed hue.
+    const color = c.signed ? (value >= 0 ? 'green' : 'red') : c.base;
+    return { ...c, value, display: money(value), color };
 }));
 
 // ── chart palette ────────────────────────────────────────────────────────────
@@ -205,11 +209,8 @@ const downloadPng = (chartRef, name) => {
 
         <!-- KPI strip -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div v-for="c in kpiCards" :key="c.key"
-                 class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">{{ c.label }}</p>
-                <p class="mt-2 text-2xl font-black" :class="c.cls">{{ c.display }}</p>
-            </div>
+            <StatCard v-for="c in kpiCards" :key="c.key"
+                      :label="c.label" :value="c.display" :icon="c.icon" :color="c.color" />
         </div>
 
         <!-- Charts -->
