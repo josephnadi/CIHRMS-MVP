@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Finance\BulkStoreArInvoiceRequest;
 use App\Http\Requests\Finance\StoreArInvoiceRequest;
 use App\Http\Requests\Finance\UpdateArInvoiceRequest;
 use App\Http\Resources\Finance\ArInvoiceResource;
@@ -15,6 +16,7 @@ use App\Services\Finance\ArInvoiceService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -69,6 +71,27 @@ class ArInvoiceController extends Controller
             return back()->withErrors(['status' => $e->getMessage()]);
         }
         return back()->with('success', 'Invoice created — accrual journal posted.');
+    }
+
+    /** Create one draft invoice per selected customer, all sharing the same lines. */
+    public function bulkStore(BulkStoreArInvoiceRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $customerIds = $data['customer_ids'];
+        unset($data['customer_ids']);
+
+        try {
+            $count = DB::transaction(function () use ($customerIds, $data, $request) {
+                foreach ($customerIds as $customerId) {
+                    $this->service->create($data + ['customer_id' => $customerId], $request->user());
+                }
+                return count($customerIds);
+            });
+        } catch (DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+
+        return back()->with('success', "{$count} customer invoices created — accrual journals posted.");
     }
 
     public function update(UpdateArInvoiceRequest $request, ArInvoice $arInvoice): RedirectResponse

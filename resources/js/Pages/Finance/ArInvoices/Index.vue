@@ -126,6 +126,48 @@ const submit = () => {
     }
 };
 
+// ── Bulk create: one draft invoice per selected customer, all sharing lines ──
+const bulkOpen = ref(false);
+const bulkForm = useForm({
+    customer_ids: [],
+    invoice_date: new Date().toISOString().slice(0, 10),
+    due_date: '', currency: 'GHS', notes: '',
+    lines: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null }],
+});
+bulkForm.transform((data) => ({
+    ...data,
+    lines: (data.lines ?? []).map((l) => ({ ...l, tax_rate: (Number(l.tax_rate) || 0) / 100 })),
+}));
+
+const bulkPerInvoice = computed(() => {
+    const sub = bulkForm.lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_price) || 0), 0);
+    const tax = bulkForm.lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_price) || 0) * ((Number(l.tax_rate) || 0) / 100), 0);
+    return { subtotal: sub, tax, total: sub + tax };
+});
+const allCustomersSelected = computed(() => props.customers.length > 0 && bulkForm.customer_ids.length === props.customers.length);
+
+const toggleCustomer = (id) => {
+    const i = bulkForm.customer_ids.indexOf(id);
+    if (i === -1) bulkForm.customer_ids.push(id); else bulkForm.customer_ids.splice(i, 1);
+};
+const toggleAllCustomers = () => {
+    bulkForm.customer_ids = allCustomersSelected.value ? [] : props.customers.map((c) => c.id);
+};
+const bulkAddLine = () => bulkForm.lines.push({ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null });
+const bulkRemoveLine = (i) => { if (bulkForm.lines.length > 1) bulkForm.lines.splice(i, 1); };
+
+const openBulk = () => {
+    bulkForm.reset();
+    bulkForm.clearErrors();
+    bulkForm.customer_ids = [];
+    bulkForm.lines = [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0, gl_account_id: null }];
+    bulkOpen.value = true;
+};
+const bulkSubmit = () => bulkForm.post(route('finance.ar-invoices.bulk-store'), {
+    preserveScroll: true,
+    onSuccess: () => { bulkOpen.value = false; },
+});
+
 const submitForApproval = (inv) => router.post(route('finance.ar-invoices.submit', inv.id));
 const approve = (inv) => router.post(route('finance.ar-invoices.approve', inv.id));
 const cancel  = (inv) => {
@@ -160,9 +202,15 @@ const statusColor = (val) => ({
                 <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight">Customer Invoices</h1>
                 <p class="mt-1 text-[13px] font-medium text-on-surface-variant">{{ rows.length }} invoice{{ rows.length === 1 ? '' : 's' }} · accrual posts automatically.</p>
             </div>
-            <PrimaryButton v-if="canCreate" @click="openNew">
-                <span class="material-symbols-outlined text-[16px] mr-1">add</span>New Invoice
-            </PrimaryButton>
+            <div v-if="canCreate" class="flex items-center gap-2">
+                <button type="button" @click="openBulk"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[12px] font-bold text-on-surface-variant hover:border-secondary/40 transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">library_add</span>Bulk create
+                </button>
+                <PrimaryButton @click="openNew">
+                    <span class="material-symbols-outlined text-[16px] mr-1">add</span>New Invoice
+                </PrimaryButton>
+            </div>
         </div>
 
         <div class="flex flex-wrap gap-2 items-center">
@@ -324,5 +372,86 @@ const statusColor = (val) => ({
             @confirm="() => { showCreatedPrompt = false; openNew(); }"
             @cancel="() => { showCreatedPrompt = false; }"
         />
+
+        <!-- Bulk create: one draft invoice per selected customer, sharing the lines. -->
+        <SlidePanel :open="bulkOpen" @close="bulkOpen = false" title="Bulk create customer invoices">
+            <form @submit.prevent="bulkSubmit" class="space-y-4">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <InputLabel value="Customers" />
+                        <button type="button" @click="toggleAllCustomers" class="text-[11px] font-bold text-secondary hover:underline">
+                            {{ allCustomersSelected ? 'Clear all' : 'Select all' }}
+                        </button>
+                    </div>
+                    <div class="max-h-52 overflow-y-auto rounded-xl border border-outline-variant divide-y divide-outline-variant/40">
+                        <label v-for="c in customers" :key="c.id" class="flex items-center gap-2 px-3 py-2 text-[12px] cursor-pointer hover:bg-surface-container">
+                            <input type="checkbox" :checked="bulkForm.customer_ids.includes(c.id)" @change="toggleCustomer(c.id)" class="rounded border-outline-variant" />
+                            <span class="font-bold text-on-surface">{{ c.code }}</span>
+                            <span class="text-on-surface-variant">— {{ c.name }}</span>
+                        </label>
+                        <p v-if="!customers.length" class="px-3 py-4 text-[12px] text-on-surface-variant text-center">No customers available.</p>
+                    </div>
+                    <InputError :message="bulkForm.errors.customer_ids" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <InputLabel for="bulk_invoice_date" value="Invoice date" />
+                        <input id="bulk_invoice_date" v-model="bulkForm.invoice_date" type="date" aria-label="Invoice date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        <InputError :message="bulkForm.errors.invoice_date" />
+                    </div>
+                    <div>
+                        <InputLabel for="bulk_due_date" value="Due date" />
+                        <input id="bulk_due_date" v-model="bulkForm.due_date" type="date" aria-label="Due date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-[12px] font-black uppercase tracking-wider text-on-surface-variant">Lines (applied to every invoice)</p>
+                        <button type="button" @click="bulkAddLine" class="text-[11px] font-bold text-secondary hover:underline">+ Add line</button>
+                    </div>
+                    <div class="space-y-2">
+                        <div v-for="(line, i) in bulkForm.lines" :key="i" class="rounded-xl border border-outline-variant/50 p-3 space-y-2">
+                            <input v-model="line.description" type="text" placeholder="Description" aria-label="Line description" class="block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[12px]" />
+                            <InputError :message="bulkForm.errors[`lines.${i}.description`]" />
+                            <div class="grid grid-cols-4 gap-2">
+                                <input v-model.number="line.quantity" type="number" step="0.001" placeholder="Qty" aria-label="Quantity" class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
+                                <input v-model.number="line.unit_price" type="number" step="0.0001" placeholder="Unit price" aria-label="Unit price" class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
+                                <input v-model.number="line.tax_rate" type="number" step="0.01" min="0" max="100" placeholder="Tax %" aria-label="Tax percent" class="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-[12px]" />
+                                <button type="button" @click="bulkRemoveLine(i)" :disabled="bulkForm.lines.length === 1" class="text-[11px] font-bold text-rose-600 disabled:text-on-surface-variant/30">Remove</button>
+                            </div>
+                            <InputError :message="bulkForm.errors[`lines.${i}.tax_rate`]" />
+                            <select v-model="line.gl_account_id" aria-label="Income GL account" class="block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[12px]">
+                                <option :value="null">— Income GL —</option>
+                                <option v-for="a in incomeAccounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
+                            </select>
+                            <InputError :message="bulkForm.errors[`lines.${i}.gl_account_id`]" />
+                        </div>
+                    </div>
+                    <InputError :message="bulkForm.errors.lines" />
+                </div>
+
+                <div class="rounded-xl bg-surface-container p-3 text-[12px] space-y-1">
+                    <div class="flex justify-between"><span>Per invoice</span><span class="font-mono">{{ cedi(bulkPerInvoice.total) }}</span></div>
+                    <div class="flex justify-between font-black text-primary">
+                        <span>{{ bulkForm.customer_ids.length }} invoice{{ bulkForm.customer_ids.length === 1 ? '' : 's' }} · total</span>
+                        <span class="font-mono">{{ cedi(bulkPerInvoice.total * bulkForm.customer_ids.length) }}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <InputLabel for="bulk_notes" value="Notes (all invoices)" />
+                    <textarea id="bulk_notes" v-model="bulkForm.notes" rows="2" aria-label="Notes" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" @click="bulkOpen = false" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>
+                    <PrimaryButton type="submit" :disabled="bulkForm.processing || !bulkForm.customer_ids.length">
+                        Create {{ bulkForm.customer_ids.length || '' }} invoice{{ bulkForm.customer_ids.length === 1 ? '' : 's' }}
+                    </PrimaryButton>
+                </div>
+            </form>
+        </SlidePanel>
     </div>
 </template>
