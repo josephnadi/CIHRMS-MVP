@@ -63,7 +63,8 @@ const selectedDocId       = ref(null);
 const confirmDeleteDoc = (id) => { selectedDocId.value = id; showDeleteDocDialog.value = true; };
 const doDeleteDoc = () => {
     router.delete(route('employees.documents.destroy', [props.employee.id, selectedDocId.value]), {
-        onFinish: () => { showDeleteDocDialog.value = false; selectedDocId.value = null; },
+        preserveScroll: true,
+        onSuccess: () => { showDeleteDocDialog.value = false; selectedDocId.value = null; },
     });
 };
 

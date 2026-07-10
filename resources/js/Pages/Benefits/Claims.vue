@@ -39,7 +39,7 @@ const statusTone = {
     <div data-page-root="true">
         <div class="p-6 space-y-6 animate-reveal-up">
             <header>
-                <Link :href="route('benefits.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">â† My Benefits</Link>
+                <Link :href="route('benefits.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← My Benefits</Link>
                 <div class="flex items-center gap-2 mt-1 mb-1">
                     <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">request_quote</span>
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">Benefits administration · Approval queue</p>

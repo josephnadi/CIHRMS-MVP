@@ -361,7 +361,21 @@ html[data-theme="high-contrast"].dark {
     .chart-card__icon .material-symbols-outlined,
     .stat-card__icon .material-symbols-outlined,
     [class*="status-"] .material-symbols-outlined,
-    [class*="badge"] .material-symbols-outlined {
+    [class*="badge"] .material-symbols-outlined,
+    /* Semantic signal colours on an ancestor (danger / warning / success) must
+       reach the icon inside — an approve/reject/error/warning glyph keeps its
+       red/amber/green instead of taking the module accent. These substrings only
+       match colour utilities (text-rose-600, text-emerald-500…), never text
+       sizes (text-xl, text-[16px]). */
+    [class*="text-rose"] .material-symbols-outlined,
+    [class*="text-red"] .material-symbols-outlined,
+    [class*="text-orange"] .material-symbols-outlined,
+    [class*="text-amber"] .material-symbols-outlined,
+    [class*="text-yellow"] .material-symbols-outlined,
+    [class*="text-lime"] .material-symbols-outlined,
+    [class*="text-green"] .material-symbols-outlined,
+    [class*="text-emerald"] .material-symbols-outlined,
+    [class*="text-teal"] .material-symbols-outlined {
         color: inherit;
     }
 

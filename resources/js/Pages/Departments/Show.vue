@@ -65,7 +65,7 @@ const PORTALS = {
             { label: 'Campaign ROI',   val: '320%',  sub: 'YTD',           color: '#1a237e', icon: 'trending_up' },
             { label: 'Budget Used',    val: '74%',   sub: 'of GHS 2.4M',   color: '#1a237e', icon: 'pie_chart' },
             { label: 'Leads Generated',val: '2,847', sub: 'this quarter',  color: '#059669', icon: 'how_to_vote' },
-            { label: 'Conversion',     val: '5.2%',  sub: 'lead â†’ meeting',color: '#d97706', icon: 'percent' },
+            { label: 'Conversion',     val: '5.2%',  sub: 'lead → meeting',color: '#d97706', icon: 'percent' },
         ],
         sections: [
             { icon: 'rocket_launch', title: 'Active Campaigns', body: '3 institutional campaigns running. Top performer: "Charter Anniversary Series" — 1.2M impressions.' },

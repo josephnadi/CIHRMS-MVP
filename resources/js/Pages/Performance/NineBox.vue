@@ -29,7 +29,7 @@ watch(selectedCycle, (val) => {
     }, { preserveState: true, replace: true });
 });
 
-// Cells are returned ordered by service: potential (highâ†’low) × performance (lowâ†’high)
+// Cells are returned ordered by service: potential (high→low) × performance (low→high)
 const cells = computed(() => props.matrix?.cells ?? []);
 
 // ── Cell metadata ─────────────────────────────────────────────────────────────
@@ -112,8 +112,8 @@ const CELL_META = {
 const meta = (key) => CELL_META[key] ?? CELL_META.medium_medium;
 
 // ── Grid layout ───────────────────────────────────────────────────────────────
-// Rows: potential (high â†’ medium â†’ low)
-// Cols: performance (low â†’ medium â†’ high)
+// Rows: potential (high → medium → low)
+// Cols: performance (low → medium → high)
 const GRID_ROWS = ['high', 'medium', 'low'];
 const GRID_COLS = ['low', 'medium', 'high'];
 
@@ -267,7 +267,7 @@ const initials = (name) => {
                         <!-- Column headers: Performance axis -->
                         <div class="border-b border-outline-variant/40 bg-surface-container/40 px-5 py-3">
                             <p class="text-center text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant/60">
-                                Performance â†’
+                                Performance →
                             </p>
                         </div>
 
@@ -286,7 +286,7 @@ const initials = (name) => {
                                     <span class="text-[10px] font-black uppercase tracking-wider text-on-surface-variant/50">High</span>
                                 </div>
 
-                                <!-- 3 rows (potential: high â†’ medium â†’ low) -->
+                                <!-- 3 rows (potential: high → medium → low) -->
                                 <template v-for="(potRow, ri) in GRID_ROWS" :key="potRow">
                                     <!-- Y-axis potential label -->
                                     <div class="flex items-center justify-center">
@@ -379,7 +379,7 @@ const initials = (name) => {
                             <!-- Potential Y-axis label (vertical, below the grid rows label) -->
                             <div class="mt-3 flex justify-start pl-9">
                                 <p class="text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant/50">
-                                    â†‘ Potential
+                                    ↑ Potential
                                 </p>
                             </div>
                         </div>

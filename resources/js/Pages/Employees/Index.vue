@@ -170,10 +170,9 @@ const confirmDelete = (id, event) => {
 
 const doDelete = () => {
     router.delete(route('employees.destroy', selectedId.value), {
-        onFinish: () => {
-            showDeleteDialog.value = false;
-            selectedId.value = null;
-        },
+        preserveScroll: true,
+        // Close only on success — on failure keep the dialog so the flash error shows.
+        onSuccess: () => { showDeleteDialog.value = false; selectedId.value = null; },
     });
 };
 

@@ -10,7 +10,7 @@ import GlossaryText from '@/Components/GlossaryText.vue';
 defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     case:         Object, // OffboardingCaseResource (possibly wrapped in { data: … })
-    clearance:    Object, // keyed by area value â†’ ClearanceItemResource collection
+    clearance:    Object, // keyed by area value → ClearanceItemResource collection
     settlement:   Object, // FinalSettlementResource or null
     activeModule: String,
 });

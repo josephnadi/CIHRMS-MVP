@@ -412,7 +412,7 @@ const editionLabel = computed(() => {
                                 <p class="mt-0.5 text-[11px] text-on-surface-variant">Service desk activity, monthly</p>
                             </div>
                             <Link :href="route('tickets.index')" class="text-[11px] font-semibold text-secondary hover:underline">
-                                View tickets â†’
+                                View tickets →
                             </Link>
                         </div>
 
@@ -475,7 +475,7 @@ const editionLabel = computed(() => {
                                 <p class="mt-0.5 text-[11px] text-on-surface-variant">Monthly requests, trailing 12 months</p>
                             </div>
                             <Link :href="route('leave.index')" class="text-[11px] font-semibold text-secondary hover:underline">
-                                View leave â†’
+                                View leave →
                             </Link>
                         </div>
 

@@ -1865,7 +1865,7 @@ const moduleLabel = computed(() => {
                                     </div>
                                     <div class="border-t border-outline-variant bg-surface-container-lowest px-7 py-4 flex items-center justify-between">
                                         <p class="text-xs font-bold text-on-surface-variant">Showing {{ employees.length }} of {{ stats.employees || 0 }} employees</p>
-                                        <Link :href="route('employees.index')" class="text-xs font-black text-secondary hover:underline">View Full Directory â†’</Link>
+                                        <Link :href="route('employees.index')" class="text-xs font-black text-secondary hover:underline">View Full Directory →</Link>
                                     </div>
                                 </div>
 

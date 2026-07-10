@@ -194,11 +194,9 @@ function submitAction() {
         { status: actionType.value, comment: actionComment.value },
         {
             preserveState: false,
-            onFinish: () => {
-                actionLoading.value   = false;
-                showActionModal.value = false;
-                actionTarget.value    = null;
-            },
+            // Close only on success; on failure keep the modal open so the error shows.
+            onSuccess: () => { showActionModal.value = false; actionTarget.value = null; },
+            onFinish:  () => { actionLoading.value = false; },
         }
     );
 }
