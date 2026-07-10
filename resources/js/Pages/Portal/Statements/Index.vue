@@ -8,6 +8,8 @@ defineProps({
     invoices: { type: Array, default: () => [] },
     receipts: { type: Array, default: () => [] },
 });
+
+const money = (v) => Number(v || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 </script>
 
 <template>
@@ -36,8 +38,8 @@ defineProps({
                 <tr v-for="i in invoices" :key="i.reference" class="border-t border-outline-variant/40">
                     <td class="px-6 py-2 font-mono text-xs">{{ i.reference }}</td>
                     <td class="px-6 py-2">{{ i.invoice_date }}</td>
-                    <td class="px-6 py-2 tabular-nums">{{ i.currency }} {{ i.total.toFixed(2) }}</td>
-                    <td class="px-6 py-2 tabular-nums">{{ i.currency }} {{ i.amount_received.toFixed(2) }}</td>
+                    <td class="px-6 py-2 tabular-nums">{{ i.currency }} {{ money(i.total) }}</td>
+                    <td class="px-6 py-2 tabular-nums">{{ i.currency }} {{ money(i.amount_received) }}</td>
                     <td class="px-6 py-2 capitalize text-xs">{{ i.status.replace('_', ' ') }}</td>
                 </tr>
             </tbody>
@@ -63,7 +65,7 @@ defineProps({
                 <tr v-for="r in receipts" :key="r.reference" class="border-t border-outline-variant/40">
                     <td class="px-6 py-2 font-mono text-xs">{{ r.reference }}</td>
                     <td class="px-6 py-2">{{ r.receipt_date }}</td>
-                    <td class="px-6 py-2 tabular-nums">{{ r.currency }} {{ r.amount.toFixed(2) }}</td>
+                    <td class="px-6 py-2 tabular-nums">{{ r.currency }} {{ money(r.amount) }}</td>
                     <td class="px-6 py-2 font-mono text-[10px]">{{ r.external_ref ?? '—' }}</td>
                     <td class="px-6 py-2 capitalize text-xs">{{ r.status }}</td>
                 </tr>

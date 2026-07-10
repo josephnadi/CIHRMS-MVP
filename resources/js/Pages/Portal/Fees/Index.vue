@@ -8,6 +8,8 @@ const props = defineProps({
     invoices: { type: Object, required: true },
 });
 
+const money = (v) => Number(v || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const payForm = useForm({});
 function pay(invoiceId) {
     payForm.post(route('portal.fees.pay', invoiceId));
@@ -41,9 +43,9 @@ const isPayable = (status) => ['approved', 'partially_paid'].includes(status);
                 <tr v-for="inv in invoices.data" :key="inv.id" class="border-t border-outline-variant/40">
                     <td class="px-4 py-2 font-mono text-xs">{{ inv.reference }}</td>
                     <td class="px-4 py-2">{{ inv.invoice_date }}</td>
-                    <td class="px-4 py-2 tabular-nums">{{ inv.currency }} {{ inv.total.toFixed(2) }}</td>
-                    <td class="px-4 py-2 tabular-nums">{{ inv.currency }} {{ inv.amount_received.toFixed(2) }}</td>
-                    <td class="px-4 py-2 tabular-nums font-semibold">{{ inv.currency }} {{ inv.outstanding.toFixed(2) }}</td>
+                    <td class="px-4 py-2 tabular-nums">{{ inv.currency }} {{ money(inv.total) }}</td>
+                    <td class="px-4 py-2 tabular-nums">{{ inv.currency }} {{ money(inv.amount_received) }}</td>
+                    <td class="px-4 py-2 tabular-nums font-semibold">{{ inv.currency }} {{ money(inv.outstanding) }}</td>
                     <td class="px-4 py-2 capitalize text-xs">{{ inv.status.replace('_', ' ') }}</td>
                     <td class="px-4 py-2 text-right">
                         <button v-if="isPayable(inv.status)"

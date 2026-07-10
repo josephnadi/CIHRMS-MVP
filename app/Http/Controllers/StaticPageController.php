@@ -64,6 +64,24 @@ class StaticPageController extends Controller
             ? Department::with('head:id,name')->where('code', $code)->first()
             : null;
 
+        // Real roster + headcount for the department (the KPI/section fabrications
+        // the page used to show are replaced by these live figures).
+        $members = collect();
+        $headcount = 0;
+        if ($department) {
+            $employees = \App\Models\Employee::query()
+                ->where('department_id', $department->id)
+                ->where('status', 'active')
+                ->with('user:id,name')
+                ->orderBy('position')
+                ->get(['id', 'user_id', 'position', 'employee_no', 'department_id']);
+            $headcount = $employees->count();
+            $members = $employees->take(24)->map(fn ($e) => [
+                'name'     => $e->user?->name ?? $e->employee_no,
+                'position' => $e->position,
+            ])->values();
+        }
+
         return Inertia::render('Departments/Show', [
             'slug'         => $slug,
             'department'   => $department ? [
@@ -72,6 +90,8 @@ class StaticPageController extends Controller
                 'code' => $department->code,
                 'head' => $department->head ? ['id' => $department->head->id, 'name' => $department->head->name] : null,
             ] : null,
+            'headcount'    => $headcount,
+            'members'      => $members,
             'activeModule' => 'dept-' . $slug,
         ]);
     }

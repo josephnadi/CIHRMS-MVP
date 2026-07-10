@@ -36,7 +36,7 @@ const props = defineProps({
                             <td class="p-4 font-mono">{{ a.asset?.asset_tag ?? '—' }}</td>
                             <td>{{ a.asset?.name ?? '' }}</td>
                             <td class="text-xs">{{ new Date(a.assigned_at).toLocaleDateString() }}</td>
-                            <td class="text-xs">{{ a.due_back_at ?? 'open-ended' }}</td>
+                            <td class="text-xs">{{ a.due_back_at ? new Date(a.due_back_at).toLocaleDateString() : 'open-ended' }}</td>
                             <td class="text-xs text-on-surface-variant">{{ a.assigned_by ?? '' }}</td>
                         </tr>
                     </tbody>
