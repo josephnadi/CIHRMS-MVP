@@ -97,7 +97,7 @@ const submitSkill = () => {
 };
 
 // ── Cell level rendering ──────────────────────────────────────────────────────
-// Numeric level 1-5 (from skills relation) â†’ colour intensity using cobalt
+// Numeric level 1-5 (from skills relation) → colour intensity using cobalt
 const numericLevel = (val) => {
     // Accept both string labels and numbers
     const map = { beginner: 1, novice: 1, intermediate: 2, proficient: 3, advanced: 4, expert: 5 };

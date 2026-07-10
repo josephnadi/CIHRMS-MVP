@@ -130,7 +130,7 @@ const whatsappBlocked = computed(() => form.preferences.whatsapp && (!form.whats
                         <div>
                             <h3 class="text-[14px] font-black text-on-surface">Slack workspace identity</h3>
                             <p class="text-[12px] text-on-surface-variant">
-                                Paste your Slack member id (starts with <code class="font-mono">U</code>). Find it in your Slack profile menu â†’ "Copy member ID". Without it, Slack notifications fall back to the default HR channel.
+                                Paste your Slack member id (starts with <code class="font-mono">U</code>). Find it in your Slack profile menu → "Copy member ID". Without it, Slack notifications fall back to the default HR channel.
                             </p>
                         </div>
                     </div>

@@ -497,7 +497,7 @@ const hasEmployee = computed(() => !!emp.value);
                 <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
                     <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
                         <h3 class="text-[14px] font-bold text-on-surface">Recent Requests</h3>
-                        <Link :href="route('leave.index')" class="text-[12px] font-bold text-secondary hover:underline">All requests â†’</Link>
+                        <Link :href="route('leave.index')" class="text-[12px] font-bold text-secondary hover:underline">All requests →</Link>
                     </div>
                     <ul v-if="recentLeave?.length" class="divide-y divide-outline-variant/30">
                         <li v-for="lr in recentLeave" :key="lr.id"
@@ -510,7 +510,7 @@ const hasEmployee = computed(() => !!emp.value);
                                 </div>
                                 <div>
                                     <p class="text-[13.5px] font-bold text-on-surface">{{ lr.type_label ?? lr.type }}</p>
-                                    <p class="text-[11.5px] text-on-surface-variant/65">{{ fmt(lr.start_date) }} â†’ {{ fmt(lr.end_date) }}</p>
+                                    <p class="text-[11.5px] text-on-surface-variant/65">{{ fmt(lr.start_date) }} → {{ fmt(lr.end_date) }}</p>
                                 </div>
                             </div>
                             <StatusBadge :status="lr.status" type="leave" />
@@ -705,7 +705,7 @@ const hasEmployee = computed(() => !!emp.value);
             <div v-if="activeTab === 'tickets'" class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-card overflow-hidden">
                 <div class="flex items-center justify-between border-b border-outline-variant/40 px-5 py-4">
                     <h3 class="text-[14px] font-bold text-on-surface">My Service Tickets</h3>
-                    <Link :href="route('tickets.index')" class="text-[12px] font-bold text-secondary hover:underline">All tickets â†’</Link>
+                    <Link :href="route('tickets.index')" class="text-[12px] font-bold text-secondary hover:underline">All tickets →</Link>
                 </div>
                 <ul v-if="recentTickets?.length" class="divide-y divide-outline-variant/30">
                     <li v-for="t in recentTickets" :key="t.id"

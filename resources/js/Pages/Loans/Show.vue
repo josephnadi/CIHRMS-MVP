@@ -63,7 +63,10 @@ const repayPct = computed(() => {
 const decideForm  = useForm({ decision: 'approve', reason: '' });
 const showReject  = ref(false);
 
-const approve = () => decideForm.post(route('loans.decide', L.value.id), { preserveScroll: true });
+const approve = () => {
+    decideForm.decision = 'approve'; // reset in case a prior reject left it 'reject'
+    decideForm.post(route('loans.decide', L.value.id), { preserveScroll: true });
+};
 const reject  = () => {
     decideForm.decision = 'reject';
     decideForm.post(route('loans.decide', L.value.id), {

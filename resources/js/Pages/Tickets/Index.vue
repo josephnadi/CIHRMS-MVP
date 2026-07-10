@@ -934,7 +934,7 @@ const ops = computed(() => {
                                                 <dd class="tk-field__value tabular-nums"
                                                     :class="item.is_overdue ? 'text-red-600 font-black' : ''">
                                                     <span v-if="item.due_at" class="inline-flex items-center gap-1">
-                                                        <span v-if="item.is_overdue" class="material-symbols-outlined text-[13px] tk-overdue">warning</span>
+                                                        <span v-if="item.is_overdue" class="material-symbols-outlined text-[13px] text-rose-500 tk-overdue">warning</span>
                                                         {{ formatDate(item.due_at) }}
                                                     </span>
                                                     <span v-else class="text-on-surface-variant/50">—</span>

@@ -65,7 +65,7 @@ const statusCls = {
         <div class="p-6 space-y-6 animate-reveal-up">
             <header class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('assets.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">â† All Assets</Link>
+                    <Link :href="route('assets.index')" class="text-xs font-bold text-on-surface-variant hover:text-primary">← All Assets</Link>
                     <h1 class="text-[1.6rem] font-black tracking-tight text-primary mt-1">{{ asset.asset_tag }} — {{ asset.name }}</h1>
                     <p class="text-sm text-on-surface-variant">{{ asset.brand }} {{ asset.model }} · {{ asset.category }} · S/N {{ asset.serial_number ?? '—' }}</p>
                 </div>

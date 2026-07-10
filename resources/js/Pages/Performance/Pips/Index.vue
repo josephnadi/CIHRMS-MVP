@@ -321,7 +321,7 @@ const outcomeMix = computed(() => {
                             <div class="flex items-center gap-2 text-[11px] text-on-surface-variant mb-3">
                                 <span class="material-symbols-outlined text-[14px]">date_range</span>
                                 <span>{{ formatDate(pip.opened_on) }}</span>
-                                <span class="text-on-surface-variant/40">â†’</span>
+                                <span class="text-on-surface-variant/40">→</span>
                                 <span :class="isPastDue(pip) ? 'font-bold text-rose-600' : ''">{{ formatDate(pip.target_end_date) }}</span>
                                 <span v-if="isPastDue(pip)" class="inline-flex items-center gap-0.5 rounded-md bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-rose-600">
                                     <span class="material-symbols-outlined text-[11px]">schedule</span>

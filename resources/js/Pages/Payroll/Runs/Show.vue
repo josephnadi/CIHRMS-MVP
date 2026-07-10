@@ -57,7 +57,7 @@ const submitFiled = (rt) => fileForm.post(
             <Teleport to="#page-header-mount" defer>
                 <div class="flex items-center justify-between">
                     <div>
-                        <Link :href="route('payroll-runs.index')" class="text-xs text-slate-500 hover:underline">â† All runs</Link>
+                        <Link :href="route('payroll-runs.index')" class="text-xs text-slate-500 hover:underline">← All runs</Link>
                         <div class="flex items-center gap-2 mt-1 mb-1">
                             <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1">receipt_long</span>
                             <p class="text-[10px] font-black uppercase tracking-[0.18em] text-secondary/80">{{ R.period_label }} · {{ R.department?.name ?? 'Whole organization' }}</p>

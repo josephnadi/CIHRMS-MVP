@@ -38,7 +38,7 @@ const statusToneClass = (statusValue) => ({
         <header class="border-b border-outline-variant/40">
             <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
                 <h1 class="text-base font-bold tracking-tight">CIHRM Confidential Disclosure</h1>
-                <Link :href="route('whistleblower.track')" class="text-sm text-secondary hover:underline">Different code â†’</Link>
+                <Link :href="route('whistleblower.track')" class="text-sm text-secondary hover:underline">Different code →</Link>
             </div>
         </header>
 
