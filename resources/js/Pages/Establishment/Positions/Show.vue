@@ -99,7 +99,7 @@ const pastAssignments = computed(() =>
                         <td class="px-4 py-2.5 font-mono text-on-surface-variant">{{ a.employee_no ?? '—' }}</td>
                         <td class="px-4 py-2.5 text-on-surface-variant">{{ a.start_date ?? '—' }}</td>
                         <td class="px-4 py-2.5">
-                            <span v-if="a.is_acting" class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[10px] font-black uppercase">Acting</span>
+                            <span v-if="a.is_acting" class="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 px-2 py-0.5 text-[10px] font-black uppercase">Acting</span>
                             <span v-else class="text-on-surface-variant text-[11px]">Substantive</span>
                         </td>
                         <td class="px-4 py-2.5 text-on-surface-variant text-[11px]">{{ a.reason ?? '—' }}</td>
@@ -130,7 +130,7 @@ const pastAssignments = computed(() =>
                         <td class="px-4 py-2.5 text-on-surface-variant text-[11px]">{{ a.start_date ?? '—' }}</td>
                         <td class="px-4 py-2.5 text-on-surface-variant text-[11px]">{{ a.end_date }}</td>
                         <td class="px-4 py-2.5">
-                            <span v-if="a.is_acting" class="text-[11px] text-amber-700">Acting</span>
+                            <span v-if="a.is_acting" class="text-[11px] text-amber-700 dark:text-amber-400">Acting</span>
                             <span v-else class="text-[11px] text-on-surface-variant">Substantive</span>
                         </td>
                     </tr>

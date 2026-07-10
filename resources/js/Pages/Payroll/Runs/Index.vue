@@ -105,10 +105,10 @@ const submit = () => form.post(route('payroll-runs.store'), {
 
             <div class="space-y-6 py-6">
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
-                    <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
+                <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/60">
+                    <div class="px-5 py-4 border-b border-outline-variant/60 flex flex-wrap gap-3 items-center">
                         <select aria-label="Status" v-model="localFilters.status" @change="applyFilters"
-                                class="rounded-lg border-slate-200 text-sm">
+                                class="rounded-lg border-outline-variant text-sm">
                             <option value="">All statuses</option>
                             <option value="draft">Draft</option>
                             <option value="calculated">Calculated</option>
@@ -117,7 +117,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
                             <option value="reversed">Reversed</option>
                         </select>
                         <input aria-label="Year" v-model="localFilters.year" @change="applyFilters" type="number"
-                               placeholder="Year" class="rounded-lg border-slate-200 text-sm w-24">
+                               placeholder="Year" class="rounded-lg border-outline-variant text-sm w-24">
                     </div>
 
                     <div v-if="runs?.data?.length === 0">
@@ -126,7 +126,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
                     </div>
 
                     <table v-else class="w-full text-sm">
-                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                        <thead class="bg-surface-container-lowest text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">Reference</th>
                                 <th class="px-5 py-3 text-left">Period</th>
@@ -138,15 +138,15 @@ const submit = () => form.post(route('payroll-runs.store'), {
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr v-for="r in runs.data" :key="r.id" class="hover:bg-slate-50">
+                        <tbody class="divide-y divide-outline-variant/40">
+                            <tr v-for="r in runs.data" :key="r.id" class="hover:bg-surface-container-low">
                                 <td class="px-5 py-3 font-mono text-xs">{{ r.reference }}</td>
                                 <td class="px-5 py-3">{{ r.period_label }}</td>
                                 <td class="px-5 py-3">{{ r.department?.name ?? 'Whole organization' }}</td>
                                 <td class="px-5 py-3">
                                     <StatusBadge :status="r.status" :label="r.status_label" />
                                 </td>
-                                <td class="px-5 py-3 text-right">{{ r.lines_count }} <span class="text-slate-400 text-xs" v-if="r.skipped_count">+{{ r.skipped_count }} skipped</span></td>
+                                <td class="px-5 py-3 text-right">{{ r.lines_count }} <span class="text-on-surface-variant/60 text-xs" v-if="r.skipped_count">+{{ r.skipped_count }} skipped</span></td>
                                 <td class="px-5 py-3 text-right">{{ cedi(r.totals.gross) }}</td>
                                 <td class="px-5 py-3 text-right">{{ cedi(r.totals.net) }}</td>
                                 <td class="px-5 py-3 text-right">
@@ -157,7 +157,7 @@ const submit = () => form.post(route('payroll-runs.store'), {
                         </tbody>
                     </table>
 
-                    <div class="px-5 py-3 border-t border-slate-100">
+                    <div class="px-5 py-3 border-t border-outline-variant/60">
                         <Pagination :links="runs?.meta?.links ?? []" />
                     </div>
                 </div>
@@ -166,18 +166,18 @@ const submit = () => form.post(route('payroll-runs.store'), {
             <SlidePanel :open="showPanel" @close="showPanel = false" title="Create payroll run">
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Year</label>
-                        <input v-model="form.period_year" aria-label="Payroll period year" type="number" class="w-full rounded-lg border-slate-200" required>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Year</label>
+                        <input v-model="form.period_year" aria-label="Payroll period year" type="number" class="w-full rounded-lg border-outline-variant" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Month</label>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Month</label>
                         <input aria-label="Month" v-model="form.period_month" type="number" min="1" max="12"
-                               class="w-full rounded-lg border-slate-200" required>
+                               class="w-full rounded-lg border-outline-variant" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Reason (optional)</label>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Reason (optional)</label>
                         <textarea aria-label="Reason (optional)" v-model="form.reason" rows="3"
-                                  class="w-full rounded-lg border-slate-200"></textarea>
+                                  class="w-full rounded-lg border-outline-variant"></textarea>
                     </div>
                     <PrimaryButton type="submit" :disabled="form.processing">Create draft</PrimaryButton>
                 </form>

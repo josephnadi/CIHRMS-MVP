@@ -93,7 +93,8 @@ const typeLabel = {
             </header>
 
             <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
-                <table v-if="props.plans.data?.length" class="w-full text-sm">
+                <div v-if="props.plans.data?.length" class="overflow-x-auto">
+                <table class="w-full text-sm">
                     <thead class="border-b border-outline-variant"><tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest">
                         <th class="p-4">Code</th><th>Name</th><th>Type</th><th>Provider</th><th>Monthly</th><th>Cover %</th><th>Max Dep.</th><th>Status</th><th class="pr-4 text-right">Actions</th>
                     </tr></thead>
@@ -106,7 +107,7 @@ const typeLabel = {
                             <td class="font-mono">GHS {{ Number(p.monthly_cost).toFixed(2) }}</td>
                             <td class="text-xs">{{ p.employee_contribution_percentage }}%</td>
                             <td class="text-xs">{{ p.max_dependants }}</td>
-                            <td><span v-if="p.is_active" class="text-[10px] font-bold text-emerald-700">ACTIVE</span><span v-else class="text-[10px] font-bold text-on-surface-variant">inactive</span></td>
+                            <td><span v-if="p.is_active" class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">ACTIVE</span><span v-else class="text-[10px] font-bold text-on-surface-variant">inactive</span></td>
                             <td class="pr-4 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center gap-1">
                                     <button type="button" @click="openEdit(p)"
@@ -115,7 +116,7 @@ const typeLabel = {
                                         <span class="material-symbols-outlined text-[15px]">edit</span>
                                     </button>
                                     <button type="button" @click="deletePlan(p)"
-                                            class="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant/70 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                                            class="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant/70 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                                             title="Delete plan" aria-label="Delete plan">
                                         <span class="material-symbols-outlined text-[15px]">delete</span>
                                     </button>
@@ -124,6 +125,7 @@ const typeLabel = {
                         </tr>
                     </tbody>
                 </table>
+                </div>
                 <EmptyState v-else title="No plans defined yet." class="py-12" />
             </section>
         </div>

@@ -31,10 +31,10 @@ const act = (period, action) => {
 };
 
 const statusChip = (status) => ({
-    open:   'bg-emerald-500/15 text-emerald-300',
-    closed: 'bg-amber-500/15 text-amber-300',
-    locked: 'bg-slate-500/20 text-slate-300',
-}[status.value] ?? 'bg-slate-500/20 text-slate-300');
+    open:   'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+    closed: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+    locked: 'bg-slate-500/20 text-slate-600 dark:text-slate-300',
+}[status.value] ?? 'bg-slate-500/20 text-slate-600 dark:text-slate-300');
 </script>
 
 <template>
@@ -62,7 +62,7 @@ const statusChip = (status) => ({
                      :class="r.in_balance ? '' : 'border-amber-500/50'">
                     <p class="text-[11px] font-bold text-on-surface-variant">{{ r.subledger }} <span class="opacity-60">({{ r.gl_code }})</span></p>
                     <p class="mt-1 text-sm text-primary">Subledger {{ Number(r.subledger_total).toFixed(2) }} · GL {{ Number(r.gl_balance).toFixed(2) }}</p>
-                    <p class="mt-0.5 text-[11px]" :class="r.in_balance ? 'text-emerald-300' : 'text-amber-300 font-bold'">
+                    <p class="mt-0.5 text-[11px]" :class="r.in_balance ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400 font-bold'">
                         {{ r.in_balance ? 'In balance' : 'Variance ' + Number(r.variance).toFixed(2) }}
                     </p>
                 </div>
@@ -84,11 +84,11 @@ const statusChip = (status) => ({
                     </span>
 
                     <button v-if="period.status.value === 'open' && can('finance.period.close')"
-                            class="text-amber-300 text-sm hover:underline" @click="act(period, 'close')">Close</button>
+                            class="text-amber-700 dark:text-amber-400 text-sm hover:underline" @click="act(period, 'close')">Close</button>
                     <button v-if="period.status.value === 'closed' && can('finance.period.reopen')"
-                            class="text-emerald-300 text-sm hover:underline" @click="act(period, 'reopen')">Reopen</button>
+                            class="text-emerald-700 dark:text-emerald-400 text-sm hover:underline" @click="act(period, 'reopen')">Reopen</button>
                     <button v-if="period.status.value === 'closed' && can('finance.period.lock')"
-                            class="text-slate-300 text-sm hover:underline" @click="act(period, 'lock')">Lock</button>
+                            class="text-slate-600 dark:text-slate-300 text-sm hover:underline" @click="act(period, 'lock')">Lock</button>
                 </div>
             </div>
         </div>

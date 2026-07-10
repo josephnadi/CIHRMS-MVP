@@ -135,13 +135,13 @@ const dayBg = (cell) => {
         return 'bg-surface-container-low text-on-surface-variant/40';
     }
     return {
-        present:  'bg-emerald-50 text-emerald-800',
-        late:     'bg-amber-50  text-amber-800',
-        half_day: 'bg-amber-50  text-amber-800',
-        absent:   'bg-rose-50   text-rose-700',
-        on_leave: 'bg-violet-50 text-violet-700',
-        holiday:  'bg-violet-50 text-violet-700',
-        weekend:  'bg-slate-50  text-slate-400',
+        present:  'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300',
+        late:     'bg-amber-50  dark:bg-amber-900/20  text-amber-800 dark:text-amber-300',
+        half_day: 'bg-amber-50  dark:bg-amber-900/20  text-amber-800 dark:text-amber-300',
+        absent:   'bg-rose-50   dark:bg-rose-900/20   text-rose-700 dark:text-rose-300',
+        on_leave: 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300',
+        holiday:  'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300',
+        weekend:  'bg-slate-50  dark:bg-slate-800/40  text-slate-400 dark:text-slate-500',
     }[status] ?? 'bg-surface-container-low text-on-surface-variant';
 };
 
@@ -157,13 +157,13 @@ const formatDate = (d) => {
 };
 
 const statusToneClass = (s) => ({
-    present:  'bg-emerald-100 text-emerald-800',
-    late:     'bg-amber-100   text-amber-800',
-    half_day: 'bg-amber-100   text-amber-800',
-    absent:   'bg-rose-100    text-rose-700',
-    on_leave: 'bg-violet-100  text-violet-700',
-    holiday:  'bg-violet-100  text-violet-700',
-    weekend:  'bg-slate-100   text-slate-500',
+    present:  'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300',
+    late:     'bg-amber-100   dark:bg-amber-900/30   text-amber-800 dark:text-amber-300',
+    half_day: 'bg-amber-100   dark:bg-amber-900/30   text-amber-800 dark:text-amber-300',
+    absent:   'bg-rose-100    dark:bg-rose-900/30    text-rose-700 dark:text-rose-300',
+    on_leave: 'bg-violet-100  dark:bg-violet-900/30  text-violet-700 dark:text-violet-300',
+    holiday:  'bg-violet-100  dark:bg-violet-900/30  text-violet-700 dark:text-violet-300',
+    weekend:  'bg-slate-100   dark:bg-slate-800/50   text-slate-500 dark:text-slate-400',
 }[s] ?? 'bg-surface-container text-on-surface-variant');
 
 const attendancePct = computed(() => {

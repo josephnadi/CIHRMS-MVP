@@ -132,13 +132,13 @@ const tone = (status) => ({
 
                 <!-- Search -->
                 <div class="flex items-center gap-3">
-                    <input aria-label="Q" v-model="q" @keyup.enter="search" placeholder="Search title or ref no…"
+                    <input aria-label="Search documents" v-model="q" @keyup.enter="search" placeholder="Search title or ref no…"
                            class="flex-1 max-w-md rounded-xl border border-outline-variant bg-surface-container-lowest text-[13px] px-3 py-2 font-semibold" />
                     <button @click="search" class="rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[12px] font-black">Search</button>
                 </div>
 
                 <!-- List -->
-                <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest overflow-hidden">
+                <div class="rounded-2xl border border-outline-variant/50 bg-surface-container-lowest overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="border-b border-outline-variant">
                             <tr class="text-left text-[10px] font-black uppercase tracking-widest text-on-surface-variant">

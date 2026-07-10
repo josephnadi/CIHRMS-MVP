@@ -96,15 +96,15 @@ const claimsBreakdown = computed(() => {
 
 // ── Status pill tones ──
 const statusTone = {
-    active:     'bg-emerald-50 text-emerald-700 border-emerald-200',
-    suspended:  'bg-amber-50 text-amber-700 border-amber-200',
-    terminated: 'bg-rose-50 text-rose-700 border-rose-200',
-    submitted:  'bg-blue-50 text-blue-700 border-blue-200',
-    reviewing:  'bg-amber-50 text-amber-700 border-amber-200',
-    approved:   'bg-emerald-50 text-emerald-700 border-emerald-200',
-    rejected:   'bg-rose-50 text-rose-700 border-rose-200',
-    paid:       'bg-sky-50 text-sky-700 border-sky-200',
-    withdrawn:  'bg-slate-50 text-slate-600 border-slate-200',
+    active:     'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40',
+    suspended:  'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/40',
+    terminated: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/40',
+    submitted:  'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/40',
+    reviewing:  'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/40',
+    approved:   'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40',
+    rejected:   'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/40',
+    paid:       'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800/40',
+    withdrawn:  'bg-slate-50 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/40',
 };
 const statusDot = {
     active: '#16a34a', suspended: '#d97706', terminated: '#dc2626',
@@ -497,12 +497,12 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
 
                             <div class="mt-4 flex flex-wrap gap-2 pt-3 border-t border-outline-variant/40">
                                 <a :href="route('benefits.e-card', e.id)"
-                                   class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide hover:bg-emerald-100 transition-colors">
+                                   class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors">
                                     <span class="material-symbols-outlined text-[13px]">download</span>
                                     E-card
                                 </a>
                                 <button v-if="e.status === 'active'" @click="openClaim(e)" type="button"
-                                        class="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200 bg-cyan-50 text-cyan-800 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide hover:bg-cyan-100 transition-colors">
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200 dark:border-cyan-800/40 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-400 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors">
                                     <span class="material-symbols-outlined text-[13px]">receipt_long</span>
                                     Submit claim
                                 </button>
@@ -519,7 +519,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-[16px] text-secondary">family_restroom</span>
                             <span class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">My dependants</span>
-                            <span class="rounded-full bg-cyan-50 border border-cyan-200 px-2 py-0.5 text-[10px] font-black text-cyan-700">{{ stats.dependants }}</span>
+                            <span class="rounded-full bg-cyan-50 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-800/40 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-400">{{ stats.dependants }}</span>
                         </div>
                         <button v-if="canEnrol" @click="openAddDependant" type="button"
                                 class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-primary hover:bg-surface-container-low transition-colors">
@@ -534,7 +534,8 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                     icon="family_restroom" />
                     </div>
 
-                    <table v-else class="w-full text-sm">
+                    <div v-else class="overflow-x-auto">
+                    <table class="w-full text-sm">
                         <thead>
                             <tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest bg-surface-container-low/20">
                                 <th class="p-3 pl-6">Name</th>
@@ -552,7 +553,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                 <td class="p-3 text-[12px]">{{ fmtDate(d.date_of_birth) }}</td>
                                 <td class="p-3 text-[12px] font-mono text-on-surface-variant">{{ d.national_id ?? '—' }}</td>
                                 <td class="p-3 text-center">
-                                    <span v-if="d.is_covered" class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">
+                                    <span v-if="d.is_covered" class="inline-flex items-center gap-1 rounded-full border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                         Covered
                                     </span>
@@ -560,13 +561,14 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                 </td>
                                 <td v-if="canEnrol" class="p-3 pr-6 text-right whitespace-nowrap">
                                     <button @click="openEditDependant(d)" type="button"
-                                            class="text-[11px] font-black uppercase tracking-wide text-blue-700 hover:underline">Edit</button>
+                                            class="text-[11px] font-black uppercase tracking-wide text-blue-700 dark:text-blue-400 hover:underline">Edit</button>
                                     <button @click="deleteDependant(d)" type="button"
-                                            class="ml-3 text-[11px] font-black uppercase tracking-wide text-rose-600 hover:underline">Delete</button>
+                                            class="ml-3 text-[11px] font-black uppercase tracking-wide text-rose-600 dark:text-rose-400 hover:underline">Delete</button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </section>
 
@@ -587,7 +589,8 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                     icon="receipt_long" />
                     </div>
 
-                    <table v-else class="w-full text-sm">
+                    <div v-else class="overflow-x-auto">
+                    <table class="w-full text-sm">
                         <thead>
                             <tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest bg-surface-container-low/20">
                                 <th class="p-3 pl-6">Reference</th>
@@ -622,7 +625,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                                             {{ expandedClaimId === c.id ? 'Hide' : 'Details' }}
                                         </button>
                                         <button v-if="canWithdraw(c)" @click.stop="withdrawClaim(c)" type="button"
-                                                class="ml-3 text-[11px] font-black uppercase tracking-wide text-rose-600 hover:underline">Withdraw</button>
+                                                class="ml-3 text-[11px] font-black uppercase tracking-wide text-rose-600 dark:text-rose-400 hover:underline">Withdraw</button>
                                     </td>
                                 </tr>
                                 <tr v-if="expandedClaimId === c.id" class="bg-surface-container-low/40">
@@ -648,6 +651,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-dig
                             </template>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </section>
         </div>

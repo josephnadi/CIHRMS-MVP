@@ -24,8 +24,8 @@ const copy = async (text) => {
         <main class="max-w-2xl mx-auto px-6 py-12 w-full">
             <div class="rounded-3xl bg-surface-container-lowest border border-outline-variant/40 shadow-lifted p-10 space-y-6">
                 <div class="flex items-center gap-3">
-                    <div class="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-emerald-600 text-[28px]" style="font-variation-settings:'FILL' 1">verified</span>
+                    <div class="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[28px]" style="font-variation-settings:'FILL' 1">verified</span>
                     </div>
                     <div>
                         <h1 class="text-xl font-bold tracking-tight">Your disclosure has been received</h1>
@@ -52,7 +52,7 @@ const copy = async (text) => {
                     </div>
                 </div>
 
-                <div class="rounded-xl bg-amber-50/60 border border-amber-200 p-4 text-sm text-amber-900">
+                <div class="rounded-xl bg-amber-50/60 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 p-4 text-sm text-amber-900 dark:text-amber-300">
                     <p class="font-semibold mb-1">⚠ Save your tracking code now.</p>
                     <p>
                         We do not store this code in a recoverable form. If you lose it, you will not be able to check

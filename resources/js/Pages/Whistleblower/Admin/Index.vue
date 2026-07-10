@@ -38,12 +38,12 @@ const clearFilters = () => { localFilters.status = ''; localFilters.severity = '
 
 // ── Severity meta (semantic colors — universal danger signals) ──
 const SEVERITY_META = {
-    critical: { label: 'Critical', cls: 'bg-rose-50 text-rose-700 border-rose-200',     dot: '#d912e3', accent: '#dc2626' },
-    high:     { label: 'High',     cls: 'bg-amber-50 text-amber-700 border-amber-200',  dot: '#ffd700', accent: '#d97706' },
-    medium:   { label: 'Medium',   cls: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#1a237e', accent: '#1a237e' },
-    low:      { label: 'Low',      cls: 'bg-slate-100 text-slate-600 border-slate-200', dot: '#7986cb', accent: '#7986cb' },
+    critical: { label: 'Critical', cls: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/40',     dot: '#d912e3', accent: '#dc2626' },
+    high:     { label: 'High',     cls: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/40',  dot: '#ffd700', accent: '#d97706' },
+    medium:   { label: 'Medium',   cls: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/40',     dot: '#1a237e', accent: '#1a237e' },
+    low:      { label: 'Low',      cls: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700/50', dot: '#7986cb', accent: '#7986cb' },
 };
-const sevMeta = (s) => SEVERITY_META[s] ?? { label: '—', cls: 'bg-slate-100 text-slate-500 border-slate-200', dot: '#94a3b8', accent: '#94a3b8' };
+const sevMeta = (s) => SEVERITY_META[s] ?? { label: '—', cls: 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50', dot: '#94a3b8', accent: '#94a3b8' };
 
 // ── Status meta ──
 // Pill rendering is delegated to <StatusPill /> which sources colour, label,

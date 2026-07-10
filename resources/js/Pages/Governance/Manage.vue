@@ -50,7 +50,7 @@ const categoryLabel = {
                 <button @click="showCreate = true" type="button" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white shadow-glow-sm btn-shimmer">+ New Policy</button>
             </header>
 
-            <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
+            <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-x-auto card-lift">
                 <table v-if="props.policies.data?.length" class="w-full text-sm">
                     <thead class="border-b border-outline-variant"><tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest">
                         <th class="p-4">Title</th><th>Slug</th><th>Category</th><th>Owner</th><th>Current Version</th><th>Status</th>

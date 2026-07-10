@@ -70,7 +70,7 @@ function dueLabel(d) {
                 </div>
             </header>
 
-            <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
+            <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-x-auto card-lift">
                 <table v-if="props.certifications.data?.length" class="w-full text-sm">
                     <thead class="border-b border-outline-variant"><tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest">
                         <th class="p-4">Holder</th><th>Certification</th><th>Issuer</th><th>Issued</th><th>Expires</th><th>Status</th><th>Reminded</th>

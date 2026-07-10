@@ -20,15 +20,15 @@ const reply = () => replyForm.post(route('whistleblower.track.reply'), {
 });
 
 const statusToneClass = (statusValue) => ({
-    'submitted':                'bg-slate-100 text-slate-700',
-    'triaged':                  'bg-blue-50 text-blue-700',
-    'investigating':            'bg-amber-50 text-amber-800',
-    'evidence_gathering':       'bg-amber-50 text-amber-800',
-    'closed_substantiated':     'bg-emerald-50 text-emerald-800',
-    'closed_unsubstantiated':   'bg-slate-100 text-slate-700',
-    'closed_referred':          'bg-blue-50 text-blue-800',
-    'withdrawn':                'bg-slate-100 text-slate-500',
-}[statusValue] ?? 'bg-slate-100 text-slate-700');
+    'submitted':                'bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300',
+    'triaged':                  'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    'investigating':            'bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300',
+    'evidence_gathering':       'bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300',
+    'closed_substantiated':     'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300',
+    'closed_unsubstantiated':   'bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300',
+    'closed_referred':          'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
+    'withdrawn':                'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400',
+}[statusValue] ?? 'bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300');
 </script>
 
 <template>
