@@ -116,9 +116,9 @@ const cellStyle = (val) => {
         'rgba(26, 35, 126,0.95)',  // 5 - full cobalt
     ];
     const textColors = [
-        '#1a237e',
-        '#1a237e',
-        '#1a237e',
+        'var(--skill-fg-low, #1a237e)',
+        'var(--skill-fg-low, #1a237e)',
+        'var(--skill-fg-low, #1a237e)',
         '#eff6ff',
         '#ffffff',
     ];
@@ -132,10 +132,10 @@ const cellStyle = (val) => {
 // Legacy string-abbr approach for backward compat
 const levelCell = (level) => {
     const map = {
-        beginner:     { bg: 'rgba(217,119,6,0.20)',   fg: '#92400e',   abbr: 'B', num: 1 },
-        intermediate: { bg: 'rgba(26, 35, 126,0.20)',    fg: '#1e3a8a',   abbr: 'I', num: 2 },
-        advanced:     { bg: 'rgba(124,58,237,0.20)',  fg: '#5b21b6',   abbr: 'A', num: 3 },
-        expert:       { bg: 'rgba(5,150,105,0.25)',   fg: '#064e3b',   abbr: 'E', num: 4 },
+        beginner:     { bg: 'rgba(217,119,6,0.20)',   fg: 'var(--skill-fg-amber, #92400e)',   abbr: 'B', num: 1 },
+        intermediate: { bg: 'rgba(26, 35, 126,0.20)',    fg: 'var(--skill-fg-low, #1e3a8a)',   abbr: 'I', num: 2 },
+        advanced:     { bg: 'rgba(124,58,237,0.20)',  fg: 'var(--skill-fg-violet, #5b21b6)',   abbr: 'A', num: 3 },
+        expert:       { bg: 'rgba(5,150,105,0.25)',   fg: 'var(--skill-fg-emerald, #064e3b)',   abbr: 'E', num: 4 },
     };
     return map[level] ?? null;
 };
@@ -423,9 +423,9 @@ const exportMatrix = () => {
                         <div class="space-y-2">
                             <div v-for="(item, level) in {
                                 'Not assessed':  { bg: 'rgba(100,116,139,0.08)', fg: '#94a3b8', dot: '·' },
-                                'Level 1 — Novice':       { bg: 'rgba(26, 35, 126,0.10)', fg: '#1a237e', dot: '1' },
-                                'Level 2 — Developing':   { bg: 'rgba(26, 35, 126,0.25)', fg: '#1a237e', dot: '2' },
-                                'Level 3 — Proficient':   { bg: 'rgba(26, 35, 126,0.50)', fg: '#1a237e', dot: '3' },
+                                'Level 1 — Novice':       { bg: 'rgba(26, 35, 126,0.10)', fg: 'var(--skill-fg-low, #1a237e)', dot: '1' },
+                                'Level 2 — Developing':   { bg: 'rgba(26, 35, 126,0.25)', fg: 'var(--skill-fg-low, #1a237e)', dot: '2' },
+                                'Level 3 — Proficient':   { bg: 'rgba(26, 35, 126,0.50)', fg: 'var(--skill-fg-low, #1a237e)', dot: '3' },
                                 'Level 4 — Advanced':     { bg: 'rgba(26, 35, 126,0.75)', fg: '#eff6ff', dot: '4' },
                                 'Level 5 — Expert':       { bg: 'rgba(26, 35, 126,0.95)', fg: '#ffffff', dot: '5' },
                             }" :key="level"
@@ -442,10 +442,10 @@ const exportMatrix = () => {
                             <p class="text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant/60 mb-2">Legacy labels</p>
                             <div class="space-y-1.5">
                                 <div v-for="(meta, label) in {
-                                    Beginner:     { bg: 'rgba(217,119,6,0.20)',  fg: '#92400e' },
-                                    Intermediate: { bg: 'rgba(26, 35, 126,0.20)',   fg: '#1e3a8a' },
-                                    Advanced:     { bg: 'rgba(124,58,237,0.20)', fg: '#5b21b6' },
-                                    Expert:       { bg: 'rgba(5,150,105,0.25)',  fg: '#064e3b' },
+                                    Beginner:     { bg: 'rgba(217,119,6,0.20)',  fg: 'var(--skill-fg-amber, #92400e)' },
+                                    Intermediate: { bg: 'rgba(26, 35, 126,0.20)',   fg: 'var(--skill-fg-low, #1e3a8a)' },
+                                    Advanced:     { bg: 'rgba(124,58,237,0.20)', fg: 'var(--skill-fg-violet, #5b21b6)' },
+                                    Expert:       { bg: 'rgba(5,150,105,0.25)',  fg: 'var(--skill-fg-emerald, #064e3b)' },
                                 }" :key="label"
                                      class="flex items-center gap-2">
                                     <span
@@ -571,3 +571,18 @@ const exportMatrix = () => {
 
     </div>
 </template>
+
+<style scoped>
+/* The heatmap cells above set text colour via inline :style (computed in script,
+   since intensity/level is data-driven). Tailwind's dark: variant can't reach an
+   inline style, so we route those low-level colours through CSS custom properties
+   that flip when a `.dark` ancestor is present — the same signal Tailwind's
+   darkMode:'class' relies on. This keeps levels 1-3 (and the legacy Beginner/
+   Intermediate/Advanced/Expert labels) legible instead of near-invisible navy-on-navy. */
+:global(.dark) {
+    --skill-fg-low:     #c7d2fe; /* light indigo, replaces #1a237e / #1e3a8a on dark bg */
+    --skill-fg-amber:   #fcd34d; /* replaces #92400e */
+    --skill-fg-violet:  #c4b5fd; /* replaces #5b21b6 */
+    --skill-fg-emerald: #6ee7b7; /* replaces #064e3b */
+}
+</style>

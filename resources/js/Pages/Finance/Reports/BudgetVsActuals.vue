@@ -65,7 +65,7 @@ const typeLabel = (t) => t.charAt(0).toUpperCase() + t.slice(1);
                         <td class="p-1.5 text-primary">{{ a.code }} {{ a.name }}</td>
                         <td class="p-1.5 text-right text-on-surface-variant">{{ money(a.ytd_budget) }}</td>
                         <td class="p-1.5 text-right text-primary">{{ money(a.ytd_actual) }}</td>
-                        <td class="p-1.5 text-right font-bold text-rose-300">{{ money(-a.variance) }}</td>
+                        <td class="p-1.5 text-right font-bold text-rose-700 dark:text-rose-400">{{ money(-a.variance) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -90,7 +90,7 @@ const typeLabel = (t) => t.charAt(0).toUpperCase() + t.slice(1);
                             <td class="p-2 text-right text-on-surface-variant">{{ money(r.annual_budget) }}</td>
                             <td class="p-2 text-right text-on-surface-variant">{{ money(r.ytd_budget) }}</td>
                             <td class="p-2 text-right text-primary">{{ money(r.ytd_actual) }}</td>
-                            <td class="p-2 text-right font-bold" :class="unfavourable(r) ? 'text-rose-300' : 'text-emerald-300'">{{ money(r.variance) }}</td>
+                            <td class="p-2 text-right font-bold" :class="unfavourable(r) ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'">{{ money(r.variance) }}</td>
                         </tr>
                     </tbody>
                     <tfoot class="font-black border-t border-outline-variant/50">

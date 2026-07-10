@@ -21,40 +21,40 @@ function submit() {
     <Head title="New Incoming Invoice" />
     <AuthenticatedLayout>
         <form @submit.prevent="submit" class="p-6 max-w-xl space-y-4">
-            <h1 class="text-2xl font-semibold">New Incoming Invoice</h1>
+            <h1 class="text-2xl font-semibold text-primary">New Incoming Invoice</h1>
 
             <div>
-                <label class="block text-sm">Vendor name</label>
-                <input v-model="form.vendor_name" aria-label="Vendor name" class="w-full rounded-lg border-gray-300" />
-                <div v-if="form.errors.vendor_name" class="text-red-600 text-xs">{{ form.errors.vendor_name }}</div>
+                <label class="block text-sm text-on-surface-variant">Vendor name</label>
+                <input v-model="form.vendor_name" aria-label="Vendor name" class="w-full rounded-lg border-outline-variant bg-surface-container-low text-on-surface focus:border-secondary focus:ring-secondary/20" />
+                <div v-if="form.errors.vendor_name" class="text-red-600 dark:text-red-400 text-xs">{{ form.errors.vendor_name }}</div>
             </div>
             <div>
-                <label class="block text-sm">Vendor invoice #</label>
-                <input v-model="form.vendor_invoice_no" aria-label="Vendor invoice number" class="w-full rounded-lg border-gray-300" />
+                <label class="block text-sm text-on-surface-variant">Vendor invoice #</label>
+                <input v-model="form.vendor_invoice_no" aria-label="Vendor invoice number" class="w-full rounded-lg border-outline-variant bg-surface-container-low text-on-surface focus:border-secondary focus:ring-secondary/20" />
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm">Invoice date</label>
-                    <input type="date" v-model="form.invoice_date" aria-label="Invoice date" class="w-full rounded-lg border-gray-300" />
-                    <div v-if="form.errors.invoice_date" class="text-red-600 text-xs">{{ form.errors.invoice_date }}</div>
+                    <label class="block text-sm text-on-surface-variant">Invoice date</label>
+                    <input type="date" v-model="form.invoice_date" aria-label="Invoice date" class="w-full rounded-lg border-outline-variant bg-surface-container-low text-on-surface focus:border-secondary focus:ring-secondary/20" />
+                    <div v-if="form.errors.invoice_date" class="text-red-600 dark:text-red-400 text-xs">{{ form.errors.invoice_date }}</div>
                 </div>
                 <div>
-                    <label class="block text-sm">Amount</label>
-                    <input type="number" step="0.01" v-model="form.amount" aria-label="Amount" class="w-full rounded-lg border-gray-300" />
-                    <div v-if="form.errors.amount" class="text-red-600 text-xs">{{ form.errors.amount }}</div>
+                    <label class="block text-sm text-on-surface-variant">Amount</label>
+                    <input type="number" step="0.01" v-model="form.amount" aria-label="Amount" class="w-full rounded-lg border-outline-variant bg-surface-container-low text-on-surface focus:border-secondary focus:ring-secondary/20" />
+                    <div v-if="form.errors.amount" class="text-red-600 dark:text-red-400 text-xs">{{ form.errors.amount }}</div>
                 </div>
             </div>
             <div>
-                <label class="block text-sm">Description</label>
-                <textarea v-model="form.description" aria-label="Description" class="w-full rounded-lg border-gray-300"></textarea>
+                <label class="block text-sm text-on-surface-variant">Description</label>
+                <textarea v-model="form.description" aria-label="Description" class="w-full rounded-lg border-outline-variant bg-surface-container-low text-on-surface focus:border-secondary focus:ring-secondary/20"></textarea>
             </div>
             <div>
-                <label class="block text-sm">Attachments (scan/upload)</label>
-                <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" @input="form.attachments = Array.from($event.target.files)" />
-                <div v-if="form.errors['attachments.0']" class="text-red-600 text-xs">{{ form.errors['attachments.0'] }}</div>
+                <label class="block text-sm text-on-surface-variant">Attachments (scan/upload)</label>
+                <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" @input="form.attachments = Array.from($event.target.files)" class="text-on-surface-variant" />
+                <div v-if="form.errors['attachments.0']" class="text-red-600 dark:text-red-400 text-xs">{{ form.errors['attachments.0'] }}</div>
             </div>
 
-            <button :disabled="form.processing" class="rounded-lg bg-blue-600 text-white px-4 py-2">Submit to intake</button>
+            <button :disabled="form.processing" class="rounded-lg bg-secondary text-white px-4 py-2 disabled:opacity-50">Submit to intake</button>
         </form>
     </AuthenticatedLayout>
 </template>

@@ -57,7 +57,7 @@ const money = (n) => Number(n).toLocaleString('en-GH', { minimumFractionDigits: 
             <div class="flex justify-between border-t border-outline-variant/60 mt-3 pt-3 font-black text-primary">
                 <span>Net change in cash</span><span>{{ money(report.net_change) }}</span>
             </div>
-            <p class="mt-2 text-[11px] text-emerald-300">
+            <p class="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400">
                 ✓ Direct {{ money(report.direct.net) }} = Indirect {{ money(report.indirect.net) }} = Net change {{ money(report.net_change) }}
             </p>
         </div>

@@ -27,11 +27,11 @@ function submitDecide() {
 }
 
 const statusTone = {
-    submitted: 'bg-blue-100 text-blue-800',
-    reviewing: 'bg-amber-100 text-amber-800',
-    approved:  'bg-emerald-100 text-emerald-800',
-    rejected:  'bg-rose-100 text-rose-800',
-    paid:      'bg-sky-100 text-sky-800',
+    submitted: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    reviewing: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+    approved:  'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+    rejected:  'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
+    paid:      'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',
 };
 </script>
 
@@ -52,7 +52,8 @@ const statusTone = {
             </header>
 
             <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden card-lift">
-                <table v-if="props.claims.data?.length" class="w-full text-sm">
+                <div v-if="props.claims.data?.length" class="overflow-x-auto">
+                <table class="w-full text-sm">
                     <thead class="border-b border-outline-variant"><tr class="text-left text-[10px] font-black uppercase text-on-surface-variant tracking-widest">
                         <th class="p-4">Reference</th><th>Employee</th><th>Plan</th><th>Amount</th><th>Submitted</th><th>Status</th><th></th>
                     </tr></thead>
@@ -66,14 +67,15 @@ const statusTone = {
                             <td><span :class="['rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase', statusTone[c.status]]">{{ c.status }}</span></td>
                             <td>
                                 <div v-if="['submitted','reviewing'].includes(c.status)" class="flex gap-1">
-                                    <button @click="openDecide(c, 'approved')" class="rounded-lg bg-emerald-50 text-emerald-700 px-2 py-0.5 text-[10px] font-bold hover:bg-emerald-100">Approve</button>
-                                    <button @click="openDecide(c, 'rejected')" class="rounded-lg bg-rose-50 text-rose-700 px-2 py-0.5 text-[10px] font-bold hover:bg-rose-100">Reject</button>
+                                    <button @click="openDecide(c, 'approved')" class="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50">Approve</button>
+                                    <button @click="openDecide(c, 'rejected')" class="rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 px-2 py-0.5 text-[10px] font-bold hover:bg-rose-100 dark:hover:bg-rose-900/50">Reject</button>
                                 </div>
-                                <button v-else-if="c.status === 'approved'" @click="openDecide(c, 'paid')" class="rounded-lg bg-sky-50 text-sky-700 px-2 py-0.5 text-[10px] font-bold hover:bg-sky-100">Mark Paid</button>
+                                <button v-else-if="c.status === 'approved'" @click="openDecide(c, 'paid')" class="rounded-lg bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 px-2 py-0.5 text-[10px] font-bold hover:bg-sky-100 dark:hover:bg-sky-900/50">Mark Paid</button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+                </div>
                 <EmptyState v-else title="No claims to review." class="py-12" />
                 <Pagination v-if="props.claims.meta?.last_page > 1" :links="props.claims.meta.links" class="p-4" />
             </section>

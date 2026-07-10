@@ -267,7 +267,7 @@ const formatDate = (d) => {
                         </p>
 
                         <div class="flex gap-2">
-                            <input aria-label="TrackRef"
+                            <input aria-label="Complaint reference"
                                 v-model="trackRef"
                                 type="text"
                                 placeholder="CMP-XXXXXXXX"
@@ -299,7 +299,7 @@ const formatDate = (d) => {
 
                     <!-- Status filter -->
                     <div class="flex items-center gap-3">
-                        <select aria-label="StatusFilter"
+                        <select aria-label="Filter by status"
                             v-model="statusFilter"
                             @change="applyFilter"
                             class="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"

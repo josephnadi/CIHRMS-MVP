@@ -66,14 +66,14 @@ const csvHref = computed(() => route('finance.reports.trial-balance.csv', { as_o
                 <tfoot class="border-t border-outline-variant/60 font-black">
                     <tr>
                         <td class="p-3" colspan="2">Total</td>
-                        <td class="p-3 text-right" :class="report.balanced ? 'text-primary' : 'text-amber-300'">{{ money(report.total_debit) }}</td>
-                        <td class="p-3 text-right" :class="report.balanced ? 'text-primary' : 'text-amber-300'">{{ money(report.total_credit) }}</td>
+                        <td class="p-3 text-right" :class="report.balanced ? 'text-primary' : 'text-amber-700 dark:text-amber-400'">{{ money(report.total_debit) }}</td>
+                        <td class="p-3 text-right" :class="report.balanced ? 'text-primary' : 'text-amber-700 dark:text-amber-400'">{{ money(report.total_credit) }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
-        <p v-if="!report.balanced" class="mt-3 text-amber-300 text-sm font-bold">
+        <p v-if="!report.balanced" class="mt-3 text-amber-700 dark:text-amber-400 text-sm font-bold">
             ⚠ Trial balance is out of balance — investigate the ledger.
         </p>
     </div>

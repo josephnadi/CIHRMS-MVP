@@ -870,6 +870,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                 <button
                                     class="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
                                     @click="prevMonth"
+                                    aria-label="Previous month"
                                 >
                                     <span class="material-symbols-outlined text-[20px]">chevron_left</span>
                                 </button>
@@ -879,6 +880,7 @@ const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-on-s
                                 <button
                                     class="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
                                     @click="nextMonth"
+                                    aria-label="Next month"
                                 >
                                     <span class="material-symbols-outlined text-[20px]">chevron_right</span>
                                 </button>

@@ -389,7 +389,7 @@ const initials = (name) => {
                                     {{ reviewForm.decision === 'approve' ? 'Approve' : 'Reject' }} correction
                                 </h3>
                             </div>
-                            <button @click="reviewing = null"
+                            <button @click="reviewing = null" aria-label="Close"
                                     class="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">close</span>
                             </button>

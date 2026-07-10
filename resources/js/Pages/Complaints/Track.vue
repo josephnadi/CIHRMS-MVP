@@ -42,7 +42,7 @@ const formatDate = (d) => {
             <div class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-6">
                 <h3 class="text-[14px] font-bold text-on-surface mb-3">Reference Lookup</h3>
                 <div class="flex gap-2">
-                    <input aria-label="TrackRef"
+                    <input aria-label="Complaint reference"
                         v-model="trackRef"
                         type="text"
                         placeholder="CMP-XXXXXXXX"

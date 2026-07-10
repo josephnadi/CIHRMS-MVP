@@ -62,7 +62,7 @@ const assetSections = [['non_current_assets','Non-Current Assets'],['current_ass
                     <td class="p-2 text-right">{{ money(report.total_funds_current) }}</td><td class="p-2 text-right">{{ money(report.total_funds_prior) }}</td></tr></tfoot></table>
             </section>
 
-            <p :class="report.balanced_current ? 'text-emerald-300' : 'text-amber-300 font-bold'" class="text-sm">
+            <p :class="report.balanced_current ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400 font-bold'" class="text-sm">
                 {{ report.balanced_current ? '✓ Balanced — Net Assets = Member\'s Fund' : '⚠ Out of balance — investigate' }}
             </p>
         </div>

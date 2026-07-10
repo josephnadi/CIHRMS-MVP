@@ -157,7 +157,8 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                             icon="badge"
                         />
                     </div>
-                    <table v-else class="w-full text-sm">
+                    <div v-else class="overflow-x-auto">
+                    <table class="w-full text-sm">
                         <thead class="bg-surface-container text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">Employee</th>
@@ -182,6 +183,7 @@ const rejectedCount = computed(() => props.stats?.rejected ?? props.stats?.faile
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                     <div class="px-5 py-3 border-t border-outline-variant/40">
                         <Pagination :links="verifications?.meta?.links ?? []" />
                     </div>

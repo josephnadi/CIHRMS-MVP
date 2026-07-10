@@ -44,7 +44,7 @@ const revert  = () => router.post(route('finance.budgets.revert'),  { year: prop
                 <h1 class="text-2xl font-black text-primary">Annual Budget</h1>
                 <p class="text-on-surface-variant text-sm mt-1">
                     Fiscal year {{ year }} ·
-                    <span :class="isApproved ? 'text-emerald-300' : 'text-amber-300'" class="font-bold">{{ budget.status }}</span>
+                    <span :class="isApproved ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'" class="font-bold">{{ budget.status }}</span>
                 </p>
             </div>
             <div class="flex items-end gap-3">
@@ -52,7 +52,7 @@ const revert  = () => router.post(route('finance.budgets.revert'),  { year: prop
                     <input type="number" v-model.number="year" aria-label="Fiscal year" @change="gotoYear"
                            class="mt-1 block w-24 rounded-lg bg-surface-container-lowest border-outline-variant/60 text-sm text-primary" />
                 </label>
-                <button v-if="!isApproved" @click="approve" class="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm font-bold text-emerald-300">Approve</button>
+                <button v-if="!isApproved" @click="approve" class="rounded-lg bg-emerald-500/20 px-3 py-2 text-sm font-bold text-emerald-700 dark:text-emerald-400">Approve</button>
                 <button v-else @click="revert" class="rounded-lg border border-outline-variant/60 px-3 py-2 text-sm font-bold text-primary">Revert to draft</button>
             </div>
         </header>

@@ -265,10 +265,10 @@ const formatIcon = (fmt) => ({
 }[fmt] ?? 'play_circle');
 
 const difficultyColors = {
-    beginner:     { bg: 'rgba(217,119,6,0.12)',   fg: '#92400e' },
-    intermediate: { bg: 'rgba(26, 35, 126,0.12)',     fg: '#1a237e' },
-    advanced:     { bg: 'rgba(124,92,255,0.12)',   fg: '#6d28d9' },
-    expert:       { bg: 'rgba(5,150,105,0.12)',    fg: '#065f46' },
+    beginner:     { bg: 'rgba(217,119,6,0.12)',   fg: 'var(--difficulty-fg-amber, #92400e)' },
+    intermediate: { bg: 'rgba(26, 35, 126,0.12)',     fg: 'var(--difficulty-fg-low, #1a237e)' },
+    advanced:     { bg: 'rgba(124,92,255,0.12)',   fg: 'var(--difficulty-fg-violet, #6d28d9)' },
+    expert:       { bg: 'rgba(5,150,105,0.12)',    fg: 'var(--difficulty-fg-emerald, #065f46)' },
 };
 
 const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.10)', fg: '#475569' };
@@ -536,6 +536,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                     @click="togglePublish(c, $event)"
                                     class="rounded-xl border border-emerald-500/30 px-2.5 py-2 text-[12px] font-bold text-emerald-600 hover:bg-emerald-500/8 transition-colors"
                                     title="Publish"
+                                    aria-label="Publish"
                                 >
                                     <span class="material-symbols-outlined text-[16px]">publish</span>
                                 </button>
@@ -545,6 +546,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                     @click="openEditCourse(c, $event)"
                                     class="rounded-xl border border-outline-variant/60 px-2.5 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors"
                                     title="Edit"
+                                    aria-label="Edit"
                                 >
                                     <span class="material-symbols-outlined text-[16px]">edit</span>
                                 </button>
@@ -554,6 +556,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                     @click="removeCourse(c, $event)"
                                     class="rounded-xl border border-outline-variant/60 px-2.5 py-2 text-[12px] font-bold text-red-600 hover:bg-red-500/8 hover:border-red-500/30 transition-colors"
                                     title="Delete"
+                                    aria-label="Delete"
                                 >
                                     <span class="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
@@ -905,3 +908,16 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
 
     </div>
 </template>
+
+<style scoped>
+/* Difficulty badge colours are computed in script and applied via inline :style
+   (data-driven, not static classes), so Tailwind's dark: variant can't reach them.
+   Route the low-contrast dark-on-tint colours through CSS custom properties that
+   flip under a `.dark` ancestor — mirrors the same fix used in SkillsMatrix.vue. */
+:global(.dark) {
+    --difficulty-fg-amber:   #fcd34d;
+    --difficulty-fg-low:     #c7d2fe;
+    --difficulty-fg-violet:  #c4b5fd;
+    --difficulty-fg-emerald: #6ee7b7;
+}
+</style>

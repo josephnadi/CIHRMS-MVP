@@ -108,7 +108,8 @@ const vacatePosition = (p) => {
                                     description="Approved establishment posts will appear here." />
                     </div>
 
-                    <table v-else class="w-full text-sm">
+                    <div v-else class="overflow-x-auto">
+                    <table class="w-full text-sm">
                         <thead class="bg-surface-container text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">Code</th>
@@ -136,7 +137,7 @@ const vacatePosition = (p) => {
                                                 type="button"
                                                 @click="vacatePosition(p)"
                                                 :disabled="busyPositionId === p.id"
-                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                class="inline-flex h-7 items-center gap-1 rounded-lg border border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/30 px-2 text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                 title="Vacate this position">
                                             <span class="material-symbols-outlined text-[14px]">person_remove</span>
                                             Vacate
@@ -160,6 +161,7 @@ const vacatePosition = (p) => {
                             </tr>
                         </tbody>
                     </table>
+                    </div>
 
                     <div class="px-5 py-3 border-t border-outline-variant/40">
                         <Pagination :links="positions?.meta?.links ?? []" />

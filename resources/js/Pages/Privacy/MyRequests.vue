@@ -133,7 +133,8 @@ const editionLabel = computed(() => {
                                     description="You have not submitted any data-subject requests. Use + New request to start." />
                     </div>
 
-                    <table v-else class="w-full text-sm">
+                    <div v-else class="overflow-x-auto">
+                    <table class="w-full text-sm">
                         <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase">
                             <tr>
                                 <th class="px-5 py-3 text-left">Reference</th>
@@ -166,6 +167,7 @@ const editionLabel = computed(() => {
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
