@@ -26,10 +26,22 @@ All accounts below: password = `password`. First-login password change is enforc
 | **Finance Officer** | `Kofi Asante`  | `FIN-001`   | `password` | finance@cihrms.local   | HR |
 | **IT Support**      | `Yaw Boateng`  | `IT-001`    | `password` | it@cihrms.local        | HR |
 | **Marketing**       | `Ama Owusu`    | `MKT-001`   | `password` | marketing@cihrms.local | Marketing |
+| **Dept Head**       | `Kwesi Appiah` | `DEPT-001`  | `password` | depthead@cihrms.local  | Operations |
+| **Auditor**         | `Efua Danso`   | `AUD-001`   | `password` | auditor@cihrms.local   | HR |
+| **CEO**             | `Nana Acheampong` | `CEO-001` | `password` | ceo@cihrms.local       | HR |
 
-Each fixed account also has a matching `Employee` row (employee numbers `CIHRM-0001` through `CIHRM-0006`).
+Each fixed account also has a matching `Employee` row (employee numbers `CIHRM-0001` through `CIHRM-0009`). `Kwesi Appiah` (DEPT-001) is the head of the **Operations** department.
 
-> **CEO accounts** are not seeded. Create one via the admin UI at [`/admin/users`](../resources/js/Pages/Admin/Users/Index.vue) (requires `users.manage`). The form auto-provisions an `Employee` row and forces 2FA for the role.
+### Walking the incoming-invoice vetting workflow
+
+The invoice flow is `submit → vet → CEO approve → Finance post`, and dual-control blocks one person from covering two gates, so use these four accounts in order:
+
+1. **Dept Head** (`DEPT-001`) — capture + submit an invoice at the Auditor Hub.
+2. **Auditor** (`AUD-001`) — vet (accept) the submitted invoice.
+3. **CEO** (`CEO-001`) — approve the vetted invoice.
+4. **Finance Officer** (`FIN-001`) — code the lines to a GL expense account and post (promotes it to a Vendor Invoice + posts the accrual).
+
+`Super Admin` (`ADMIN-001`) can reach every screen but cannot drive the whole chain alone — the dual-control guards reject the same actor vetting **and** approving the same invoice.
 
 ## Fixed member portal accounts
 

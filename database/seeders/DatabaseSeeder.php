@@ -178,9 +178,57 @@ class DatabaseSeeder extends Seeder
             ] + $demoConfirmed
         );
 
+        // Invoice-vetting workflow actors (submit → vet → approve → post). The
+        // dual-control guards require distinct people at the vet/approve gates,
+        // so the full chain needs these separate accounts: a department head to
+        // submit, an auditor to vet, the CEO to approve, and finance (Kofi
+        // Asante / FIN-001 above) to post.
+        $deptHead = User::updateOrCreate(
+            ['email' => 'depthead@cihrms.local'],
+            [
+                'name'                 => 'Kwesi Appiah',
+                'staff_id'             => 'DEPT-001',
+                'role'                 => 'dept_head',
+                'permissions'          => User::ROLE_PERMISSIONS['dept_head'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
+            ] + $demoConfirmed
+        );
+
+        $auditor = User::updateOrCreate(
+            ['email' => 'auditor@cihrms.local'],
+            [
+                'name'                 => 'Efua Danso',
+                'staff_id'             => 'AUD-001',
+                'role'                 => 'auditor',
+                'permissions'          => User::ROLE_PERMISSIONS['auditor'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
+            ] + $demoConfirmed
+        );
+
+        $ceo = User::updateOrCreate(
+            ['email' => 'ceo@cihrms.local'],
+            [
+                'name'                 => 'Nana Acheampong',
+                'staff_id'             => 'CEO-001',
+                'role'                 => 'ceo',
+                'permissions'          => User::ROLE_PERMISSIONS['ceo'],
+                'password'             => bcrypt('password'),
+                'password_must_change' => true,
+            ] + $demoConfirmed
+        );
+
         $hr = Department::firstOrCreate(
             ['code' => 'HR'],
             ['name' => 'Human Resources', 'description' => 'Core HR operations.']
+        );
+
+        // Make the demo dept head an actual department head so ownership scoping
+        // (own-department invoices) is exercisable end to end.
+        $ops = Department::updateOrCreate(
+            ['code' => 'OPS'],
+            ['name' => 'Operations', 'description' => 'Operations & facilities.', 'head_user_id' => $deptHead->id]
         );
 
         Employee::firstOrCreate(
@@ -256,6 +304,43 @@ class DatabaseSeeder extends Seeder
                 'position'      => 'Marketing Lead',
                 'hire_date'     => now()->subYears(2)->toDateString(),
                 'phone'         => '+233200000006',
+                'status'        => 'active',
+            ]
+        );
+
+        // Invoice-vetting workflow actors.
+        Employee::firstOrCreate(
+            ['employee_no' => 'CIHRM-0007'],
+            [
+                'department_id' => $ops->id,
+                'user_id'       => $deptHead->id,
+                'position'      => 'Operations Head',
+                'hire_date'     => now()->subYears(4)->toDateString(),
+                'phone'         => '+233200000007',
+                'status'        => 'active',
+            ]
+        );
+
+        Employee::firstOrCreate(
+            ['employee_no' => 'CIHRM-0008'],
+            [
+                'department_id' => $hr->id,
+                'user_id'       => $auditor->id,
+                'position'      => 'Internal Auditor',
+                'hire_date'     => now()->subYears(3)->toDateString(),
+                'phone'         => '+233200000008',
+                'status'        => 'active',
+            ]
+        );
+
+        Employee::firstOrCreate(
+            ['employee_no' => 'CIHRM-0009'],
+            [
+                'department_id' => $hr->id,
+                'user_id'       => $ceo->id,
+                'position'      => 'Chief Executive Officer',
+                'hire_date'     => now()->subYears(5)->toDateString(),
+                'phone'         => '+233200000009',
                 'status'        => 'active',
             ]
         );
