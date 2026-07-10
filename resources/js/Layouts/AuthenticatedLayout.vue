@@ -619,6 +619,17 @@ const iconColor = (item) =>
     ?? SIDEBAR_GROUP_COLORS[item.label]
     ?? SIDEBAR_ICON_DEFAULT;
 
+// The active module's accent, used to colour-key every bare icon inside the
+// page content (via the --mod-accent CSS variable on <main>). Reuses the same
+// module palette as the sidebar so nav and content icons match. The darker blue
+// family is lifted on the dark surface for legibility.
+const moduleAccent = computed(() => {
+    const m = page.props.activeModule;
+    let c = (m && (SIDEBAR_ICON_COLORS[m] ?? SIDEBAR_ICON_COLORS[String(m).split('-')[0]])) ?? SIDEBAR_ICON_DEFAULT;
+    if (isDark.value && (c === '#3949ab' || c === '#1a237e' || c === '#0d1452')) c = '#7986cb';
+    return c;
+});
+
 const navIconStyle = (item) => {
     const c = iconColor(item);
     const active = isItemActive(item);
@@ -1068,6 +1079,7 @@ const quickActions = computed(() => [
                 id="main-content"
                 tabindex="-1"
                 class="main-scroll flex-1 overflow-y-auto p-5 sm:p-7 lg:p-8"
+                :style="{ '--mod-accent': moduleAccent }"
             >
                 <div :key="page.url">
                     <slot />

@@ -97,7 +97,7 @@ watch(() => props.value, (v) => animateTo(v));
             <div class="relative flex items-start justify-between">
                 <!-- Icon — fills on hover, micro-rotate, subtle glow -->
                 <div
-                    :class="['h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_4px_16px_-2px_rgba(var(--accent),0.45)]', iconStyle.bg]"
+                    :class="['stat-card__icon h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_4px_16px_-2px_rgba(var(--accent),0.45)]', iconStyle.bg]"
                     :style="iconStyle.style"
                 >
                     <span class="material-symbols-outlined text-[20px] transition-all duration-300"
