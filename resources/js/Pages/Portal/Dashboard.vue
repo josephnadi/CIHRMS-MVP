@@ -11,6 +11,8 @@ const props = defineProps({
     open_invoices:     { type: Array,  default: () => [] },
 });
 
+const money = (v) => Number(v || 0).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const payForm = useForm({});
 function pay(invoiceId) {
     payForm.post(route('portal.fees.pay', invoiceId));
@@ -31,7 +33,7 @@ function pay(invoiceId) {
     <section class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-6">
         <p class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">Outstanding fees</p>
         <p class="mt-1 text-3xl font-black tracking-tight tabular-nums" :class="outstanding_total > 0 ? 'text-amber-700' : 'text-emerald-700'">
-            {{ currency }} {{ outstanding_total.toFixed(2) }}
+            {{ currency }} {{ money(outstanding_total) }}
         </p>
         <p v-if="outstanding_total === 0" class="mt-1 text-xs text-on-surface-variant">All your fees are settled — thank you.</p>
     </section>
@@ -57,7 +59,7 @@ function pay(invoiceId) {
                     <td class="px-6 py-2">{{ inv.invoice_date }}</td>
                     <td class="px-6 py-2">{{ inv.due_date ?? '—' }}</td>
                     <td class="px-6 py-2 text-right tabular-nums font-semibold">
-                        {{ inv.currency }} {{ inv.outstanding.toFixed(2) }}
+                        {{ inv.currency }} {{ money(inv.outstanding) }}
                     </td>
                     <td class="px-6 py-2 text-right">
                         <button @click="pay(inv.id)" :disabled="payForm.processing"
