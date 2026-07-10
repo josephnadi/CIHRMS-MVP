@@ -331,8 +331,12 @@ html[data-theme="high-contrast"].dark {
        All effects honour `prefers-reduced-motion`.
     ─────────────────────────────────────────────────────────────── */
 
-    /* Baseline — every icon transitions smoothly. */
+    /* Baseline — every icon transitions smoothly and, inside page content,
+       adopts the active module's accent colour (--mod-accent is set on
+       #main-content per module). Icons elsewhere (sidebar, top bar) have no
+       --mod-accent set, so they fall back to currentColor and are unchanged. */
     .material-symbols-outlined {
+        color: var(--mod-accent, currentColor);
         transition:
             transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
             font-variation-settings 0.28s ease,
@@ -341,6 +345,20 @@ html[data-theme="high-contrast"].dark {
         will-change: transform;
         transform-origin: center;
         display: inline-block;
+    }
+
+    /* Icons that carry their own colour keep it, ignoring the module accent:
+       interactive elements (their icon inherits the button/link colour),
+       coloured icon tiles + stat/chart cards, and status chips. Explicit
+       Tailwind text-<colour> utilities already win via the utilities layer,
+       so a directly-coloured icon (e.g. text-rose-500) is untouched. */
+    :is(button, a, summary, label, [role="button"]) .material-symbols-outlined,
+    .icon-tile .material-symbols-outlined,
+    .chart-card__icon .material-symbols-outlined,
+    .stat-card__icon .material-symbols-outlined,
+    [class*="status-"] .material-symbols-outlined,
+    [class*="badge"] .material-symbols-outlined {
+        color: inherit;
     }
 
     /* Generic hover lift from any interactive parent — subtle scale +
