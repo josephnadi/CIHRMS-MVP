@@ -15,6 +15,7 @@ const props = defineProps({
     trendUp: { type: Boolean, default: true },
     loading: { type: Boolean, default: false },
     href:    { type: String,  default: null },
+    hint:    { type: String,  default: '' },   // optional subtext under the label
 });
 
 const colorMap = {
@@ -129,6 +130,11 @@ watch(() => props.value, (v) => animateTo(v));
             <!-- Label -->
             <p class="relative mt-1.5 text-[12px] font-semibold text-on-surface-variant">
                 <GlossaryText :text="label" />
+            </p>
+
+            <!-- Optional subtext / hint -->
+            <p v-if="hint || $slots.hint" class="relative mt-1 text-[11px] leading-snug text-on-surface-variant/70">
+                <slot name="hint"><GlossaryText :text="hint" /></slot>
             </p>
 
             <!-- Thin accent bar at the bottom — slides in from left on hover -->
