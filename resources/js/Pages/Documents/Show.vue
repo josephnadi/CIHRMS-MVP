@@ -460,7 +460,7 @@ function revokeShare(shareId) {
                                 <span class="font-bold text-primary">
                                     <span class="rounded-full bg-secondary/10 text-secondary px-2 py-0.5 text-[10px] font-black uppercase tracking-widest mr-2">{{ s.audience_type }}</span>
                                     {{ s.label ?? s.audience_id ?? 'organization' }}
-                                    <span v-if="s.expires_at" class="text-[10px] text-on-surface-variant">· expires {{ s.expires_at }}</span>
+                                    <span v-if="s.expires_at" class="text-[10px] text-on-surface-variant">· expires {{ new Date(s.expires_at).toLocaleDateString() }}</span>
                                 </span>
                                 <button @click="revokeShare(s.id)" class="text-[11px] font-bold text-rose-600 hover:underline">Revoke</button>
                             </li>

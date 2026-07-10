@@ -248,7 +248,7 @@ const initials = (name) => {
                                 <h3 class="text-[15px] font-black text-on-surface">Send offer letter</h3>
                                 <p class="text-[12px] text-on-surface-variant">to {{ offerApplicant.name }}</p>
                             </div>
-                            <button @click="offerApplicant = null" class="rounded-lg p-1 hover:bg-surface-container-low">
+                            <button @click="offerApplicant = null" aria-label="Close" class="rounded-lg p-1 hover:bg-surface-container-low">
                                 <span class="material-symbols-outlined text-[18px]">close</span>
                             </button>
                         </div>
