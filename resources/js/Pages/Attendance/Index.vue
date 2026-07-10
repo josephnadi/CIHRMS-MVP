@@ -6,6 +6,7 @@ import LiveBars from '@/Components/charts/LiveBars.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -38,7 +39,7 @@ const manual = useForm({
 });
 const submitManual = () => manual.post(route('attendance.manual'), {
     preserveScroll: true,
-    onSuccess: () => { showManual.value = false; manual.reset('reason'); },
+    onSuccess: () => { showManual.value = false; manual.reset(); },
 });
 
 // ── Visual helpers ──────────────────────────────────────────────
@@ -347,11 +348,13 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Employee ID</label>
                         <input aria-label="Employee ID" v-model="manual.employee_id" type="number"
                                class="w-full rounded-xl border-outline-variant text-[13.5px] focus:border-secondary focus:ring-secondary/20" required>
+                        <InputError :message="manual.errors.employee_id" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Event timestamp</label>
                         <input aria-label="Event timestamp" v-model="manual.event_at" type="datetime-local"
                                class="w-full rounded-xl border-outline-variant text-[13.5px] focus:border-secondary focus:ring-secondary/20" required>
+                        <InputError :message="manual.errors.event_at" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Direction</label>
@@ -367,6 +370,7 @@ const initials = (name) => (name ?? 'NA').split(' ').slice(0, 2).map(s => s[0]?.
                                 <span class="material-symbols-outlined text-[16px]">logout</span> Clock-out
                             </label>
                         </div>
+                        <InputError :message="manual.errors.direction" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Reason (audit-logged)</label>

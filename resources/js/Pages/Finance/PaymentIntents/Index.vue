@@ -61,6 +61,7 @@ watch(() => form.ar_invoice_id, () => {
 
 const openNew = () => {
     form.reset();
+    form.clearErrors();
     panelOpen.value = true;
 };
 
@@ -221,6 +222,7 @@ const statusColor = (val) => ({
                         <option :value="null">—</option>
                         <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.code }} — {{ c.name }}</option>
                     </select>
+                    <InputError :message="form.errors.customer_id" />
                 </div>
                 <div>
                     <InputLabel for="ar_invoice_id" value="Invoice" />

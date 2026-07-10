@@ -70,6 +70,7 @@ function submit() {
             <label for="address" class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 mb-1">Address</label>
             <textarea id="address" v-model="form.address" rows="3"
                       class="w-full rounded-xl border border-outline-variant px-3 py-2 text-sm bg-surface-container-lowest"></textarea>
+            <p v-if="form.errors.address" class="mt-1 text-xs text-error">{{ form.errors.address }}</p>
         </div>
         <div class="flex justify-end">
             <button type="submit" :disabled="form.processing"

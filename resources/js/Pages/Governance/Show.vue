@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { useSafeHtml } from '@/composables/useSafeHtml';
+import InputError from '@/Components/InputError.vue';
 
 const sanitize = useSafeHtml();
 
@@ -74,6 +75,7 @@ const myAckStatus = computed(() => props.policy.data?.my_ack_status ?? 'no_versi
                             <input aria-label="Signed full name" v-model="ackForm.signed_full_name" required maxlength="120"
                                 :placeholder="$page.props.auth.user.name"
                                 class="w-full max-w-md rounded-xl border border-amber-300 bg-surface-container-lowest px-3 py-2 text-sm" />
+                            <InputError :message="ackForm.errors.signed_full_name" />
                             <button type="submit" :disabled="ackForm.processing" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-5 py-2 text-sm font-bold text-white shadow-glow-sm">
                                 Acknowledge
                             </button>

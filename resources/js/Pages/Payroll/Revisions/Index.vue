@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import InputError from '@/Components/InputError.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
@@ -86,13 +87,17 @@ const submit = () => form.post(route('salary-revisions.store'), {
                         <span class="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">Grade overrides</span>
                         <button type="button" @click="addOverride" class="text-[11px] font-bold text-secondary hover:underline">+ Add</button>
                     </div>
-                    <div v-for="(o, i) in form.overrides" :key="i" class="flex items-center gap-2">
-                        <select v-model="o.grade_id" aria-label="Grade" class="flex-1 rounded-lg border-outline-variant text-[12px]">
-                            <option v-for="g in grades" :key="g.id" :value="g.id">{{ g.code }} — {{ g.name }}</option>
-                        </select>
-                        <input v-model.number="o.percentage" type="number" step="0.01" aria-label="Grade percentage"
-                               class="w-20 rounded-lg border-outline-variant text-[12px]" />
-                        <button type="button" @click="removeOverride(i)" class="text-rose-500 text-lg leading-none">×</button>
+                    <div v-for="(o, i) in form.overrides" :key="i" class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <select v-model="o.grade_id" aria-label="Grade" class="flex-1 rounded-lg border-outline-variant text-[12px]">
+                                <option v-for="g in grades" :key="g.id" :value="g.id">{{ g.code }} — {{ g.name }}</option>
+                            </select>
+                            <input v-model.number="o.percentage" type="number" step="0.01" aria-label="Grade percentage"
+                                   class="w-20 rounded-lg border-outline-variant text-[12px]" />
+                            <button type="button" @click="removeOverride(i)" class="text-rose-500 text-lg leading-none">×</button>
+                        </div>
+                        <InputError :message="form.errors['overrides.'+i+'.grade_id']" />
+                        <InputError :message="form.errors['overrides.'+i+'.percentage']" />
                     </div>
                     <p class="text-[11px] text-on-surface-variant">Grades without an override use the institute %.</p>
                 </div>

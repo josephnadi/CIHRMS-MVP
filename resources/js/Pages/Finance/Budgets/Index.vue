@@ -14,12 +14,22 @@ const props = defineProps({
 const year = ref(props.year);
 const isApproved = computed(() => props.budget.status === 'approved');
 const draft = reactive(Object.fromEntries(props.accounts.map((a) => [a.id, a.annual_amount])));
+const rowState = reactive({});
+const isSaving = (id) => !!rowState[id]?.saving;
+const rowError = (id) => rowState[id]?.error ?? null;
 
 const gotoYear = () => router.get(route('finance.budgets.index'), { year: year.value }, { preserveState: false });
 
-const save = (account) => router.post(route('finance.budgets.line'),
-    { year: props.year, gl_account_id: account.id, annual_amount: draft[account.id] },
-    { preserveScroll: true });
+const save = (account) => {
+    rowState[account.id] = { saving: true, error: null };
+    router.post(route('finance.budgets.line'),
+        { year: props.year, gl_account_id: account.id, annual_amount: draft[account.id] },
+        {
+            preserveScroll: true,
+            onSuccess: () => { rowState[account.id] = { saving: false, error: null }; },
+            onError: (errors) => { rowState[account.id] = { saving: false, error: Object.values(errors)[0] ?? 'Failed to save.' }; },
+        });
+};
 
 const approve = () => router.post(route('finance.budgets.approve'), { year: props.year }, { preserveScroll: true });
 const revert  = () => router.post(route('finance.budgets.revert'),  { year: props.year }, { preserveScroll: true });
@@ -60,12 +70,16 @@ const revert  = () => router.post(route('finance.budgets.revert'),  { year: prop
                         <td class="p-3 text-primary">{{ a.name }}</td>
                         <td class="p-3 text-on-surface-variant">{{ a.type }}</td>
                         <td class="p-3 text-right">
-                            <input type="number" step="0.01" v-model.number="draft[a.id]" :disabled="isApproved"
+                            <input type="number" step="0.01" v-model.number="draft[a.id]" :disabled="isApproved || isSaving(a.id)"
                                    :aria-label="`Annual budget for ${a.code}`"
                                    class="w-32 text-right rounded-lg bg-surface-container border-outline-variant/60 text-sm text-primary disabled:opacity-50" />
+                            <p v-if="rowError(a.id)" class="mt-1 text-[10px] text-rose-500">{{ rowError(a.id) }}</p>
                         </td>
                         <td class="p-3 text-right">
-                            <button v-if="!isApproved" @click="save(a)" class="text-secondary text-xs font-bold hover:underline">Save</button>
+                            <button v-if="!isApproved" @click="save(a)" :disabled="isSaving(a.id)"
+                                    class="text-secondary text-xs font-bold hover:underline disabled:opacity-50">
+                                {{ isSaving(a.id) ? 'Saving…' : 'Save' }}
+                            </button>
                         </td>
                     </tr>
                 </tbody>

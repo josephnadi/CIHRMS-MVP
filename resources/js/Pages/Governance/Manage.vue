@@ -4,6 +4,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import Pagination from '@/Components/Pagination.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -65,16 +67,17 @@ const categoryLabel = {
                     </tbody>
                 </table>
                 <EmptyState v-else title="No policies created yet." class="py-12" />
+                <Pagination v-if="props.policies.meta?.last_page > 1" :links="props.policies.meta.links" class="p-4" />
             </section>
         </div>
 
         <SlidePanel :open="showCreate" @close="showCreate = false" title="Create Policy" size="lg">
             <form @submit.prevent="createPolicy" class="space-y-3 p-4">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Title</label><input v-model="newPolicy.title" aria-label="Policy title" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Slug (optional, auto-derived)</label><input v-model="newPolicy.slug" aria-label="URL slug (optional)" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono lowercase mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newPolicy.category" aria-label="Policy category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Summary</label><textarea v-model="newPolicy.summary" aria-label="Policy summary" maxlength="1000" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Initial Body (markdown — # for headings, - for bullets)</label><textarea v-model="newPolicy.initial_body" aria-label="Initial policy body (markdown)" rows="8" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm font-mono mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Title</label><input v-model="newPolicy.title" aria-label="Policy title" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="newPolicy.errors.title" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Slug (optional, auto-derived)</label><input v-model="newPolicy.slug" aria-label="URL slug (optional)" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono lowercase mt-1" /><InputError :message="newPolicy.errors.slug" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Category</label><select v-model="newPolicy.category" aria-label="Policy category" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option v-for="(label, key) in categoryLabel" :key="key" :value="key">{{ label }}</option></select><InputError :message="newPolicy.errors.category" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Summary</label><textarea v-model="newPolicy.summary" aria-label="Policy summary" maxlength="1000" rows="2" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /><InputError :message="newPolicy.errors.summary" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Initial Body (markdown — # for headings, - for bullets)</label><textarea v-model="newPolicy.initial_body" aria-label="Initial policy body (markdown)" rows="8" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm font-mono mt-1" /><InputError :message="newPolicy.errors.initial_body" /></div>
                 <button type="submit" :disabled="newPolicy.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Create Draft</button>
             </form>
         </SlidePanel>

@@ -7,6 +7,7 @@ import CategoryBadge from '@/Components/Incidents/CategoryBadge.vue';
 import StatusPill   from '@/Components/Incidents/StatusPill.vue';
 import MessageBubble from '@/Components/Incidents/MessageBubble.vue';
 import AttachmentChip from '@/Components/Incidents/AttachmentChip.vue';
+import InputError from '@/Components/InputError.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -32,8 +33,12 @@ const sendReply = () => {
     });
 };
 
+const showCloseModal = ref(false);
 const closeForm = useForm({ resolution_note: '' });
-const doClose = () => closeForm.post(route('incidents.close', r.value.id), { preserveScroll: true });
+const doClose = () => closeForm.post(route('incidents.close', r.value.id), {
+    preserveScroll: true,
+    onSuccess: () => { showCloseModal.value = false; closeForm.reset(); },
+});
 const doReopen = () => {
     if (! window.confirm('Reopen this report?')) return;
     useForm({}).post(route('incidents.reopen', r.value.id), { preserveScroll: true });
@@ -80,7 +85,7 @@ const assigneeIds = computed(() => new Set((r.value.assignees ?? []).map(a => a.
                             class="rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[13px] font-semibold text-on-surface hover:bg-surface-container">
                         Assign
                     </button>
-                    <button v-if="r.status !== 'closed'" @click="doClose"
+                    <button v-if="r.status !== 'closed'" @click="showCloseModal = true"
                             class="rounded-xl bg-green-600 text-white px-4 py-2 text-[13px] font-bold hover:bg-green-700">
                         Close
                     </button>
@@ -113,6 +118,7 @@ const assigneeIds = computed(() => new Set((r.value.assignees ?? []).map(a => a.
                     <textarea aria-label="Body" v-model="reply.body" rows="3" required maxlength="10000"
                               placeholder="Write a reply…"
                               class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] resize-none" />
+                    <InputError :message="reply.errors.body" />
                     <div class="flex items-center justify-between gap-3">
                         <input type="file" multiple
                                @change="(e) => { reply.attachments = Array.from(e.target.files).slice(0, 3); }"
@@ -168,6 +174,26 @@ const assigneeIds = computed(() => new Set((r.value.assignees ?? []).map(a => a.
                         No users hold the incidents.review permission yet.
                     </li>
                 </ul>
+            </div>
+        </SlidePanel>
+
+        <SlidePanel :open="showCloseModal" title="Close Report" size="md" @close="showCloseModal = false">
+            <div class="p-6 space-y-3">
+                <label class="text-[12px] font-semibold text-on-surface-variant block">Resolution note</label>
+                <textarea aria-label="Resolution note" v-model="closeForm.resolution_note" rows="4" maxlength="5000"
+                          placeholder="Summarise how this report was resolved…"
+                          class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] resize-none" />
+                <InputError :message="closeForm.errors.resolution_note" />
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" @click="showCloseModal = false"
+                            class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
+                        Cancel
+                    </button>
+                    <button @click="doClose" :disabled="closeForm.processing"
+                            class="rounded-xl bg-green-600 text-white px-4 py-2 text-[13px] font-bold hover:bg-green-700 disabled:opacity-60">
+                        {{ closeForm.processing ? 'Closing…' : 'Close Report' }}
+                    </button>
+                </div>
             </div>
         </SlidePanel>
     </div>

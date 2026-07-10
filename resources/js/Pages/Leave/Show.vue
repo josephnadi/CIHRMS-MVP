@@ -1,8 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge         from '@/Components/StatusBadge.vue';
+import InputError          from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -67,28 +68,27 @@ function initials(name) {
 
 const showActionPanel = ref(false);
 const actionType      = ref('approved');
-const actionComment   = ref('');
-const actionLoading   = ref(false);
+
+const actionForm = useForm({
+    status:  'approved',
+    comment: '',
+});
 
 function open(action) {
     actionType.value = action;
-    actionComment.value = '';
+    actionForm.reset();
+    actionForm.clearErrors();
+    actionForm.status = action;
     showActionPanel.value = true;
 }
 
 function submit() {
-    actionLoading.value = true;
-    router.patch(
-        route('leave.update', lr.value.id),
-        { status: actionType.value, comment: actionComment.value },
-        {
-            preserveScroll: true,
-            onFinish: () => {
-                actionLoading.value = false;
-                showActionPanel.value = false;
-            },
-        }
-    );
+    actionForm.status = actionType.value;
+    actionForm.patch(route('leave.update', lr.value.id), {
+        preserveScroll: true,
+        // Close only on success; on failure keep the panel open so the error shows.
+        onSuccess: () => { showActionPanel.value = false; },
+    });
 }
 
 // Build quick timeline
@@ -348,19 +348,23 @@ const timeline = computed(() => {
                             </p>
 
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 mb-1.5">
-                                Comment <span class="normal-case font-medium text-on-surface-variant/40">(optional)</span>
+                                Comment
+                                <span v-if="actionType !== 'rejected'" class="normal-case font-medium text-on-surface-variant/40">(optional)</span>
                             </label>
-                            <textarea aria-label="Comment (optional)" v-model="actionComment" rows="3"
+                            <textarea aria-label="Comment" v-model="actionForm.comment" rows="3"
+                                      :required="actionType === 'rejected'"
                                       class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] resize-none focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                                       :placeholder="actionType === 'approved' ? 'Any notes for the employee...' : 'Reason for rejection...'"></textarea>
+                            <InputError :message="actionForm.errors.comment" />
+                            <InputError :message="actionForm.errors.status" />
 
                             <div class="mt-5 flex gap-3 justify-end">
                                 <button @click="showActionPanel = false"
                                         class="rounded-xl border border-outline-variant px-5 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container">Cancel</button>
-                                <button @click="submit" :disabled="actionLoading"
+                                <button @click="submit" :disabled="actionForm.processing"
                                         class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
                                         :style="actionType === 'approved' ? 'background:linear-gradient(135deg,#059669,#10b981)' : 'background:linear-gradient(135deg,#dc2626,#ef4444)'">
-                                    <svg v-if="actionLoading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                    <svg v-if="actionForm.processing" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
                                     </svg>

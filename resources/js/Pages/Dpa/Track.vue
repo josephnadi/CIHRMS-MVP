@@ -35,11 +35,13 @@ const hit = computed(() => props.result && !notFound.value ? props.result : null
                     <span class="text-[12px] font-bold text-slate-700">Reference</span>
                     <input aria-label="Reference" v-model="form.reference" required type="text" placeholder="DSR-2026-00001"
                            class="mt-1 w-full rounded-lg border-slate-300 text-[13px] font-mono" />
+                    <p v-if="form.errors.reference" class="mt-1 text-[12px] text-rose-600">{{ form.errors.reference }}</p>
                 </label>
                 <label class="block">
                     <span class="text-[12px] font-bold text-slate-700">Email</span>
-                    <input aria-label="Reference" v-model="form.subject_email" required type="email"
+                    <input aria-label="Email" v-model="form.subject_email" required type="email"
                            class="mt-1 w-full rounded-lg border-slate-300 text-[13px]" />
+                    <p v-if="form.errors.subject_email" class="mt-1 text-[12px] text-rose-600">{{ form.errors.subject_email }}</p>
                 </label>
                 <div class="flex items-center justify-end">
                     <button type="submit" :disabled="form.processing"

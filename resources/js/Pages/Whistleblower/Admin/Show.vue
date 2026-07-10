@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -118,11 +119,13 @@ const editionLabel = computed(() => {
                                 <option value="">Myself</option>
                                 <option v-for="i in investigators" :key="i.id" :value="i.id">{{ i.name }} ({{ i.role }})</option>
                             </select>
+                            <InputError :message="triageForm.errors.assigned_investigator_id" />
                         </div>
                         <PrimaryButton @click="submitTriage" :disabled="triageForm.processing">Triage</PrimaryButton>
                     </div>
                     <textarea aria-label="Notes" v-model="triageForm.notes" rows="2" placeholder="Triage notes (optional)"
                               class="w-full rounded-lg border-outline-variant text-sm"></textarea>
+                    <InputError :message="triageForm.errors.notes" />
                 </div>
 
                 <!-- Tabs -->
@@ -207,9 +210,11 @@ const editionLabel = computed(() => {
                             </div>
                             <textarea aria-label="Notes" v-model="actionForm.notes" rows="3" placeholder="Notes (encrypted)"
                                       class="w-full rounded-lg border-outline-variant text-sm"></textarea>
+                            <InputError :message="actionForm.errors.notes" />
                             <textarea aria-label="Closure summary" v-if="['closed_substantiated','closed_unsubstantiated','closed_referred'].includes(actionForm.new_status)"
                                       v-model="actionForm.closure_summary" rows="2" placeholder="Closure summary (visible to submitter)"
                                       class="w-full rounded-lg border-outline-variant text-sm"></textarea>
+                            <InputError :message="actionForm.errors.closure_summary" />
                             <PrimaryButton @click="submitAction" :disabled="actionForm.processing">Log action</PrimaryButton>
                         </div>
 
@@ -247,6 +252,7 @@ const editionLabel = computed(() => {
                             <textarea aria-label="Reply to submitter" v-model="messageForm.body" rows="3" required
                                       class="w-full rounded-lg border-outline-variant text-sm"
                                       placeholder="The submitter sees this via their tracking code only."></textarea>
+                            <InputError :message="messageForm.errors.body" />
                             <PrimaryButton type="submit" :disabled="messageForm.processing">Post message</PrimaryButton>
                         </form>
                     </div>

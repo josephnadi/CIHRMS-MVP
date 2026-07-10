@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import TabBar from '@/Components/TabBar.vue';
 import GlossaryText from '@/Components/GlossaryText.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -159,6 +160,7 @@ const areaIcon = (area) => ({
                     <div class="flex items-center gap-4">
                         <Link
                             :href="route('offboarding.index')"
+                            aria-label="Back to offboarding list"
                             class="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
                             <span class="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -305,6 +307,7 @@ const areaIcon = (area) => ({
                             placeholder="Provide a reason for cancellation…"
                             class="w-full rounded-xl border border-red-300/60 bg-white dark:bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
                         ></textarea>
+                        <InputError :message="cancelForm.errors.reason" />
                         <div class="flex items-center gap-3">
                             <button
                                 @click="submitCancel"
@@ -424,6 +427,7 @@ const areaIcon = (area) => ({
                                                 placeholder="Enter waive reason…"
                                                 required
                                             />
+                                            <InputError :message="waiveForm.errors.notes" />
                                         </div>
                                         <button
                                             type="submit"
@@ -469,8 +473,10 @@ const areaIcon = (area) => ({
                                     v-model.number="settleForm.gratuity_months_per_year"
                                     type="number"
                                     step="0.1"
+                                    min="0"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 />
+                                <InputError :message="settleForm.errors.gratuity_months_per_year" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Severance (months/yr)</label>
@@ -478,16 +484,20 @@ const areaIcon = (area) => ({
                                     v-model.number="settleForm.severance_months_per_year"
                                     type="number"
                                     step="0.1"
+                                    min="0"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 />
+                                <InputError :message="settleForm.errors.severance_months_per_year" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Working days / month</label>
                                 <input aria-label="Working days / month"
                                     v-model.number="settleForm.working_days_per_month"
                                     type="number"
+                                    min="0"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 />
+                                <InputError :message="settleForm.errors.working_days_per_month" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Ex-gratia (GHS)</label>
@@ -495,8 +505,10 @@ const areaIcon = (area) => ({
                                     v-model.number="settleForm.ex_gratia"
                                     type="number"
                                     step="0.01"
+                                    min="0"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 />
+                                <InputError :message="settleForm.errors.ex_gratia" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Prorated 13th month</label>
@@ -504,8 +516,10 @@ const areaIcon = (area) => ({
                                     v-model.number="settleForm.prorated_13th_month"
                                     type="number"
                                     step="0.01"
+                                    min="0"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 />
+                                <InputError :message="settleForm.errors.prorated_13th_month" />
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Other deductions</label>
@@ -513,8 +527,10 @@ const areaIcon = (area) => ({
                                     v-model.number="settleForm.other_deductions"
                                     type="number"
                                     step="0.01"
+                                    min="0"
                                     class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                                 />
+                                <InputError :message="settleForm.errors.other_deductions" />
                             </div>
                             <div class="flex items-end pb-1">
                                 <label class="inline-flex items-center gap-2 text-[13px] font-semibold text-on-surface-variant cursor-pointer">
@@ -525,6 +541,7 @@ const areaIcon = (area) => ({
                                     />
                                     Apply PAYE
                                 </label>
+                                <InputError :message="settleForm.errors.pay_paye" />
                             </div>
                         </div>
 

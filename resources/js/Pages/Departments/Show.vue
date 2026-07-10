@@ -100,6 +100,12 @@ const portal = computed(() => PORTALS[props.slug] ?? PORTALS.it);
     <Head :title="`${portal.title} — CIHRMS`" />
     <div data-page-root="true">
 
+            <!-- Mock-data notice — this portal renders illustrative figures, not the live `department` prop. -->
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:bg-amber-900/20 dark:border-amber-800/40 dark:text-amber-300">
+                <span class="material-symbols-outlined text-[14px]">science</span>
+                Sample data — department portal preview
+            </div>
+
             <!-- Hero strip -->
             <div class="mb-6 overflow-hidden rounded-3xl text-white"
                  style="background:linear-gradient(135deg,#1a237e,#3949ab);border:1px solid rgba(255,255,255,0.06);">

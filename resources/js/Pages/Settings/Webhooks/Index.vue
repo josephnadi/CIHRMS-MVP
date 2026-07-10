@@ -105,6 +105,12 @@ const toggleEvent = (e) => {
     else          form.subscribed_events.splice(i, 1);
 };
 
+const closePanel = () => {
+    showPanel.value = false;
+    form.reset();
+    form.subscribed_events = ['*'];
+};
+
 // ── Helpers ────────────────────────────────────────────────────────
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const fmtRelative = (d) => {
@@ -338,7 +344,7 @@ const hostOf = (url) => {
         </div>
 
         <!-- ── Register partner panel ─────────────────────────────────── -->
-        <SlidePanel :open="showPanel" title="Register webhook subscription" size="lg" @close="showPanel = false">
+        <SlidePanel :open="showPanel" title="Register webhook subscription" size="lg" @close="closePanel">
             <form @submit.prevent="submit" class="space-y-5 p-6">
 
                 <div class="rounded-xl bg-cyan-50/60 border border-cyan-200/60 dark:bg-cyan-900/15 dark:border-cyan-800/40 px-4 py-3 flex items-start gap-3">
@@ -353,6 +359,7 @@ const hostOf = (url) => {
                     <input aria-label="Partner name" v-model="form.partner_name" required maxlength="120" placeholder="e.g. GIFMIS / IPPD / Ghana Card NIA"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': form.errors.partner_name }"/>
+                    <p v-if="form.errors.partner_name" class="mt-1 text-[11px] text-rose-600">{{ form.errors.partner_name }}</p>
                 </div>
 
                 <div>
@@ -360,6 +367,7 @@ const hostOf = (url) => {
                     <input aria-label="Callback URL" v-model="form.callback_url" type="url" required placeholder="https://partner.gov.gh/webhooks/cihrms"
                            class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] font-mono focus:border-secondary focus:ring-secondary/20"
                            :class="{ 'border-rose-400': form.errors.callback_url }"/>
+                    <p v-if="form.errors.callback_url" class="mt-1 text-[11px] text-rose-600">{{ form.errors.callback_url }}</p>
                     <p class="mt-1 text-[10.5px] text-on-surface-variant/60">HTTPS is required. The signing handshake is HMAC-SHA256.</p>
                 </div>
 
@@ -388,7 +396,7 @@ const hostOf = (url) => {
 
             <template #footer>
                 <div class="flex items-center justify-end gap-3">
-                    <button type="button" @click="showPanel = false"
+                    <button type="button" @click="closePanel"
                             class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
                         Cancel
                     </button>

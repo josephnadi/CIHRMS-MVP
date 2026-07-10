@@ -59,7 +59,15 @@ const removeAllocation = (i) => form.allocations.splice(i, 1);
 
 const allocSum = computed(() => form.allocations.reduce((s, a) => s + (Number(a.allocated_amount) || 0), 0));
 
-const submit = () => form.post(route('finance.ar-receipts.store'), { onSuccess: () => panelOpen.value = false });
+const openNew = () => {
+    form.reset();
+    form.clearErrors();
+    panelOpen.value = true;
+};
+
+const submit = () => form.post(route('finance.ar-receipts.store'), {
+    onSuccess: () => { panelOpen.value = false; form.reset(); },
+});
 
 const voidReceipt = (r) => {
     const reason = prompt('Reason for voiding?');
@@ -84,7 +92,7 @@ const statusColor = (val) => ({
                 <h1 class="text-[1.6rem] font-black tracking-tight text-primary leading-tight"><GlossaryText text="AR Receipts" /></h1>
                 <p class="mt-1 text-[13px] font-medium text-on-surface-variant">{{ rows.length }} receipt{{ rows.length === 1 ? '' : 's' }} · journal posts atomically with each record.</p>
             </div>
-            <PrimaryButton v-if="canReceive" @click="panelOpen = true">
+            <PrimaryButton v-if="canReceive" @click="openNew">
                 <span class="material-symbols-outlined text-[16px] mr-1">savings</span>Record Receipt
             </PrimaryButton>
         </div>
@@ -139,6 +147,7 @@ const statusColor = (val) => ({
                     <div>
                         <InputLabel for="receipt_date" value="Receipt date" />
                         <input id="receipt_date" v-model="form.receipt_date" type="date" aria-label="Receipt date" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        <InputError :message="form.errors.receipt_date" />
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -161,6 +170,7 @@ const statusColor = (val) => ({
                 <div>
                     <InputLabel for="external_ref" value="External reference (bank / MoMo transaction id)" />
                     <TextInput id="external_ref" v-model="form.external_ref" class="mt-1 block w-full" />
+                    <InputError :message="form.errors.external_ref" />
                 </div>
 
                 <div>
@@ -188,6 +198,7 @@ const statusColor = (val) => ({
                 <div>
                     <InputLabel for="narration" value="Narration" />
                     <textarea id="narration" v-model="form.narration" rows="2" aria-label="Narration" class="mt-1 block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]"></textarea>
+                    <InputError :message="form.errors.narration" />
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2">

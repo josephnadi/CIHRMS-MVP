@@ -64,6 +64,7 @@ function pay(invoiceId) {
                                 class="rounded-xl bg-primary px-3 py-1.5 text-xs font-black text-white shadow-glow-sm disabled:opacity-50">
                             Pay now
                         </button>
+                        <p v-if="payForm.errors.status" class="text-[12px] text-rose-600 mt-1">{{ payForm.errors.status }}</p>
                     </td>
                 </tr>
             </tbody>

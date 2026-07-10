@@ -151,11 +151,15 @@ const act = (b) => Math.round(((props.actual_distribution     ?? {})[b] ?? 0) * 
                             <div>
                                 <label class="block text-xs text-on-surface-variant mb-1">New rating (1-5)</label>
                                 <input aria-label="New rating (1-5)" v-model.number="adjustForm.adjusted_rating" type="number" step="0.25" min="1" max="5"
-                                       class="w-full rounded-lg border-outline-variant text-sm">
+                                       class="w-full rounded-lg border-outline-variant text-sm"
+                                       :class="{ 'border-red-400': adjustForm.errors.adjusted_rating }">
+                                <p v-if="adjustForm.errors.adjusted_rating" class="mt-1 text-[11px] text-red-500">{{ adjustForm.errors.adjusted_rating }}</p>
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-xs text-on-surface-variant mb-1">Reason</label>
-                                <input v-model="adjustForm.reason" aria-label="Adjustment reason" class="w-full rounded-lg border-outline-variant text-sm" required>
+                                <input v-model="adjustForm.reason" aria-label="Adjustment reason" class="w-full rounded-lg border-outline-variant text-sm" required
+                                       :class="{ 'border-red-400': adjustForm.errors.reason }">
+                                <p v-if="adjustForm.errors.reason" class="mt-1 text-[11px] text-red-500">{{ adjustForm.errors.reason }}</p>
                             </div>
                         </div>
                         <div class="flex gap-2">

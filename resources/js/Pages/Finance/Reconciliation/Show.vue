@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import InputError from '@/Components/InputError.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -41,7 +42,7 @@ const unlinkLine = (line) => {
 
 const adjustModal = ref(null);
 const adjForm = useForm({ gl_account_id: null, narration: '' });
-const openAdjust = (line) => { adjustModal.value = line; adjForm.reset(); };
+const openAdjust = (line) => { adjustModal.value = line; adjForm.reset(); adjForm.clearErrors(); };
 const submitAdjust = () => {
     if (!adjustModal.value) return;
     adjForm.post(route('finance.reconciliation.adjust', adjustModal.value.id), {
@@ -181,11 +182,13 @@ const rematch = () => {
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Offset GL Account ID</label>
                         <input aria-label="Offset GL Account ID" v-model.number="adjForm.gl_account_id" type="number" min="1"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        <InputError :message="adjForm.errors.gl_account_id" />
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-on-surface-variant mb-1">Narration</label>
                         <input aria-label="Narration" v-model="adjForm.narration" type="text"
                                class="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[13px]" />
+                        <InputError :message="adjForm.errors.narration" />
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="adjustModal = null" class="rounded-xl border border-outline-variant px-3 py-2 text-[12px] font-bold text-on-surface-variant">Cancel</button>

@@ -66,6 +66,19 @@ const hasActiveFilters = computed(() =>
 const goalList  = computed(() => props.goals?.data ?? []);
 const cycleList = computed(() => props.cycles?.data ?? props.cycles ?? []);
 
+// Current user's own employee id (shared via HandleInertiaRequests — auth.user.employee)
+const myEmployeeId = computed(() => page.props.auth?.user?.employee?.id ?? null);
+
+// Segment control ('my' | 'team' | 'org') filters the displayed cards client-side.
+// 'my' and 'team' rely on employee_id already present on each goal row; 'org' shows
+// everything the backend returned (no further server-side scope exists to split on).
+const displayedGoals = computed(() => {
+    if (myEmployeeId.value == null) return goalList.value;
+    if (activeSegment.value === 'my')   return goalList.value.filter(g => g.employee_id === myEmployeeId.value);
+    if (activeSegment.value === 'team') return goalList.value.filter(g => g.employee_id !== myEmployeeId.value);
+    return goalList.value;
+});
+
 // ── Stats ─────────────────────────────────────────────────────────────────────
 const stats = computed(() => {
     const data = goalList.value;
@@ -413,7 +426,7 @@ const sparkPath = (values) => {
                 </div>
 
                 <!-- ── Empty state ──────────────────────────────────────────────── -->
-                <div v-if="goalList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
+                <div v-if="displayedGoals.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                     <EmptyState
                         title="No goals found"
                         description="Set a stretch goal for someone on your team to start tracking outcomes."
@@ -435,7 +448,7 @@ const sparkPath = (values) => {
                 <!-- ── Goal cards ───────────────────────────────────────────────── -->
                 <div v-else class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     <div
-                        v-for="(goal, i) in goalList"
+                        v-for="(goal, i) in displayedGoals"
                         :key="goal.id"
                         class="group relative rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden transition-all hover:shadow-lifted hover:-translate-y-0.5 cursor-pointer"
                         :style="`animation-delay: ${i * 0.04}s`"
@@ -766,18 +779,23 @@ const sparkPath = (values) => {
                                 <span class="text-[11px] font-black" :style="`color:${meta.color}`">{{ meta.label }}</span>
                             </button>
                         </div>
+                        <p v-if="checkinForm.errors.mood" class="mt-1 text-[11px] text-red-500">{{ checkinForm.errors.mood }}</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Current Value</label>
                             <input aria-label="Current Value" v-model="checkinForm.current_value" type="number" step="0.01" min="0"
-                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': checkinForm.errors.current_value }" />
+                            <p v-if="checkinForm.errors.current_value" class="mt-1 text-[11px] text-red-500">{{ checkinForm.errors.current_value }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Progress %</label>
                             <input aria-label="Progress %" v-model="checkinForm.progress_pct" type="number" step="1" min="0" max="100"
-                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': checkinForm.errors.progress_pct }" />
+                            <p v-if="checkinForm.errors.progress_pct" class="mt-1 text-[11px] text-red-500">{{ checkinForm.errors.progress_pct }}</p>
                         </div>
                     </div>
 
@@ -785,7 +803,9 @@ const sparkPath = (values) => {
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Narrative</label>
                         <textarea aria-label="Narrative" v-model="checkinForm.narrative" rows="4"
                             placeholder="What happened since last check-in? What's blocking progress?"
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': checkinForm.errors.narrative }" />
+                        <p v-if="checkinForm.errors.narrative" class="mt-1 text-[11px] text-red-500">{{ checkinForm.errors.narrative }}</p>
                     </div>
                 </form>
 

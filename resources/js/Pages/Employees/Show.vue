@@ -367,7 +367,7 @@ const priorityColors = {
                                             {{ employee.ghana_card ? '****' + employee.ghana_card.slice(-4) : '—' }}
                                         </p>
                                     </div>
-                                    <button @click="copyToClipboard(employee.ghana_card)" class="text-on-surface-variant hover:text-secondary transition-colors">
+                                    <button @click="copyToClipboard(employee.ghana_card)" aria-label="Copy Ghana Card number" class="text-on-surface-variant hover:text-secondary transition-colors">
                                         <span class="material-symbols-outlined text-[18px]">content_copy</span>
                                     </button>
                                 </div>
@@ -378,7 +378,7 @@ const priorityColors = {
                                             {{ employee.ssnit_number ? '****' + employee.ssnit_number.slice(-4) : '—' }}
                                         </p>
                                     </div>
-                                    <button @click="copyToClipboard(employee.ssnit_number)" class="text-on-surface-variant hover:text-secondary transition-colors">
+                                    <button @click="copyToClipboard(employee.ssnit_number)" aria-label="Copy SSNIT number" class="text-on-surface-variant hover:text-secondary transition-colors">
                                         <span class="material-symbols-outlined text-[18px]">content_copy</span>
                                     </button>
                                 </div>
@@ -389,7 +389,7 @@ const priorityColors = {
                                             {{ employee.tin ? '****' + employee.tin.slice(-4) : '—' }}
                                         </p>
                                     </div>
-                                    <button @click="copyToClipboard(employee.tin)" class="text-on-surface-variant hover:text-secondary transition-colors">
+                                    <button @click="copyToClipboard(employee.tin)" aria-label="Copy TIN" class="text-on-surface-variant hover:text-secondary transition-colors">
                                         <span class="material-symbols-outlined text-[18px]">content_copy</span>
                                     </button>
                                 </div>
@@ -841,7 +841,7 @@ const priorityColors = {
 
                 <template #footer>
                     <div class="flex items-center justify-end gap-3">
-                        <button type="button" @click="showEditPanel = false"
+                        <button type="button" @click="showEditPanel = false; editForm.reset(); editForm.clearErrors()"
                                 class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
                             Cancel
                         </button>

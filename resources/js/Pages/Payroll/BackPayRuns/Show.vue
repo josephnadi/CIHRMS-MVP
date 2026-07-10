@@ -80,7 +80,7 @@ const toggle = (id) => expanded.value = expanded.value === id ? null : id;
 
         <!-- Lines -->
         <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden">
-            <table class="w-full text-sm">
+            <table v-if="lines.length" class="w-full text-sm">
                 <thead class="text-on-surface-variant text-[10px] uppercase bg-surface-container-low/20"><tr>
                     <th class="text-left p-3">Employee</th><th class="text-right p-3">Arrears (net)</th>
                     <th class="text-right p-3">Back-PAYE</th><th class="text-right p-3">Staff cost</th><th class="p-3"></th>
@@ -117,6 +117,9 @@ const toggle = (id) => expanded.value = expanded.value === id ? null : id;
                     </template>
                 </tbody>
             </table>
+            <p v-else class="p-8 text-center text-sm text-on-surface-variant">
+                No back-pay lines on this run.
+            </p>
         </div>
 
         <p class="text-[11px] text-on-surface-variant">

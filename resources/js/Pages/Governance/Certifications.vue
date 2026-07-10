@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -93,15 +94,15 @@ function dueLabel(d) {
 
         <SlidePanel :open="showAdd" @close="showAdd = false" title="Add Certification">
             <form @submit.prevent="createCert" class="space-y-3 p-4">
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="newCert.employee_id" aria-label="Employee holding this certification" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Certification Name</label><input v-model="newCert.name" aria-label="Certification name" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Issuer</label><input v-model="newCert.issuer" aria-label="Issuing body" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Credential ID</label><input v-model="newCert.credential_id" aria-label="Credential ID" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Employee</label><select v-model="newCert.employee_id" aria-label="Employee holding this certification" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1"><option value="" disabled>Select…</option><option v-for="e in props.employees" :key="e.id" :value="e.id">{{ e.employee_no }} — {{ e.position }}</option></select><InputError :message="newCert.errors.employee_id" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Certification Name</label><input v-model="newCert.name" aria-label="Certification name" maxlength="200" required class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="newCert.errors.name" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Issuer</label><input v-model="newCert.issuer" aria-label="Issuing body" maxlength="200" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="newCert.errors.issuer" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Credential ID</label><input v-model="newCert.credential_id" aria-label="Credential ID" maxlength="120" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 font-mono mt-1" /><InputError :message="newCert.errors.credential_id" /></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label class="text-[11px] font-bold text-on-surface-variant">Issued</label><input v-model="newCert.issued_at" aria-label="Issued date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
-                    <div><label class="text-[11px] font-bold text-on-surface-variant">Expires</label><input v-model="newCert.expires_at" aria-label="Expiry date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                    <div><label class="text-[11px] font-bold text-on-surface-variant">Issued</label><input v-model="newCert.issued_at" aria-label="Issued date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="newCert.errors.issued_at" /></div>
+                    <div><label class="text-[11px] font-bold text-on-surface-variant">Expires</label><input v-model="newCert.expires_at" aria-label="Expiry date" type="date" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="newCert.errors.expires_at" /></div>
                 </div>
-                <div><label class="text-[11px] font-bold text-on-surface-variant">Verification URL</label><input v-model="newCert.verification_url" aria-label="Verification URL" type="url" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /></div>
+                <div><label class="text-[11px] font-bold text-on-surface-variant">Verification URL</label><input v-model="newCert.verification_url" aria-label="Verification URL" type="url" maxlength="500" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 mt-1" /><InputError :message="newCert.errors.verification_url" /></div>
                 <button type="submit" :disabled="newCert.processing" class="w-full rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Add Certification</button>
             </form>
         </SlidePanel>

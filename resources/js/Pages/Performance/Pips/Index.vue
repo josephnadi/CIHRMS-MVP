@@ -59,16 +59,15 @@ const form = useForm({
 });
 
 const submitPip = () => {
-    const payload = {
-        employee_id:    form.employee_id,
-        mentor_id:      form.mentor_id || undefined,
-        duration_days:  parseInt(form.duration_days) || 90,
+    form.transform((data) => ({
+        employee_id:    data.employee_id,
+        mentor_id:      data.mentor_id || undefined,
+        duration_days:  parseInt(data.duration_days) || 90,
         target_metrics: (() => {
-            try { return form.target_metrics ? JSON.parse(form.target_metrics) : []; }
+            try { return data.target_metrics ? JSON.parse(data.target_metrics) : []; }
             catch { return []; }
         })(),
-    };
-    router.post(route('performance.pips.store'), payload, {
+    })).post(route('performance.pips.store'), {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
@@ -430,7 +429,9 @@ const outcomeMix = computed(() => {
                                 placeholder="Employee database ID"
                                 required
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.employee_id }"
                             />
+                            <p v-if="form.errors.employee_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.employee_id }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Mentor / HR Partner ID</label>
@@ -439,7 +440,9 @@ const outcomeMix = computed(() => {
                                 type="number"
                                 placeholder="Optional — mentor employee ID"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.mentor_id }"
                             />
+                            <p v-if="form.errors.mentor_id" class="mt-1 text-[11px] text-red-500">{{ form.errors.mentor_id }}</p>
                         </div>
                     </div>
 
@@ -463,8 +466,10 @@ const outcomeMix = computed(() => {
                                 max="180"
                                 placeholder="Custom"
                                 class="w-24 rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-[13px] text-center text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': form.errors.duration_days }"
                             />
                         </div>
+                        <p v-if="form.errors.duration_days" class="mt-1 text-[11px] text-red-500">{{ form.errors.duration_days }}</p>
                     </div>
 
                     <div>
@@ -476,7 +481,9 @@ const outcomeMix = computed(() => {
                             rows="5"
                             placeholder='[{"metric":"Attendance","target":"95%"},{"metric":"Report quality","target":"No rewrites"}]'
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[12px] font-mono text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': form.errors.target_metrics }"
                         />
+                        <p v-if="form.errors.target_metrics" class="mt-1 text-[11px] text-red-500">{{ form.errors.target_metrics }}</p>
                     </div>
                 </form>
 
@@ -489,7 +496,8 @@ const outcomeMix = computed(() => {
                         >Cancel</button>
                         <button
                             @click="submitPip"
-                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white"
+                            :disabled="form.processing"
+                            class="btn-shimmer flex items-center gap-2 rounded-xl px-5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
                             style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span class="material-symbols-outlined text-[16px]">assignment</span>

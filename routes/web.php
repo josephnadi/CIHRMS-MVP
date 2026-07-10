@@ -313,7 +313,7 @@ Route::middleware(['auth'])->group(function () {
     // Complaints (authenticated routes only — public tracking endpoint lives outside this group)
     Route::prefix('complaints')->name('complaints.')->group(function () {
         Route::get('/',                    [ComplaintController::class, 'index'])
-            ->middleware('permission:complaints.manage')
+            ->middleware('permission:complaints.create')
             ->name('index');
         Route::post('/',                   [ComplaintController::class, 'store'])
             ->middleware('permission:complaints.create')

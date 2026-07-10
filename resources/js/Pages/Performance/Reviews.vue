@@ -210,6 +210,18 @@ const isMine     = (r) => r.reviewer?.id === currentUser.value?.id || r.reviewer
 const canSubmit  = (r) => r.status === 'draft'      && (canManage.value || isMine(r));
 const canAck     = (r) => r.status === 'submitted';
 
+// Current user's own employee id (shared via HandleInertiaRequests — auth.user.employee)
+const myEmployeeId = computed(() => page.props.auth?.user?.employee?.id ?? null);
+const isReviewee   = (r) => (r.employee?.id ?? r.employee_id) === myEmployeeId.value;
+
+// ── View tab filtering ────────────────────────────────────────────────────────
+// 'reviewee' = reviews about me, 'reviewer' = reviews I'm writing, 'all' = HR view (unfiltered)
+const displayedReviews = computed(() => {
+    if (activeTab.value === 'reviewee') return reviewList.value.filter(isReviewee);
+    if (activeTab.value === 'reviewer') return reviewList.value.filter(isMine);
+    return reviewList.value;
+});
+
 const initials = (name) => {
     if (!name) return '?';
     const p = name.trim().split(' ');
@@ -432,7 +444,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                 </div>
 
                 <!-- ── Review cards ──────────────────────────────────────────────── -->
-                <div v-if="reviewList.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
+                <div v-if="displayedReviews.length === 0" class="rounded-2xl bg-surface-container-lowest border border-outline-variant/50 shadow-card p-12">
                     <EmptyState
                         title="No reviews yet"
                         description="Reviews are tied to a cycle. Create a cycle first, then start drafting reviews."
@@ -453,7 +465,7 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
 
                 <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <div
-                        v-for="(r, i) in reviewList"
+                        v-for="(r, i) in displayedReviews"
                         :key="r.id"
                         class="card-lift rounded-2xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden"
                         :style="`animation-delay: ${i * 0.04}s`"
@@ -643,17 +655,23 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Overall</label>
                                 <input aria-label="Overall" v-model="form.overall_rating" type="number" step="0.1" min="1" max="5"
-                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
+                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                    :class="{ 'border-red-400': form.errors.overall_rating }" />
+                                <p v-if="form.errors.overall_rating" class="mt-1 text-[11px] text-red-500">{{ form.errors.overall_rating }}</p>
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Performance</label>
                                 <input aria-label="Performance" v-model="form.performance_rating" type="number" step="0.1" min="1" max="5"
-                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
+                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                    :class="{ 'border-red-400': form.errors.performance_rating }" />
+                                <p v-if="form.errors.performance_rating" class="mt-1 text-[11px] text-red-500">{{ form.errors.performance_rating }}</p>
                             </div>
                             <div>
                                 <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Potential</label>
                                 <input aria-label="Potential" v-model="form.potential_rating" type="number" step="0.1" min="1" max="5"
-                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
+                                    class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                    :class="{ 'border-red-400': form.errors.potential_rating }" />
+                                <p v-if="form.errors.potential_rating" class="mt-1 text-[11px] text-red-500">{{ form.errors.potential_rating }}</p>
                             </div>
                         </div>
                     </div>
@@ -661,19 +679,25 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Strengths</label>
                         <textarea aria-label="Strengths" v-model="form.strengths" rows="3" placeholder="What did this person do exceptionally well?"
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': form.errors.strengths }" />
+                        <p v-if="form.errors.strengths" class="mt-1 text-[11px] text-red-500">{{ form.errors.strengths }}</p>
                     </div>
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Opportunities</label>
                         <textarea aria-label="Opportunities" v-model="form.opportunities" rows="3" placeholder="What should this person focus on next?"
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': form.errors.opportunities }" />
+                        <p v-if="form.errors.opportunities" class="mt-1 text-[11px] text-red-500">{{ form.errors.opportunities }}</p>
                     </div>
 
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Additional Comments</label>
                         <textarea aria-label="Additional Comments" v-model="form.comments" rows="4" placeholder="Any further context or examples…"
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none" />
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all resize-none"
+                            :class="{ 'border-red-400': form.errors.comments }" />
+                        <p v-if="form.errors.comments" class="mt-1 text-[11px] text-red-500">{{ form.errors.comments }}</p>
                     </div>
                 </form>
 
@@ -705,19 +729,23 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                     <div>
                         <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Cadence <span class="text-red-500">*</span></label>
                         <select aria-label="Cadence" v-model="cycleForm.cadence" required
-                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all">
+                            class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                            :class="{ 'border-red-400': cycleForm.errors.cadence }">
                             <option value="annual">Annual</option>
                             <option value="half_year">Half-yearly</option>
                             <option value="quarterly">Quarterly</option>
                             <option value="probation">Probation</option>
                         </select>
+                        <p v-if="cycleForm.errors.cadence" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.cadence }}</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Starts On <span class="text-red-500">*</span></label>
                             <input aria-label="Starts On" v-model="cycleForm.starts_at" type="date" required
-                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all" />
+                                class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
+                                :class="{ 'border-red-400': cycleForm.errors.starts_at }" />
+                            <p v-if="cycleForm.errors.starts_at" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.starts_at }}</p>
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Ends On <span class="text-red-500">*</span></label>
@@ -734,17 +762,23 @@ const avatarGrad = (id) => GRADIENTS[(id ?? 0) % GRADIENTS.length];
                             <div>
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1 block">Self due</label>
                                 <input aria-label="Self due" v-model="cycleForm.self_review_due" type="date"
-                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50" />
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
+                                    :class="{ 'border-red-400': cycleForm.errors.self_review_due }" />
+                                <p v-if="cycleForm.errors.self_review_due" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.self_review_due }}</p>
                             </div>
                             <div>
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1 block">Peer due</label>
                                 <input aria-label="Peer due" v-model="cycleForm.peer_review_due" type="date"
-                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50" />
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
+                                    :class="{ 'border-red-400': cycleForm.errors.peer_review_due }" />
+                                <p v-if="cycleForm.errors.peer_review_due" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.peer_review_due }}</p>
                             </div>
                             <div>
                                 <label class="text-[11px] font-semibold text-on-surface-variant mb-1 block">Mgr due</label>
                                 <input aria-label="Mgr due" v-model="cycleForm.manager_review_due" type="date"
-                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50" />
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:border-secondary/50"
+                                    :class="{ 'border-red-400': cycleForm.errors.manager_review_due }" />
+                                <p v-if="cycleForm.errors.manager_review_due" class="mt-1 text-[11px] text-red-500">{{ cycleForm.errors.manager_review_due }}</p>
                             </div>
                         </div>
                     </div>

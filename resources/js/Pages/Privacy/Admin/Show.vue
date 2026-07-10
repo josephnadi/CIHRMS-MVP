@@ -80,6 +80,8 @@ const editionLabel = computed(() => {
                                 {{ R.request_type_label }} ·
                                 Target by
                                 <span :class="R.is_overdue ? 'text-rose-700 font-bold' : 'font-semibold'">{{ R.target_completion_date }}</span>
+                                · Case age <span class="font-semibold">{{ caseAgeDays }}d</span>
+                                · Assignee <span class="font-semibold">{{ assigneeLabel }}</span>
                             </p>
                         </div>
                         <StatusBadge :status="R.status" :label="R.status_label" />

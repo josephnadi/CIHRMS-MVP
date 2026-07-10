@@ -4,6 +4,7 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -60,6 +61,7 @@ const certForm = useForm({
 const myEmployeeId = computed(() =>
     enrolments.value[0]?.employee_id
     ?? certifications.value[0]?.employee_id
+    ?? authUser.value?.employee?.id
     ?? null,
 );
 
@@ -539,6 +541,7 @@ const ringProps = (pct, r = 28) => {
                             min="0" max="100" step="1"
                             class="w-full accent-secondary"
                         />
+                        <InputError :message="progressForm.errors.progress_pct" />
                         <!-- Visual progress bar -->
                         <div class="mt-2 h-2 rounded-full bg-outline-variant/30 overflow-hidden">
                             <div
@@ -571,6 +574,7 @@ const ringProps = (pct, r = 28) => {
                             placeholder="e.g. 87.5"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                         />
+                        <InputError :message="progressForm.errors.final_score" />
                         <p class="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-600">
                             <span class="material-symbols-outlined text-[14px]">check_circle</span>
                             Setting 100% will mark this course as completed and add its skills to your profile.
@@ -631,6 +635,7 @@ const ringProps = (pct, r = 28) => {
                                 placeholder="e.g. ACCA"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="certForm.errors.issuer" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Credential ID</label>
@@ -641,6 +646,7 @@ const ringProps = (pct, r = 28) => {
                                 placeholder="Unique ID or license no."
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="certForm.errors.credential_id" />
                         </div>
                     </div>
 
@@ -652,6 +658,7 @@ const ringProps = (pct, r = 28) => {
                                 type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="certForm.errors.issued_at" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Expiry Date</label>
@@ -660,6 +667,7 @@ const ringProps = (pct, r = 28) => {
                                 type="date"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="certForm.errors.expires_at" />
                         </div>
                     </div>
 
@@ -672,6 +680,7 @@ const ringProps = (pct, r = 28) => {
                             placeholder="https://verify.example.com/…"
                             class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                         />
+                        <InputError :message="certForm.errors.verification_url" />
                     </div>
                 </form>
 

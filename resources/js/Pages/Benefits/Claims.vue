@@ -4,6 +4,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -60,7 +61,7 @@ const statusTone = {
                             <td class="p-4 font-mono">{{ c.claim_reference }}</td>
                             <td>{{ c.enrolment?.employee?.name }} <span class="text-on-surface-variant text-xs font-mono">({{ c.enrolment?.employee?.employee_no }})</span></td>
                             <td class="text-xs">{{ c.enrolment?.plan_name }}</td>
-                            <td class="font-mono">{{ c.currency }} {{ c.amount.toFixed(2) }}</td>
+                            <td class="font-mono">{{ c.currency }} {{ Number(c.amount).toFixed(2) }}</td>
                             <td class="text-xs">{{ new Date(c.submitted_at).toLocaleDateString() }}</td>
                             <td><span :class="['rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase', statusTone[c.status]]">{{ c.status }}</span></td>
                             <td>
@@ -81,9 +82,14 @@ const statusTone = {
         <div v-if="deciding" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="deciding = null">
             <div class="bg-surface-container-lowest rounded-2xl p-6 max-w-md w-full shadow-2xl">
                 <h3 class="text-lg font-black text-primary mb-2">{{ decideForm.status === 'approved' ? 'Approve' : (decideForm.status === 'rejected' ? 'Reject' : 'Mark Paid') }} Claim</h3>
-                <p class="text-sm text-on-surface-variant mb-4">{{ deciding.claim_reference }} · {{ deciding.currency }} {{ deciding.amount.toFixed(2) }}</p>
+                <p class="text-sm text-on-surface-variant mb-4">{{ deciding.claim_reference }} · {{ deciding.currency }} {{ Number(deciding.amount).toFixed(2) }}</p>
                 <form @submit.prevent="submitDecide" class="space-y-3">
-                    <div><label class="text-[11px] font-bold text-on-surface-variant">Notes{{ decideForm.status === 'rejected' ? ' (required)' : '' }}</label><textarea v-model="decideForm.notes" aria-label="Decision notes" :required="decideForm.status === 'rejected'" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" /></div>
+                    <div>
+                        <label class="text-[11px] font-bold text-on-surface-variant">Notes{{ decideForm.status === 'rejected' ? ' (required)' : '' }}</label>
+                        <textarea v-model="decideForm.notes" aria-label="Decision notes" :required="decideForm.status === 'rejected'" rows="3" class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm mt-1" />
+                        <InputError :message="decideForm.errors.notes" />
+                    </div>
+                    <InputError :message="decideForm.errors.status" />
                     <div class="flex gap-2 justify-end">
                         <button type="button" @click="deciding = null" class="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold text-on-surface-variant">Cancel</button>
                         <button type="submit" :disabled="decideForm.processing" class="rounded-xl bg-gradient-to-br from-primary to-secondary px-4 py-2 text-sm font-bold text-white">Confirm</button>

@@ -944,11 +944,17 @@ const formatDate = (d) => {
                                                 {{ plan.employee_contribution_percentage }}% employee
                                             </span>
                                         </p>
+                                        <p
+                                            v-if="form.benefit_plan_ids.includes(plan.id) && form.errors[`benefit_plan_ids.${form.benefit_plan_ids.indexOf(plan.id)}`]"
+                                            class="mt-1 text-[10.5px] text-red-500"
+                                        >
+                                            {{ form.errors[`benefit_plan_ids.${form.benefit_plan_ids.indexOf(plan.id)}`] }}
+                                        </p>
                                     </div>
                                 </div>
                             </label>
                         </div>
-                        <p v-if="form.errors['benefit_plan_ids.0']" class="text-[11px] text-red-500">{{ form.errors['benefit_plan_ids.0'] }}</p>
+                        <p v-if="form.errors.benefit_plan_ids" class="text-[11px] text-red-500">{{ form.errors.benefit_plan_ids }}</p>
                     </div>
 
                     <!-- Tier-3 voluntary pension election -->
@@ -984,7 +990,7 @@ const formatDate = (d) => {
                     <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
-                            @click="showAddPanel = false"
+                            @click="showAddPanel = false; form.reset(); form.clearErrors()"
                             class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
                             Cancel
@@ -1056,7 +1062,7 @@ const formatDate = (d) => {
                     <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
-                            @click="showDeptPanel = false"
+                            @click="showDeptPanel = false; deptForm.reset(); deptForm.clearErrors()"
                             class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
                         >
                             Cancel

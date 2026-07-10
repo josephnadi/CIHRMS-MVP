@@ -7,6 +7,7 @@ import StatCard from '@/Components/StatCard.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import SearchInput from '@/Components/SearchInput.vue';
 import Pagination from '@/Components/Pagination.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -136,7 +137,7 @@ const removeCourse = (c, event) => {
     router.delete(route('learning.courses.destroy', c.id), { preserveScroll: true });
 };
 
-// ── Create Course SlidePanel ─────────────────────────────────────────────────
+// ── Create / Edit Course SlidePanel ───────────────────────────────────────────
 const showCreate = ref(false);
 
 const createForm = useForm({
@@ -184,6 +185,26 @@ const removePrerequisite = (id) => {
     createForm.prerequisite_ids = createForm.prerequisite_ids.filter(x => x !== id);
 };
 const prereqTitle = (id) => list.value.find(c => c.id === id)?.title ?? `#${id}`;
+
+// Open the Publish/Edit panel pre-filled for an existing course (HR/LD only).
+const openEditCourse = (course, event) => {
+    event?.stopPropagation();
+    editingCourseId.value = course.id;
+    createForm.clearErrors();
+    createForm.title            = course.title ?? '';
+    createForm.description      = course.description ?? '';
+    createForm.category         = course.category ?? 'technical';
+    createForm.format           = course.format ?? 'self_paced';
+    createForm.provider         = course.provider ?? '';
+    createForm.cover_image      = course.cover_image ?? '';
+    createForm.duration_minutes = course.duration_minutes ?? 60;
+    createForm.price            = course.price ?? 0;
+    createForm.currency         = course.currency ?? 'GHS';
+    createForm.skill_tags       = [...(course.skill_tags ?? [])];
+    createForm.prerequisite_ids = (course.prerequisites ?? []).map(p => p.id);
+    createForm.is_published     = !!course.is_published;
+    showCreate.value = true;
+};
 
 const submitCreate = () => {
     const action = editingCourseId.value
@@ -521,6 +542,15 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
 
                                 <button
                                     v-if="canManage"
+                                    @click="openEditCourse(c, $event)"
+                                    class="rounded-xl border border-outline-variant/60 px-2.5 py-2 text-[12px] font-bold text-on-surface-variant hover:bg-surface-container transition-colors"
+                                    title="Edit"
+                                >
+                                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                                </button>
+
+                                <button
+                                    v-if="canManage"
                                     @click="removeCourse(c, $event)"
                                     class="rounded-xl border border-outline-variant/60 px-2.5 py-2 text-[12px] font-bold text-red-600 hover:bg-red-500/8 hover:border-red-500/30 transition-colors"
                                     title="Delete"
@@ -685,9 +715,9 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
             <!-- ── Publish Course SlidePanel ─────────────────────────────────── -->
             <SlidePanel
                 :open="showCreate"
-                title="Publish New Course"
+                :title="editingCourseId ? 'Edit Course' : 'Publish New Course'"
                 size="lg"
-                @close="showCreate = false"
+                @close="resetCreate"
             >
                 <form @submit.prevent="submitCreate" class="space-y-5 p-6">
 
@@ -726,6 +756,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             >
                                 <option v-for="c in categories.slice(1)" :key="c.v" :value="c.v">{{ c.l }}</option>
                             </select>
+                            <InputError :message="createForm.errors.category" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Format <span class="text-red-500">*</span></label>
@@ -736,6 +767,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             >
                                 <option v-for="f in formats.slice(1)" :key="f.v" :value="f.v">{{ f.l }}</option>
                             </select>
+                            <InputError :message="createForm.errors.format" />
                         </div>
                     </div>
 
@@ -749,6 +781,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 placeholder="GIFMIS Academy"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="createForm.errors.provider" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Duration (min)</label>
@@ -758,6 +791,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 min="0"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="createForm.errors.duration_minutes" />
                         </div>
                         <div>
                             <label class="text-[12px] font-semibold text-on-surface-variant mb-1.5 block">Price (GHS)</label>
@@ -768,6 +802,8 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 min="0"
                                 class="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-2.5 text-[13px] text-on-surface focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all"
                             />
+                            <InputError :message="createForm.errors.price" />
+                            <InputError :message="createForm.errors.currency" />
                         </div>
                     </div>
 
@@ -781,7 +817,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 class="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-[11px] font-bold text-secondary"
                             >
                                 {{ t }}
-                                <button type="button" @click="removeTag(t)" class="hover:text-red-500 transition-colors">
+                                <button type="button" @click="removeTag(t)" :aria-label="`Remove skill tag ${t}`" class="hover:text-red-500 transition-colors">
                                     <span class="material-symbols-outlined text-[12px]">close</span>
                                 </button>
                             </span>
@@ -794,6 +830,11 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             />
                         </div>
                         <p class="mt-1 text-[11px] text-on-surface-variant/60">Press Enter or comma to add a skill tag</p>
+                        <InputError
+                            v-for="(t, i) in createForm.skill_tags"
+                            :key="`err-tag-${i}`"
+                            :message="createForm.errors[`skill_tags.${i}`]"
+                        />
                     </div>
 
                     <!-- Prerequisites -->
@@ -806,7 +847,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                                 class="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-[11px] font-bold text-secondary"
                             >
                                 {{ prereqTitle(id) }}
-                                <button type="button" @click="removePrerequisite(id)" class="hover:text-red-500 transition-colors">
+                                <button type="button" @click="removePrerequisite(id)" :aria-label="`Remove prerequisite ${prereqTitle(id)}`" class="hover:text-red-500 transition-colors">
                                     <span class="material-symbols-outlined text-[12px]">close</span>
                                 </button>
                             </span>
@@ -825,6 +866,11 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             </select>
                         </div>
                         <p class="mt-1 text-[11px] text-on-surface-variant/60">Learners must complete these before they can self-enrol.</p>
+                        <InputError
+                            v-for="(id, i) in createForm.prerequisite_ids"
+                            :key="`err-prereq-${i}`"
+                            :message="createForm.errors[`prerequisite_ids.${i}`]"
+                        />
                     </div>
 
                     <!-- Publish toggle -->
@@ -841,7 +887,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                     <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
-                            @click="showCreate = false"
+                            @click="resetCreate"
                             class="rounded-xl border border-outline-variant px-4 py-2 text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
                         >Cancel</button>
                         <button
@@ -851,7 +897,7 @@ const difficultyStyle = (d) => difficultyColors[d] ?? { bg: 'rgba(100,116,139,0.
                             style="background:linear-gradient(135deg,#0d1452,#1a237e)"
                         >
                             <span v-if="createForm.processing" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                            {{ createForm.processing ? 'Publishing…' : 'Publish Course' }}
+                            {{ createForm.processing ? (editingCourseId ? 'Saving…' : 'Publishing…') : (editingCourseId ? 'Save Changes' : 'Publish Course') }}
                         </button>
                     </div>
                 </template>

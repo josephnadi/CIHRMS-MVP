@@ -4,6 +4,7 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import SlidePanel from '@/Components/SlidePanel.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import InputError from '@/Components/InputError.vue';
 
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -560,11 +561,13 @@ const coveredNow = computed(() => {
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Start time <span class="text-rose-500">*</span></label>
                             <input aria-label="Start time" v-model="newShift.start_time" type="time" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newShift.errors.start_time" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">End time <span class="text-rose-500">*</span></label>
                             <input aria-label="End time" v-model="newShift.end_time" type="time" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newShift.errors.end_time" />
                         </div>
                     </div>
 
@@ -579,6 +582,7 @@ const coveredNow = computed(() => {
                                 {{ dayLabels[d] }}
                             </button>
                         </div>
+                        <InputError :message="newShift.errors.working_days" />
                     </div>
 
                     <div class="grid grid-cols-3 gap-4">
@@ -586,16 +590,19 @@ const coveredNow = computed(() => {
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Grace (min)</label>
                             <input aria-label="Grace (min)" v-model.number="newShift.grace_period_minutes" type="number" min="0" max="120"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newShift.errors.grace_period_minutes" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Full day (h)</label>
                             <input aria-label="Full day (h)" v-model.number="newShift.full_day_hours" type="number" step="0.25" min="1" max="24"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newShift.errors.full_day_hours" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Half day (h)</label>
                             <input aria-label="Half day (h)" v-model.number="newShift.half_day_hours" type="number" step="0.25" min="0.5" max="12"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newShift.errors.half_day_hours" />
                         </div>
                     </div>
 
@@ -606,6 +613,7 @@ const coveredNow = computed(() => {
                             <option :value="null">— Any department —</option>
                             <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
                         </select>
+                        <InputError :message="newShift.errors.department_id" />
                     </div>
 
                     <label class="flex items-center gap-3 cursor-pointer rounded-xl border border-outline-variant/60 bg-surface-container-low px-4 py-3">
@@ -665,11 +673,13 @@ const coveredNow = computed(() => {
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Start time <span class="text-rose-500">*</span></label>
                             <input aria-label="Edit start time" v-model="editShift.start_time" type="time" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="editShift.errors.start_time" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">End time <span class="text-rose-500">*</span></label>
                             <input aria-label="Edit end time" v-model="editShift.end_time" type="time" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="editShift.errors.end_time" />
                         </div>
                     </div>
 
@@ -684,6 +694,7 @@ const coveredNow = computed(() => {
                                 {{ dayLabels[d] }}
                             </button>
                         </div>
+                        <InputError :message="editShift.errors.working_days" />
                     </div>
 
                     <div class="grid grid-cols-3 gap-4">
@@ -691,16 +702,19 @@ const coveredNow = computed(() => {
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Grace (min)</label>
                             <input aria-label="Edit grace (min)" v-model.number="editShift.grace_period_minutes" type="number" min="0" max="120"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="editShift.errors.grace_period_minutes" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Full day (h)</label>
                             <input aria-label="Edit full day (h)" v-model.number="editShift.full_day_hours" type="number" step="0.25" min="1" max="24"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="editShift.errors.full_day_hours" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Half day (h)</label>
                             <input aria-label="Edit half day (h)" v-model.number="editShift.half_day_hours" type="number" step="0.25" min="0.5" max="12"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="editShift.errors.half_day_hours" />
                         </div>
                     </div>
 
@@ -711,6 +725,7 @@ const coveredNow = computed(() => {
                             <option :value="null">— Any department —</option>
                             <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
                         </select>
+                        <InputError :message="editShift.errors.department_id" />
                     </div>
 
                     <label class="flex items-center gap-3 cursor-pointer rounded-xl border border-outline-variant/60 bg-surface-container-low px-4 py-3">
@@ -772,11 +787,14 @@ const coveredNow = computed(() => {
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Effective from <span class="text-rose-500">*</span></label>
                             <input aria-label="Effective from" v-model="newAssignment.effective_from" type="date" required
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newAssignment.errors.effective_from" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-black uppercase tracking-wider text-on-surface-variant mb-1.5">Effective to <span class="ml-1 font-normal text-on-surface-variant/50">(opt.)</span></label>
                             <input aria-label="Effective to (opt.)" v-model="newAssignment.effective_to" type="date"
+                                   :min="newAssignment.effective_from"
                                    class="w-full rounded-xl border-outline-variant bg-surface-container-low text-[13px] focus:border-secondary focus:ring-secondary/20"/>
+                            <InputError :message="newAssignment.errors.effective_to" />
                         </div>
                     </div>
 
