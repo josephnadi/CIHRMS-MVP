@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import StatCard from '@/Components/StatCard.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -119,43 +120,16 @@ const statusBadge = (status) => {
 
         <!-- KPI Strip -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">Cash Position</p>
-                <p class="mt-2 text-2xl font-black text-primary">{{ cediShort(cashPosition) }}</p>
-                <p class="mt-1 text-[10px] text-on-surface-variant">Across {{ bankAccounts.length }} active accounts</p>
-            </div>
-
-            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">Outstanding Loans</p>
-                <p class="mt-2 text-2xl font-black text-primary">{{ cediShort(outstandingLoans.total_balance) }}</p>
-                <p class="mt-1 text-[10px] text-on-surface-variant">{{ outstandingLoans.count }} active loans</p>
-            </div>
-
-            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">AP Outstanding</p>
-                <p class="mt-2 text-2xl font-black text-primary">{{ cediShort(apOutstanding) }}</p>
-                <p class="mt-1 text-[10px] text-on-surface-variant">Approved invoices unpaid</p>
-            </div>
-
-            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">Pending Approvals</p>
-                <p class="mt-2 text-2xl font-black text-primary">{{ totalPendingCount }}</p>
-                <p class="mt-1 text-[10px] text-on-surface-variant">
-                    {{ pendingApprovals.payroll_runs }} payroll · {{ pendingApprovals.loans }} loans · {{ pendingApprovals.invoices }} invoices · {{ pendingApprovals.payments }} payments
-                </p>
-            </div>
-
-            <div class="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">Next Payroll Run</p>
-                <p v-if="nextPayroll" class="mt-2 text-2xl font-black text-primary">
-                    {{ cediShort(nextPayroll.projected_net) }}
-                </p>
-                <p v-else class="mt-2 text-2xl font-black text-primary">—</p>
-                <p class="mt-1 text-[10px] text-on-surface-variant">
-                    <span v-if="nextPayroll">{{ nextPayroll.reference }} · {{ nextPayroll.participant_count }} staff</span>
-                    <span v-else>No upcoming run</span>
-                </p>
-            </div>
+            <StatCard label="Cash Position" :value="cediShort(cashPosition)" icon="account_balance_wallet"
+                      color="green" :hint="`Across ${bankAccounts.length} active accounts`" />
+            <StatCard label="Outstanding Loans" :value="cediShort(outstandingLoans.total_balance)" icon="request_quote"
+                      color="amber" :hint="`${outstandingLoans.count} active loans`" />
+            <StatCard label="AP Outstanding" :value="cediShort(apOutstanding)" icon="receipt_long"
+                      color="red" hint="Approved invoices unpaid" />
+            <StatCard label="Pending Approvals" :value="totalPendingCount" icon="pending_actions" color="violet"
+                      :hint="`${pendingApprovals.payroll_runs} payroll · ${pendingApprovals.loans} loans · ${pendingApprovals.invoices} invoices · ${pendingApprovals.payments} payments`" />
+            <StatCard label="Next Payroll Run" :value="nextPayroll ? cediShort(nextPayroll.projected_net) : '—'" icon="payments" color="navy"
+                      :hint="nextPayroll ? `${nextPayroll.reference} · ${nextPayroll.participant_count} staff` : 'No upcoming run'" />
         </div>
 
         <!-- Two-column body -->
