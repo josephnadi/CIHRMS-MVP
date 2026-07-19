@@ -48,6 +48,9 @@ class RolePermissionSeeder extends Seeder
         // Reports
         'reports.view'           => ['Reports',      'View and export reports'],
 
+        // Workforce Analytics
+        'workforce.analytics.view' => ['Reports',    'View workforce analytics dashboard'],
+
         // Audit
         'audit.view'             => ['Audit',        'View audit log'],
 
@@ -277,6 +280,7 @@ class RolePermissionSeeder extends Seeder
             'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
             'announcements.manage',
             'reports.view',
+            'workforce.analytics.view',
             'integrations.manage', 'users.manage',
             // AI assistant — executives + HR line management get LLM-backed tooling.
             'ai.use',

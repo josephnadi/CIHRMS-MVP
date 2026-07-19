@@ -53,6 +53,7 @@ enum Permission: string
 
     case ReportsView             = 'reports.view';
     case AuditView               = 'audit.view';
+    case WorkforceAnalyticsView  = 'workforce.analytics.view';
 
     case AuditorHub              = 'auditor.hub';
     case IncomingInvoicesView    = 'incoming_invoices.view';

@@ -79,6 +79,7 @@ class User extends Authenticatable
             'governance.view', 'governance.manage', 'governance.acknowledge', 'governance.cert_manage',
             'announcements.manage',
             'reports.view',
+            'workforce.analytics.view',
             'integrations.manage', 'users.manage',
             // HR sees every department portal for cross-functional oversight.
             'portal.hr', 'portal.it', 'portal.finance', 'portal.marketing',

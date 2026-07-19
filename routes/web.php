@@ -20,6 +20,7 @@ use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\WorkforceAnalyticsController;
 use App\Http\Controllers\PayrollRunController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\IdentityVerificationController;
@@ -434,6 +435,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',        [ReportsController::class, 'index'])  ->name('index');
         Route::get('/export',  [ReportsController::class, 'export']) ->name('export');
     });
+
+    // Workforce analytics dashboard (KPIs + charts) — read-only
+    Route::get('analytics/workforce', [WorkforceAnalyticsController::class, 'index'])
+        ->name('analytics.workforce')
+        ->middleware('permission:workforce.analytics.view');
 
     // Announcements / Notice ticker
     Route::prefix('announcements')->name('announcements.')->group(function () {

@@ -194,10 +194,11 @@ const navSections = computed(() => {
                     { label: 'Assets',       route: 'modules.assets',       module: 'assets',      icon: 'inventory_2',      visible: true },
                     { label: 'Documents',    route: 'documents.index',      module: 'documents',   icon: 'description',      visible: can('documents.view') },
                     {
-                        label: 'Reports', icon: 'assessment', expandable: true, visible: can('reports.view'),
+                        label: 'Reports', icon: 'assessment', expandable: true, visible: can('reports.view') || can('workforce.analytics.view'),
                         children: [
                             { label: 'Overview',        route: 'modules.reports',  module: 'reports',           icon: 'dashboard',     visible: true },
                             { label: 'Auditor-General', route: 'ag-reports.index', module: 'ag-reports',        icon: 'gavel',         visible: can('statutory.export') },
+                            { label: 'Workforce Analytics', route: 'analytics.workforce', module: 'workforce-analytics', icon: 'insights', visible: can('workforce.analytics.view') },
                         ],
                     },
                 ]

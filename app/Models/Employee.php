@@ -228,6 +228,11 @@ class Employee extends Model
         return $this->hasMany(\App\Models\BenefitEnrolment::class);
     }
 
+    public function offboardingCases(): HasMany
+    {
+        return $this->hasMany(OffboardingCase::class);
+    }
+
     public function latestVerifiedIdentity(): ?IdentityVerification
     {
         return $this->identityVerifications()->usable()->latest('verified_at')->first();
