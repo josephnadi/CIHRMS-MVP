@@ -9,6 +9,7 @@ use App\Enums\AssetAuditResult;
 use App\Enums\AssetAuditStatus;
 use App\Enums\AssetStatus;
 use App\Enums\MaintenanceType;
+use App\Events\AssetAuditCompleted;
 use App\Events\AssetAuditOpened;
 use App\Models\Asset;
 use App\Models\AssetAudit;
@@ -145,6 +146,42 @@ class AssetAuditService
 
             return $line->fresh();
         });
+    }
+
+    public function complete(AssetAudit $audit, User $actor): AssetAudit
+    {
+        if ($audit->status !== AssetAuditStatus::InProgress) {
+            throw new DomainException('Only an in-progress audit can be completed.');
+        }
+
+        $audit->update([
+            'status'       => AssetAuditStatus::Completed->value,
+            'completed_by' => $actor->id,
+            'completed_at' => now(),
+        ]);
+
+        $this->recordEvent($audit, $actor, 'completed', null, null);
+        AssetAuditCompleted::dispatch($audit->fresh());
+
+        return $audit->fresh();
+    }
+
+    public function cancel(AssetAudit $audit, User $actor, string $reason): AssetAudit
+    {
+        if ($audit->status !== AssetAuditStatus::InProgress) {
+            throw new DomainException('Only an in-progress audit can be cancelled.');
+        }
+
+        $audit->update([
+            'status'        => AssetAuditStatus::Cancelled->value,
+            'cancelled_by'  => $actor->id,
+            'cancelled_at'  => now(),
+            'cancel_reason' => $reason,
+        ]);
+
+        $this->recordEvent($audit, $actor, 'cancelled', null, $reason);
+
+        return $audit->fresh();
     }
 
     protected function recomputeTallies(AssetAudit $audit): void

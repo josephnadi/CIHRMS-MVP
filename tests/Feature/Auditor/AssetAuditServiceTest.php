@@ -86,3 +86,34 @@ it('count() refuses a completed run', function () {
 
     $this->service->count($line->fresh(), \App\Enums\AssetAuditResult::Present, [], $actor);
 })->throws(DomainException::class);
+
+it('complete() moves in_progress to completed', function () {
+    Asset::factory()->create(['current_status' => AssetStatus::InStock->value]);
+    $actor = User::factory()->create(['role' => 'auditor']);
+    $audit = $this->service->open(['scope_type' => 'all'], $actor);
+
+    $this->service->complete($audit, $actor);
+
+    expect($audit->fresh()->status)->toBe(AssetAuditStatus::Completed);
+    expect($audit->fresh()->completed_by)->toBe($actor->id);
+});
+
+it('complete() refuses an already-completed run', function () {
+    Asset::factory()->create(['current_status' => AssetStatus::InStock->value]);
+    $actor = User::factory()->create(['role' => 'auditor']);
+    $audit = $this->service->open(['scope_type' => 'all'], $actor);
+    $this->service->complete($audit, $actor);
+
+    $this->service->complete($audit->fresh(), $actor);
+})->throws(DomainException::class);
+
+it('cancel() moves in_progress to cancelled with a reason', function () {
+    Asset::factory()->create(['current_status' => AssetStatus::InStock->value]);
+    $actor = User::factory()->create(['role' => 'auditor']);
+    $audit = $this->service->open(['scope_type' => 'all'], $actor);
+
+    $this->service->cancel($audit, $actor, 'duplicate run');
+
+    expect($audit->fresh()->status)->toBe(AssetAuditStatus::Cancelled);
+    expect($audit->fresh()->cancel_reason)->toBe('duplicate run');
+});
