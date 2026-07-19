@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\AssetAuditAction;
 use App\Enums\AssetAuditResult;
 use App\Enums\AssetAuditStatus;
 use App\Enums\AssetStatus;
+use App\Enums\MaintenanceType;
 use App\Events\AssetAuditOpened;
 use App\Models\Asset;
 use App\Models\AssetAudit;
@@ -26,8 +28,10 @@ class AssetAuditService
         AssetStatus::Maintenance->value,
     ];
 
-    public function __construct(private readonly SequenceService $sequences)
-    {
+    public function __construct(
+        private readonly SequenceService $sequences,
+        private readonly AssetService $assets,
+    ) {
     }
 
     public function open(array $data, User $actor): AssetAudit
@@ -96,6 +100,51 @@ class AssetAuditService
         $this->recordEvent($audit, $actor, 'counted', $line->id, $result->value);
 
         return $line->fresh();
+    }
+
+    public function applyResolution(AssetAuditLine $line, AssetAuditAction $action, User $actor): AssetAuditLine
+    {
+        $audit = $line->audit;
+        if (! in_array($audit->status, [AssetAuditStatus::InProgress, AssetAuditStatus::Completed], true)) {
+            throw new DomainException('Resolutions can only be applied to an in-progress or completed audit.');
+        }
+        if (! $line->is_discrepancy) {
+            throw new DomainException('Only discrepancy lines can be resolved.');
+        }
+
+        $expected = match ($line->result) {
+            AssetAuditResult::Missing       => AssetAuditAction::MarkedLost,
+            AssetAuditResult::WrongLocation => AssetAuditAction::Relocated,
+            AssetAuditResult::Damaged       => AssetAuditAction::MaintenanceLogged,
+            AssetAuditResult::WrongHolder   => AssetAuditAction::Flagged,
+            default                         => null,
+        };
+        if ($expected === null || $action !== $expected) {
+            throw new DomainException("Action {$action->value} is not valid for a {$line->result->value} line.");
+        }
+
+        return DB::transaction(function () use ($line, $action, $actor, $audit) {
+            $line->loadMissing('asset');
+            $asset = $line->asset;
+
+            match ($action) {
+                AssetAuditAction::MarkedLost        => $this->assets->markLost($asset, $actor, "Asset audit {$audit->reference}: not found"),
+                AssetAuditAction::Relocated         => $asset->update(['location' => $line->observed_location]),
+                AssetAuditAction::MaintenanceLogged => $this->assets->logMaintenance($asset, MaintenanceType::Repair, $actor, ['notes' => "Asset audit {$audit->reference}: found damaged"]),
+                AssetAuditAction::Flagged           => null, // record-only
+                default                             => null,
+            };
+
+            $line->update([
+                'resolution_action' => $action->value,
+                'resolved_by'       => $actor->id,
+                'resolved_at'       => now(),
+            ]);
+
+            $this->recordEvent($audit, $actor, 'resolved', $line->id, $action->value);
+
+            return $line->fresh();
+        });
     }
 
     protected function recomputeTallies(AssetAudit $audit): void
