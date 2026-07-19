@@ -58,6 +58,8 @@ class RolePermissionSeeder extends Seeder
         'incoming_invoices.vet'      => ['Auditors', 'Vet (accept/return) submitted invoices'],
         'incoming_invoices.approve'  => ['Auditors', 'CEO approval / return of vetted invoices'],
         'incoming_invoices.post'     => ['Auditors', 'Finance: code + post an approved invoice to the GL'],
+        'asset_audits.view'   => ['Auditors', 'View physical asset-audit runs'],
+        'asset_audits.manage' => ['Auditors', 'Open / count / resolve / complete asset audits'],
 
         // Integrations
         'integrations.manage'    => ['System',       'Manage integrations and webhooks'],
@@ -422,6 +424,7 @@ class RolePermissionSeeder extends Seeder
             'reconciliation.view',
             // Auditors — invoice vetting + hub
             'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.vet',
+            'asset_audits.view', 'asset_audits.manage',
         ],
     ];
 

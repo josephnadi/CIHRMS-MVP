@@ -61,6 +61,9 @@ enum Permission: string
     case IncomingInvoicesApprove = 'incoming_invoices.approve';
     case IncomingInvoicesPost    = 'incoming_invoices.post';
 
+    case AssetAuditsView   = 'asset_audits.view';
+    case AssetAuditsManage = 'asset_audits.manage';
+
     case IntegrationsManage      = 'integrations.manage';
     case RolesManage             = 'roles.manage';
     case UsersManage             = 'users.manage';

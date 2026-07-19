@@ -11,4 +11,15 @@ enum AssetStatus: string
     case Maintenance = 'maintenance';
     case Retired     = 'retired';
     case Lost        = 'lost';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::InStock     => 'In Stock',
+            self::Assigned    => 'Assigned',
+            self::Maintenance => 'Maintenance',
+            self::Retired     => 'Retired',
+            self::Lost        => 'Lost',
+        };
+    }
 }

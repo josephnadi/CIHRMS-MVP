@@ -211,6 +211,7 @@ class User extends Authenticatable
             'reconciliation.view',
             // Auditors — invoice vetting + hub
             'auditor.hub', 'incoming_invoices.view', 'incoming_invoices.vet',
+            'asset_audits.view', 'asset_audits.manage',
         ],
     ];
 
