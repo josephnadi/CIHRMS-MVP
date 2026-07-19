@@ -11,9 +11,10 @@ import DoughnutChart from '@/Components/charts/ChartJs/DoughnutChart.vue';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    metrics:     { type: Object, default: () => ({ kpis: {}, series: {}, meta: {} }) },
-    filters:     { type: Object, default: () => ({ department_id: null, from: '', to: '' }) },
-    departments: { type: Array,  default: () => [] },
+    metrics:      { type: Object, default: () => ({ kpis: {}, series: {}, meta: {} }) },
+    filters:      { type: Object, default: () => ({ department_id: null, from: '', to: '' }) },
+    departments:  { type: Array,  default: () => [] },
+    activeModule: { type: String, default: '' },
 });
 
 const departmentId = ref(props.filters.department_id ?? '');
@@ -67,8 +68,32 @@ const genderData = computed(() => ({
 
 const baseOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } };
 const horizontalOptions = { ...baseOptions, indexAxis: 'y' };
+const costOptions = {
+    ...horizontalOptions,
+    plugins: {
+        ...horizontalOptions.plugins,
+        tooltip: {
+            callbacks: {
+                label: (ctx) => {
+                    const v = Number(ctx.parsed?.x);
+                    return `${ctx.dataset.label ?? ''}: ${Number.isFinite(v) ? money(v) : ctx.formattedValue}`;
+                },
+            },
+        },
+    },
+    scales: {
+        x: {
+            ticks: {
+                callback: (value) => {
+                    const v = Number(value);
+                    return Number.isFinite(v) ? money(v) : value;
+                },
+            },
+        },
+    },
+};
 
-const hasData = (arr) => Array.isArray(arr) && arr.some((r) => (r.value ?? r.joiners ?? r.leavers ?? 0) > 0);
+const hasData = (arr) => Array.isArray(arr) && arr.some((r) => ((r.value ?? 0) + (r.joiners ?? 0) + (r.leavers ?? 0)) > 0);
 </script>
 
 <template>
@@ -128,7 +153,7 @@ const hasData = (arr) => Array.isArray(arr) && arr.some((r) => (r.value ?? r.joi
                 <div class="h-72"><BarChart v-if="hasData(s.span_of_control)" :data="barData(s.span_of_control, 'Managers')" :options="baseOptions" /><p v-else class="grid h-full place-items-center text-sm text-on-surface-variant">No data.</p></div>
             </ChartCard>
             <ChartCard title="Cost to company by department" icon="payments" class="xl:col-span-2">
-                <div class="h-72"><BarChart v-if="hasData(s.cost_by_department)" :data="barData(s.cost_by_department, 'Payroll cost')" :options="horizontalOptions" /><p v-else class="grid h-full place-items-center text-sm text-on-surface-variant">No data.</p></div>
+                <div class="h-72"><BarChart v-if="hasData(s.cost_by_department)" :data="barData(s.cost_by_department, 'Payroll cost')" :options="costOptions" /><p v-else class="grid h-full place-items-center text-sm text-on-surface-variant">No data.</p></div>
             </ChartCard>
         </section>
     </div>
