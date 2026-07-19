@@ -20,9 +20,9 @@ it('denies workforce.analytics.view to a plain employee', function () {
 });
 
 it('renders the workforce dashboard for a permissioned user', function () {
-    // The Vue page (Analytics/Workforce.vue) ships in Task 5; withoutVite() lets
-    // the Inertia root view render without a compiled asset/manifest entry so this
-    // HTTP-layer test can assert the component name + props now.
+    // Analytics/Workforce.vue now ships (Task 5); withoutVite() lets the Inertia
+    // root view render without a compiled asset/manifest entry so this HTTP-layer
+    // test can assert the component name + props without a full asset build.
     $this->withoutVite();
 
     $user = User::factory()->create(['role' => 'hr_admin']);
@@ -33,10 +33,7 @@ it('renders the workforce dashboard for a permissioned user', function () {
         ->get(route('analytics.workforce'))
         ->assertOk()
         ->assertInertia(fn (Assert $p) => $p
-            // 2nd arg (shouldExist=false): Analytics/Workforce.vue ships in Task 5;
-            // remove this override once that file lands so the existence check
-            // (config inertia.testing.ensure_pages_exist) re-engages.
-            ->component('Analytics/Workforce', false)
+            ->component('Analytics/Workforce')
             ->has('metrics.kpis.headcount')
             ->has('metrics.series')
             ->has('departments'));
