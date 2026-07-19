@@ -69,3 +69,11 @@ it('rejects an action that does not match the result', function () {
 
     $this->service->applyResolution($line->fresh(), AssetAuditAction::Relocated, $this->actor);
 })->throws(DomainException::class);
+
+it('rejects resolving a line that is already resolved', function () {
+    [$asset, $line] = openWithOneAsset([]);
+    $this->service->count($line, AssetAuditResult::Missing, [], $this->actor);
+    $this->service->applyResolution($line->fresh(), AssetAuditAction::MarkedLost, $this->actor);
+
+    $this->service->applyResolution($line->fresh(), AssetAuditAction::MarkedLost, $this->actor);
+})->throws(DomainException::class);

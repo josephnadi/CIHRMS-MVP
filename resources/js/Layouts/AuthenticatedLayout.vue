@@ -135,7 +135,7 @@ const navSections = computed(() => {
                     },
                     {
                         label: 'Auditor', icon: 'verified_user', expandable: true,
-                        visible: can('auditor.hub') || can('incoming_invoices.view'),
+                        visible: can('auditor.hub') || can('incoming_invoices.view') || can('asset_audits.view'),
                         children: [
                             { label: 'Hub',              route: 'auditor.hub',                    module: 'auditor',                     icon: 'verified_user', visible: can('auditor.hub') },
                             { label: 'Incoming Invoices',route: 'auditor.incoming-invoices.index', module: 'auditor-incoming-invoices',  icon: 'request_page',  visible: can('incoming_invoices.view') },

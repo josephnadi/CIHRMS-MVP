@@ -105,6 +105,10 @@ class AssetAuditService
 
     public function applyResolution(AssetAuditLine $line, AssetAuditAction $action, User $actor): AssetAuditLine
     {
+        if ($line->resolution_action !== AssetAuditAction::None) {
+            throw new DomainException('This line has already been resolved.');
+        }
+
         $audit = $line->audit;
         if (! in_array($audit->status, [AssetAuditStatus::InProgress, AssetAuditStatus::Completed], true)) {
             throw new DomainException('Resolutions can only be applied to an in-progress or completed audit.');
@@ -154,13 +158,16 @@ class AssetAuditService
             throw new DomainException('Only an in-progress audit can be completed.');
         }
 
-        $audit->update([
-            'status'       => AssetAuditStatus::Completed->value,
-            'completed_by' => $actor->id,
-            'completed_at' => now(),
-        ]);
+        DB::transaction(function () use ($audit, $actor) {
+            $audit->update([
+                'status'       => AssetAuditStatus::Completed->value,
+                'completed_by' => $actor->id,
+                'completed_at' => now(),
+            ]);
 
-        $this->recordEvent($audit, $actor, 'completed', null, null);
+            $this->recordEvent($audit, $actor, 'completed', null, null);
+        });
+
         AssetAuditCompleted::dispatch($audit->fresh());
 
         return $audit->fresh();
@@ -172,14 +179,16 @@ class AssetAuditService
             throw new DomainException('Only an in-progress audit can be cancelled.');
         }
 
-        $audit->update([
-            'status'        => AssetAuditStatus::Cancelled->value,
-            'cancelled_by'  => $actor->id,
-            'cancelled_at'  => now(),
-            'cancel_reason' => $reason,
-        ]);
+        DB::transaction(function () use ($audit, $actor, $reason) {
+            $audit->update([
+                'status'        => AssetAuditStatus::Cancelled->value,
+                'cancelled_by'  => $actor->id,
+                'cancelled_at'  => now(),
+                'cancel_reason' => $reason,
+            ]);
 
-        $this->recordEvent($audit, $actor, 'cancelled', null, $reason);
+            $this->recordEvent($audit, $actor, 'cancelled', null, $reason);
+        });
 
         return $audit->fresh();
     }
