@@ -31,6 +31,10 @@ defineProps({
                     <div class="text-3xl font-bold text-primary">{{ stats.returned }}</div>
                     <div class="text-sm text-on-surface-variant">Returned</div>
                 </Link>
+                <Link v-if="links.asset_audits" :href="route('auditor.asset-audits.index', { status: 'in_progress' })" class="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 hover:shadow-md transition-shadow">
+                    <div class="text-3xl font-bold text-primary">{{ stats.open_asset_audits ?? 0 }}</div>
+                    <div class="text-sm text-on-surface-variant">Open asset audits</div>
+                </Link>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -52,6 +56,10 @@ defineProps({
                 <Link v-if="links.audit" :href="route('audit-logs.index')" class="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 hover:shadow-md transition-shadow">
                     <div class="font-medium text-primary">Audit Log</div>
                     <div class="text-sm text-on-surface-variant">System activity trail</div>
+                </Link>
+                <Link v-if="links.asset_audits" :href="route('auditor.asset-audits.index')" class="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 hover:shadow-md transition-shadow">
+                    <div class="font-medium text-primary">Asset Audits</div>
+                    <div class="text-sm text-on-surface-variant">Run physical asset counts</div>
                 </Link>
             </div>
         </div>
