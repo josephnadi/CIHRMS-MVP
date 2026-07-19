@@ -83,18 +83,18 @@ const hasData = (arr) => Array.isArray(arr) && arr.some((r) => (r.value ?? r.joi
             <div class="flex flex-wrap items-end gap-2">
                 <label class="flex flex-col text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">
                     Department
-                    <select v-model="departmentId" class="mt-1 rounded-xl border-outline-variant/60 bg-surface-container-lowest text-sm">
+                    <select v-model="departmentId" aria-label="Filter by department" class="mt-1 rounded-xl border-outline-variant/60 bg-surface-container-lowest text-sm">
                         <option value="">All departments</option>
                         <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
                     </select>
                 </label>
                 <label class="flex flex-col text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">
                     From
-                    <input v-model="from" type="date" class="mt-1 rounded-xl border-outline-variant/60 bg-surface-container-lowest text-sm" />
+                    <input v-model="from" type="date" aria-label="From date" class="mt-1 rounded-xl border-outline-variant/60 bg-surface-container-lowest text-sm" />
                 </label>
                 <label class="flex flex-col text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">
                     To
-                    <input v-model="to" type="date" class="mt-1 rounded-xl border-outline-variant/60 bg-surface-container-lowest text-sm" />
+                    <input v-model="to" type="date" aria-label="To date" class="mt-1 rounded-xl border-outline-variant/60 bg-surface-container-lowest text-sm" />
                 </label>
                 <button @click="apply" class="rounded-xl bg-primary px-4 py-2 text-xs font-black text-white shadow-glow-sm">Apply</button>
             </div>
