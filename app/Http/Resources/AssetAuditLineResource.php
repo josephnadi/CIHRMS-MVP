@@ -22,7 +22,7 @@ class AssetAuditLineResource extends JsonResource
             ]),
             'expected_status'   => $this->expected_status,
             'expected_location' => $this->expected_location,
-            'expected_holder'   => $this->whenLoaded('expectedHolder', fn () => $this->expectedHolder?->full_name ?? $this->expectedHolder?->name),
+            'expected_holder'   => $this->whenLoaded('expectedHolder', fn () => $this->expectedHolder?->user?->name),
             'result'            => ['value' => $this->result->value, 'label' => $this->result->label()],
             'observed_location' => $this->observed_location,
             'observed_note'     => $this->observed_note,
