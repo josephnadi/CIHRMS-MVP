@@ -1297,6 +1297,20 @@ Route::middleware(['auth', 'verified'])->prefix('auditor')->name('auditor.')->gr
     Route::middleware('permission:incoming_invoices.post')->group(function () {
         Route::post('incoming-invoices/{incomingInvoice}/post', [\App\Http\Controllers\Finance\IncomingInvoiceController::class, 'post'])->name('incoming-invoices.post');
     });
+
+    // Asset audits
+    Route::middleware('permission:asset_audits.view')->group(function () {
+        Route::get('asset-audits',                 [\App\Http\Controllers\Auditor\AssetAuditController::class, 'index'])->name('asset-audits.index');
+        Route::get('asset-audits/create',          [\App\Http\Controllers\Auditor\AssetAuditController::class, 'create'])->name('asset-audits.create');
+        Route::get('asset-audits/{assetAudit}',    [\App\Http\Controllers\Auditor\AssetAuditController::class, 'show'])->name('asset-audits.show');
+    });
+    Route::middleware('permission:asset_audits.manage')->group(function () {
+        Route::post('asset-audits',                              [\App\Http\Controllers\Auditor\AssetAuditController::class, 'store'])->name('asset-audits.store');
+        Route::post('asset-audits/{assetAudit}/lines/{line}/count',   [\App\Http\Controllers\Auditor\AssetAuditController::class, 'count'])->name('asset-audits.count');
+        Route::post('asset-audits/{assetAudit}/lines/{line}/resolve', [\App\Http\Controllers\Auditor\AssetAuditController::class, 'resolve'])->name('asset-audits.resolve');
+        Route::post('asset-audits/{assetAudit}/complete',       [\App\Http\Controllers\Auditor\AssetAuditController::class, 'complete'])->name('asset-audits.complete');
+        Route::post('asset-audits/{assetAudit}/cancel',         [\App\Http\Controllers\Auditor\AssetAuditController::class, 'cancel'])->name('asset-audits.cancel');
+    });
 });
 
 require __DIR__.'/auth.php';
