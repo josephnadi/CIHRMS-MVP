@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\AssetAuditResult;
 use App\Enums\AssetAuditStatus;
 use App\Enums\AssetStatus;
 use App\Events\AssetAuditOpened;
 use App\Models\Asset;
 use App\Models\AssetAudit;
 use App\Models\AssetAuditEvent;
+use App\Models\AssetAuditLine;
 use App\Models\User;
 use App\Services\Finance\SequenceService;
 use DomainException;
@@ -72,6 +74,36 @@ class AssetAuditService
 
             return $audit->fresh(['lines']);
         });
+    }
+
+    public function count(AssetAuditLine $line, AssetAuditResult $result, array $observed, User $actor): AssetAuditLine
+    {
+        $audit = $line->audit;
+        if ($audit->status !== AssetAuditStatus::InProgress) {
+            throw new DomainException('Only an in-progress audit can be counted.');
+        }
+
+        $line->update([
+            'result'            => $result->value,
+            'observed_location' => $observed['observed_location'] ?? null,
+            'observed_note'     => $observed['observed_note'] ?? null,
+            'is_discrepancy'    => $result->isDiscrepancy(),
+            'counted_by'        => $actor->id,
+            'counted_at'        => now(),
+        ]);
+
+        $this->recomputeTallies($audit);
+        $this->recordEvent($audit, $actor, 'counted', $line->id, $result->value);
+
+        return $line->fresh();
+    }
+
+    protected function recomputeTallies(AssetAudit $audit): void
+    {
+        $audit->update([
+            'counted_lines'     => $audit->lines()->where('result', '!=', 'pending')->count(),
+            'discrepancy_lines' => $audit->lines()->where('is_discrepancy', true)->count(),
+        ]);
     }
 
     protected function recordEvent(AssetAudit $audit, ?User $actor, string $action, ?int $lineId = null, ?string $detail = null): void

@@ -49,3 +49,40 @@ it('open() dispatches AssetAuditOpened', function () {
     $this->service->open(['scope_type' => 'all'], $actor);
     Event::assertDispatched(AssetAuditOpened::class);
 });
+
+it('count() records a present line as no discrepancy', function () {
+    Asset::factory()->create(['current_status' => AssetStatus::InStock->value]);
+    $actor = User::factory()->create(['role' => 'auditor']);
+    $audit = $this->service->open(['scope_type' => 'all'], $actor);
+    $line  = $audit->lines()->first();
+
+    $this->service->count($line, \App\Enums\AssetAuditResult::Present, [], $actor);
+
+    expect($line->fresh()->is_discrepancy)->toBeFalse();
+    expect($audit->fresh()->counted_lines)->toBe(1);
+    expect($audit->fresh()->discrepancy_lines)->toBe(0);
+});
+
+it('count() flags a missing line as a discrepancy and updates tallies', function () {
+    Asset::factory()->create(['current_status' => AssetStatus::InStock->value]);
+    $actor = User::factory()->create(['role' => 'auditor']);
+    $audit = $this->service->open(['scope_type' => 'all'], $actor);
+    $line  = $audit->lines()->first();
+
+    $this->service->count($line, \App\Enums\AssetAuditResult::Missing, ['observed_note' => 'not on rack'], $actor);
+
+    expect($line->fresh()->is_discrepancy)->toBeTrue();
+    expect($line->fresh()->result)->toBe(\App\Enums\AssetAuditResult::Missing);
+    expect($audit->fresh()->counted_lines)->toBe(1);
+    expect($audit->fresh()->discrepancy_lines)->toBe(1);
+});
+
+it('count() refuses a completed run', function () {
+    Asset::factory()->create(['current_status' => AssetStatus::InStock->value]);
+    $actor = User::factory()->create(['role' => 'auditor']);
+    $audit = $this->service->open(['scope_type' => 'all'], $actor);
+    $audit->update(['status' => 'completed']);
+    $line  = $audit->lines()->first();
+
+    $this->service->count($line->fresh(), \App\Enums\AssetAuditResult::Present, [], $actor);
+})->throws(DomainException::class);
