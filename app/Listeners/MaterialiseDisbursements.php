@@ -7,6 +7,7 @@ use App\Services\Disbursement\BatchDisbursementService;
 use App\Services\Disbursement\PayoutBatchService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Side-effect of `PayrollRunApproved`: materialise Disbursement rows for every
@@ -44,6 +45,15 @@ class MaterialiseDisbursements implements ShouldQueue
         $makerId = (int) ($event->run->approved_by ?? $event->run->created_by ?? 0);
         if ($created > 0 && $makerId > 0) {
             $this->batches->createForPayrollRun($event->run, $makerId);
+        } elseif ($created > 0 && $makerId === 0) {
+            // Both approver and creator are null/0 — the newly materialised rows
+            // were NOT wrapped into a PayoutBatch (createForPayrollRun requires a
+            // real user id for the maker-checker chain), so they sit Pending with
+            // no batch. That's silent and easy to miss operationally: flag it.
+            Log::warning('MaterialiseDisbursements: run approved with no maker id; disbursements left unbatched', [
+                'payroll_run_id' => $event->run->id,
+                'created'        => $created,
+            ]);
         }
     }
 }

@@ -17,10 +17,21 @@ class HubtelWebhookController extends Controller
     public function handle(Request $request): JsonResponse
     {
         $payload = $request->json()->all();
-        $eventId = (string) (data_get($payload, 'Data.TransactionId') ?? '');
-        if ($eventId === '') {
+        $txId    = (string) (data_get($payload, 'Data.TransactionId') ?? '');
+        if ($txId === '') {
             return response()->json(['status' => 'ignored', 'reason' => 'missing TransactionId'], 200);
         }
+
+        // Composite key (TransactionId + Status): Hubtel may send more than one
+        // callback per transfer under the same TransactionId (e.g. an interim
+        // status followed by a final one). Keying dedup on TransactionId alone
+        // would silently drop the later callback, potentially leaving a row
+        // stuck un-settled. Keying on TransactionId+Status lets each distinct
+        // status reported for a transfer be processed once, while an exact
+        // repeat (same TransactionId, same Status) still dedupes as before. The
+        // processor's terminal-state guard (Settled/Reversed) is what prevents
+        // a stale/duplicate status from ever undoing a settled row.
+        $eventId = $txId.':'.strtolower((string) data_get($payload, 'Data.Status'));
 
         // Check-then-create so a replayed webhook doesn't trigger a UNIQUE-constraint
         // violation that aborts the whole request transaction — mirrors

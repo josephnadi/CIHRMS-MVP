@@ -63,6 +63,12 @@ class HubtelWebhookProcessor
 
         if ($result !== null) {
             $this->batch->applyResult($d, $result);
+        } else {
+            Log::warning('Hubtel webhook: unrecognized/interim status ignored', [
+                'disbursement_id' => $d->id,
+                'status'          => $status,
+                'tx'              => $txId,
+            ]);
         }
 
         $event->update(['processed_at' => now()]);

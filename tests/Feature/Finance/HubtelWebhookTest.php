@@ -94,7 +94,11 @@ it('is idempotent on a duplicate event', function () {
     $this->call('POST', '/webhooks/hubtel', [], [], [], ['HTTP_X-Hubtel-Signature' => $sig, 'CONTENT_TYPE' => 'application/json'], $body)->assertOk();
     $this->call('POST', '/webhooks/hubtel', [], [], [], ['HTTP_X-Hubtel-Signature' => $sig, 'CONTENT_TYPE' => 'application/json'], $body)->assertOk();
 
-    expect(HubtelWebhookEvent::where('hubtel_event_id', 'HUB-TX-4')->count())->toBe(1);
+    // hubtel_event_id is now a composite of TransactionId+Status (I-2) so that
+    // distinct-status callbacks for the same TransactionId aren't dropped —
+    // an exact repeat (same TransactionId AND same Status, as posted here)
+    // still dedupes down to a single event row.
+    expect(HubtelWebhookEvent::where('hubtel_event_id', 'HUB-TX-4:paid')->count())->toBe(1);
 });
 
 it('is idempotent at the processor level when the same event is processed twice', function () {

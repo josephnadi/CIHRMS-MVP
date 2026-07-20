@@ -60,6 +60,11 @@ class Disbursement extends Model
         return $this->belongsTo(FinalSettlement::class, 'final_settlement_id');
     }
 
+    public function payoutBatch(): BelongsTo
+    {
+        return $this->belongsTo(PayoutBatch::class);
+    }
+
     public function scopePending(Builder $q): Builder
     {
         return $q->where('status', DisbursementStatus::Pending->value);
