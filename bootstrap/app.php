@@ -55,8 +55,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // directly to our endpoint, so it has no way to include a Laravel
         // CSRF token. Signature verification (via onelogin/php-saml in
         // SamlSsoAdapter) is what protects this route instead.
+        //
+        // Same reasoning for `webhooks/*`: these are public endpoints hit by
+        // external providers (Hubtel, Paystack, ...) that cannot obtain a
+        // Laravel CSRF token, and each is already signature-verified by its
+        // own provider-specific middleware — CSRF is the wrong control here,
+        // and without this exception a real webhook POST is rejected 419
+        // before that signature middleware ever runs.
         $middleware->validateCsrfTokens(except: [
             'auth/sso/*/callback',
+            'webhooks/*',
         ]);
 
         $middleware->alias([
