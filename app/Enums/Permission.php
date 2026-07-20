@@ -191,4 +191,9 @@ enum Permission: string
     case FeeCatalogManage        = 'fee_catalog.manage';
     case BillingRun              = 'billing.run';
     case BillingCancel           = 'billing.cancel';
+
+    // ── Hubtel Payouts: maker-checker + threshold release ──
+    case PayoutsInitiate    = 'payouts.initiate';
+    case PayoutsRelease     = 'payouts.release';
+    case PayoutsReleaseHigh = 'payouts.release_high';
 }
