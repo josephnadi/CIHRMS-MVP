@@ -16,7 +16,7 @@ class PayoutBatchFactory extends Factory
     public function definition(): array
     {
         return [
-            'reference'              => 'POUT-2026-' . fake()->unique()->numberBetween(1000, 9999),
+            'reference'              => fake()->unique()->bothify('POUT-2026-######'),
             'status'                 => PayoutBatchStatus::PendingRelease->value,
             'total_amount'           => 0,
             'currency'               => 'GHS',
