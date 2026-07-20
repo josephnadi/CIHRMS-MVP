@@ -46,8 +46,7 @@ class PayoutBatchService
     private function wrap(Builder $pending, int $makerId, string $sourceType, int $sourceId): PayoutBatch
     {
         return DB::transaction(function () use ($pending, $makerId, $sourceType, $sourceId) {
-            $rows      = $pending->get();
-            $total     = (float) $rows->sum(fn ($d) => (float) $d->net_to_recipient);
+            $rows      = $pending->lockForUpdate()->get();
             $threshold = (float) config('finance.payouts.high_approval_threshold', 0);
 
             $batch = PayoutBatch::create([
@@ -55,13 +54,26 @@ class PayoutBatchService
                 'source_type'            => $sourceType,
                 'source_id'              => $sourceId,
                 'status'                 => PayoutBatchStatus::PendingRelease->value,
-                'total_amount'           => $total,
+                'total_amount'           => 0,
                 'currency'               => 'GHS',
-                'requires_high_approval' => $threshold > 0 && $total >= $threshold,
+                'requires_high_approval' => false,
                 'created_by'             => $makerId,
             ]);
 
-            Disbursement::whereIn('id', $rows->pluck('id'))->update(['payout_batch_id' => $batch->id]);
+            Disbursement::whereIn('id', $rows->pluck('id'))
+                ->whereNull('payout_batch_id')
+                ->update(['payout_batch_id' => $batch->id]);
+
+            // Recompute the total from the rows actually linked (not the pre-update
+            // snapshot) so it can never disagree with what wound up in the batch —
+            // a concurrent wrap() may have already claimed some of the pre-locked rows.
+            $linked = Disbursement::where('payout_batch_id', $batch->id)->get();
+            $total  = round($linked->sum(fn ($d) => (float) $d->net_to_recipient), 2);
+
+            $batch->update([
+                'total_amount'           => $total,
+                'requires_high_approval' => $threshold > 0 && $total >= $threshold,
+            ]);
 
             return $batch->fresh();
         });
