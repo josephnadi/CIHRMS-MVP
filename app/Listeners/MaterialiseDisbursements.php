@@ -31,14 +31,18 @@ class MaterialiseDisbursements implements ShouldQueue
 
     public function handle(PayrollRunApproved $event): void
     {
-        $this->batch->materialise($event->run);
+        $created = $this->batch->materialise($event->run);
 
         // Wrap the newly materialised Pending rows into a PendingRelease batch so
         // Finance can review/release them — approval itself never sends money.
         // Maker is the run's approver (falls back to its creator for safety);
         // must be a real user id so the maker-checker guard at release holds.
+        //
+        // Only wrap when this fire actually materialised rows: a retried/queued
+        // re-fire (tries=3) or a lineless run materialises nothing, and wrapping
+        // then would litter the release queue with empty (total 0) batches.
         $makerId = (int) ($event->run->approved_by ?? $event->run->created_by ?? 0);
-        if ($makerId > 0) {
+        if ($created > 0 && $makerId > 0) {
             $this->batches->createForPayrollRun($event->run, $makerId);
         }
     }
