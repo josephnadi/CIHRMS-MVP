@@ -128,4 +128,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return back()->with('error', $e->getMessage());
         });
+
+        // A payout release guard failure (wrong role, maker == checker, batch
+        // over the high-value threshold without the elevated permission) is a
+        // segregation-of-duties violation, not a server fault — surface it as
+        // a 403 rather than letting it bubble to a 500.
+        $exceptions->render(function (\App\Exceptions\Finance\PayoutAuthorizationException $e) {
+            abort(403, $e->getMessage());
+        });
     })->create();
