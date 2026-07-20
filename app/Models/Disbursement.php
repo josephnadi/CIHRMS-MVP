@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Enums\DisbursementChannel;
 use App\Enums\DisbursementStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Disbursement extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'payroll_run_id', 'payroll_line_id', 'employee_id', 'final_settlement_id',

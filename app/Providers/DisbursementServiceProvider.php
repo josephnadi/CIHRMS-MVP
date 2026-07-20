@@ -7,6 +7,7 @@ use App\Services\Disbursement\BatchDisbursementService;
 use App\Services\Disbursement\GhIpssBatchFileBuilder;
 use App\Services\Disbursement\Providers\AirtelTigoProvider;
 use App\Services\Disbursement\Providers\GhIpssAchProvider;
+use App\Services\Disbursement\Providers\HubtelBankProvider;
 use App\Services\Disbursement\Providers\MtnMomoProvider;
 use App\Services\Disbursement\Providers\VodafoneCashProvider;
 use App\Services\Finance\PostingService;
@@ -51,6 +52,16 @@ class DisbursementServiceProvider extends ServiceProvider
                     baseUrl:      (string) $cfg['airtel_tigo']['base_url'],
                     clientId:     (string) $cfg['airtel_tigo']['client_id'],
                     clientSecret: (string) $cfg['airtel_tigo']['client_secret'],
+                );
+            }
+
+            if (! empty($cfg['hubtel_bank']['enabled'])) {
+                $providers[DisbursementChannel::HubtelBank->value] = new HubtelBankProvider(
+                    baseUrl:         (string) $cfg['hubtel_bank']['base_url'],
+                    clientId:        (string) $cfg['hubtel_bank']['client_id'],
+                    clientSecret:    (string) $cfg['hubtel_bank']['client_secret'],
+                    merchantAccount: (string) $cfg['hubtel_bank']['merchant_account'],
+                    callbackUrl:     (string) $cfg['hubtel_bank']['callback_url'],
                 );
             }
 

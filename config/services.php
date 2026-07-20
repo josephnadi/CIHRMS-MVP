@@ -49,4 +49,8 @@ return [
         'token' => env('WEBSITE_SYNC_TOKEN'),
     ],
 
+    'hubtel' => [
+        'webhook_secret' => env('HUBTEL_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -13,6 +13,7 @@ enum DisbursementChannel: string
     case MtnMomo       = 'mtn_momo';           // MTN Mobile Money
     case VodafoneCash  = 'vodafone_cash';      // Vodafone Cash
     case AirtelTigo    = 'airtel_tigo';        // AirtelTigo Money
+    case HubtelBank    = 'hubtel_bank';         // Bank transfer via Hubtel payout API
     case Cash          = 'cash';               // Petty / casual employees
     case Cheque        = 'cheque';
 
@@ -23,6 +24,7 @@ enum DisbursementChannel: string
             self::MtnMomo      => 'MTN MoMo',
             self::VodafoneCash => 'Vodafone Cash',
             self::AirtelTigo   => 'AirtelTigo Money',
+            self::HubtelBank   => 'Hubtel Bank Transfer',
             self::Cash         => 'Cash',
             self::Cheque       => 'Cheque',
         };
