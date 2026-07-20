@@ -55,10 +55,10 @@ return [
         'hubtel_bank' => [
             'enabled'          => env('HUBTEL_PAYOUT_ENABLED', false),
             'base_url'         => env('HUBTEL_PAYOUT_BASE_URL', 'https://payout.hubtel.com'),
-            'client_id'        => env('HUBTEL_CLIENT_ID'),
-            'client_secret'    => env('HUBTEL_CLIENT_SECRET'),
-            'merchant_account' => env('HUBTEL_MERCHANT_ACCOUNT'),
-            'callback_url'     => env('HUBTEL_CALLBACK_URL'),
+            'client_id'        => env('HUBTEL_PAYOUT_CLIENT_ID'),
+            'client_secret'    => env('HUBTEL_PAYOUT_CLIENT_SECRET'),
+            'merchant_account' => env('HUBTEL_PAYOUT_MERCHANT_ACCOUNT'),
+            'callback_url'     => env('HUBTEL_PAYOUT_CALLBACK_URL'),
         ],
     ],
 ];

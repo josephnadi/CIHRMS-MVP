@@ -50,7 +50,7 @@ return [
     ],
 
     'hubtel' => [
-        'webhook_secret' => env('HUBTEL_WEBHOOK_SECRET'),
+        'webhook_secret' => env('HUBTEL_PAYOUT_WEBHOOK_SECRET'),
     ],
 
 ];
