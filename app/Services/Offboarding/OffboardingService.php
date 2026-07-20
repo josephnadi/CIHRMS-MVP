@@ -66,6 +66,7 @@ class OffboardingService
         private readonly SettlementPostingService $settlementPosting,
         private readonly PostingService $posting,
         private readonly \App\Services\Disbursement\BatchDisbursementService $disbursements,
+        private readonly \App\Services\Disbursement\PayoutBatchService $payoutBatches,
     ) {}
 
     public function initiate(
@@ -278,7 +279,17 @@ class OffboardingService
             ]);
 
             if ($je !== null) {
-                $this->disbursements->createForSettlement($settlement->fresh());
+                $disbursement = $this->disbursements->createForSettlement($settlement->fresh());
+
+                // Wrap it into a PendingRelease batch — same as payroll, sending is
+                // a separate explicit release, never automatic on payment. Maker is
+                // the settlement's approver (set when the settlement was approved,
+                // which is a precondition for paySettlement — always populated here),
+                // falling back to the payer as a last resort.
+                if ($disbursement !== null) {
+                    $makerId = (int) ($settlement->approved_by ?? $payer->id);
+                    $this->payoutBatches->createForSettlement($settlement->fresh(), $makerId);
+                }
             }
 
             return $settlement->fresh();
