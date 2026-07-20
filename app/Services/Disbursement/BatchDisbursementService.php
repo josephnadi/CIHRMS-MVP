@@ -195,6 +195,24 @@ class BatchDisbursementService
         return $result->status === DisbursementStatus::Failed ? 'failed' : 'sent';
     }
 
+    /** Apply a provider/webhook result to a disbursement (status + settlement GL). */
+    public function applyResult(Disbursement $d, DisbursementResult $result): void
+    {
+        DB::transaction(function () use ($d, $result) {
+            $d->update([
+                'status'            => $result->status->value,
+                'provider_response' => $result->raw,
+                'settled_at'        => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
+                'failed_at'         => $result->status === DisbursementStatus::Failed ? now() : $d->failed_at,
+                'failure_reason'    => $result->failureReason,
+            ]);
+
+            if ($result->status === DisbursementStatus::Settled) {
+                $this->settle($d);
+            }
+        });
+    }
+
     /** Reconciliation — poll provider for status of any Sent disbursement older than 5 minutes. */
     public function reconcile(PayrollRun $run): int
     {

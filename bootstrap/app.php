@@ -64,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'        => \App\Http\Middleware\EnsurePermission::class,
             'webhook.signature' => \App\Http\Middleware\VerifyWebhookSignature::class,
             'paystack.signature' => \App\Http\Middleware\VerifyPaystackSignature::class,
+            'hubtel.signature'  => \App\Http\Middleware\VerifyHubtelSignature::class,
             '2fa'               => \App\Http\Middleware\RequireTwoFactor::class,
             'api.scope'         => \App\Http\Middleware\RequireApiScope::class,
         ]);
