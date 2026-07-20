@@ -18,7 +18,7 @@ const perms = computed(() => {
     const p = page.props?.auth?.permissions ?? [];
     return Array.isArray(p) ? p : (typeof p === 'function' ? p() : []);
 });
-const canRelease = computed(() => perms.value.includes('payouts.release'));
+const canRelease = computed(() => perms.value.includes('*') || perms.value.includes('payouts.release'));
 const canReleaseThisBatch = computed(() => canRelease.value && props.batch.status === 'pending_release');
 
 const money = (v, currency = props.batch.currency) =>

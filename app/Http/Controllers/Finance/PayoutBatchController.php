@@ -34,11 +34,20 @@ class PayoutBatchController extends Controller
             'batch'        => new PayoutBatchResource($payout),
             'rows'         => $payout->disbursements->map(fn ($d) => [
                 'id' => $d->id, 'beneficiary_name' => $d->beneficiary_name,
-                'beneficiary_account' => $d->beneficiary_account,
+                'beneficiary_account' => $this->maskAccountNumber((string) $d->beneficiary_account),
                 'net_to_recipient' => $d->net_to_recipient, 'status' => $d->status->value,
                 'channel' => $d->channel->value, 'failure_reason' => $d->failure_reason,
             ]),
         ]);
+    }
+
+    // Payout reviewers verify by name + amount, not the full account number —
+    // mirrors the masking convention in OrgBankAccountResource (last 4 digits
+    // visible, rest redacted) so beneficiary bank account PII isn't shipped
+    // to the client unmasked.
+    private function maskAccountNumber(string $accountNumber): string
+    {
+        return str_repeat('•', max(4, strlen($accountNumber) - 4)) . substr($accountNumber, -4);
     }
 
     public function release(Request $request, PayoutBatch $payout, PayoutReleaseService $releaser): RedirectResponse

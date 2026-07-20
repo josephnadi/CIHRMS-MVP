@@ -134,6 +134,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // segregation-of-duties violation, not a server fault — surface it as
         // a 403 rather than letting it bubble to a 500.
         $exceptions->render(function (\App\Exceptions\Finance\PayoutAuthorizationException $e) {
-            abort(403, $e->getMessage());
+            return response($e->getMessage(), 403);
         });
     })->create();
