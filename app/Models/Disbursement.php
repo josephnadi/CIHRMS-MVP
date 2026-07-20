@@ -21,6 +21,7 @@ class Disbursement extends Model
         'beneficiary_account', 'beneficiary_name',
         'provider_reference', 'provider_response',
         'sent_at', 'settled_at', 'failed_at', 'failure_reason', 'retry_count',
+        'payout_batch_id',
     ];
 
     protected function casts(): array
