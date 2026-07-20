@@ -81,3 +81,32 @@ it('is a no-op when the batch is already released', function () {
     $again = app(PayoutReleaseService::class)->release($batch->fresh(), $releaser);
     expect($again)->toBe(['sent' => 0, 'failed' => 0, 'skipped' => 0]);
 });
+
+it('atomically claims the release so a concurrent second call cannot double-send', function () {
+    $maker       = releaser([]);
+    $releaser    = releaser(['payouts.release']);
+    $secondActor = releaser(['payouts.release']);
+    $batch       = pendingBatch($maker);
+
+    // Simulate the winner of a race: first call flips PendingRelease -> Released
+    // and dispatches the disbursements exactly once.
+    $first = app(PayoutReleaseService::class)->release($batch, $releaser);
+    expect($first['sent'] + $first['skipped'])->toBe(2);
+
+    $freshAfterFirst = $batch->fresh();
+    expect($freshAfterFirst->status)->toBe(PayoutBatchStatus::Released)
+        ->and($freshAfterFirst->released_by)->toBe($releaser->id);
+
+    // A second, differently-authorized, non-maker caller racing in after the
+    // claim has already succeeded must lose the atomic claim: the conditional
+    // UPDATE's WHERE status=PendingRelease now matches zero rows, so it must
+    // return all-zero totals and must not touch the batch or re-dispatch.
+    $second = app(PayoutReleaseService::class)->release($batch->fresh(), $secondActor);
+
+    expect($second)->toBe(['sent' => 0, 'failed' => 0, 'skipped' => 0]);
+
+    $freshAfterSecond = $batch->fresh();
+    expect($freshAfterSecond->status)->toBe(PayoutBatchStatus::Released)
+        ->and($freshAfterSecond->released_by)->toBe($releaser->id) // unchanged - not overwritten by second actor
+        ->and($freshAfterSecond->released_at->equalTo($freshAfterFirst->released_at))->toBeTrue();
+});

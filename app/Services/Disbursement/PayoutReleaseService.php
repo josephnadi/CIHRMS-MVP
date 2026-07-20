@@ -10,7 +10,6 @@ use App\Exceptions\Finance\PayoutAuthorizationException;
 use App\Models\Disbursement;
 use App\Models\PayoutBatch;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class PayoutReleaseService
 {
@@ -35,14 +34,23 @@ class PayoutReleaseService
             throw new PayoutAuthorizationException('The maker of a batch cannot release it (segregation of duties).');
         }
 
-        DB::transaction(function () use ($batch, $releaser) {
-            $batch->update([
+        // Atomic claim: the WHERE clause on status means only one concurrent
+        // caller can flip PendingRelease -> Released. A racing second caller's
+        // UPDATE affects 0 rows and loses the race, preventing a double-dispatch
+        // of the same disbursements (double-send of real money).
+        $claimed = PayoutBatch::whereKey($batch->id)
+            ->where('status', PayoutBatchStatus::PendingRelease->value)
+            ->update([
                 'status'      => PayoutBatchStatus::Released->value,
                 'released_by' => $releaser->id,
                 'approved_by' => $releaser->id,
                 'released_at' => now(),
             ]);
-        });
+
+        if ($claimed === 0) {
+            // Lost the race - another release() call already claimed this batch.
+            return ['sent' => 0, 'failed' => 0, 'skipped' => 0];
+        }
 
         $totals = ['sent' => 0, 'failed' => 0, 'skipped' => 0];
         foreach ($batch->disbursements()->where('status', DisbursementStatus::Pending->value)->get() as $d) {
