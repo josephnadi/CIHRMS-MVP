@@ -2,15 +2,19 @@
 
 use App\Enums\DisbursementChannel;
 use App\Enums\DisbursementStatus;
+use App\Enums\PayoutBatchStatus;
 use App\Models\Department;
 use App\Models\Disbursement;
 use App\Models\Employee;
+use App\Models\PayoutBatch;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
 use App\Services\Disbursement\BatchDisbursementService;
 use App\Services\Disbursement\Contracts\DisbursementProvider;
 use App\Services\Disbursement\DisbursementResult;
+use App\Services\Disbursement\Providers\HubtelBankProvider;
 use App\Services\Finance\PostingService;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->dept = Department::factory()->create();
@@ -130,4 +134,77 @@ it('dispatch() skips channels without a registered provider (e.g. cash)', functi
     $result = $svc->dispatch($this->run);
     expect($result['skipped'])->toBe(1);
     expect($result['sent'])->toBe(0);
+});
+
+// --- C-1: dispatchOne() must refuse to send a batched row until its
+// PayoutBatch has been Released — otherwise the legacy dispatchRun/dispatchPayout
+// endpoints could bypass maker-checker entirely for a single hubtel_bank row. ---
+
+function hubtelBankService(): BatchDisbursementService
+{
+    $provider = new HubtelBankProvider(
+        baseUrl: 'https://payout.hubtel.test',
+        clientId: 'cid',
+        clientSecret: 'secret',
+        merchantAccount: '12345',
+        callbackUrl: 'https://app.test/webhooks/hubtel',
+        timeoutSeconds: 5,
+    );
+
+    return new BatchDisbursementService(
+        [DisbursementChannel::HubtelBank->value => $provider],
+        app(PostingService::class),
+    );
+}
+
+function hubtelBankDisbursement(array $overrides = []): Disbursement
+{
+    return Disbursement::factory()->create(array_merge([
+        'channel'             => DisbursementChannel::HubtelBank->value,
+        'status'              => DisbursementStatus::Pending->value,
+        'net_to_recipient'    => 1500.00,
+        'beneficiary_account' => '0551234567',
+        'beneficiary_name'    => 'Ama Mensah',
+    ], $overrides));
+}
+
+it('C-1: refuses to send a hubtel_bank row still sitting in a non-Released batch', function () {
+    Http::fake(['*' => Http::response(['Data' => ['TransactionId' => 'HUB-TX-GUARD']], 200)]);
+
+    $batch = PayoutBatch::factory()->create(['status' => PayoutBatchStatus::PendingRelease->value]);
+    $d     = hubtelBankDisbursement(['payout_batch_id' => $batch->id]);
+
+    $result = hubtelBankService()->dispatchOne($d);
+
+    expect($result)->toBe('skipped')
+        ->and($d->fresh()->status)->toBe(DisbursementStatus::Pending);
+    Http::assertNothingSent();
+});
+
+it('C-1: sends the same row once its batch has been Released', function () {
+    Http::fake(['*' => Http::response(['Data' => ['TransactionId' => 'HUB-TX-GUARD-2']], 200)]);
+
+    $batch = PayoutBatch::factory()->create(['status' => PayoutBatchStatus::PendingRelease->value]);
+    $d     = hubtelBankDisbursement(['payout_batch_id' => $batch->id]);
+
+    $batch->update(['status' => PayoutBatchStatus::Released->value]);
+
+    $result = hubtelBankService()->dispatchOne($d);
+
+    expect($result)->toBe('sent')
+        ->and($d->fresh()->status)->toBe(DisbursementStatus::Sent)
+        ->and($d->fresh()->provider_reference)->toBe('HUB-TX-GUARD-2');
+    Http::assertSent(fn ($req) => str_contains($req->url(), '/send'));
+});
+
+it('C-1: a disbursement with no payout_batch_id still dispatches as before (guard is a no-op)', function () {
+    Http::fake(['*' => Http::response(['Data' => ['TransactionId' => 'HUB-TX-GUARD-3']], 200)]);
+
+    $d = hubtelBankDisbursement(['payout_batch_id' => null]);
+
+    $result = hubtelBankService()->dispatchOne($d);
+
+    expect($result)->toBe('sent')
+        ->and($d->fresh()->status)->toBe(DisbursementStatus::Sent);
+    Http::assertSent(fn ($req) => str_contains($req->url(), '/send'));
 });

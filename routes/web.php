@@ -135,6 +135,11 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/paystack', [\App\Http\Controllers\Finance\PaystackWebhookController::class, 'handle'])
         ->middleware(['paystack.signature', 'throttle:120,1'])
         ->name('paystack');
+
+    // Hubtel bank-payout webhook (HMAC-SHA256 signed)
+    Route::post('/hubtel', [\App\Http\Controllers\Finance\HubtelWebhookController::class, 'handle'])
+        ->middleware(['hubtel.signature', 'throttle:120,1'])
+        ->name('hubtel');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -1219,6 +1224,19 @@ Route::middleware(['auth'])->group(function () {
             Route::middleware(['permission:reconciliation.adjust', '2fa:fresh'])->group(function () {
                 Route::post('/lines/{line}/adjust',      [\App\Http\Controllers\Finance\ReconciliationController::class, 'adjust'])->name('adjust');
             });
+        });
+
+        // Hubtel Payouts UI — list/detail + maker-checker release. Index/show
+        // are gated on payouts.initiate (maker visibility); release is gated
+        // separately on payouts.release so a maker without that permission
+        // never even reaches PayoutReleaseService's segregation-of-duties
+        // guard (which additionally blocks maker === checker at runtime).
+        Route::middleware('permission:payouts.initiate')->group(function () {
+            Route::get('payouts',            [\App\Http\Controllers\Finance\PayoutBatchController::class, 'index'])->name('payouts.index');
+            Route::get('payouts/{payout}',   [\App\Http\Controllers\Finance\PayoutBatchController::class, 'show'])->name('payouts.show');
+        });
+        Route::middleware('permission:payouts.release')->group(function () {
+            Route::post('payouts/{payout}/release', [\App\Http\Controllers\Finance\PayoutBatchController::class, 'release'])->name('payouts.release');
         });
     });
 });

@@ -242,6 +242,11 @@ class RolePermissionSeeder extends Seeder
         'fee_catalog.manage'  => ['Billing', 'Manage fee products in the catalog'],
         'billing.run'         => ['Billing', 'Execute billing runs (mint AR invoices from fee assignments)'],
         'billing.cancel'      => ['Billing', 'Cancel a pending fee assignment'],
+
+        // ── Hubtel Payouts: maker-checker + threshold release ──
+        'payouts.initiate'     => ['Finance', 'Create / initiate a payout batch'],
+        'payouts.release'      => ['Finance', 'Release a payout batch for disbursement (checker)'],
+        'payouts.release_high' => ['Finance', 'Release a payout batch above the high-value approval threshold'],
     ];
 
     /**
@@ -381,6 +386,10 @@ class RolePermissionSeeder extends Seeder
             'broadcasts.view', 'broadcasts.manage',
             // Auditors — invoice vetting + hub
             'incoming_invoices.view', 'incoming_invoices.submit', 'incoming_invoices.post',
+            // Hubtel Payouts — maker + checker (release_high is reserved for
+            // the ceo/super_admin wildcard; no distinct finance-manager role
+            // exists yet).
+            'payouts.initiate', 'payouts.release',
         ],
         'it_support' => [
             'dashboard.view',

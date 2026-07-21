@@ -55,8 +55,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // directly to our endpoint, so it has no way to include a Laravel
         // CSRF token. Signature verification (via onelogin/php-saml in
         // SamlSsoAdapter) is what protects this route instead.
+        //
+        // Same reasoning for `webhooks/*`: these are public endpoints hit by
+        // external providers (Hubtel, Paystack, ...) that cannot obtain a
+        // Laravel CSRF token, and each is already signature-verified by its
+        // own provider-specific middleware — CSRF is the wrong control here,
+        // and without this exception a real webhook POST is rejected 419
+        // before that signature middleware ever runs.
         $middleware->validateCsrfTokens(except: [
             'auth/sso/*/callback',
+            'webhooks/*',
         ]);
 
         $middleware->alias([
@@ -64,6 +72,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'        => \App\Http\Middleware\EnsurePermission::class,
             'webhook.signature' => \App\Http\Middleware\VerifyWebhookSignature::class,
             'paystack.signature' => \App\Http\Middleware\VerifyPaystackSignature::class,
+            'hubtel.signature'  => \App\Http\Middleware\VerifyHubtelSignature::class,
             '2fa'               => \App\Http\Middleware\RequireTwoFactor::class,
             'api.scope'         => \App\Http\Middleware\RequireApiScope::class,
         ]);
@@ -118,5 +127,13 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return back()->with('error', $e->getMessage());
+        });
+
+        // A payout release guard failure (wrong role, maker == checker, batch
+        // over the high-value threshold without the elevated permission) is a
+        // segregation-of-duties violation, not a server fault — surface it as
+        // a 403 rather than letting it bubble to a 500.
+        $exceptions->render(function (\App\Exceptions\Finance\PayoutAuthorizationException $e) {
+            return response($e->getMessage(), 403);
         });
     })->create();

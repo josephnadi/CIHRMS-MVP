@@ -6,8 +6,10 @@ use App\Enums\DisbursementChannel;
 use App\Enums\DisbursementStatus;
 use App\Enums\JournalSourceType;
 use App\Enums\OrgBankAccountPurpose;
+use App\Enums\PayoutBatchStatus;
 use App\Models\Disbursement;
 use App\Models\OrgBankAccount;
+use App\Models\PayoutBatch;
 use App\Models\PayrollLine;
 use App\Models\PayrollRun;
 use App\Models\StatutoryRate;
@@ -169,6 +171,24 @@ class BatchDisbursementService
     /** Send one pending disbursement to its provider. Returns 'sent'|'failed'|'skipped'. */
     public function dispatchOne(Disbursement $d): string
     {
+        // Maker-checker guard: a disbursement that belongs to a PayoutBatch may
+        // only be sent once that batch has been Released by an authorized
+        // checker (see PayoutReleaseService::release, which flips the batch to
+        // Released BEFORE calling this method). Legacy call sites — e.g.
+        // DisbursementController::dispatchRun and
+        // OffboardingController::dispatchPayout — must not be able to bypass
+        // maker-checker by dispatching a batched row directly, so any row still
+        // sitting in a non-Released batch is refused here with no provider
+        // call and no status change. Rows with no batch (payout_batch_id null)
+        // are untouched by this guard — backward compatible with legacy/factory
+        // rows created before batching existed.
+        if ($d->payout_batch_id !== null) {
+            $payoutBatch = PayoutBatch::find($d->payout_batch_id);
+            if ($payoutBatch === null || $payoutBatch->status !== PayoutBatchStatus::Released) {
+                return 'skipped';
+            }
+        }
+
         $provider = $this->providers[$d->channel->value] ?? null;
         if (! $provider) {
             return 'skipped'; // e.g. cash/cheque — handled manually
@@ -193,6 +213,24 @@ class BatchDisbursementService
         });
 
         return $result->status === DisbursementStatus::Failed ? 'failed' : 'sent';
+    }
+
+    /** Apply a provider/webhook result to a disbursement (status + settlement GL). */
+    public function applyResult(Disbursement $d, DisbursementResult $result): void
+    {
+        DB::transaction(function () use ($d, $result) {
+            $d->update([
+                'status'            => $result->status->value,
+                'provider_response' => $result->raw,
+                'settled_at'        => $result->status === DisbursementStatus::Settled ? now() : $d->settled_at,
+                'failed_at'         => $result->status === DisbursementStatus::Failed ? now() : $d->failed_at,
+                'failure_reason'    => $result->failureReason,
+            ]);
+
+            if ($result->status === DisbursementStatus::Settled) {
+                $this->settle($d);
+            }
+        });
     }
 
     /** Reconciliation — poll provider for status of any Sent disbursement older than 5 minutes. */

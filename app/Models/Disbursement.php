@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Enums\DisbursementChannel;
 use App\Enums\DisbursementStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Disbursement extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'payroll_run_id', 'payroll_line_id', 'employee_id', 'final_settlement_id',
@@ -20,6 +21,7 @@ class Disbursement extends Model
         'beneficiary_account', 'beneficiary_name',
         'provider_reference', 'provider_response',
         'sent_at', 'settled_at', 'failed_at', 'failure_reason', 'retry_count',
+        'payout_batch_id',
     ];
 
     protected function casts(): array
@@ -56,6 +58,11 @@ class Disbursement extends Model
     public function finalSettlement(): BelongsTo
     {
         return $this->belongsTo(FinalSettlement::class, 'final_settlement_id');
+    }
+
+    public function payoutBatch(): BelongsTo
+    {
+        return $this->belongsTo(PayoutBatch::class);
     }
 
     public function scopePending(Builder $q): Builder

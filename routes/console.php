@@ -91,3 +91,9 @@ Schedule::command('sync:website-collections')->dailyAt('01:30')->withoutOverlapp
 // Runs on the 1st; recognizeForMonth is cumulative (<= month) + idempotent, so it
 // also sweeps up any stragglers from a missed run.
 Schedule::command('finance:recognize-revenue')->monthlyOn(1, '02:00')->withoutOverlapping();
+
+// Hubtel payouts — fallback poll for Sent bank-transfer disbursements the
+// webhook hasn't settled yet (network blip, dropped callback, etc). The
+// webhook is the primary path; this just prevents a stuck Sent row from
+// sitting unresolved indefinitely.
+Schedule::command('payouts:refresh-hubtel')->everyFifteenMinutes()->withoutOverlapping();

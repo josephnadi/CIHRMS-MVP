@@ -115,7 +115,7 @@ const navSections = computed(() => {
                     { label: 'Benefits',     route: 'benefits.index',       module: 'benefits',    icon: 'diversity_3',    visible: can('benefits.view') || can('benefits.view_all') },
                     {
                         label: 'Finance', icon: 'account_balance', expandable: true,
-                        visible: can('finance.hub') || can('accounts.view') || can('bank_accounts.view') || can('vendors.view') || can('ap_invoices.view') || can('journal.view') || can('customers.view') || can('ar_invoices.view') || can('statements.view') || can('gateway.view') || can('reconciliation.view'),
+                        visible: can('finance.hub') || can('accounts.view') || can('bank_accounts.view') || can('vendors.view') || can('ap_invoices.view') || can('journal.view') || can('customers.view') || can('ar_invoices.view') || can('statements.view') || can('gateway.view') || can('reconciliation.view') || can('payouts.initiate'),
                         children: [
                             { label: 'Hub',            route: 'finance.hub',                     module: 'finance',                  icon: 'account_balance',         visible: can('finance.hub') },
                             { label: 'Chart of Accounts', route: 'finance.accounts.index',       module: 'finance-accounts',         icon: 'account_tree',            visible: can('accounts.view') },
@@ -123,6 +123,7 @@ const navSections = computed(() => {
                             { label: 'Vendors',        route: 'finance.vendors.index',           module: 'finance-vendors',          icon: 'store',                   visible: can('vendors.view') },
                             { label: 'AP Invoices',    route: 'finance.ap-invoices.index',       module: 'finance-ap-invoices',      icon: 'receipt_long',            visible: can('ap_invoices.view') },
                             { label: 'AP Payments',    route: 'finance.ap-payments.index',       module: 'finance-ap-payments',      icon: 'payments',                visible: can('ap_invoices.view') },
+                            { label: 'Payouts',        route: 'finance.payouts.index',           module: 'finance-payouts',          icon: 'send_money',              visible: can('payouts.initiate') },
                             { label: 'Customers',      route: 'finance.customers.index',         module: 'finance-customers',        icon: 'storefront',              visible: can('customers.view') },
                             { label: 'AR Invoices',    route: 'finance.ar-invoices.index',       module: 'finance-ar-invoices',      icon: 'request_quote',           visible: can('ar_invoices.view') },
                             { label: 'AR Receipts',    route: 'finance.ar-receipts.index',       module: 'finance-ar-receipts',      icon: 'savings',                 visible: can('ar_invoices.view') },
@@ -311,7 +312,7 @@ const navSections = computed(() => {
     if (can('finance.hub') || can('accounts.view') || can('bank_accounts.view') ||
         can('vendors.view') || can('ap_invoices.view') || can('journal.view') ||
         can('customers.view') || can('ar_invoices.view') || can('statements.view') ||
-        can('gateway.view') || can('reconciliation.view')) {
+        can('gateway.view') || can('reconciliation.view') || can('payouts.initiate')) {
         sections.push({
             title: 'Finance',
             items: [
@@ -321,6 +322,7 @@ const navSections = computed(() => {
                 { label: 'Vendors',        route: 'finance.vendors.index',     module: 'finance-vendors',     icon: 'store',          visible: can('vendors.view') },
                 { label: 'AP Invoices',    route: 'finance.ap-invoices.index', module: 'finance-ap-invoices', icon: 'receipt_long',   visible: can('ap_invoices.view') },
                 { label: 'AP Payments',    route: 'finance.ap-payments.index', module: 'finance-ap-payments', icon: 'payments',       visible: can('ap_invoices.view') },
+                { label: 'Payouts',        route: 'finance.payouts.index',     module: 'finance-payouts',     icon: 'send_money',     visible: can('payouts.initiate') },
                 { label: 'Customers',      route: 'finance.customers.index',   module: 'finance-customers',   icon: 'storefront',     visible: can('customers.view') },
                 { label: 'AR Invoices',    route: 'finance.ar-invoices.index', module: 'finance-ar-invoices', icon: 'request_quote',  visible: can('ar_invoices.view') },
                 { label: 'AR Receipts',    route: 'finance.ar-receipts.index', module: 'finance-ar-receipts', icon: 'savings',        visible: can('ar_invoices.view') },

@@ -169,6 +169,10 @@ class User extends Authenticatable
             'reconciliation.view', 'reconciliation.import', 'reconciliation.match', 'reconciliation.adjust',
             // Auditors — invoice vetting + hub
             'incoming_invoices.view', 'incoming_invoices.submit', 'incoming_invoices.post',
+            // Hubtel Payouts — maker + checker (release_high is reserved for
+            // the ceo/super_admin wildcard; no distinct finance-manager role
+            // exists yet).
+            'payouts.initiate', 'payouts.release',
         ],
         'it_support' => [
             'dashboard.view',
